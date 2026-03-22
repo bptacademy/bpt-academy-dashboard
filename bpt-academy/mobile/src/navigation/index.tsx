@@ -17,6 +17,7 @@ import ProgressScreen from '../screens/student/ProgressScreen';
 import VideosScreen from '../screens/student/VideosScreen';
 import MessagesScreen from '../screens/student/MessagesScreen';
 import ProfileScreen from '../screens/student/ProfileScreen';
+import VideoPlayerScreen from '../screens/student/VideoPlayerScreen';
 
 // Coach / Admin screens
 import CoachHomeScreen from '../screens/coach/CoachHomeScreen';
@@ -105,6 +106,7 @@ function AppStack() {
       <Stack.Screen name="ManageStudents" component={ManageStudentsScreen} options={{ headerShown: true, title: 'Students' }} />
       <Stack.Screen name="SendAnnouncement" component={SendAnnouncementScreen} options={{ headerShown: true, title: 'Announce' }} />
       <Stack.Screen name="UploadVideo" component={UploadVideoScreen} options={{ headerShown: true, title: 'Upload Video' }} />
+      <Stack.Screen name="VideoPlayer" component={VideoPlayerScreen} options={{ headerShown: true, title: '' }} />
     </Stack.Navigator>
   );
 }
