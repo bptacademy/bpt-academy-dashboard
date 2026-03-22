@@ -39,20 +39,20 @@ export default function CoachHomeScreen({ navigation }: any) {
         </View>
       </View>
 
-      {/* Stats */}
+      {/* Stats — tappable */}
       <View style={styles.statsRow}>
-        <View style={styles.statCard}>
+        <TouchableOpacity style={styles.statCard} onPress={() => navigation.navigate('Students')}>
           <Text style={styles.statNumber}>{stats.students}</Text>
           <Text style={styles.statLabel}>Students</Text>
-        </View>
-        <View style={styles.statCard}>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.statCard} onPress={() => navigation.navigate('Manage')}>
           <Text style={styles.statNumber}>{stats.programs}</Text>
           <Text style={styles.statLabel}>Programs</Text>
-        </View>
-        <View style={styles.statCard}>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.statCard} onPress={() => navigation.navigate('Videos')}>
           <Text style={styles.statNumber}>{stats.videos}</Text>
           <Text style={styles.statLabel}>Videos</Text>
-        </View>
+        </TouchableOpacity>
       </View>
 
       {/* Quick actions */}

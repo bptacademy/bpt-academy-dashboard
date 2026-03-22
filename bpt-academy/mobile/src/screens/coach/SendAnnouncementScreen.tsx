@@ -16,14 +16,14 @@ export default function SendAnnouncementScreen({ navigation }: any) {
     if (!title) { Alert.alert('Error', 'Please add a title'); return; }
     setSending(true);
 
-    // Fetch all student IDs
+    // Fetch all non-admin profiles
     const { data: students } = await supabase
       .from('profiles')
       .select('id')
-      .eq('role', 'student');
+      .neq('id', profile!.id);
 
     if (!students?.length) {
-      Alert.alert('No students', 'There are no students to notify.');
+      Alert.alert('No recipients', 'There are no users to notify yet.');
       setSending(false);
       return;
     }
