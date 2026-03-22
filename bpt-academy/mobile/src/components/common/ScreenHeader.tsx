@@ -78,12 +78,12 @@ export default function ScreenHeader({ title, dark = false }: Props) {
 const styles = StyleSheet.create({
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: 16, paddingTop: 52, paddingBottom: 14,
+    paddingHorizontal: 16, paddingTop: 52, paddingBottom: 10,
     backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#F3F4F6',
   },
   headerDark: { backgroundColor: '#111827', borderBottomColor: '#1F2937' },
-  logoBtn: { width: 44, height: 36, justifyContent: 'center' },
-  logo: { width: 44, height: 36 },
+  logoBtn: { width: 88, height: 72, justifyContent: 'center' },
+  logo: { width: 88, height: 72 },
   title: { flex: 1, fontSize: 17, fontWeight: '700', color: '#111827', textAlign: 'center', marginHorizontal: 8 },
   titleDark: { color: '#FFFFFF' },
   menuBtn: { width: 44, alignItems: 'flex-end' },
