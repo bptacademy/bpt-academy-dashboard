@@ -23,7 +23,7 @@ interface Props {
 type PaymentTab = 'bank_transfer' | 'card';
 
 export default function PaymentScreen({ navigation, route }: any) {
-  const { tournamentId, programId, enrollmentId, amount, registrationId } = route.params;
+  const { tournamentId, programId, enrollmentId, amount, registrationId, onPaymentComplete } = route.params;
   const { profile } = useAuth();
   const [tab, setTab] = useState<PaymentTab>('bank_transfer');
   const [loading, setLoading] = useState(false);
@@ -55,9 +55,13 @@ export default function PaymentScreen({ navigation, route }: any) {
     if (error) {
       Alert.alert('Error', error.message);
     } else {
+      // If a post-payment action was passed (e.g. enroll), run it first
+      if (onPaymentComplete) {
+        await onPaymentComplete();
+      }
       Alert.alert(
-        'Payment Submitted',
-        `Please transfer £${amount.toFixed(2)} using reference:\n\n${generatedRef}\n\nYour payment will be confirmed by our team within 1-2 business days.`,
+        '✅ Payment Submitted',
+        `Please transfer £${amount.toFixed(2)} using reference:\n\n${generatedRef}\n\nYour enrollment is confirmed and your payment will be verified by our team within 1–2 business days.`,
         [{ text: 'OK', onPress: () => navigation.goBack() }],
       );
     }

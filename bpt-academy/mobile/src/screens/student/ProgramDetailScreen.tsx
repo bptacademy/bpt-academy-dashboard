@@ -5,15 +5,11 @@ import {
 } from 'react-native';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
-import { Program, Module, StudentProgress, ProgramSession } from '../../types';
+import { Program, Module, StudentProgress, ProgramSession, Division, DIVISION_LABELS, DIVISION_COLORS } from '../../types';
 import BackHeader from '../../components/common/BackHeader';
 
-const LEVEL_COLORS: Record<string, string> = {
-  beginner: '#3B82F6',
-  intermediate: '#F59E0B',
-  advanced: '#EF4444',
-  competition: '#8B5CF6',
-};
+// Program price (you can move this to the DB later)
+const PROGRAM_PRICE_GBP = 49.99;
 
 export default function ProgramDetailScreen({ route, navigation }: any) {
   const { programId } = route.params;
@@ -22,19 +18,24 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
   const [modules, setModules] = useState<(Module & { progress?: StudentProgress })[]>([]);
   const [sessions, setSessions] = useState<ProgramSession[]>([]);
   const [enrolled, setEnrolled] = useState(false);
+  const [hasActiveEnrollment, setHasActiveEnrollment] = useState(false);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
   const fetchData = async () => {
-    const [progRes, modulesRes, sessionsRes, enrollRes] = await Promise.all([
+    const [progRes, modulesRes, sessionsRes, enrollRes, activeEnrollRes] = await Promise.all([
       supabase.from('programs').select('*').eq('id', programId).single(),
       supabase.from('modules').select('*').eq('program_id', programId).order('order_index'),
       supabase.from('program_sessions').select('*').eq('program_id', programId).order('scheduled_at'),
+      // Is this student enrolled in THIS program?
       supabase.from('enrollments').select('id').eq('student_id', profile!.id).eq('program_id', programId).single(),
+      // Does this student have ANY active enrollment (in any program)?
+      supabase.from('enrollments').select('id').eq('student_id', profile!.id).eq('status', 'active'),
     ]);
 
     if (progRes.data) setProgram(progRes.data);
     setEnrolled(!!enrollRes.data);
+    setHasActiveEnrollment((activeEnrollRes.data?.length ?? 0) > 0);
 
     if (modulesRes.data) {
       const { data: progressData } = await supabase
@@ -54,7 +55,8 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
   const onRefresh = async () => { setRefreshing(true); await fetchData(); setRefreshing(false); };
   useEffect(() => { fetchData(); }, [programId]);
 
-  const handleEnroll = async () => {
+  // Called by PaymentScreen after successful payment submission
+  const handleEnrollAfterPayment = async () => {
     const { error } = await supabase.from('enrollments').insert({
       student_id: profile!.id,
       program_id: programId,
@@ -62,7 +64,30 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
     });
     if (error) { Alert.alert('Error', error.message); return; }
     setEnrolled(true);
-    Alert.alert('Enrolled! 🎾', 'You are now enrolled in this program.');
+    Alert.alert('🎾 Enrolled!', 'You are now enrolled. Your payment is being confirmed by our team.');
+    fetchData();
+  };
+
+  const handleEnrollPress = () => {
+    // Block if already enrolled in another program
+    if (hasActiveEnrollment && !enrolled) {
+      Alert.alert(
+        'Active Program Running',
+        'You are already enrolled in an active program. You can only join a new one once your current program is complete.',
+        [{ text: 'OK' }],
+      );
+      return;
+    }
+
+    // Navigate to payment; pass a callback-style flag via params
+    navigation.navigate('Payment', {
+      programId,
+      amount: PROGRAM_PRICE_GBP,
+      onPaymentComplete: handleEnrollAfterPayment,
+      // Pass a screen to return to after payment
+      returnScreen: 'ProgramDetail',
+      returnParams: { programId },
+    });
   };
 
   const toggleModule = async (module: Module & { progress?: StudentProgress }) => {
@@ -87,6 +112,14 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
   const completedCount = modules.filter((m) => m.progress?.completed).length;
   const pct = modules.length > 0 ? Math.round((completedCount / modules.length) * 100) : 0;
 
+  // Build division badge label
+  const divisionKey = ((program as any)?.division ?? 'amateur') as Division;
+  const divisionColor = DIVISION_COLORS[divisionKey] ?? '#6B7280';
+  const divisionLabel = DIVISION_LABELS[divisionKey] ?? divisionKey;
+  const skillSub = program?.skill_level
+    ? ` · ${program.skill_level.charAt(0).toUpperCase() + program.skill_level.slice(1)}`
+    : '';
+
   if (loading) return (
     <View style={styles.loading}>
       <ActivityIndicator size="large" color="#16A34A" />
@@ -105,11 +138,12 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
     >
       <BackHeader title={program?.title ?? 'Program'} />
+
       {/* Hero */}
       <View style={styles.hero}>
-        <View style={[styles.levelBadge, { backgroundColor: (LEVEL_COLORS[program.skill_level] ?? '#6B7280') + '30' }]}>
-          <Text style={[styles.levelText, { color: LEVEL_COLORS[program.skill_level] ?? '#6B7280' }]}>
-            {program.skill_level.charAt(0).toUpperCase() + program.skill_level.slice(1)}
+        <View style={[styles.levelBadge, { backgroundColor: divisionColor + '30' }]}>
+          <Text style={[styles.levelText, { color: divisionColor }]}>
+            {divisionLabel}{skillSub}
           </Text>
         </View>
         <Text style={styles.title}>{program.title}</Text>
@@ -145,11 +179,27 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
           </View>
           <Text style={styles.progressSub}>{completedCount} of {modules.length} modules complete</Text>
         </View>
+      ) : hasActiveEnrollment ? (
+        // Already in another program
+        <View style={styles.blockedCard}>
+          <Text style={styles.blockedIcon}>🔒</Text>
+          <Text style={styles.blockedTitle}>Program Slot Unavailable</Text>
+          <Text style={styles.blockedText}>
+            You're already enrolled in an active program. Complete it before joining a new one.
+          </Text>
+        </View>
       ) : (
+        // Available to enroll — must pay first
         <View style={styles.enrollCard}>
-          <Text style={styles.enrollText}>You're not enrolled in this program yet.</Text>
-          <TouchableOpacity style={styles.enrollBtn} onPress={handleEnroll}>
-            <Text style={styles.enrollBtnText}>Enroll Now — It's Free</Text>
+          <View style={styles.priceRow}>
+            <Text style={styles.priceLabel}>Program Fee</Text>
+            <Text style={styles.priceValue}>£{PROGRAM_PRICE_GBP.toFixed(2)}</Text>
+          </View>
+          <Text style={styles.enrollText}>
+            Payment is required to confirm your enrollment. You'll be guided through the payment process first.
+          </Text>
+          <TouchableOpacity style={styles.enrollBtn} onPress={handleEnrollPress}>
+            <Text style={styles.enrollBtnText}>Pay & Enroll — £{PROGRAM_PRICE_GBP.toFixed(2)}</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -219,6 +269,7 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F9FAFB' },
   loading: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+
   hero: { backgroundColor: '#FFFFFF', padding: 24, borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
   levelBadge: { alignSelf: 'flex-start', paddingHorizontal: 12, paddingVertical: 5, borderRadius: 12, marginBottom: 10 },
   levelText: { fontSize: 13, fontWeight: '600' },
@@ -229,6 +280,8 @@ const styles = StyleSheet.create({
   metaValue: { fontSize: 20, fontWeight: '700', color: '#111827' },
   metaLabel: { fontSize: 12, color: '#9CA3AF', marginTop: 2 },
   metaDivider: { width: 1, height: 32, backgroundColor: '#E5E7EB' },
+
+  // Enrolled — progress
   progressCard: { margin: 16, backgroundColor: '#FFFFFF', borderRadius: 14, padding: 16, borderWidth: 1, borderColor: '#E5E7EB' },
   progressHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 },
   progressLabel: { fontSize: 15, fontWeight: '600', color: '#111827' },
@@ -236,10 +289,22 @@ const styles = StyleSheet.create({
   progressBar: { height: 8, backgroundColor: '#E5E7EB', borderRadius: 4, marginBottom: 6 },
   progressFill: { height: '100%', backgroundColor: '#16A34A', borderRadius: 4 },
   progressSub: { fontSize: 13, color: '#6B7280' },
-  enrollCard: { margin: 16, backgroundColor: '#ECFDF5', borderRadius: 14, padding: 20, alignItems: 'center', borderWidth: 1, borderColor: '#BBF7D0' },
-  enrollText: { fontSize: 14, color: '#374151', marginBottom: 14, textAlign: 'center' },
-  enrollBtn: { backgroundColor: '#16A34A', borderRadius: 10, paddingHorizontal: 24, paddingVertical: 12 },
+
+  // Blocked (already in another program)
+  blockedCard: { margin: 16, backgroundColor: '#FFF7ED', borderRadius: 14, padding: 24, alignItems: 'center', borderWidth: 1, borderColor: '#FED7AA' },
+  blockedIcon: { fontSize: 36, marginBottom: 10 },
+  blockedTitle: { fontSize: 16, fontWeight: '700', color: '#92400E', marginBottom: 6 },
+  blockedText: { fontSize: 13, color: '#78350F', textAlign: 'center', lineHeight: 20 },
+
+  // Enroll (payment required)
+  enrollCard: { margin: 16, backgroundColor: '#ECFDF5', borderRadius: 14, padding: 20, borderWidth: 1, borderColor: '#BBF7D0' },
+  priceRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
+  priceLabel: { fontSize: 14, color: '#374151', fontWeight: '600' },
+  priceValue: { fontSize: 22, fontWeight: '800', color: '#111827' },
+  enrollText: { fontSize: 13, color: '#374151', marginBottom: 16, lineHeight: 20 },
+  enrollBtn: { backgroundColor: '#16A34A', borderRadius: 10, paddingHorizontal: 24, paddingVertical: 14, alignItems: 'center' },
   enrollBtnText: { color: '#FFFFFF', fontWeight: '700', fontSize: 15 },
+
   section: { padding: 16 },
   sectionTitle: { fontSize: 17, fontWeight: '700', color: '#111827', marginBottom: 12 },
   moduleCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', borderRadius: 12, padding: 14, marginBottom: 10, borderWidth: 1, borderColor: '#E5E7EB', gap: 14 },
