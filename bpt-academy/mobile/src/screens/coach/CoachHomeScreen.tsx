@@ -2,6 +2,17 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, RefreshControl } from 'react-native';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
+import ScreenHeader from '../../components/common/ScreenHeader';
+
+const MENU = [
+  { icon: '📊', label: 'Dashboard', screen: 'Dashboard' },
+  { icon: '📋', label: 'Programs',  screen: 'Manage' },
+  { icon: '🎬', label: 'Videos',    screen: 'Videos' },
+  { icon: '👥', label: 'Students',  screen: 'Students' },
+  { icon: '💬', label: 'Messages',  screen: 'Messages' },
+  { icon: '🔔', label: 'Announce',  screen: 'Announce' },
+  { icon: '👤', label: 'Profile',   screen: 'Profile' },
+];
 
 export default function CoachHomeScreen({ navigation }: any) {
   const { profile } = useAuth();
@@ -29,6 +40,7 @@ export default function CoachHomeScreen({ navigation }: any) {
       style={styles.container}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
     >
+      <ScreenHeader title="BPT Academy 🎾" menuItems={MENU} dark />
       <View style={styles.header}>
         <View>
           <Text style={styles.greeting}>Admin Dashboard 👋</Text>
@@ -84,7 +96,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F9FAFB' },
   header: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    padding: 24, paddingTop: 48, backgroundColor: '#111827',
+    padding: 24, backgroundColor: '#111827',
   },
   greeting: { fontSize: 14, color: '#9CA3AF' },
   name: { fontSize: 22, fontWeight: '700', color: '#FFFFFF' },

@@ -6,6 +6,16 @@ import {
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { Enrollment, Notification } from '../../types';
+import ScreenHeader from '../../components/common/ScreenHeader';
+
+const MENU = [
+  { icon: '🏠', label: 'Home',     screen: 'Home' },
+  { icon: '📚', label: 'Programs', screen: 'Programs' },
+  { icon: '🎬', label: 'Videos',   screen: 'Videos' },
+  { icon: '📈', label: 'Progress', screen: 'Progress' },
+  { icon: '💬', label: 'Messages', screen: 'Messages' },
+  { icon: '👤', label: 'Profile',  screen: 'Profile' },
+];
 
 export default function HomeScreen({ navigation }: any) {
   const { profile, signOut } = useAuth();
@@ -56,7 +66,9 @@ export default function HomeScreen({ navigation }: any) {
       style={styles.container}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
     >
-      {/* Header */}
+      <ScreenHeader title="BPT Academy 🎾" menuItems={MENU} />
+
+      {/* Welcome strip */}
       <View style={styles.header}>
         <View>
           <Text style={styles.greeting}>Good morning 👋</Text>
@@ -152,7 +164,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F9FAFB' },
   header: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    padding: 24, paddingTop: 48, backgroundColor: '#FFFFFF',
+    padding: 24, backgroundColor: '#FFFFFF',
     borderBottomWidth: 1, borderBottomColor: '#F3F4F6',
   },
   greeting: { fontSize: 14, color: '#6B7280' },
