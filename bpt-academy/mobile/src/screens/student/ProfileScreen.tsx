@@ -8,16 +8,16 @@ import * as ImagePicker from 'expo-image-picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
-import { SkillLevel } from '../../types';
+import { SkillLevel, Division, DIVISION_LABELS, DIVISION_COLORS } from '../../types';
 import ScreenHeader from '../../components/common/ScreenHeader';
 
-const SKILL_LEVELS: SkillLevel[] = ['beginner', 'intermediate', 'advanced', 'competition'];
+const SKILL_LEVELS: SkillLevel[] = ['beginner', 'intermediate', 'advanced'];
 const SKILL_COLORS: Record<SkillLevel, string> = {
   beginner: '#3B82F6',
   intermediate: '#F59E0B',
   advanced: '#EF4444',
-  competition: '#8B5CF6',
 };
+const DIVISIONS: Division[] = ['amateur', 'semi_pro', 'pro'];
 
 export default function ProfileScreen() {
   const { profile, signOut, previewRole, setPreviewRole, effectiveRole, refreshProfile } = useAuth();
@@ -49,6 +49,8 @@ export default function ProfileScreen() {
     phone: profile?.phone ?? '',
     emergency_contact: profile?.emergency_contact ?? '',
     skill_level: (profile?.skill_level ?? 'beginner') as SkillLevel,
+    division: (profile?.division ?? 'amateur') as Division,
+
   });
 
   // Format Date → display string
@@ -129,7 +131,8 @@ export default function ProfileScreen() {
       phone: form.phone.trim() || null,
       date_of_birth: formatDobIso(dobDate),
       emergency_contact: form.emergency_contact.trim() || null,
-      skill_level: isStudent ? form.skill_level : profile?.skill_level,
+      division: form.division,
+      skill_level: form.division === 'amateur' ? form.skill_level : null,
     }).eq('id', profile!.id);
     setSaving(false);
     if (error) { Alert.alert('Error', error.message); return; }
@@ -194,10 +197,13 @@ export default function ProfileScreen() {
 
           <Text style={styles.name}>{profile?.full_name}</Text>
           <Text style={styles.role}>{profile?.role?.charAt(0).toUpperCase()}{profile?.role?.slice(1)}</Text>
-          {profile?.skill_level && (
-            <View style={[styles.skillBadge, { backgroundColor: SKILL_COLORS[profile.skill_level] + '25' }]}>
-              <Text style={[styles.skillBadgeText, { color: SKILL_COLORS[profile.skill_level] }]}>
-                {profile.skill_level.charAt(0).toUpperCase() + profile.skill_level.slice(1)}
+          {profile?.division && (
+            <View style={[styles.skillBadge, { backgroundColor: DIVISION_COLORS[profile.division] + '25' }]}>
+              <Text style={[styles.skillBadgeText, { color: DIVISION_COLORS[profile.division] }]}>
+                {DIVISION_LABELS[profile.division]}
+                {profile.division === 'amateur' && profile?.skill_level
+                  ? ` · ${profile.skill_level.charAt(0).toUpperCase() + profile.skill_level.slice(1)}`
+                  : ''}
               </Text>
             </View>
           )}
@@ -250,30 +256,57 @@ export default function ProfileScreen() {
           </View>
         </View>
 
-        {/* Skill level — students only */}
-        {isStudent && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Skill Level</Text>
-            <View style={styles.skillGrid}>
-              {SKILL_LEVELS.map((level) => (
+        {/* Division + Skill Level */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Division</Text>
+          <View style={styles.skillGrid}>
+            {DIVISIONS.map((div) => {
+              const color = DIVISION_COLORS[div];
+              const selected = form.division === div;
+              return (
                 <TouchableOpacity
-                  key={level}
+                  key={div}
                   style={[
                     styles.skillChip,
-                    form.skill_level === level && { backgroundColor: SKILL_COLORS[level], borderColor: SKILL_COLORS[level] },
+                    selected && { backgroundColor: color, borderColor: color },
                     !editing && { opacity: 0.7 },
                   ]}
-                  onPress={() => editing && setForm({ ...form, skill_level: level })}
+                  onPress={() => editing && setForm({ ...form, division: div })}
                   disabled={!editing}
                 >
-                  <Text style={[styles.skillChipText, form.skill_level === level && styles.skillChipTextActive]}>
-                    {level.charAt(0).toUpperCase() + level.slice(1)}
+                  <Text style={[styles.skillChipText, selected && styles.skillChipTextActive]}>
+                    {DIVISION_LABELS[div]}
                   </Text>
                 </TouchableOpacity>
-              ))}
-            </View>
+              );
+            })}
           </View>
-        )}
+
+          {/* Sub-level — only for Amateur */}
+          {form.division === 'amateur' && (
+            <>
+              <Text style={[styles.sectionTitle, { marginTop: 16 }]}>Amateur Level</Text>
+              <View style={styles.skillGrid}>
+                {SKILL_LEVELS.map((level) => (
+                  <TouchableOpacity
+                    key={level}
+                    style={[
+                      styles.skillChip,
+                      form.skill_level === level && { backgroundColor: SKILL_COLORS[level], borderColor: SKILL_COLORS[level] },
+                      !editing && { opacity: 0.7 },
+                    ]}
+                    onPress={() => editing && setForm({ ...form, skill_level: level })}
+                    disabled={!editing}
+                  >
+                    <Text style={[styles.skillChipText, form.skill_level === level && styles.skillChipTextActive]}>
+                      {level.charAt(0).toUpperCase() + level.slice(1)}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </>
+          )}
+        </View>
 
         {/* Security */}
         <View style={styles.section}>

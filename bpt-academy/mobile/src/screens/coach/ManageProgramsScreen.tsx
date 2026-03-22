@@ -8,13 +8,12 @@ import { useAuth } from '../../context/AuthContext';
 import { Program, SkillLevel } from '../../types';
 import ScreenHeader from '../../components/common/ScreenHeader';
 
-const SKILL_LEVELS: SkillLevel[] = ['beginner', 'intermediate', 'advanced', 'competition'];
+const SKILL_LEVELS: SkillLevel[] = ['beginner', 'intermediate', 'advanced'];
 
 const LEVEL_COLORS: Record<SkillLevel, string> = {
   beginner: '#3B82F6',
   intermediate: '#F59E0B',
   advanced: '#EF4444',
-  competition: '#8B5CF6',
 };
 
 export default function ManageProgramsScreen({ navigation }: any) {

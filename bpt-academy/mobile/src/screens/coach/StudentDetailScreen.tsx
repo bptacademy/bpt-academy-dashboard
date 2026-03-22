@@ -17,7 +17,7 @@ interface EnrollmentWithProgram {
 }
 
 const ROLES: UserRole[] = ['student', 'coach', 'admin'];
-const SKILL_LEVELS: SkillLevel[] = ['beginner', 'intermediate', 'advanced', 'competition'];
+const SKILL_LEVELS: SkillLevel[] = ['beginner', 'intermediate', 'advanced'];
 
 const ROLE_COLORS: Record<string, { bg: string; text: string }> = {
   student: { bg: '#EFF6FF', text: '#2563EB' },
