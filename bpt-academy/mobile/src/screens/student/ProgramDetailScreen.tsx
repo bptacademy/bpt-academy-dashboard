@@ -17,23 +17,26 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
   const [program, setProgram]                     = useState<Program | null>(null);
   const [modules, setModules]                     = useState<(Module & { progress?: StudentProgress })[]>([]);
   const [sessions, setSessions]                   = useState<ProgramSession[]>([]);
+  const [coaches, setCoaches]                     = useState<{ id: string; full_name: string; avatar_url?: string }[]>([]);
   const [enrolled, setEnrolled]                   = useState(false);
   const [hasActiveEnrollment, setHasActiveEnrollment] = useState(false);
   const [loading, setLoading]                     = useState(true);
   const [refreshing, setRefreshing]               = useState(false);
 
   const fetchData = useCallback(async () => {
-    const [progRes, modulesRes, sessionsRes, enrollRes, activeEnrollRes] = await Promise.all([
+    const [progRes, modulesRes, sessionsRes, enrollRes, activeEnrollRes, coachRes] = await Promise.all([
       supabase.from('programs').select('*').eq('id', programId).single(),
       supabase.from('modules').select('*').eq('program_id', programId).order('order_index'),
       supabase.from('program_sessions').select('*').eq('program_id', programId).order('scheduled_at'),
       supabase.from('enrollments').select('id').eq('student_id', profile!.id).eq('program_id', programId).eq('status', 'active').maybeSingle(),
       supabase.from('enrollments').select('id').eq('student_id', profile!.id).eq('status', 'active'),
+      supabase.from('program_coaches').select('coach:profiles!coach_id(id, full_name, avatar_url)').eq('program_id', programId),
     ]);
 
     if (progRes.data) setProgram(progRes.data);
     setEnrolled(!!enrollRes.data);
     setHasActiveEnrollment((activeEnrollRes.data?.length ?? 0) > 0);
+    if (coachRes.data) setCoaches(coachRes.data.map((r: any) => r.coach).filter(Boolean));
 
     if (modulesRes.data) {
       const { data: progressData } = await supabase
@@ -127,6 +130,23 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
         </View>
         <Text style={styles.title}>{program.title}</Text>
         {program.description && <Text style={styles.description}>{program.description}</Text>}
+
+        {/* Coaches */}
+        {coaches.length > 0 && (
+          <View style={styles.coachesRow}>
+            {coaches.map((c) => (
+              <View key={c.id} style={styles.coachChip}>
+                <View style={styles.coachAvatar}>
+                  <Text style={styles.coachAvatarText}>
+                    {c.full_name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)}
+                  </Text>
+                </View>
+                <Text style={styles.coachName}>{c.full_name}</Text>
+              </View>
+            ))}
+          </View>
+        )}
+
         <View style={styles.metaRow}>
           <View style={styles.metaItem}>
             <Text style={styles.metaValue}>{program.duration_weeks ?? '—'}</Text>
@@ -242,6 +262,11 @@ const styles = StyleSheet.create({
   levelText: { fontSize: 13, fontWeight: '600' },
   title: { fontSize: 24, fontWeight: '700', color: '#111827', marginBottom: 8 },
   description: { fontSize: 15, color: '#6B7280', lineHeight: 22, marginBottom: 16 },
+  coachesRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 },
+  coachChip: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#F3F4F6', borderRadius: 20, paddingHorizontal: 12, paddingVertical: 6 },
+  coachAvatar: { width: 26, height: 26, borderRadius: 13, backgroundColor: '#16A34A', alignItems: 'center', justifyContent: 'center' },
+  coachAvatarText: { fontSize: 10, fontWeight: '700', color: '#FFFFFF' },
+  coachName: { fontSize: 13, fontWeight: '600', color: '#374151' },
   metaRow: { flexDirection: 'row', alignItems: 'center' },
   metaItem: { flex: 1, alignItems: 'center' },
   metaValue: { fontSize: 20, fontWeight: '700', color: '#111827' },
