@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import MenuDrawer from './MenuDrawer';
 import { useAuth } from '../../context/AuthContext';
@@ -42,15 +42,29 @@ export default function ScreenHeader({ title, dark = false }: Props) {
 
   const isAdmin = effectiveRole === 'admin' || effectiveRole === 'coach';
   const menu = isAdmin ? ADMIN_MENU : STUDENT_MENU;
+  const homeScreen = isAdmin ? 'Dashboard' : 'Home';
 
   return (
     <>
       <View style={[styles.header, dark && styles.headerDark]}>
-        <Text style={[styles.title, dark && styles.titleDark]}>{title}</Text>
-        <TouchableOpacity style={styles.btn} onPress={() => setOpen(true)}>
+        {/* Logo — taps to home */}
+        <TouchableOpacity onPress={() => navigation.navigate(homeScreen)} style={styles.logoBtn}>
+          <Image
+            source={require('../../../assets/logo.png')}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+        </TouchableOpacity>
+
+        {/* Page title — centred */}
+        <Text style={[styles.title, dark && styles.titleDark]} numberOfLines={1}>{title}</Text>
+
+        {/* Hamburger */}
+        <TouchableOpacity style={styles.menuBtn} onPress={() => setOpen(true)}>
           <Text style={[styles.icon, dark && styles.iconDark]}>☰</Text>
         </TouchableOpacity>
       </View>
+
       <MenuDrawer
         visible={open}
         onClose={() => setOpen(false)}
@@ -63,14 +77,16 @@ export default function ScreenHeader({ title, dark = false }: Props) {
 
 const styles = StyleSheet.create({
   header: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    paddingHorizontal: 20, paddingTop: 52, paddingBottom: 14,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingHorizontal: 16, paddingTop: 52, paddingBottom: 14,
     backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#F3F4F6',
   },
   headerDark: { backgroundColor: '#111827', borderBottomColor: '#1F2937' },
-  title: { fontSize: 18, fontWeight: '700', color: '#111827' },
+  logoBtn: { width: 44, height: 36, justifyContent: 'center' },
+  logo: { width: 44, height: 36 },
+  title: { flex: 1, fontSize: 17, fontWeight: '700', color: '#111827', textAlign: 'center', marginHorizontal: 8 },
   titleDark: { color: '#FFFFFF' },
-  btn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
+  menuBtn: { width: 44, alignItems: 'flex-end' },
   icon: { fontSize: 22, color: '#374151' },
   iconDark: { color: '#FFFFFF' },
 });

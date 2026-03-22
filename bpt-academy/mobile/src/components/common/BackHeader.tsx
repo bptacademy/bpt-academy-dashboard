@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import MenuDrawer from './MenuDrawer';
 import { useAuth } from '../../context/AuthContext';
@@ -43,25 +43,33 @@ export default function BackHeader({ title, dark = false }: Props) {
   const isAdmin = effectiveRole === 'admin' || effectiveRole === 'coach';
   const menu = isAdmin ? ADMIN_MENU : STUDENT_MENU;
   const homeScreen = isAdmin ? 'Dashboard' : 'Home';
-
   const canGoBack = navigation.canGoBack();
 
   return (
     <>
       <View style={[styles.header, dark && styles.headerDark]}>
+        {/* Back or logo */}
         {canGoBack ? (
           <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
             <Text style={[styles.backIcon, dark && styles.lightText]}>‹</Text>
-            <Text style={[styles.backText, dark && styles.lightText]}>Back</Text>
           </TouchableOpacity>
         ) : (
-          <TouchableOpacity style={styles.backBtn} onPress={() => navigation.navigate(homeScreen)}>
-            <Text style={[styles.backIcon, dark && styles.lightText]}>🏠</Text>
+          <TouchableOpacity style={styles.logoBtn} onPress={() => navigation.navigate(homeScreen)}>
+            <Image
+              source={require('../../../assets/logo.png')}
+              style={styles.logo}
+              resizeMode="contain"
+            />
           </TouchableOpacity>
         )}
 
-        {title ? <Text style={[styles.title, dark && styles.lightText]} numberOfLines={1}>{title}</Text> : <View style={{ flex: 1 }} />}
+        {/* Title — centred */}
+        {title
+          ? <Text style={[styles.title, dark && styles.lightText]} numberOfLines={1}>{title}</Text>
+          : <View style={{ flex: 1 }} />
+        }
 
+        {/* Hamburger */}
         <TouchableOpacity style={styles.menuBtn} onPress={() => setOpen(true)}>
           <Text style={[styles.menuIcon, dark && styles.lightText]}>☰</Text>
         </TouchableOpacity>
@@ -79,16 +87,17 @@ export default function BackHeader({ title, dark = false }: Props) {
 
 const styles = StyleSheet.create({
   header: {
-    flexDirection: 'row', alignItems: 'center',
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: 16, paddingTop: 52, paddingBottom: 14,
     backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#F3F4F6',
   },
   headerDark: { backgroundColor: '#111827', borderBottomColor: '#1F2937' },
-  backBtn: { flexDirection: 'row', alignItems: 'center', gap: 2, minWidth: 60 },
-  backIcon: { fontSize: 26, color: '#374151', lineHeight: 30 },
-  backText: { fontSize: 16, color: '#374151' },
-  title: { flex: 1, fontSize: 17, fontWeight: '700', color: '#111827', textAlign: 'center' },
+  backBtn: { width: 44, height: 36, justifyContent: 'center' },
+  backIcon: { fontSize: 28, color: '#374151', lineHeight: 34 },
+  logoBtn: { width: 44, height: 36, justifyContent: 'center' },
+  logo: { width: 44, height: 36 },
+  title: { flex: 1, fontSize: 17, fontWeight: '700', color: '#111827', textAlign: 'center', marginHorizontal: 8 },
   lightText: { color: '#FFFFFF' },
-  menuBtn: { minWidth: 40, alignItems: 'flex-end' },
+  menuBtn: { width: 44, alignItems: 'flex-end' },
   menuIcon: { fontSize: 22, color: '#374151' },
 });
