@@ -5,6 +5,7 @@ import {
   KeyboardAvoidingView, Platform, Modal,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { SkillLevel } from '../../types';
@@ -31,14 +32,35 @@ export default function ProfileScreen() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [changingPassword, setChangingPassword] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+
+  // Parse stored date (YYYY-MM-DD) into a Date object
+  const parseDob = (str: string | null | undefined): Date => {
+    if (!str) return new Date(2000, 0, 1);
+    const [y, m, d] = str.split('-').map(Number);
+    return new Date(y, m - 1, d);
+  };
+
+  const [dobDate, setDobDate] = useState<Date>(parseDob(profile?.date_of_birth));
 
   const [form, setForm] = useState({
     full_name: profile?.full_name ?? '',
     phone: profile?.phone ?? '',
-    date_of_birth: profile?.date_of_birth ?? '',
     emergency_contact: profile?.emergency_contact ?? '',
     skill_level: (profile?.skill_level ?? 'beginner') as SkillLevel,
   });
+
+  // Format Date → display string
+  const formatDobDisplay = (date: Date) =>
+    date.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+
+  // Format Date → ISO string for DB (YYYY-MM-DD)
+  const formatDobIso = (date: Date) => {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  };
 
   const isStudent = profile?.role === 'student';
 
@@ -104,7 +126,7 @@ export default function ProfileScreen() {
     const { error } = await supabase.from('profiles').update({
       full_name: form.full_name.trim(),
       phone: form.phone.trim() || null,
-      date_of_birth: form.date_of_birth.trim() || null,
+      date_of_birth: formatDobIso(dobDate),
       emergency_contact: form.emergency_contact.trim() || null,
       skill_level: isStudent ? form.skill_level : profile?.skill_level,
     }).eq('id', profile!.id);
@@ -208,8 +230,18 @@ export default function ProfileScreen() {
               onChangeText={(v) => setForm({ ...form, phone: v })} placeholder="+44 7700 000000"
               keyboardType="phone-pad" />
             <View style={styles.divider} />
-            <Field label="Date of Birth" value={form.date_of_birth} editing={editing}
-              onChangeText={(v) => setForm({ ...form, date_of_birth: v })} placeholder="DD/MM/YYYY" />
+            {/* Date of Birth — calendar picker */}
+            <View style={styles.dobRow}>
+              <Text style={styles.dobLabel}>Date of Birth</Text>
+              {editing ? (
+                <TouchableOpacity onPress={() => setShowDatePicker(true)} style={styles.dobPickerBtn}>
+                  <Text style={styles.dobPickerText}>{formatDobDisplay(dobDate)}</Text>
+                  <Text style={styles.dobCalIcon}>📅</Text>
+                </TouchableOpacity>
+              ) : (
+                <Text style={styles.dobValue}>{profile?.date_of_birth ? formatDobDisplay(parseDob(profile.date_of_birth)) : '—'}</Text>
+              )}
+            </View>
             <View style={styles.divider} />
             <Field label="Emergency Contact" value={form.emergency_contact} editing={editing}
               onChangeText={(v) => setForm({ ...form, emergency_contact: v })} placeholder="Name & phone number" />
@@ -301,6 +333,31 @@ export default function ProfileScreen() {
           <Text style={styles.version}>BPT Academy v1.0.0</Text>
         </View>
       </ScrollView>
+
+      {/* Date picker — renders inline on iOS as a spinner */}
+      {showDatePicker && (
+        <Modal animationType="slide" transparent presentationStyle="overFullScreen">
+          <View style={styles.dateModalOverlay}>
+            <View style={styles.dateModalSheet}>
+              <View style={styles.dateModalHeader}>
+                <Text style={styles.dateModalTitle}>Date of Birth</Text>
+                <TouchableOpacity onPress={() => setShowDatePicker(false)} style={styles.dateModalDone}>
+                  <Text style={styles.dateModalDoneText}>Done</Text>
+                </TouchableOpacity>
+              </View>
+              <DateTimePicker
+                value={dobDate}
+                mode="date"
+                display="spinner"
+                maximumDate={new Date()}
+                minimumDate={new Date(1920, 0, 1)}
+                onChange={(_event, date) => { if (date) setDobDate(date); }}
+                style={{ backgroundColor: '#FFFFFF' }}
+              />
+            </View>
+          </View>
+        </Modal>
+      )}
 
       {/* Change password modal */}
       <Modal visible={passwordModal} animationType="slide" presentationStyle="pageSheet">
@@ -429,4 +486,20 @@ const styles = StyleSheet.create({
   modalBody: { padding: 24 },
   fieldLabel: { fontSize: 14, fontWeight: '600', color: '#374151', marginBottom: 8 },
   input: { borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 10, padding: 14, fontSize: 16, color: '#111827', marginBottom: 20, backgroundColor: '#F9FAFB' },
+
+  // DOB row
+  dobRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, minHeight: 54 },
+  dobLabel: { fontSize: 15, color: '#374151', flex: 1 },
+  dobValue: { fontSize: 15, color: '#6B7280' },
+  dobPickerBtn: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  dobPickerText: { fontSize: 15, color: '#16A34A', fontWeight: '500' },
+  dobCalIcon: { fontSize: 16 },
+
+  // Date picker modal
+  dateModalOverlay: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.4)' },
+  dateModalSheet: { backgroundColor: '#FFFFFF', borderTopLeftRadius: 20, borderTopRightRadius: 20, paddingBottom: 32 },
+  dateModalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 18, borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
+  dateModalTitle: { fontSize: 17, fontWeight: '700', color: '#111827' },
+  dateModalDone: { backgroundColor: '#16A34A', borderRadius: 16, paddingHorizontal: 16, paddingVertical: 6 },
+  dateModalDoneText: { color: '#FFFFFF', fontWeight: '700', fontSize: 14 },
 });
