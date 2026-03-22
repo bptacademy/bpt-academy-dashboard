@@ -34,13 +34,6 @@
       "expo-font",
       "expo-video",
       "@react-native-community/datetimepicker",
-      [
-        "@stripe/stripe-react-native",
-        {
-          "merchantIdentifier": "merchant.com.bptacademy.app",
-          "enableGooglePay": true
-        }
-      ],
       "@stripe/stripe-react-native"
     ]
   }
