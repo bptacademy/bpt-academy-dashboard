@@ -43,20 +43,7 @@
       "expo-font",
       "expo-video",
       "expo-image-picker",
-      "@react-native-community/datetimepicker",
-      [
-        "expo-notifications",
-        {
-          "icon": "./assets/icon.png",
-          "color": "#16A34A"
-        }
-      ],
-      [
-        "expo-camera",
-        {
-          "cameraPermission": "Allow BPT Academy to access your camera."
-        }
-      ]
+      "@react-native-community/datetimepicker"
     ],
     "extra": {
       "eas": {
