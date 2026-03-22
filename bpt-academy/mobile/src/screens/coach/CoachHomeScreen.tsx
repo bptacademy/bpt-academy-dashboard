@@ -72,10 +72,14 @@ export default function CoachHomeScreen({ navigation }: any) {
         <Text style={styles.sectionTitle}>Manage</Text>
         <View style={styles.actionGrid}>
           {[
-            { icon: '📚', label: 'Programs', screen: 'ManagePrograms' },
-            { icon: '👥', label: 'Students', screen: 'ManageStudents' },
-            { icon: '🎬', label: 'Upload Video', screen: 'UploadVideo' },
-            { icon: '🔔', label: 'Announce', screen: 'SendAnnouncement' },
+            { icon: '📋', label: 'Programs',    screen: 'Manage' },
+            { icon: '👥', label: 'Students',    screen: 'Students' },
+            { icon: '🏅', label: 'Divisions',   screen: 'Divisions' },
+            { icon: '🎾', label: 'Tournaments', screen: 'Tournaments' },
+            { icon: '💳', label: 'Payments',    screen: 'Payments' },
+            { icon: '📣', label: 'Bulk Msg',    screen: 'BulkMsg' },
+            { icon: '🎬', label: 'Upload Video',screen: 'UploadVideo' },
+            { icon: '🔔', label: 'Announce',    screen: 'Announce' },
           ].map((item) => (
             <TouchableOpacity
               key={item.screen}

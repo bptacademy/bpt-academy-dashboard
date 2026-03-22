@@ -132,28 +132,24 @@ export default function HomeScreen({ navigation }: any) {
       {/* Quick Actions */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>⚡ Quick Actions</Text>
-        <View style={styles.quickActions}>
-          <TouchableOpacity
-            style={styles.actionCard}
-            onPress={() => navigation.navigate('Videos')}
-          >
-            <Text style={styles.actionIcon}>🎬</Text>
-            <Text style={styles.actionLabel}>Training Videos</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.actionCard}
-            onPress={() => navigation.navigate('Progress')}
-          >
-            <Text style={styles.actionIcon}>📈</Text>
-            <Text style={styles.actionLabel}>My Progress</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.actionCard}
-            onPress={() => navigation.navigate('Messages')}
-          >
-            <Text style={styles.actionIcon}>💬</Text>
-            <Text style={styles.actionLabel}>Messages</Text>
-          </TouchableOpacity>
+        <View style={styles.quickGrid}>
+          {[
+            { icon: '🎬', label: 'Training Videos', screen: 'Videos' },
+            { icon: '📈', label: 'My Progress',      screen: 'Progress' },
+            { icon: '🏆', label: 'Leaderboard',      screen: 'Leaderboard' },
+            { icon: '🎾', label: 'Tournaments',      screen: 'Tournaments' },
+            { icon: '💬', label: 'Messages',         screen: 'Messages' },
+            { icon: '📝', label: 'Coach Notes',      screen: 'MyCoachNotes' },
+          ].map((item) => (
+            <TouchableOpacity
+              key={item.screen}
+              style={styles.actionCard}
+              onPress={() => navigation.navigate(item.screen)}
+            >
+              <Text style={styles.actionIcon}>{item.icon}</Text>
+              <Text style={styles.actionLabel}>{item.label}</Text>
+            </TouchableOpacity>
+          ))}
         </View>
       </View>
     </ScrollView>
@@ -198,9 +194,9 @@ const styles = StyleSheet.create({
   },
   progressFill: { height: '100%', backgroundColor: '#16A34A', borderRadius: 3 },
   progressLabel: { fontSize: 12, color: '#6B7280', marginTop: 4 },
-  quickActions: { flexDirection: 'row', gap: 12 },
+  quickGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
   actionCard: {
-    flex: 1, backgroundColor: '#FFFFFF', borderRadius: 12, padding: 16,
+    width: '47%', backgroundColor: '#FFFFFF', borderRadius: 12, padding: 16,
     alignItems: 'center', borderWidth: 1, borderColor: '#E5E7EB',
   },
   actionIcon: { fontSize: 28, marginBottom: 8 },
