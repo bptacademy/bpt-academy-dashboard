@@ -5,10 +5,11 @@ import {
 } from 'react-native';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
-import { Program, SkillLevel } from '../../types';
+import { Program, SkillLevel, Division, DIVISION_LABELS, DIVISION_COLORS } from '../../types';
 import ScreenHeader from '../../components/common/ScreenHeader';
 
 const SKILL_LEVELS: SkillLevel[] = ['beginner', 'intermediate', 'advanced'];
+const DIVISIONS: Division[] = ['amateur', 'semi_pro', 'pro'];
 
 const LEVEL_COLORS: Record<SkillLevel, string> = {
   beginner: '#3B82F6',
@@ -22,7 +23,10 @@ export default function ManageProgramsScreen({ navigation }: any) {
   const [refreshing, setRefreshing] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [form, setForm] = useState({
-    title: '', description: '', skill_level: 'beginner' as SkillLevel, duration_weeks: '',
+    title: '', description: '',
+    division: 'amateur' as Division,
+    skill_level: 'beginner' as SkillLevel,
+    duration_weeks: '',
   });
 
   const fetchPrograms = async () => {
@@ -38,14 +42,15 @@ export default function ManageProgramsScreen({ navigation }: any) {
     const { error } = await supabase.from('programs').insert({
       title: form.title,
       description: form.description,
-      skill_level: form.skill_level,
+      division: form.division,
+      skill_level: form.division === 'amateur' ? form.skill_level : null,
       duration_weeks: form.duration_weeks ? parseInt(form.duration_weeks) : null,
       coach_id: profile!.id,
       is_active: true,
     });
     if (error) { Alert.alert('Error', error.message); return; }
     setModalVisible(false);
-    setForm({ title: '', description: '', skill_level: 'beginner', duration_weeks: '' });
+    setForm({ title: '', description: '', division: 'amateur', skill_level: 'beginner', duration_weeks: '' });
     fetchPrograms();
   };
 
@@ -68,11 +73,20 @@ export default function ManageProgramsScreen({ navigation }: any) {
           {programs.map((p) => (
             <TouchableOpacity key={p.id} style={styles.card} onPress={() => navigation.navigate('ProgramRoster', { programId: p.id })}>
               <View style={styles.cardHeader}>
-                <View style={[styles.levelBadge, { backgroundColor: LEVEL_COLORS[p.skill_level] + '20' }]}>
-                  <Text style={[styles.levelText, { color: LEVEL_COLORS[p.skill_level] }]}>
-                    {p.skill_level.charAt(0).toUpperCase() + p.skill_level.slice(1)}
-                  </Text>
-                </View>
+                {(() => {
+                  const div = ((p as any).division ?? 'amateur') as Division;
+                  const color = DIVISION_COLORS[div];
+                  return (
+                    <View style={[styles.levelBadge, { backgroundColor: color + '20' }]}>
+                      <Text style={[styles.levelText, { color }]}>
+                        {DIVISION_LABELS[div]}
+                        {div === 'amateur' && p.skill_level
+                          ? ` · ${p.skill_level.charAt(0).toUpperCase() + p.skill_level.slice(1)}`
+                          : ''}
+                      </Text>
+                    </View>
+                  );
+                })()}
                 <TouchableOpacity
                   style={[styles.statusBadge, p.is_active ? styles.activeStatus : styles.inactiveStatus]}
                   onPress={() => toggleActive(p)}
@@ -116,20 +130,44 @@ export default function ManageProgramsScreen({ navigation }: any) {
             <Text style={styles.label}>Description</Text>
             <TextInput style={[styles.input, styles.textarea]} value={form.description} onChangeText={(v) => setForm({ ...form, description: v })} placeholder="What will students learn?" placeholderTextColor="#9CA3AF" multiline numberOfLines={4} />
 
-            <Text style={styles.label}>Skill Level</Text>
+            <Text style={styles.label}>Division</Text>
             <View style={styles.chipRow}>
-              {SKILL_LEVELS.map((level) => (
-                <TouchableOpacity
-                  key={level}
-                  style={[styles.chip, form.skill_level === level && { backgroundColor: LEVEL_COLORS[level], borderColor: LEVEL_COLORS[level] }]}
-                  onPress={() => setForm({ ...form, skill_level: level })}
-                >
-                  <Text style={[styles.chipText, form.skill_level === level && styles.chipTextActive]}>
-                    {level.charAt(0).toUpperCase() + level.slice(1)}
-                  </Text>
-                </TouchableOpacity>
-              ))}
+              {DIVISIONS.map((div) => {
+                const color = DIVISION_COLORS[div];
+                const selected = form.division === div;
+                return (
+                  <TouchableOpacity
+                    key={div}
+                    style={[styles.chip, selected && { backgroundColor: color, borderColor: color }]}
+                    onPress={() => setForm({ ...form, division: div })}
+                  >
+                    <Text style={[styles.chipText, selected && styles.chipTextActive]}>
+                      {DIVISION_LABELS[div]}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
             </View>
+
+            {/* Amateur sub-levels — revealed when Amateur is selected */}
+            {form.division === 'amateur' && (
+              <>
+                <Text style={styles.label}>Amateur Level</Text>
+                <View style={[styles.chipRow, styles.subLevelRow]}>
+                  {SKILL_LEVELS.map((level) => (
+                    <TouchableOpacity
+                      key={level}
+                      style={[styles.chip, form.skill_level === level && { backgroundColor: LEVEL_COLORS[level], borderColor: LEVEL_COLORS[level] }]}
+                      onPress={() => setForm({ ...form, skill_level: level })}
+                    >
+                      <Text style={[styles.chipText, form.skill_level === level && styles.chipTextActive]}>
+                        {level.charAt(0).toUpperCase() + level.slice(1)}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </>
+            )}
 
             <Text style={styles.label}>Duration (weeks)</Text>
             <TextInput style={styles.input} value={form.duration_weeks} onChangeText={(v) => setForm({ ...form, duration_weeks: v })} placeholder="e.g. 8" placeholderTextColor="#9CA3AF" keyboardType="numeric" />
@@ -172,6 +210,7 @@ const styles = StyleSheet.create({
   input: { borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 10, padding: 14, fontSize: 16, color: '#111827', marginBottom: 16, backgroundColor: '#F9FAFB' },
   textarea: { height: 100, textAlignVertical: 'top' },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 },
+  subLevelRow: { marginLeft: 12, borderLeftWidth: 3, borderLeftColor: '#3B82F6', paddingLeft: 12 },
   chip: { borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8, backgroundColor: '#F9FAFB' },
   chipText: { fontSize: 13, color: '#374151' },
   chipTextActive: { color: '#FFFFFF', fontWeight: '600' },
