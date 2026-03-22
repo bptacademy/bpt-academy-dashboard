@@ -12,9 +12,12 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.bptacademy.app",
+      "merchantId": "merchant.com.bptacademy.app"
     },
     "android": {
+      "package": "com.bptacademy.app",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -30,7 +33,15 @@
       "expo-secure-store",
       "expo-font",
       "expo-video",
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      [
+        "@stripe/stripe-react-native",
+        {
+          "merchantIdentifier": "merchant.com.bptacademy.app",
+          "enableGooglePay": true
+        }
+      ],
+      "@stripe/stripe-react-native"
     ]
   }
 }
