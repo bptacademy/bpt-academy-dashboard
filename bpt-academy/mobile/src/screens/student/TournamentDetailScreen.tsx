@@ -223,6 +223,15 @@ export default function TournamentDetailScreen({ navigation, route }: any) {
         )}
 
         {/* Register / Pay button */}
+        {/* Not open yet */}
+        {tournament.status === 'upcoming' && !isRegistered && (
+          <View style={styles.upcomingCard}>
+            <Text style={styles.upcomingIcon}>🗓</Text>
+            <Text style={styles.upcomingTitle}>Registration Not Open Yet</Text>
+            <Text style={styles.upcomingText}>Check back soon — registration will open shortly.</Text>
+          </View>
+        )}
+
         {canRegister && !isFull && (
           <View style={styles.section}>
             <View style={styles.registerCard}>
@@ -362,6 +371,12 @@ const styles = StyleSheet.create({
   registerHint: { fontSize: 13, color: '#6B7280', lineHeight: 19, marginBottom: 16 },
   registerBtn: { backgroundColor: '#16A34A', borderRadius: 12, paddingVertical: 15, alignItems: 'center' },
   registerBtnText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
+
+  // Upcoming
+  upcomingCard: { margin: 20, backgroundColor: '#EFF6FF', borderRadius: 14, padding: 24, alignItems: 'center', borderWidth: 1, borderColor: '#BFDBFE' },
+  upcomingIcon: { fontSize: 32, marginBottom: 8 },
+  upcomingTitle: { fontSize: 16, fontWeight: '700', color: '#1E40AF', marginBottom: 6 },
+  upcomingText: { fontSize: 13, color: '#1D4ED8', textAlign: 'center', lineHeight: 20 },
 
   // Full card
   fullCard: { margin: 20, backgroundColor: '#FFF7ED', borderRadius: 14, padding: 24, alignItems: 'center', borderWidth: 1, borderColor: '#FED7AA' },
