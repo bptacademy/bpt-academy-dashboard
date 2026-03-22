@@ -1,6 +1,135 @@
 export type UserRole = 'student' | 'coach' | 'admin' | 'parent';
 export type SkillLevel = 'beginner' | 'intermediate' | 'advanced' | 'competition';
 export type EnrollmentStatus = 'active' | 'waitlisted' | 'completed' | 'cancelled';
+export type Division = 'amateur' | 'semi_pro' | 'pro' | 'junior_9_11' | 'junior_12_15' | 'junior_15_18';
+export type PaymentMethod = 'stripe' | 'bank_transfer';
+export type PaymentStatus = 'pending' | 'confirmed' | 'failed' | 'refunded';
+export type TournamentStatus = 'upcoming' | 'registration_open' | 'ongoing' | 'completed';
+
+export const DIVISION_LABELS: Record<Division, string> = {
+  amateur: 'Amateur',
+  semi_pro: 'Semi-Pro',
+  pro: 'Pro',
+  junior_9_11: 'Junior 9–11',
+  junior_12_15: 'Junior 12–15',
+  junior_15_18: 'Junior 15–18',
+};
+
+export const DIVISION_COLORS: Record<Division, string> = {
+  amateur: '#3B82F6',
+  semi_pro: '#F59E0B',
+  pro: '#16A34A',
+  junior_9_11: '#8B5CF6',
+  junior_12_15: '#EC4899',
+  junior_15_18: '#EF4444',
+};
+
+export interface Payment {
+  id: string;
+  student_id: string;
+  program_id?: string;
+  enrollment_id?: string;
+  tournament_id?: string;
+  amount_gbp: number;
+  method: PaymentMethod;
+  status: PaymentStatus;
+  stripe_payment_intent_id?: string;
+  stripe_client_secret?: string;
+  bank_reference?: string;
+  notes?: string;
+  confirmed_by?: string;
+  confirmed_at?: string;
+  created_at: string;
+}
+
+export interface Tournament {
+  id: string;
+  title: string;
+  description?: string;
+  start_date: string;
+  end_date?: string;
+  location?: string;
+  eligible_divisions: string[];
+  max_participants?: number;
+  entry_fee_gbp: number;
+  organizer: string;
+  status: TournamentStatus;
+  registration_deadline?: string;
+  created_at: string;
+}
+
+export interface TournamentRegistration {
+  id: string;
+  tournament_id: string;
+  student_id: string;
+  payment_id?: string;
+  division?: Division;
+  status: 'pending' | 'confirmed' | 'withdrawn';
+  registered_at: string;
+}
+
+export interface TournamentMatch {
+  id: string;
+  tournament_id: string;
+  round: string;
+  player1_id?: string;
+  player2_id?: string;
+  winner_id?: string;
+  score?: string;
+  court?: string;
+  scheduled_at?: string;
+  played_at?: string;
+}
+
+export interface Court {
+  id: string;
+  name: string;
+  location?: string;
+  surface?: string;
+  is_active: boolean;
+}
+
+export interface CourtBooking {
+  id: string;
+  court_id: string;
+  student_id: string;
+  program_session_id?: string;
+  booking_date: string;
+  start_time: string;
+  end_time: string;
+  status: 'confirmed' | 'cancelled';
+  created_at: string;
+  court?: Court;
+}
+
+export interface SessionAttendance {
+  id: string;
+  session_id: string;
+  student_id: string;
+  attended: boolean;
+  feedback_rating?: number;
+  feedback_text?: string;
+  created_at: string;
+}
+
+export interface CoachNote {
+  id: string;
+  student_id: string;
+  coach_id: string;
+  note: string;
+  is_private: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface RankingEvent {
+  id: string;
+  student_id: string;
+  division: Division;
+  points: number;
+  reason: string;
+  created_at: string;
+}
 
 export interface Profile {
   id: string;

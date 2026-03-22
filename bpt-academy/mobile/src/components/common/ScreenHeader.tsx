@@ -5,22 +5,30 @@ import MenuDrawer from './MenuDrawer';
 import { useAuth } from '../../context/AuthContext';
 
 const STUDENT_MENU = [
-  { icon: '🏠', label: 'Home',     screen: 'Home' },
-  { icon: '📚', label: 'Programs', screen: 'Programs' },
-  { icon: '🎬', label: 'Videos',   screen: 'Videos' },
-  { icon: '📈', label: 'Progress', screen: 'Progress' },
-  { icon: '💬', label: 'Messages', screen: 'Messages' },
-  { icon: '👤', label: 'Profile',  screen: 'Profile' },
+  { icon: '🏠', label: 'Home',        screen: 'Home' },
+  { icon: '📚', label: 'Programs',    screen: 'Programs' },
+  { icon: '🎬', label: 'Videos',      screen: 'Videos' },
+  { icon: '📈', label: 'Progress',    screen: 'Progress' },
+  { icon: '🏆', label: 'Leaderboard', screen: 'Leaderboard' },
+  { icon: '🎾', label: 'Tournaments', screen: 'Tournaments' },
+  { icon: '🏟️', label: 'Book Court',  screen: 'CourtBook' },
+  { icon: '💬', label: 'Messages',    screen: 'Messages' },
+  { icon: '📝', label: 'Coach Notes', screen: 'MyCoachNotes' },
+  { icon: '👤', label: 'Profile',     screen: 'Profile' },
 ];
 
 const ADMIN_MENU = [
-  { icon: '📊', label: 'Dashboard', screen: 'Dashboard' },
-  { icon: '📋', label: 'Programs',  screen: 'Manage' },
-  { icon: '🎬', label: 'Videos',    screen: 'Videos' },
-  { icon: '👥', label: 'Students',  screen: 'Students' },
-  { icon: '💬', label: 'Messages',  screen: 'Messages' },
-  { icon: '🔔', label: 'Announce',  screen: 'Announce' },
-  { icon: '👤', label: 'Profile',   screen: 'Profile' },
+  { icon: '📊', label: 'Dashboard',   screen: 'Dashboard' },
+  { icon: '📋', label: 'Programs',    screen: 'Manage' },
+  { icon: '🎬', label: 'Videos',      screen: 'Videos' },
+  { icon: '👥', label: 'Students',    screen: 'Students' },
+  { icon: '🏅', label: 'Divisions',   screen: 'Divisions' },
+  { icon: '🎾', label: 'Tournaments', screen: 'Tournaments' },
+  { icon: '💳', label: 'Payments',    screen: 'Payments' },
+  { icon: '💬', label: 'Messages',    screen: 'Messages' },
+  { icon: '📣', label: 'Bulk Msg',    screen: 'BulkMsg' },
+  { icon: '🔔', label: 'Announce',    screen: 'Announce' },
+  { icon: '👤', label: 'Profile',     screen: 'Profile' },
 ];
 
 interface Props {
