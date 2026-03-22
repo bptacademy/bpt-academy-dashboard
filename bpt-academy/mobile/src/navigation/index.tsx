@@ -103,6 +103,7 @@ function AdminStack() {
       <Stack.Screen name="CoachNotes"       component={CoachNotesScreen} />
       <Stack.Screen name="AcademySettings"  component={AcademySettingsScreen} />
       <Stack.Screen name="BillingSettings" component={BillingSettingsScreen} />
+      <Stack.Screen name="VideoPlayer"     component={VideoPlayerScreen} />
       <Stack.Screen name="Chat"            component={ChatScreen} />
       <Stack.Screen name="NewConversation" component={NewConversationScreen} />
     </Stack.Navigator>
