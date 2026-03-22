@@ -18,21 +18,25 @@ import VideosScreen from '../screens/student/VideosScreen';
 import MessagesScreen from '../screens/student/MessagesScreen';
 import ProfileScreen from '../screens/student/ProfileScreen';
 
+// Coach / Admin screens
+import CoachHomeScreen from '../screens/coach/CoachHomeScreen';
+import ManageProgramsScreen from '../screens/coach/ManageProgramsScreen';
+import ManageStudentsScreen from '../screens/coach/ManageStudentsScreen';
+import SendAnnouncementScreen from '../screens/coach/SendAnnouncementScreen';
+
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
 function TabIcon({ name, focused }: { name: string; focused: boolean }) {
   const icons: Record<string, string> = {
-    Home: '🏠',
-    Programs: '📚',
-    Videos: '🎬',
-    Progress: '📈',
-    Messages: '💬',
-    Profile: '👤',
+    Home: '🏠', Programs: '📚', Videos: '🎬',
+    Progress: '📈', Messages: '💬', Profile: '👤',
+    Dashboard: '📊', Students: '👥', Manage: '📋', Announce: '🔔',
   };
-  return <Text style={{ fontSize: 22, opacity: focused ? 1 : 0.5 }}>{icons[name]}</Text>;
+  return <Text style={{ fontSize: 22, opacity: focused ? 1 : 0.5 }}>{icons[name] ?? '•'}</Text>;
 }
 
+// ── Student tabs ──────────────────────────────────────────
 function StudentTabs() {
   return (
     <Tab.Navigator
@@ -55,6 +59,29 @@ function StudentTabs() {
   );
 }
 
+// ── Coach / Admin tabs ────────────────────────────────────
+function CoachTabs() {
+  return (
+    <Tab.Navigator
+      screenOptions={({ route }) => ({
+        headerShown: false,
+        tabBarIcon: ({ focused }) => <TabIcon name={route.name} focused={focused} />,
+        tabBarActiveTintColor: '#16A34A',
+        tabBarInactiveTintColor: '#9CA3AF',
+        tabBarStyle: { borderTopWidth: 1, borderTopColor: '#F3F4F6', paddingBottom: 4 },
+        tabBarLabelStyle: { fontSize: 11 },
+      })}
+    >
+      <Tab.Screen name="Dashboard" component={CoachHomeScreen} />
+      <Tab.Screen name="Manage" component={ManageProgramsScreen} />
+      <Tab.Screen name="Students" component={ManageStudentsScreen} />
+      <Tab.Screen name="Announce" component={SendAnnouncementScreen} />
+      <Tab.Screen name="Profile" component={ProfileScreen} />
+    </Tab.Navigator>
+  );
+}
+
+// ── Auth stack ────────────────────────────────────────────
 function AuthStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
@@ -64,17 +91,25 @@ function AuthStack() {
   );
 }
 
+// ── App stack (role-aware) ────────────────────────────────
 function AppStack() {
+  const { profile } = useAuth();
+  const isAdmin = profile?.role === 'admin' || profile?.role === 'coach';
+
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="Main" component={StudentTabs} />
+      <Stack.Screen name="Main" component={isAdmin ? CoachTabs : StudentTabs} />
+      {/* Shared push screens */}
+      <Stack.Screen name="ManagePrograms" component={ManageProgramsScreen} options={{ headerShown: true, title: 'Programs' }} />
+      <Stack.Screen name="ManageStudents" component={ManageStudentsScreen} options={{ headerShown: true, title: 'Students' }} />
+      <Stack.Screen name="SendAnnouncement" component={SendAnnouncementScreen} options={{ headerShown: true, title: 'Announce' }} />
     </Stack.Navigator>
   );
 }
 
+// ── Root ──────────────────────────────────────────────────
 export default function RootNavigator() {
   const { session, loading } = useAuth();
-
   if (loading) return null;
 
   return (
