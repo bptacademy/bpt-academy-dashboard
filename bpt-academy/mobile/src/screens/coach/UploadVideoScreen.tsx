@@ -75,16 +75,35 @@ export default function UploadVideoScreen({ navigation }: any) {
       await animateTo(0.15);
       const fileExt = videoFile.name.split('.').pop() ?? 'mp4';
       const filePath = `videos/${Date.now()}.${fileExt}`;
-      const response = await fetch(videoFile.uri);
-      const blob = await response.blob();
 
-      // Stage 2: Uploading
+      // Stage 2: Uploading — use FormData for reliable iOS file upload
       setStage('uploading');
       await animateTo(0.25, 300);
-      const { error: storageError } = await supabase.storage
-        .from('training-videos')
-        .upload(filePath, blob, { contentType: `video/${fileExt}` });
-      if (storageError) throw storageError;
+
+      const formData = new FormData();
+      formData.append('file', {
+        uri: videoFile.uri,
+        name: videoFile.name,
+        type: `video/${fileExt}`,
+      } as any);
+
+      const { data: { session } } = await supabase.auth.getSession();
+      const uploadRes = await fetch(
+        `https://nobxhhnhakawhbimrate.supabase.co/storage/v1/object/training-videos/${filePath}`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${session?.access_token}`,
+            'apikey': 'sb_publishable_vnFb-ACqDwBiYt4PcKXC5Q_Ty8LRYoR',
+            'x-upsert': 'true',
+          },
+          body: formData,
+        }
+      );
+      if (!uploadRes.ok) {
+        const errText = await uploadRes.text();
+        throw new Error(`Storage error: ${errText}`);
+      }
       await animateTo(0.75, 800);
 
       // Stage 3: Saving
