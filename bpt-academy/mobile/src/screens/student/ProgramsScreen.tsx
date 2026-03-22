@@ -14,16 +14,19 @@ export default function ProgramsScreen({ navigation }: any) {
   const { profile } = useAuth();
   const [programs, setPrograms] = useState<Program[]>([]);
   const [enrolledIds, setEnrolledIds] = useState<string[]>([]);
+  const [activeEnrollmentExists, setActiveEnrollmentExists] = useState(false);
   const [filter, setFilter] = useState<Division | 'all'>('all');
   const [refreshing, setRefreshing] = useState(false);
 
   const fetchData = async () => {
-    const [progRes, enrollRes] = await Promise.all([
+    const [progRes, enrollRes, activeRes] = await Promise.all([
       supabase.from('programs').select('*').eq('is_active', true),
-      supabase.from('enrollments').select('program_id').eq('student_id', profile!.id),
+      supabase.from('enrollments').select('program_id').eq('student_id', profile!.id).eq('status', 'active'),
+      supabase.from('enrollments').select('id').eq('student_id', profile!.id).eq('status', 'active'),
     ]);
     if (progRes.data) setPrograms(progRes.data);
     if (enrollRes.data) setEnrolledIds(enrollRes.data.map((e) => e.program_id));
+    setActiveEnrollmentExists((activeRes.data?.length ?? 0) > 0);
   };
 
   const onRefresh = async () => {
@@ -34,18 +37,9 @@ export default function ProgramsScreen({ navigation }: any) {
 
   useEffect(() => { if (profile) fetchData(); }, [profile]);
 
-  const handleEnroll = async (programId: string) => {
-    const { error } = await supabase.from('enrollments').insert({
-      student_id: profile!.id,
-      program_id: programId,
-      status: 'active',
-    });
-    if (error) {
-      Alert.alert('Error', error.message);
-    } else {
-      setEnrolledIds([...enrolledIds, programId]);
-      Alert.alert('Enrolled!', 'You have been successfully enrolled.');
-    }
+  const handleEnrollPress = (programId: string) => {
+    // Always go to ProgramDetail — payment + enrollment logic lives there
+    navigation.navigate('ProgramDetail', { programId });
   };
 
   const filtered = filter === 'all' ? programs : programs.filter((p) => (p as any).division === filter);
@@ -121,10 +115,12 @@ export default function ProgramsScreen({ navigation }: any) {
 
               {!enrolled && (
                 <TouchableOpacity
-                  style={styles.enrollButton}
-                  onPress={() => handleEnroll(program.id)}
+                  style={[styles.enrollButton, activeEnrollmentExists && styles.enrollButtonLocked]}
+                  onPress={() => handleEnrollPress(program.id)}
                 >
-                  <Text style={styles.enrollButtonText}>Enroll Now</Text>
+                  <Text style={styles.enrollButtonText}>
+                    {activeEnrollmentExists ? '🔒 View Program' : 'Pay & Enroll'}
+                  </Text>
                 </TouchableOpacity>
               )}
             </TouchableOpacity>
@@ -164,6 +160,7 @@ const styles = StyleSheet.create({
   cardFooter: { flexDirection: 'row', gap: 16, marginBottom: 12 },
   cardMeta: { fontSize: 13, color: '#6B7280' },
   enrollButton: { backgroundColor: '#16A34A', borderRadius: 8, padding: 12, alignItems: 'center' },
+  enrollButtonLocked: { backgroundColor: '#9CA3AF' },
   enrollButtonText: { color: '#FFFFFF', fontWeight: '700', fontSize: 14 },
   empty: { alignItems: 'center', paddingVertical: 40 },
   emptyText: { color: '#9CA3AF', fontSize: 15 },

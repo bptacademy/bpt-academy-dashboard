@@ -80,6 +80,7 @@ export default function CoachHomeScreen({ navigation }: any) {
             { icon: '📣', label: 'Bulk Msg',    screen: 'BulkMsg' },
             { icon: '🎬', label: 'Upload Video',screen: 'UploadVideo' },
             { icon: '🔔', label: 'Announce',    screen: 'Announce' },
+            { icon: '⚙️', label: 'Settings',    screen: 'AcademySettings' },
           ].map((item) => (
             <TouchableOpacity
               key={item.screen}

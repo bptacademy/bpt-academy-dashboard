@@ -4,7 +4,7 @@ import {
   RefreshControl, Alert,
 } from 'react-native';
 import { supabase } from '../../lib/supabase';
-import { Program, EnrollmentStatus } from '../../types';
+import { Program, EnrollmentStatus, Division, DIVISION_LABELS, DIVISION_COLORS } from '../../types';
 import BackHeader from '../../components/common/BackHeader';
 
 interface EnrollmentRow {
@@ -65,17 +65,19 @@ export default function ProgramRosterScreen({ route, navigation }: any) {
     );
   };
 
-  const removeStudent = (enrollment: EnrollmentRow) => {
+  const cancelEnrollment = (enrollment: EnrollmentRow) => {
     Alert.alert(
-      'Remove student',
-      `Remove ${enrollment.student.full_name} from this program?`,
+      'Cancel enrollment',
+      `Cancel ${enrollment.student.full_name}'s enrollment? They will immediately lose access to this program.`,
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: 'Keep', style: 'cancel' },
         {
-          text: 'Remove',
+          text: 'Cancel Enrollment',
           style: 'destructive',
           onPress: async () => {
-            await supabase.from('enrollments').delete().eq('id', enrollment.id);
+            await supabase.from('enrollments')
+              .update({ status: 'cancelled' })
+              .eq('id', enrollment.id);
             fetchData();
           },
         },
@@ -105,7 +107,11 @@ export default function ProgramRosterScreen({ route, navigation }: any) {
       <View style={styles.header}>
         <Text style={styles.programTitle}>{program?.title ?? 'Program'}</Text>
         <Text style={styles.programMeta}>
-          {program?.skill_level?.charAt(0).toUpperCase()}{program?.skill_level?.slice(1)} · {program?.duration_weeks ?? '—'} weeks
+          {(() => {
+            const div = ((program as any)?.division ?? 'amateur') as Division;
+            const sub = program?.skill_level ? ` · ${program.skill_level.charAt(0).toUpperCase() + program.skill_level.slice(1)}` : '';
+            return `${DIVISION_LABELS[div]}${sub} · ${program?.duration_weeks ?? '—'} weeks`;
+          })()}
         </Text>
       </View>
 
@@ -176,12 +182,14 @@ export default function ProgramRosterScreen({ route, navigation }: any) {
                       </Text>
                     </TouchableOpacity>
                   ))}
-                  <TouchableOpacity
-                    style={styles.removeChip}
-                    onPress={() => removeStudent(e)}
-                  >
-                    <Text style={styles.removeChipText}>✕ Remove</Text>
-                  </TouchableOpacity>
+                  {e.status !== 'cancelled' && (
+                    <TouchableOpacity
+                      style={styles.removeChip}
+                      onPress={() => cancelEnrollment(e)}
+                    >
+                      <Text style={styles.removeChipText}>✕ Cancel</Text>
+                    </TouchableOpacity>
+                  )}
                 </ScrollView>
               </View>
             </View>
