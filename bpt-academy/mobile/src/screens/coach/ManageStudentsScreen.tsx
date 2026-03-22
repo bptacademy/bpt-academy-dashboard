@@ -23,7 +23,6 @@ export default function ManageStudentsScreen({ navigation }: any) {
     const { data } = await supabase
       .from('profiles')
       .select('*')
-      .in('role', ['student', 'coach'])
       .order('full_name');
     if (data) { setStudents(data); setFiltered(data); }
   };
