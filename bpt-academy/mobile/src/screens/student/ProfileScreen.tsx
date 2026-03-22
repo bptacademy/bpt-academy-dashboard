@@ -352,7 +352,9 @@ export default function ProfileScreen() {
                 maximumDate={new Date()}
                 minimumDate={new Date(1920, 0, 1)}
                 onChange={(_event, date) => { if (date) setDobDate(date); }}
-                style={{ backgroundColor: '#FFFFFF' }}
+                themeVariant="light"
+                textColor="#111827"
+                style={{ width: '100%', height: 200, backgroundColor: '#FFFFFF' }}
               />
             </View>
           </View>
@@ -497,7 +499,7 @@ const styles = StyleSheet.create({
 
   // Date picker modal
   dateModalOverlay: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.4)' },
-  dateModalSheet: { backgroundColor: '#FFFFFF', borderTopLeftRadius: 20, borderTopRightRadius: 20, paddingBottom: 32 },
+  dateModalSheet: { backgroundColor: '#FFFFFF', borderTopLeftRadius: 20, borderTopRightRadius: 20, paddingBottom: 40, overflow: 'hidden' },
   dateModalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 18, borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
   dateModalTitle: { fontSize: 17, fontWeight: '700', color: '#111827' },
   dateModalDone: { backgroundColor: '#16A34A', borderRadius: 16, paddingHorizontal: 16, paddingVertical: 6 },
