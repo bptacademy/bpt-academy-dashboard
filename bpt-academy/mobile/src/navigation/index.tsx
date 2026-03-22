@@ -28,6 +28,7 @@ import SendAnnouncementScreen from '../screens/coach/SendAnnouncementScreen';
 import UploadVideoScreen from '../screens/coach/UploadVideoScreen';
 import ManageVideosScreen from '../screens/coach/ManageVideosScreen';
 import ProgramRosterScreen from '../screens/coach/ProgramRosterScreen';
+import StudentDetailScreen from '../screens/coach/StudentDetailScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -113,6 +114,7 @@ function AppStack() {
       <Stack.Screen name="VideoPlayer" component={VideoPlayerScreen} options={{ headerShown: true, title: '' }} />
       <Stack.Screen name="ProgramDetail" component={ProgramDetailScreen} options={{ headerShown: true, title: '' }} />
       <Stack.Screen name="ProgramRoster" component={ProgramRosterScreen} options={{ headerShown: true, title: 'Program Roster' }} />
+      <Stack.Screen name="StudentDetail" component={StudentDetailScreen} options={{ headerShown: true, title: '' }} />
     </Stack.Navigator>
   );
 }
