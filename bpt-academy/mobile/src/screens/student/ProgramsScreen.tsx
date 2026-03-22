@@ -5,22 +5,16 @@ import {
 } from 'react-native';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
-import { Program, SkillLevel } from '../../types';
+import { Program, SkillLevel, Division, DIVISION_LABELS, DIVISION_COLORS } from '../../types';
 import ScreenHeader from '../../components/common/ScreenHeader';
 
-const SKILL_LEVELS: SkillLevel[] = ['beginner', 'intermediate', 'advanced'];
-
-const LEVEL_COLORS: Record<SkillLevel, string> = {
-  beginner: '#3B82F6',
-  intermediate: '#F59E0B',
-  advanced: '#EF4444',
-};
+const DIVISIONS: Division[] = ['amateur', 'semi_pro', 'pro'];
 
 export default function ProgramsScreen({ navigation }: any) {
   const { profile } = useAuth();
   const [programs, setPrograms] = useState<Program[]>([]);
   const [enrolledIds, setEnrolledIds] = useState<string[]>([]);
-  const [filter, setFilter] = useState<SkillLevel | 'all'>('all');
+  const [filter, setFilter] = useState<Division | 'all'>('all');
   const [refreshing, setRefreshing] = useState(false);
 
   const fetchData = async () => {
@@ -54,7 +48,7 @@ export default function ProgramsScreen({ navigation }: any) {
     }
   };
 
-  const filtered = filter === 'all' ? programs : programs.filter((p) => p.skill_level === filter);
+  const filtered = filter === 'all' ? programs : programs.filter((p) => (p as any).division === filter);
 
   return (
     <ScrollView
@@ -71,14 +65,14 @@ export default function ProgramsScreen({ navigation }: any) {
         >
           <Text style={[styles.chipText, filter === 'all' && styles.chipTextActive]}>All</Text>
         </TouchableOpacity>
-        {SKILL_LEVELS.map((level) => (
+        {DIVISIONS.map((div) => (
           <TouchableOpacity
-            key={level}
-            style={[styles.chip, filter === level && styles.chipActive, filter === level && { backgroundColor: LEVEL_COLORS[level], borderColor: LEVEL_COLORS[level] }]}
-            onPress={() => setFilter(level)}
+            key={div}
+            style={[styles.chip, filter === div && { backgroundColor: DIVISION_COLORS[div], borderColor: DIVISION_COLORS[div] }]}
+            onPress={() => setFilter(div)}
           >
-            <Text style={[styles.chipText, filter === level && styles.chipTextActive]}>
-              {level.charAt(0).toUpperCase() + level.slice(1)}
+            <Text style={[styles.chipText, filter === div && styles.chipTextActive]}>
+              {DIVISION_LABELS[div]}
             </Text>
           </TouchableOpacity>
         ))}
@@ -95,11 +89,19 @@ export default function ProgramsScreen({ navigation }: any) {
               onPress={() => navigation.navigate('ProgramDetail', { programId: program.id })}
             >
               <View style={styles.cardHeader}>
-                <View style={[styles.levelBadge, { backgroundColor: LEVEL_COLORS[program.skill_level] + '20' }]}>
-                  <Text style={[styles.levelText, { color: LEVEL_COLORS[program.skill_level] }]}>
-                    {program.skill_level.charAt(0).toUpperCase() + program.skill_level.slice(1)}
-                  </Text>
-                </View>
+                {(() => {
+                  const div = ((program as any).division ?? 'amateur') as Division;
+                  const color = DIVISION_COLORS[div] ?? '#6B7280';
+                  const label = DIVISION_LABELS[div] ?? div;
+                  const sub = program.skill_level
+                    ? ` · ${program.skill_level.charAt(0).toUpperCase() + program.skill_level.slice(1)}`
+                    : '';
+                  return (
+                    <View style={[styles.levelBadge, { backgroundColor: color + '20' }]}>
+                      <Text style={[styles.levelText, { color }]}>{label}{sub}</Text>
+                    </View>
+                  );
+                })()}
                 {enrolled && (
                   <View style={styles.enrolledBadge}>
                     <Text style={styles.enrolledText}>✓ Enrolled</Text>
