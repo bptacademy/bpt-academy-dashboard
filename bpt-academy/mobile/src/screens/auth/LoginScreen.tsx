@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity,
-  StyleSheet, Alert, KeyboardAvoidingView, Platform, ScrollView,
+  StyleSheet, Alert, KeyboardAvoidingView, Platform, ScrollView, Image,
 } from 'react-native';
 import { supabase } from '../../lib/supabase';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -34,8 +34,7 @@ export default function LoginScreen({ navigation }: Props) {
       <ScrollView contentContainerStyle={styles.inner}>
         {/* Logo / Header */}
         <View style={styles.header}>
-          <Text style={styles.logo}>🎾</Text>
-          <Text style={styles.title}>BPT Academy</Text>
+          <Image source={require('../../../assets/logo.png')} style={styles.logo} resizeMode="contain" />
           <Text style={styles.subtitle}>Welcome back</Text>
         </View>
 
@@ -90,8 +89,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#FFFFFF' },
   inner: { flexGrow: 1, padding: 24, justifyContent: 'center' },
   header: { alignItems: 'center', marginBottom: 40 },
-  logo: { fontSize: 64, marginBottom: 12 },
-  title: { fontSize: 28, fontWeight: '700', color: '#111827' },
+  logo: { width: 180, height: 100, marginBottom: 16 },
   subtitle: { fontSize: 16, color: '#6B7280', marginTop: 4 },
   form: { gap: 8 },
   label: { fontSize: 14, fontWeight: '600', color: '#374151', marginBottom: 4 },

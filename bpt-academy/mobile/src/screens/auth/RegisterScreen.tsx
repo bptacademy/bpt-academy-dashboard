@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity,
-  StyleSheet, Alert, KeyboardAvoidingView, Platform, ScrollView,
+  StyleSheet, Alert, KeyboardAvoidingView, Platform, ScrollView, Image,
 } from 'react-native';
 import { supabase } from '../../lib/supabase';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -57,8 +57,7 @@ export default function RegisterScreen({ navigation }: Props) {
     <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={styles.inner}>
         <View style={styles.header}>
-          <Text style={styles.logo}>🎾</Text>
-          <Text style={styles.title}>Join BPT Academy</Text>
+          <Image source={require('../../../assets/logo.png')} style={styles.logo} resizeMode="contain" />
           <Text style={styles.subtitle}>Create your account</Text>
         </View>
 
@@ -144,8 +143,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#FFFFFF' },
   inner: { flexGrow: 1, padding: 24 },
   header: { alignItems: 'center', marginBottom: 32, marginTop: 20 },
-  logo: { fontSize: 48, marginBottom: 8 },
-  title: { fontSize: 24, fontWeight: '700', color: '#111827' },
+  logo: { width: 180, height: 100, marginBottom: 8 },
   subtitle: { fontSize: 15, color: '#6B7280', marginTop: 4 },
   form: {},
   label: { fontSize: 14, fontWeight: '600', color: '#374151', marginBottom: 6, marginTop: 4 },
