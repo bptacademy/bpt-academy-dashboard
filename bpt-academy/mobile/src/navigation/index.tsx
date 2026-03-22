@@ -39,6 +39,7 @@ import TournamentManageScreen from '../screens/coach/TournamentManageScreen';
 import PaymentReconciliationScreen from '../screens/coach/PaymentReconciliationScreen';
 import BulkMessageScreen from '../screens/coach/BulkMessageScreen';
 import AcademySettingsScreen from '../screens/coach/AcademySettingsScreen';
+import BillingSettingsScreen from '../screens/coach/BillingSettingsScreen';
 
 // Messaging
 import NewConversationScreen from '../screens/messaging/NewConversationScreen';
@@ -100,7 +101,8 @@ function AdminStack() {
       <Stack.Screen name="UploadVideo"     component={UploadVideoScreen} />
       <Stack.Screen name="Attendance"      component={AttendanceScreen} />
       <Stack.Screen name="CoachNotes"       component={CoachNotesScreen} />
-      <Stack.Screen name="AcademySettings" component={AcademySettingsScreen} />
+      <Stack.Screen name="AcademySettings"  component={AcademySettingsScreen} />
+      <Stack.Screen name="BillingSettings" component={BillingSettingsScreen} />
       <Stack.Screen name="Chat"            component={ChatScreen} />
       <Stack.Screen name="NewConversation" component={NewConversationScreen} />
     </Stack.Navigator>
