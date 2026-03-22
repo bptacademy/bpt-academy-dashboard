@@ -19,7 +19,7 @@ type BankDetails = {
 export default function PaymentScreen({ navigation, route }: any) {
   const {
     tournamentId, programId, enrollmentId,
-    amount, programDivision, studentId,
+    amount, programDivision, studentId, label,
   } = route.params;
 
   const { profile } = useAuth();
@@ -67,13 +67,18 @@ export default function PaymentScreen({ navigation, route }: any) {
     }
     setLoadingCard(true);
 
+    // Create enrollment or tournament registration
     if (programId && studentId) {
       await supabase.from('enrollments').insert({
-        student_id: studentId,
-        program_id: programId,
-        status: 'active',
+        student_id: studentId, program_id: programId, status: 'active',
       });
     }
+    if (tournamentId && studentId) {
+      await supabase.from('tournament_registrations').insert({
+        tournament_id: tournamentId, student_id: studentId, status: 'pending',
+      });
+    }
+
     await supabase.from('payments').insert({
       student_id: studentId ?? profile!.id,
       tournament_id: tournamentId ?? null,
@@ -89,7 +94,7 @@ export default function PaymentScreen({ navigation, route }: any) {
     await Linking.openURL(paymentLink);
     Alert.alert(
       '🔗 Checkout Opened',
-      'Complete your payment in the browser. Your spot is reserved.',
+      `Complete your payment in the browser. Your ${tournamentId ? 'registration' : 'enrollment'} is reserved and will be confirmed once payment is received.`,
       [{ text: 'OK', onPress: () => navigation.goBack() }],
     );
   };
@@ -111,6 +116,19 @@ export default function PaymentScreen({ navigation, route }: any) {
       }
     }
 
+    if (tournamentId && studentId) {
+      const { error: regError } = await supabase.from('tournament_registrations').insert({
+        tournament_id: tournamentId,
+        student_id: studentId,
+        status: 'pending',
+      });
+      if (regError) {
+        setLoadingBank(false);
+        Alert.alert('Error', regError.message);
+        return;
+      }
+    }
+
     const { error } = await supabase.from('payments').insert({
       student_id: studentId ?? profile!.id,
       tournament_id: tournamentId ?? null,
@@ -127,7 +145,7 @@ export default function PaymentScreen({ navigation, route }: any) {
     if (error) { Alert.alert('Error', error.message); return; }
 
     Alert.alert(
-      '✅ Enrollment Confirmed',
+      tournamentId ? '✅ Registration Confirmed' : '✅ Enrollment Confirmed',
       `Please transfer £${amount.toFixed(2)} to:\n\n` +
       `Account: ${bankDetails?.bank_account_name ?? 'BPT Academy'}\n` +
       `Sort Code: ${bankDetails?.bank_sort_code ?? '—'}\n` +
@@ -144,6 +162,7 @@ export default function PaymentScreen({ navigation, route }: any) {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
 
         <View style={styles.amountCard}>
+          {label && <Text style={styles.amountContext}>{label}</Text>}
           <Text style={styles.amountLabel}>Amount Due</Text>
           <Text style={styles.amountValue}>£{amount.toFixed(2)}</Text>
         </View>
@@ -251,6 +270,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F9FAFB' },
   content: { padding: 20, paddingBottom: 40 },
   amountCard: { backgroundColor: '#111827', borderRadius: 16, padding: 28, alignItems: 'center', marginBottom: 20 },
+  amountContext: { fontSize: 14, color: '#D1FAE5', fontWeight: '600', marginBottom: 4 },
   amountLabel: { fontSize: 13, color: '#9CA3AF', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.5 },
   amountValue: { fontSize: 44, fontWeight: '800', color: '#FFFFFF' },
   tabRow: { flexDirection: 'row', backgroundColor: '#E5E7EB', borderRadius: 10, padding: 4, marginBottom: 24 },
