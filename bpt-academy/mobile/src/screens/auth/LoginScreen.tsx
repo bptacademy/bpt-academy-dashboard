@@ -89,7 +89,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#FFFFFF' },
   inner: { flexGrow: 1, padding: 24, justifyContent: 'center' },
   header: { alignItems: 'center', marginBottom: 40 },
-  logo: { width: 180, height: 100, marginBottom: 16 },
+  logo: { width: 360, height: 200, marginBottom: 16 },
   subtitle: { fontSize: 16, color: '#6B7280', marginTop: 4 },
   form: { gap: 8 },
   label: { fontSize: 14, fontWeight: '600', color: '#374151', marginBottom: 4 },

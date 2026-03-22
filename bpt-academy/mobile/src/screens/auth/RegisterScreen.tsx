@@ -143,7 +143,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#FFFFFF' },
   inner: { flexGrow: 1, padding: 24 },
   header: { alignItems: 'center', marginBottom: 32, marginTop: 20 },
-  logo: { width: 180, height: 100, marginBottom: 8 },
+  logo: { width: 360, height: 200, marginBottom: 8 },
   subtitle: { fontSize: 15, color: '#6B7280', marginTop: 4 },
   form: {},
   label: { fontSize: 14, fontWeight: '600', color: '#374151', marginBottom: 6, marginTop: 4 },
