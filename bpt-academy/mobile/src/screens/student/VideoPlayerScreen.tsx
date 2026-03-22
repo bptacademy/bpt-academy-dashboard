@@ -3,7 +3,7 @@ import {
   View, Text, StyleSheet, TouchableOpacity, ScrollView,
   Dimensions, Alert, TextInput, KeyboardAvoidingView, Platform,
 } from 'react-native';
-import { Video, ResizeMode } from 'expo-av';
+import { useVideoPlayer, VideoView } from 'expo-video';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { Video as VideoType } from '../../types';
@@ -13,8 +13,6 @@ const { width } = Dimensions.get('window');
 export default function VideoPlayerScreen({ route, navigation }: any) {
   const video = route.params?.video as VideoType;
   const { profile } = useAuth();
-  const videoRef = useRef<any>(null);
-  const [status, setStatus] = useState<any>({});
   const [comments, setComments] = useState<any[]>([]);
   const [newComment, setNewComment] = useState('');
   const [bookmarked, setBookmarked] = useState(false);
@@ -23,7 +21,11 @@ export default function VideoPlayerScreen({ route, navigation }: any) {
   // Build the playback URL from Supabase Storage
   const playbackUrl = video.mux_playback_id
     ? supabase.storage.from('training-videos').getPublicUrl(video.mux_playback_id).data.publicUrl
-    : null;
+    : '';
+
+  const player = useVideoPlayer(playbackUrl, (p) => {
+    p.loop = false;
+  });
 
   const fetchComments = async () => {
     const { data } = await supabase
@@ -74,27 +76,18 @@ export default function VideoPlayerScreen({ route, navigation }: any) {
     fetchComments();
   };
 
-  const formatTime = (ms: number) => {
-    const s = Math.floor(ms / 1000);
-    const m = Math.floor(s / 60);
-    const sec = s % 60;
-    return `${m}:${sec.toString().padStart(2, '0')}`;
-  };
-
   return (
     <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView>
         {/* Video Player */}
         <View style={styles.playerContainer}>
           {playbackUrl ? (
-            <Video
-              ref={videoRef}
+            <VideoView
               style={styles.video}
-              source={{ uri: playbackUrl }}
-              resizeMode={ResizeMode.CONTAIN}
-              useNativeControls
-              onPlaybackStatusUpdate={(s) => setStatus(s)}
-              onError={(e) => Alert.alert('Playback error', 'Could not play this video.')}
+              player={player}
+              allowsFullscreen
+              allowsPictureInPicture
+              nativeControls
             />
           ) : (
             <View style={styles.noVideo}>
