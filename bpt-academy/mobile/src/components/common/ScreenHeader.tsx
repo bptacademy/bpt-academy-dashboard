@@ -11,7 +11,6 @@ const STUDENT_MENU = [
   { icon: '📈', label: 'Progress',    screen: 'Progress' },
   { icon: '🏆', label: 'Leaderboard', screen: 'Leaderboard' },
   { icon: '🎾', label: 'Tournaments', screen: 'Tournaments' },
-  { icon: '🏟️', label: 'Book Court',  screen: 'CourtBook' },
   { icon: '💬', label: 'Messages',    screen: 'Messages' },
   { icon: '📝', label: 'Coach Notes', screen: 'MyCoachNotes' },
   { icon: '👤', label: 'Profile',     screen: 'Profile' },

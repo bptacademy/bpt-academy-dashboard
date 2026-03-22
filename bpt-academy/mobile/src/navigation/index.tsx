@@ -20,7 +20,6 @@ import VideoPlayerScreen from '../screens/student/VideoPlayerScreen';
 import TournamentListScreen from '../screens/student/TournamentListScreen';
 import TournamentDetailScreen from '../screens/student/TournamentDetailScreen';
 import PaymentScreen from '../screens/student/PaymentScreen';
-import CourtBookingScreen from '../screens/student/CourtBookingScreen';
 import LeaderboardScreen from '../screens/student/LeaderboardScreen';
 import MyCoachNotesScreen from '../screens/student/MyCoachNotesScreen';
 
@@ -67,7 +66,6 @@ function StudentStack() {
       <Stack.Screen name="Profile"     component={ProfileScreen} />
       <Stack.Screen name="Tournaments" component={TournamentListScreen} />
       <Stack.Screen name="Leaderboard" component={LeaderboardScreen} />
-      <Stack.Screen name="CourtBook"   component={CourtBookingScreen} />
       {/* Push */}
       <Stack.Screen name="ProgramDetail"    component={ProgramDetailScreen} />
       <Stack.Screen name="VideoPlayer"      component={VideoPlayerScreen} />
