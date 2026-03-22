@@ -8,6 +8,9 @@ interface AuthContextType {
   user: User | null;
   profile: Profile | null;
   loading: boolean;
+  previewRole: 'admin' | 'student' | null;
+  setPreviewRole: (role: 'admin' | 'student' | null) => void;
+  effectiveRole: string;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
@@ -17,6 +20,9 @@ const AuthContext = createContext<AuthContextType>({
   user: null,
   profile: null,
   loading: true,
+  previewRole: null,
+  setPreviewRole: () => {},
+  effectiveRole: 'student',
   signOut: async () => {},
   refreshProfile: async () => {},
 });
@@ -25,6 +31,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [previewRole, setPreviewRole] = useState<'admin' | 'student' | null>(null);
+
+  const effectiveRole = previewRole ?? profile?.role ?? 'student';
 
   const fetchProfile = async (userId: string) => {
     const { data } = await supabase
@@ -61,6 +70,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signOut = async () => {
     await supabase.auth.signOut();
     setProfile(null);
+    setPreviewRole(null);
   };
 
   return (
@@ -69,6 +79,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       user: session?.user ?? null,
       profile,
       loading,
+      previewRole,
+      setPreviewRole,
+      effectiveRole,
       signOut,
       refreshProfile,
     }}>

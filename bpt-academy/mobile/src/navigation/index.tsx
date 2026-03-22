@@ -94,8 +94,8 @@ function AuthStack() {
 
 // ── App stack (role-aware) ────────────────────────────────
 function AppStack() {
-  const { profile } = useAuth();
-  const isAdmin = profile?.role === 'admin' || profile?.role === 'coach';
+  const { effectiveRole } = useAuth();
+  const isAdmin = effectiveRole === 'admin' || effectiveRole === 'coach';
 
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>

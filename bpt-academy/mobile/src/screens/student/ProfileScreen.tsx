@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, Switch } from 'react-native';
 import { useAuth } from '../../context/AuthContext';
 
 const SKILL_LEVEL_LABELS: Record<string, string> = {
@@ -10,7 +10,9 @@ const SKILL_LEVEL_LABELS: Record<string, string> = {
 };
 
 export default function ProfileScreen({ navigation }: any) {
-  const { profile, signOut } = useAuth();
+  const { profile, signOut, previewRole, setPreviewRole, effectiveRole } = useAuth();
+  const isActualAdmin = profile?.role === 'admin' || profile?.role === 'coach';
+  const isViewingAsStudent = effectiveRole === 'student';
 
   const handleSignOut = () => {
     Alert.alert('Sign out', 'Are you sure you want to sign out?', [
@@ -56,6 +58,27 @@ export default function ProfileScreen({ navigation }: any) {
         </View>
       </View>
 
+      {/* Role switcher — only shown to admins/coaches */}
+      {isActualAdmin && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Developer</Text>
+          <View style={styles.card}>
+            <View style={styles.row}>
+              <View>
+                <Text style={styles.rowLabel}>View as Student</Text>
+                <Text style={styles.rowHint}>Preview the student experience</Text>
+              </View>
+              <Switch
+                value={isViewingAsStudent}
+                onValueChange={(val) => setPreviewRole(val ? 'student' : null)}
+                trackColor={{ false: '#D1D5DB', true: '#16A34A' }}
+                thumbColor="#FFFFFF"
+              />
+            </View>
+          </View>
+        </View>
+      )}
+
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>App</Text>
         <View style={styles.card}>
@@ -100,6 +123,7 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16 },
   rowLabel: { fontSize: 15, color: '#374151' },
   rowValue: { fontSize: 15, color: '#6B7280' },
+  rowHint: { fontSize: 12, color: '#9CA3AF', marginTop: 2 },
   chevron: { fontSize: 20, color: '#D1D5DB' },
   divider: { height: 1, backgroundColor: '#F3F4F6', marginHorizontal: 16 },
   signOutButton: { backgroundColor: '#FEE2E2', borderRadius: 12, padding: 16, alignItems: 'center', marginBottom: 12 },
