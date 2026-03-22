@@ -19,13 +19,19 @@ export default function VideoPlayerScreen({ route, navigation }: any) {
   const [bookmarked, setBookmarked] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  // Build the playback URL from Supabase Storage
-  const playbackUrl = video.mux_playback_id
-    ? supabase.storage.from('training-videos').getPublicUrl(video.mux_playback_id).data.publicUrl
-    : '';
+  // Build the playback URL — mux_playback_id stores the Storage file path (e.g. videos/xxx.mp4)
+  const getVideoUrl = () => {
+    if (!video.mux_playback_id) return '';
+    const path = video.mux_playback_id;
+    // Try training-videos bucket first (where UploadVideoScreen saves)
+    return supabase.storage.from('training-videos').getPublicUrl(path).data.publicUrl;
+  };
 
-  const player = useVideoPlayer(playbackUrl, (p) => {
+  const playbackUrl = getVideoUrl();
+
+  const player = useVideoPlayer(playbackUrl || 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4', (p) => {
     p.loop = false;
+    p.pause();
   });
 
   const fetchComments = async () => {
@@ -83,19 +89,13 @@ export default function VideoPlayerScreen({ route, navigation }: any) {
       <ScrollView>
         {/* Video Player */}
         <View style={styles.playerContainer}>
-          {playbackUrl ? (
-            <VideoView
+          <VideoView
               style={styles.video}
               player={player}
               allowsFullscreen
               allowsPictureInPicture
               nativeControls
             />
-          ) : (
-            <View style={styles.noVideo}>
-              <Text style={styles.noVideoText}>Video unavailable</Text>
-            </View>
-          )}
         </View>
 
         {/* Video info */}
