@@ -14,18 +14,23 @@ export default function NewConversationScreen({ navigation }: any) {
   const [search, setSearch] = useState('');
 
   useEffect(() => {
-    // Coaches/admins see all students; students see coaches/admins
-    const isAdmin = profile?.role === 'admin' || profile?.role === 'coach';
+    if (!profile) return;
+
+    // Use actual DB role (not effectiveRole) so admins always see students
+    const isAdmin = profile.role === 'admin' || profile.role === 'coach';
     const fetchRoles = isAdmin ? ['student'] : ['coach', 'admin'];
 
     supabase
       .from('profiles')
-      .select('*')
+      .select('id, full_name, role, skill_level, division, avatar_url')
       .in('role', fetchRoles)
-      .neq('id', profile!.id)
+      .neq('id', profile.id)
       .order('full_name')
-      .then(({ data }) => { if (data) setPeople(data); });
-  }, [profile]);
+      .then(({ data, error }) => {
+        if (error) console.warn('NewConversation fetch error:', error.message);
+        if (data) setPeople(data as Profile[]);
+      });
+  }, [profile?.id, profile?.role]);
 
   const startConversation = async (recipient: Profile) => {
     // Check if direct conversation already exists between these two
@@ -120,7 +125,7 @@ export default function NewConversationScreen({ navigation }: any) {
               <Text style={styles.name}>{person.full_name}</Text>
               <Text style={styles.role}>
                 {person.role.charAt(0).toUpperCase() + person.role.slice(1)}
-                {person.skill_level ? ` · ${person.skill_level.charAt(0).toUpperCase() + person.skill_level.slice(1)}` : ''}
+                {(person as any).division ? ` · ${(person as any).division.replace('_', '-')}` : ''}
               </Text>
             </View>
             <Text style={styles.chevron}>›</Text>

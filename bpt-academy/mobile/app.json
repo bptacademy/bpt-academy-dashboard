@@ -34,6 +34,12 @@
       "expo-font",
       "expo-video",
       "@react-native-community/datetimepicker"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "a661965b-f384-43fa-8441-f9e5f78a0c3a"
+      }
+    },
+    "owner": "bptacademyuk"
   }
 }
