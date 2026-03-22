@@ -78,10 +78,10 @@ function StudentStack() {
       <Stack.Screen name="Progress" component={ProgressScreen} options={menuOpts('Progress', STUDENT_MENU)} />
       <Stack.Screen name="Messages" component={MessagesScreen} options={menuOpts('Messages', STUDENT_MENU)} />
       <Stack.Screen name="Profile"  component={ProfileScreen}  options={menuOpts('Profile', STUDENT_MENU)} />
-      <Stack.Screen name="ProgramDetail"   component={ProgramDetailScreen}   options={{ headerShown: true, title: '', headerBackTitle: 'Back' }} />
-      <Stack.Screen name="VideoPlayer"     component={VideoPlayerScreen}     options={{ headerShown: true, title: '', headerBackTitle: 'Back' }} />
-      <Stack.Screen name="Chat"            component={ChatScreen}            options={{ headerShown: true, headerBackTitle: 'Back' }} />
-      <Stack.Screen name="NewConversation" component={NewConversationScreen} options={{ headerShown: true, title: 'New Message', headerBackTitle: 'Back' }} />
+      <Stack.Screen name="ProgramDetail"   component={ProgramDetailScreen}   options={{ headerShown: false }} />
+      <Stack.Screen name="VideoPlayer"     component={VideoPlayerScreen}     options={{ headerShown: false }} />
+      <Stack.Screen name="Chat"            component={ChatScreen}            options={{ headerShown: false }} />
+      <Stack.Screen name="NewConversation" component={NewConversationScreen} options={{ headerShown: false }} />
     </Stack.Navigator>
   );
 }
@@ -96,11 +96,11 @@ function AdminStack() {
       <Stack.Screen name="Messages"  component={MessagesScreen}        options={menuOpts('Messages', ADMIN_MENU)} />
       <Stack.Screen name="Announce"  component={SendAnnouncementScreen} options={menuOpts('Announce', ADMIN_MENU)} />
       <Stack.Screen name="Profile"   component={ProfileScreen}         options={menuOpts('Profile', ADMIN_MENU)} />
-      <Stack.Screen name="ProgramRoster"   component={ProgramRosterScreen}   options={{ headerShown: true, title: 'Roster', headerBackTitle: 'Back' }} />
-      <Stack.Screen name="StudentDetail"   component={StudentDetailScreen}   options={{ headerShown: true, title: '', headerBackTitle: 'Back' }} />
-      <Stack.Screen name="UploadVideo"     component={UploadVideoScreen}     options={{ headerShown: true, title: 'Upload Video', headerBackTitle: 'Back' }} />
-      <Stack.Screen name="Chat"            component={ChatScreen}            options={{ headerShown: true, headerBackTitle: 'Back' }} />
-      <Stack.Screen name="NewConversation" component={NewConversationScreen} options={{ headerShown: true, title: 'New Message', headerBackTitle: 'Back' }} />
+      <Stack.Screen name="ProgramRoster"   component={ProgramRosterScreen}   options={{ headerShown: false }} />
+      <Stack.Screen name="StudentDetail"   component={StudentDetailScreen}   options={{ headerShown: false }} />
+      <Stack.Screen name="UploadVideo"     component={UploadVideoScreen}     options={{ headerShown: false }} />
+      <Stack.Screen name="Chat"            component={ChatScreen}            options={{ headerShown: false }} />
+      <Stack.Screen name="NewConversation" component={NewConversationScreen} options={{ headerShown: false }} />
     </Stack.Navigator>
   );
 }

@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
+import ScreenHeader from '../../components/common/ScreenHeader';
 
 export default function SendAnnouncementScreen({ navigation }: any) {
   const { profile } = useAuth();
@@ -52,10 +53,7 @@ export default function SendAnnouncementScreen({ navigation }: any) {
   return (
     <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={styles.inner}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Send Announcement</Text>
-          <Text style={styles.subtitle}>This will notify all students</Text>
-        </View>
+        <ScreenHeader title="Announcement" />
 
         <View style={styles.form}>
           <Text style={styles.label}>Title *</Text>

@@ -40,7 +40,7 @@ export default function CoachHomeScreen({ navigation }: any) {
       style={styles.container}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
     >
-      <ScreenHeader title="BPT Academy 🎾" menuItems={MENU} dark />
+      <ScreenHeader title="BPT Academy 🎾" dark />
       <View style={styles.header}>
         <View>
           <Text style={styles.greeting}>Admin Dashboard 👋</Text>

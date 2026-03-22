@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { supabase } from '../../lib/supabase';
 import { Profile } from '../../types';
+import ScreenHeader from '../../components/common/ScreenHeader';
 
 const LEVEL_COLORS: Record<string, string> = {
   beginner: '#3B82F6',
@@ -44,10 +45,7 @@ export default function ManageStudentsScreen({ navigation }: any) {
       style={styles.container}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
     >
-      <View style={styles.header}>
-        <Text style={styles.title}>Students</Text>
-        <Text style={styles.subtitle}>{filtered.length} members</Text>
-      </View>
+      <ScreenHeader title="Students" />
 
       <View style={styles.searchContainer}>
         <TextInput
@@ -99,7 +97,7 @@ export default function ManageStudentsScreen({ navigation }: any) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F9FAFB' },
-  header: { padding: 24, paddingTop: 48, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
+  header: { padding: 24, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
   title: { fontSize: 26, fontWeight: '700', color: '#111827' },
   subtitle: { fontSize: 14, color: '#6B7280', marginTop: 2 },
   searchContainer: { padding: 16, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },

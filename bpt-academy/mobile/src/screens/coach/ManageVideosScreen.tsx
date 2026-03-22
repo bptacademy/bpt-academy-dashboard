@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { supabase } from '../../lib/supabase';
 import { Video } from '../../types';
+import ScreenHeader from '../../components/common/ScreenHeader';
 
 export default function ManageVideosScreen({ navigation }: any) {
   const [videos, setVideos] = useState<Video[]>([]);
@@ -72,13 +73,10 @@ export default function ManageVideosScreen({ navigation }: any) {
       style={styles.container}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
     >
-      <View style={styles.header}>
-        <Text style={styles.title}>Videos</Text>
-        <TouchableOpacity
-          style={styles.uploadBtn}
-          onPress={() => navigation.navigate('UploadVideo')}
-        >
-          <Text style={styles.uploadBtnText}>+ Upload</Text>
+      <ScreenHeader title="Videos" />
+      <View style={styles.addRow}>
+        <TouchableOpacity style={styles.uploadBtn} onPress={() => navigation.navigate('UploadVideo')}>
+          <Text style={styles.uploadBtnText}>+ Upload Video</Text>
         </TouchableOpacity>
       </View>
 
@@ -166,12 +164,7 @@ export default function ManageVideosScreen({ navigation }: any) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F9FAFB' },
-  header: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    padding: 24, paddingTop: 48, backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1, borderBottomColor: '#F3F4F6',
-  },
-  title: { fontSize: 26, fontWeight: '700', color: '#111827' },
+  addRow: { flexDirection: 'row', justifyContent: 'flex-end', padding: 12, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
   uploadBtn: { backgroundColor: '#16A34A', borderRadius: 20, paddingHorizontal: 16, paddingVertical: 8 },
   uploadBtnText: { color: '#FFFFFF', fontWeight: '700', fontSize: 14 },
   searchContainer: { padding: 16, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },

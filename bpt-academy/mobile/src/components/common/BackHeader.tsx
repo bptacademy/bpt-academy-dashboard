@@ -24,26 +24,42 @@ const ADMIN_MENU = [
 ];
 
 interface Props {
-  title: string;
+  title?: string;
   dark?: boolean;
 }
 
-export default function ScreenHeader({ title, dark = false }: Props) {
-  const [open, setOpen] = useState(false);
+export default function BackHeader({ title, dark = false }: Props) {
   const navigation = useNavigation<any>();
   const { effectiveRole } = useAuth();
+  const [open, setOpen] = useState(false);
 
   const isAdmin = effectiveRole === 'admin' || effectiveRole === 'coach';
   const menu = isAdmin ? ADMIN_MENU : STUDENT_MENU;
+  const homeScreen = isAdmin ? 'Dashboard' : 'Home';
+
+  const canGoBack = navigation.canGoBack();
 
   return (
     <>
       <View style={[styles.header, dark && styles.headerDark]}>
-        <Text style={[styles.title, dark && styles.titleDark]}>{title}</Text>
-        <TouchableOpacity style={styles.btn} onPress={() => setOpen(true)}>
-          <Text style={[styles.icon, dark && styles.iconDark]}>☰</Text>
+        {canGoBack ? (
+          <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
+            <Text style={[styles.backIcon, dark && styles.lightText]}>‹</Text>
+            <Text style={[styles.backText, dark && styles.lightText]}>Back</Text>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity style={styles.backBtn} onPress={() => navigation.navigate(homeScreen)}>
+            <Text style={[styles.backIcon, dark && styles.lightText]}>🏠</Text>
+          </TouchableOpacity>
+        )}
+
+        {title ? <Text style={[styles.title, dark && styles.lightText]} numberOfLines={1}>{title}</Text> : <View style={{ flex: 1 }} />}
+
+        <TouchableOpacity style={styles.menuBtn} onPress={() => setOpen(true)}>
+          <Text style={[styles.menuIcon, dark && styles.lightText]}>☰</Text>
         </TouchableOpacity>
       </View>
+
       <MenuDrawer
         visible={open}
         onClose={() => setOpen(false)}
@@ -56,14 +72,16 @@ export default function ScreenHeader({ title, dark = false }: Props) {
 
 const styles = StyleSheet.create({
   header: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    paddingHorizontal: 20, paddingTop: 52, paddingBottom: 14,
+    flexDirection: 'row', alignItems: 'center',
+    paddingHorizontal: 16, paddingTop: 52, paddingBottom: 14,
     backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#F3F4F6',
   },
   headerDark: { backgroundColor: '#111827', borderBottomColor: '#1F2937' },
-  title: { fontSize: 18, fontWeight: '700', color: '#111827' },
-  titleDark: { color: '#FFFFFF' },
-  btn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
-  icon: { fontSize: 22, color: '#374151' },
-  iconDark: { color: '#FFFFFF' },
+  backBtn: { flexDirection: 'row', alignItems: 'center', gap: 2, minWidth: 60 },
+  backIcon: { fontSize: 26, color: '#374151', lineHeight: 30 },
+  backText: { fontSize: 16, color: '#374151' },
+  title: { flex: 1, fontSize: 17, fontWeight: '700', color: '#111827', textAlign: 'center' },
+  lightText: { color: '#FFFFFF' },
+  menuBtn: { minWidth: 40, alignItems: 'flex-end' },
+  menuIcon: { fontSize: 22, color: '#374151' },
 });

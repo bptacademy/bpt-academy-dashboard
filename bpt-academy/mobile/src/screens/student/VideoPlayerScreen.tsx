@@ -7,6 +7,7 @@ import { useVideoPlayer, VideoView } from 'expo-video';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { Video as VideoType } from '../../types';
+import BackHeader from '../../components/common/BackHeader';
 
 const { width } = Dimensions.get('window');
 
@@ -78,6 +79,7 @@ export default function VideoPlayerScreen({ route, navigation }: any) {
 
   return (
     <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <BackHeader title={video?.title ?? 'Video'} />
       <ScrollView>
         {/* Video Player */}
         <View style={styles.playerContainer}>

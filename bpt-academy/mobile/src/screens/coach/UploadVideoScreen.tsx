@@ -8,6 +8,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { Program } from '../../types';
+import BackHeader from '../../components/common/BackHeader';
 
 type UploadStage = 'idle' | 'preparing' | 'uploading' | 'saving' | 'done' | 'error';
 
@@ -135,6 +136,7 @@ export default function UploadVideoScreen({ navigation }: any) {
   return (
     <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={styles.inner}>
+        <BackHeader title="Upload Video" />
         <View style={styles.header}>
           <Text style={styles.title}>Upload Video</Text>
           <Text style={styles.subtitle}>Add a training clip to the library</Text>

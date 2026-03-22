@@ -6,6 +6,7 @@ import {
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { Program, Module, StudentProgress, ProgramSession } from '../../types';
+import BackHeader from '../../components/common/BackHeader';
 
 const LEVEL_COLORS: Record<string, string> = {
   beginner: '#3B82F6',
@@ -103,6 +104,7 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
       style={styles.container}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
     >
+      <BackHeader title={program?.title ?? 'Program'} />
       {/* Hero */}
       <View style={styles.hero}>
         <View style={[styles.levelBadge, { backgroundColor: (LEVEL_COLORS[program.skill_level] ?? '#6B7280') + '30' }]}>

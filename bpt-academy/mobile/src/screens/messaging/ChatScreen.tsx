@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
+import BackHeader from '../../components/common/BackHeader';
 
 interface Message {
   id: string;
@@ -112,6 +113,7 @@ export default function ChatScreen({ route, navigation }: any) {
 
   return (
     <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={90}>
+      <BackHeader title={title ?? 'Chat'} />
       <FlatList
         ref={flatListRef}
         data={messages}

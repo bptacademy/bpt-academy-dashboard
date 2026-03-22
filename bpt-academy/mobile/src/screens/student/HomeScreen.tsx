@@ -66,7 +66,7 @@ export default function HomeScreen({ navigation }: any) {
       style={styles.container}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
     >
-      <ScreenHeader title="BPT Academy 🎾" menuItems={MENU} />
+      <ScreenHeader title="BPT Academy 🎾" />
 
       {/* Welcome strip */}
       <View style={styles.header}>

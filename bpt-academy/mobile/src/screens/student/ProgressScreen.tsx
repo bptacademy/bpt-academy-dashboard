@@ -3,6 +3,7 @@ import { View, Text, ScrollView, StyleSheet, RefreshControl } from 'react-native
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { Enrollment, Module, StudentProgress } from '../../types';
+import ScreenHeader from '../../components/common/ScreenHeader';
 
 interface ProgramWithProgress extends Enrollment {
   modules: (Module & { progress?: StudentProgress })[];
@@ -75,9 +76,7 @@ export default function ProgressScreen() {
       style={styles.container}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
     >
-      <View style={styles.header}>
-        <Text style={styles.title}>My Progress</Text>
-      </View>
+      <ScreenHeader title="Progress" />
 
       {/* Overall card */}
       <View style={styles.overallCard}>
@@ -143,7 +142,7 @@ export default function ProgressScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F9FAFB' },
-  header: { padding: 24, paddingTop: 48, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
+  header: { padding: 24, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
   title: { fontSize: 26, fontWeight: '700', color: '#111827' },
   overallCard: {
     margin: 16, backgroundColor: '#16A34A', borderRadius: 16, padding: 24, alignItems: 'center',

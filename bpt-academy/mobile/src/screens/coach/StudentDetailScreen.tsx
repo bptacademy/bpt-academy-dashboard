@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { supabase } from '../../lib/supabase';
 import { Profile, UserRole, SkillLevel, EnrollmentStatus } from '../../types';
+import BackHeader from '../../components/common/BackHeader';
 
 interface EnrollmentWithProgram {
   id: string;
@@ -158,6 +159,7 @@ export default function StudentDetailScreen({ route, navigation }: any) {
 
   return (
     <View style={{ flex: 1 }}>
+      <BackHeader title={student.full_name} />
       <ScrollView
         style={styles.container}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}

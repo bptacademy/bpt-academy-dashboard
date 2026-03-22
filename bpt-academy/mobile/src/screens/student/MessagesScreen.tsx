@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
+import ScreenHeader from '../../components/common/ScreenHeader';
 
 interface ConvRow {
   id: string;
@@ -100,9 +101,7 @@ export default function MessagesScreen({ navigation }: any) {
         style={styles.container}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
-        <View style={styles.header}>
-          <Text style={styles.title}>Messages</Text>
-        </View>
+        <ScreenHeader title="Messages" />
 
         <View style={styles.list}>
           {conversations.map((conv) => (
@@ -150,7 +149,7 @@ export default function MessagesScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   wrapper: { flex: 1 },
   container: { flex: 1, backgroundColor: '#F9FAFB' },
-  header: { padding: 24, paddingTop: 48, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
+  header: { padding: 24, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
   title: { fontSize: 26, fontWeight: '700', color: '#111827' },
   list: { padding: 16 },
   card: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', borderRadius: 14, padding: 14, marginBottom: 10, borderWidth: 1, borderColor: '#E5E7EB', gap: 12 },

@@ -6,6 +6,7 @@ import {
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { Program, SkillLevel } from '../../types';
+import ScreenHeader from '../../components/common/ScreenHeader';
 
 const SKILL_LEVELS: SkillLevel[] = ['beginner', 'intermediate', 'advanced', 'competition'];
 
@@ -57,10 +58,10 @@ export default function ManageProgramsScreen({ navigation }: any) {
   return (
     <View style={styles.container}>
       <ScrollView refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Programs</Text>
+        <ScreenHeader title="Programs" />
+        <View style={styles.addRow}>
           <TouchableOpacity style={styles.addBtn} onPress={() => setModalVisible(true)}>
-            <Text style={styles.addBtnText}>+ New</Text>
+            <Text style={styles.addBtnText}>+ New Program</Text>
           </TouchableOpacity>
         </View>
 
@@ -142,8 +143,7 @@ export default function ManageProgramsScreen({ navigation }: any) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F9FAFB' },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 24, paddingTop: 48, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
-  title: { fontSize: 26, fontWeight: '700', color: '#111827' },
+  addRow: { flexDirection: 'row', justifyContent: 'flex-end', padding: 12, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
   addBtn: { backgroundColor: '#16A34A', borderRadius: 20, paddingHorizontal: 16, paddingVertical: 8 },
   addBtnText: { color: '#FFFFFF', fontWeight: '700', fontSize: 14 },
   list: { padding: 16 },

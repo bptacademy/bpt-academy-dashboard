@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { supabase } from '../../lib/supabase';
 import { Program, EnrollmentStatus } from '../../types';
+import BackHeader from '../../components/common/BackHeader';
 
 interface EnrollmentRow {
   id: string;
@@ -99,6 +100,7 @@ export default function ProgramRosterScreen({ route, navigation }: any) {
       style={styles.container}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
     >
+      <BackHeader title={program?.title ?? 'Roster'} dark />
       {/* Program header */}
       <View style={styles.header}>
         <Text style={styles.programTitle}>{program?.title ?? 'Program'}</Text>

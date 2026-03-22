@@ -6,6 +6,7 @@ import {
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { Profile } from '../../types';
+import BackHeader from '../../components/common/BackHeader';
 
 export default function NewConversationScreen({ navigation }: any) {
   const { profile } = useAuth();
@@ -87,6 +88,7 @@ export default function NewConversationScreen({ navigation }: any) {
 
   return (
     <ScrollView style={styles.container}>
+      <BackHeader title="New Message" />
       <View style={styles.header}>
         <Text style={styles.title}>New Message</Text>
         <Text style={styles.subtitle}>

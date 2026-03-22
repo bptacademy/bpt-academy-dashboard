@@ -6,6 +6,7 @@ import {
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { Video } from '../../types';
+import ScreenHeader from '../../components/common/ScreenHeader';
 
 export default function VideosScreen({ navigation }: any) {
   const { profile } = useAuth();
@@ -69,10 +70,7 @@ export default function VideosScreen({ navigation }: any) {
       style={styles.container}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
     >
-      <View style={styles.header}>
-        <Text style={styles.title}>Training Library</Text>
-        <Text style={styles.subtitle}>{filtered.length} videos</Text>
-      </View>
+      <ScreenHeader title="Videos" />
 
       <View style={styles.searchContainer}>
         <TextInput
@@ -145,7 +143,7 @@ export default function VideosScreen({ navigation }: any) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F9FAFB' },
-  header: { padding: 24, paddingTop: 48, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
+  header: { padding: 24, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
   title: { fontSize: 26, fontWeight: '700', color: '#111827' },
   subtitle: { fontSize: 14, color: '#6B7280', marginTop: 2 },
   searchContainer: { padding: 16, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },

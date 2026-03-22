@@ -9,6 +9,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { SkillLevel } from '../../types';
+import ScreenHeader from '../../components/common/ScreenHeader';
 
 const SKILL_LEVELS: SkillLevel[] = ['beginner', 'intermediate', 'advanced', 'competition'];
 const SKILL_COLORS: Record<SkillLevel, string> = {
@@ -168,6 +169,7 @@ export default function ProfileScreen() {
 
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <ScreenHeader title="Profile" />
       <ScrollView style={styles.container}>
 
         {/* Header */}
@@ -437,7 +439,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F9FAFB' },
 
   // Header
-  header: { backgroundColor: '#FFFFFF', alignItems: 'center', paddingTop: 48, paddingBottom: 24, borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
+  header: { backgroundColor: '#FFFFFF', alignItems: 'center', paddingBottom: 24, borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
   avatarWrapper: { position: 'relative', marginBottom: 14 },
   avatarCircle: { width: 90, height: 90, borderRadius: 45, backgroundColor: '#16A34A', alignItems: 'center', justifyContent: 'center' },
   avatarImage: { width: 90, height: 90, borderRadius: 45 },
