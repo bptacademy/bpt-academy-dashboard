@@ -1,0 +1,171 @@
+import React, { useEffect, useState } from 'react';
+import {
+  View, Text, ScrollView, StyleSheet,
+  TouchableOpacity, RefreshControl, Alert,
+} from 'react-native';
+import { supabase } from '../../lib/supabase';
+import { useAuth } from '../../context/AuthContext';
+import { Program, SkillLevel } from '../../types';
+
+const SKILL_LEVELS: SkillLevel[] = ['beginner', 'intermediate', 'advanced', 'competition'];
+
+const LEVEL_COLORS: Record<SkillLevel, string> = {
+  beginner: '#3B82F6',
+  intermediate: '#F59E0B',
+  advanced: '#EF4444',
+  competition: '#8B5CF6',
+};
+
+export default function ProgramsScreen({ navigation }: any) {
+  const { profile } = useAuth();
+  const [programs, setPrograms] = useState<Program[]>([]);
+  const [enrolledIds, setEnrolledIds] = useState<string[]>([]);
+  const [filter, setFilter] = useState<SkillLevel | 'all'>('all');
+  const [refreshing, setRefreshing] = useState(false);
+
+  const fetchData = async () => {
+    const [progRes, enrollRes] = await Promise.all([
+      supabase.from('programs').select('*, coach:profiles(full_name, avatar_url)').eq('is_active', true),
+      supabase.from('enrollments').select('program_id').eq('student_id', profile!.id),
+    ]);
+    if (progRes.data) setPrograms(progRes.data);
+    if (enrollRes.data) setEnrolledIds(enrollRes.data.map((e) => e.program_id));
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await fetchData();
+    setRefreshing(false);
+  };
+
+  useEffect(() => { if (profile) fetchData(); }, [profile]);
+
+  const handleEnroll = async (programId: string) => {
+    const { error } = await supabase.from('enrollments').insert({
+      student_id: profile!.id,
+      program_id: programId,
+      status: 'active',
+    });
+    if (error) {
+      Alert.alert('Error', error.message);
+    } else {
+      setEnrolledIds([...enrolledIds, programId]);
+      Alert.alert('Enrolled!', 'You have been successfully enrolled.');
+    }
+  };
+
+  const filtered = filter === 'all' ? programs : programs.filter((p) => p.skill_level === filter);
+
+  return (
+    <ScrollView
+      style={styles.container}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+    >
+      <View style={styles.header}>
+        <Text style={styles.title}>Programs</Text>
+        <Text style={styles.subtitle}>{filtered.length} available</Text>
+      </View>
+
+      {/* Filter chips */}
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filters} contentContainerStyle={styles.filtersContent}>
+        <TouchableOpacity
+          style={[styles.chip, filter === 'all' && styles.chipActive]}
+          onPress={() => setFilter('all')}
+        >
+          <Text style={[styles.chipText, filter === 'all' && styles.chipTextActive]}>All</Text>
+        </TouchableOpacity>
+        {SKILL_LEVELS.map((level) => (
+          <TouchableOpacity
+            key={level}
+            style={[styles.chip, filter === level && styles.chipActive, filter === level && { backgroundColor: LEVEL_COLORS[level], borderColor: LEVEL_COLORS[level] }]}
+            onPress={() => setFilter(level)}
+          >
+            <Text style={[styles.chipText, filter === level && styles.chipTextActive]}>
+              {level.charAt(0).toUpperCase() + level.slice(1)}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+
+      {/* Program list */}
+      <View style={styles.list}>
+        {filtered.map((program) => {
+          const enrolled = enrolledIds.includes(program.id);
+          return (
+            <TouchableOpacity
+              key={program.id}
+              style={styles.card}
+              onPress={() => navigation.navigate('ProgramDetail', { programId: program.id })}
+            >
+              <View style={styles.cardHeader}>
+                <View style={[styles.levelBadge, { backgroundColor: LEVEL_COLORS[program.skill_level] + '20' }]}>
+                  <Text style={[styles.levelText, { color: LEVEL_COLORS[program.skill_level] }]}>
+                    {program.skill_level.charAt(0).toUpperCase() + program.skill_level.slice(1)}
+                  </Text>
+                </View>
+                {enrolled && (
+                  <View style={styles.enrolledBadge}>
+                    <Text style={styles.enrolledText}>✓ Enrolled</Text>
+                  </View>
+                )}
+              </View>
+
+              <Text style={styles.cardTitle}>{program.title}</Text>
+              {program.description && (
+                <Text style={styles.cardDesc} numberOfLines={2}>{program.description}</Text>
+              )}
+
+              <View style={styles.cardFooter}>
+                <Text style={styles.cardMeta}>⏱ {program.duration_weeks ?? '—'} weeks</Text>
+                <Text style={styles.cardMeta}>👤 {(program.coach as any)?.full_name ?? 'TBA'}</Text>
+              </View>
+
+              {!enrolled && (
+                <TouchableOpacity
+                  style={styles.enrollButton}
+                  onPress={() => handleEnroll(program.id)}
+                >
+                  <Text style={styles.enrollButtonText}>Enroll Now</Text>
+                </TouchableOpacity>
+              )}
+            </TouchableOpacity>
+          );
+        })}
+
+        {filtered.length === 0 && (
+          <View style={styles.empty}>
+            <Text style={styles.emptyText}>No programs found.</Text>
+          </View>
+        )}
+      </View>
+    </ScrollView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#F9FAFB' },
+  header: { padding: 24, paddingTop: 48, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
+  title: { fontSize: 26, fontWeight: '700', color: '#111827' },
+  subtitle: { fontSize: 14, color: '#6B7280', marginTop: 2 },
+  filters: { backgroundColor: '#FFFFFF' },
+  filtersContent: { paddingHorizontal: 20, paddingVertical: 12, gap: 8 },
+  chip: { borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 20, paddingHorizontal: 16, paddingVertical: 8, backgroundColor: '#F9FAFB' },
+  chipActive: { backgroundColor: '#16A34A', borderColor: '#16A34A' },
+  chipText: { fontSize: 13, color: '#374151', fontWeight: '500' },
+  chipTextActive: { color: '#FFFFFF', fontWeight: '600' },
+  list: { padding: 16 },
+  card: { backgroundColor: '#FFFFFF', borderRadius: 14, padding: 16, marginBottom: 14, borderWidth: 1, borderColor: '#E5E7EB' },
+  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 },
+  levelBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
+  levelText: { fontSize: 12, fontWeight: '600', textTransform: 'capitalize' },
+  enrolledBadge: { backgroundColor: '#ECFDF5', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
+  enrolledText: { fontSize: 12, fontWeight: '600', color: '#16A34A' },
+  cardTitle: { fontSize: 17, fontWeight: '700', color: '#111827', marginBottom: 6 },
+  cardDesc: { fontSize: 14, color: '#6B7280', lineHeight: 20, marginBottom: 12 },
+  cardFooter: { flexDirection: 'row', gap: 16, marginBottom: 12 },
+  cardMeta: { fontSize: 13, color: '#6B7280' },
+  enrollButton: { backgroundColor: '#16A34A', borderRadius: 8, padding: 12, alignItems: 'center' },
+  enrollButtonText: { color: '#FFFFFF', fontWeight: '700', fontSize: 14 },
+  empty: { alignItems: 'center', paddingVertical: 40 },
+  emptyText: { color: '#9CA3AF', fontSize: 15 },
+});
