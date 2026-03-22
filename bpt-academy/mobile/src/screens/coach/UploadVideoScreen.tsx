@@ -1,12 +1,22 @@
 import React, { useEffect, useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
-  ScrollView, Alert, KeyboardAvoidingView, Platform, ActivityIndicator,
+  ScrollView, Alert, KeyboardAvoidingView, Platform,
+  Animated, Easing,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { Program } from '../../types';
+
+type UploadStage = 'idle' | 'preparing' | 'uploading' | 'saving' | 'done' | 'error';
+
+const STAGES: { key: UploadStage; label: string; icon: string }[] = [
+  { key: 'preparing', label: 'Preparing video', icon: '📦' },
+  { key: 'uploading', label: 'Uploading to server', icon: '☁️' },
+  { key: 'saving',   label: 'Saving details',      icon: '💾' },
+  { key: 'done',     label: 'Upload complete!',     icon: '✅' },
+];
 
 export default function UploadVideoScreen({ navigation }: any) {
   const { profile } = useAuth();
@@ -19,7 +29,14 @@ export default function UploadVideoScreen({ navigation }: any) {
     program_id: '',
   });
   const [videoFile, setVideoFile] = useState<{ uri: string; name: string } | null>(null);
-  const [uploading, setUploading] = useState(false);
+  const [stage, setStage] = useState<UploadStage>('idle');
+  const [errorMsg, setErrorMsg] = useState('');
+  const progressAnim = React.useRef(new Animated.Value(0)).current;
+
+  const animateTo = (toValue: number, duration = 600) =>
+    new Promise<void>((resolve) =>
+      Animated.timing(progressAnim, { toValue, duration, easing: Easing.out(Easing.ease), useNativeDriver: false }).start(() => resolve())
+    );
 
   useEffect(() => {
     supabase.from('programs').select('id, title').eq('is_active', true).then(({ data }) => {
@@ -49,28 +66,30 @@ export default function UploadVideoScreen({ navigation }: any) {
     if (!form.title) { Alert.alert('Error', 'Please add a title'); return; }
     if (!videoFile) { Alert.alert('Error', 'Please select a video file'); return; }
 
-    setUploading(true);
+    setErrorMsg('');
+    progressAnim.setValue(0);
 
     try {
-      // Upload to Supabase Storage
+      // Stage 1: Preparing
+      setStage('preparing');
+      await animateTo(0.15);
       const fileExt = videoFile.name.split('.').pop() ?? 'mp4';
       const filePath = `videos/${Date.now()}.${fileExt}`;
-
       const response = await fetch(videoFile.uri);
       const blob = await response.blob();
 
+      // Stage 2: Uploading
+      setStage('uploading');
+      await animateTo(0.25, 300);
       const { error: storageError } = await supabase.storage
         .from('training-videos')
         .upload(filePath, blob, { contentType: `video/${fileExt}` });
-
       if (storageError) throw storageError;
+      await animateTo(0.75, 800);
 
-      // Get public URL
-      const { data: urlData } = supabase.storage
-        .from('training-videos')
-        .getPublicUrl(filePath);
-
-      // Save metadata to DB
+      // Stage 3: Saving
+      setStage('saving');
+      await animateTo(0.85, 400);
       const { error: dbError } = await supabase.from('videos').insert({
         title: form.title,
         description: form.description || null,
@@ -78,19 +97,19 @@ export default function UploadVideoScreen({ navigation }: any) {
         skill_focus: form.skill_focus || null,
         program_id: form.program_id || null,
         uploaded_by: profile!.id,
-        mux_playback_id: filePath, // using storage path as playback ref
+        mux_playback_id: filePath,
         is_published: true,
       });
-
       if (dbError) throw dbError;
 
-      Alert.alert('Uploaded! 🎬', 'Video is now live in the training library.', [
-        { text: 'OK', onPress: () => navigation.goBack() },
-      ]);
+      // Stage 4: Done
+      setStage('done');
+      await animateTo(1, 400);
+
+      setTimeout(() => navigation.goBack(), 1500);
     } catch (err: any) {
-      Alert.alert('Upload failed', err.message);
-    } finally {
-      setUploading(false);
+      setStage('error');
+      setErrorMsg(err.message);
     }
   };
 
@@ -179,17 +198,71 @@ export default function UploadVideoScreen({ navigation }: any) {
             ))}
           </ScrollView>
 
-          <TouchableOpacity
-            style={[styles.uploadBtn, (uploading || !videoFile) && styles.uploadBtnDisabled]}
-            onPress={handleUpload}
-            disabled={uploading || !videoFile}
-          >
-            {uploading ? (
-              <ActivityIndicator color="#FFFFFF" />
-            ) : (
+          {/* Upload progress UI */}
+          {stage !== 'idle' && stage !== 'error' && (
+            <View style={styles.progressContainer}>
+              {/* Progress bar */}
+              <View style={styles.progressTrack}>
+                <Animated.View
+                  style={[
+                    styles.progressFill,
+                    stage === 'done' && styles.progressFillDone,
+                    {
+                      width: progressAnim.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: ['0%', '100%'],
+                      }),
+                    },
+                  ]}
+                />
+              </View>
+
+              {/* Stage steps */}
+              <View style={styles.stages}>
+                {STAGES.map((s, i) => {
+                  const stageIndex = STAGES.findIndex((x) => x.key === stage);
+                  const isDone = i < stageIndex || stage === 'done';
+                  const isActive = s.key === stage;
+                  return (
+                    <View key={s.key} style={styles.stageRow}>
+                      <View style={[styles.stageIcon, isDone && styles.stageIconDone, isActive && styles.stageIconActive]}>
+                        <Text style={styles.stageIconText}>{isDone ? '✓' : s.icon}</Text>
+                      </View>
+                      <Text style={[styles.stageLabel, isDone && styles.stageLabelDone, isActive && styles.stageLabelActive]}>
+                        {s.label}
+                      </Text>
+                      {isActive && stage !== 'done' && (
+                        <Text style={styles.stagePulse}>•••</Text>
+                      )}
+                    </View>
+                  );
+                })}
+              </View>
+            </View>
+          )}
+
+          {/* Error state */}
+          {stage === 'error' && (
+            <View style={styles.errorBox}>
+              <Text style={styles.errorIcon}>❌</Text>
+              <Text style={styles.errorTitle}>Upload failed</Text>
+              <Text style={styles.errorMsg}>{errorMsg}</Text>
+              <TouchableOpacity style={styles.retryBtn} onPress={() => setStage('idle')}>
+                <Text style={styles.retryBtnText}>Try again</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {/* Upload button — hidden while uploading */}
+          {(stage === 'idle' || stage === 'error') && (
+            <TouchableOpacity
+              style={[styles.uploadBtn, !videoFile && styles.uploadBtnDisabled]}
+              onPress={handleUpload}
+              disabled={!videoFile}
+            >
               <Text style={styles.uploadBtnText}>🎬 Upload Video</Text>
-            )}
-          </TouchableOpacity>
+            </TouchableOpacity>
+          )}
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -229,4 +302,28 @@ const styles = StyleSheet.create({
   uploadBtn: { backgroundColor: '#16A34A', borderRadius: 12, padding: 18, alignItems: 'center', marginBottom: 32 },
   uploadBtnDisabled: { opacity: 0.5 },
   uploadBtnText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
+
+  // Progress UI
+  progressContainer: { backgroundColor: '#F9FAFB', borderRadius: 14, padding: 20, marginBottom: 24, borderWidth: 1, borderColor: '#E5E7EB' },
+  progressTrack: { height: 8, backgroundColor: '#E5E7EB', borderRadius: 4, marginBottom: 20, overflow: 'hidden' },
+  progressFill: { height: '100%', backgroundColor: '#16A34A', borderRadius: 4 },
+  progressFillDone: { backgroundColor: '#16A34A' },
+  stages: { gap: 14 },
+  stageRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  stageIcon: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#F3F4F6', alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#E5E7EB' },
+  stageIconActive: { borderColor: '#16A34A', backgroundColor: '#ECFDF5' },
+  stageIconDone: { backgroundColor: '#16A34A', borderColor: '#16A34A' },
+  stageIconText: { fontSize: 14 },
+  stageLabel: { fontSize: 14, color: '#9CA3AF', flex: 1 },
+  stageLabelActive: { color: '#111827', fontWeight: '600' },
+  stageLabelDone: { color: '#16A34A', fontWeight: '500' },
+  stagePulse: { fontSize: 14, color: '#16A34A', letterSpacing: 2 },
+
+  // Error UI
+  errorBox: { backgroundColor: '#FEF2F2', borderRadius: 14, padding: 20, marginBottom: 24, borderWidth: 1, borderColor: '#FECACA', alignItems: 'center' },
+  errorIcon: { fontSize: 32, marginBottom: 8 },
+  errorTitle: { fontSize: 16, fontWeight: '700', color: '#DC2626', marginBottom: 4 },
+  errorMsg: { fontSize: 13, color: '#991B1B', textAlign: 'center', marginBottom: 16 },
+  retryBtn: { backgroundColor: '#DC2626', borderRadius: 8, paddingHorizontal: 20, paddingVertical: 10 },
+  retryBtnText: { color: '#FFFFFF', fontWeight: '700', fontSize: 14 },
 });
