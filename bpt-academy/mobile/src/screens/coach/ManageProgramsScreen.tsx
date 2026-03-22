@@ -16,7 +16,7 @@ const LEVEL_COLORS: Record<SkillLevel, string> = {
   competition: '#8B5CF6',
 };
 
-export default function ManageProgramsScreen() {
+export default function ManageProgramsScreen({ navigation }: any) {
   const { profile } = useAuth();
   const [programs, setPrograms] = useState<Program[]>([]);
   const [refreshing, setRefreshing] = useState(false);
@@ -66,7 +66,7 @@ export default function ManageProgramsScreen() {
 
         <View style={styles.list}>
           {programs.map((p) => (
-            <View key={p.id} style={styles.card}>
+            <TouchableOpacity key={p.id} style={styles.card} onPress={() => navigation.navigate('ProgramRoster', { programId: p.id })}>
               <View style={styles.cardHeader}>
                 <View style={[styles.levelBadge, { backgroundColor: LEVEL_COLORS[p.skill_level] + '20' }]}>
                   <Text style={[styles.levelText, { color: LEVEL_COLORS[p.skill_level] }]}>
@@ -85,7 +85,8 @@ export default function ManageProgramsScreen() {
               <Text style={styles.cardTitle}>{p.title}</Text>
               {p.description && <Text style={styles.cardDesc} numberOfLines={2}>{p.description}</Text>}
               <Text style={styles.cardMeta}>{p.duration_weeks ?? '—'} weeks</Text>
-            </View>
+              <Text style={styles.cardTap}>Tap to view roster →</Text>
+            </TouchableOpacity>
           ))}
           {programs.length === 0 && (
             <View style={styles.empty}>
@@ -159,6 +160,7 @@ const styles = StyleSheet.create({
   cardTitle: { fontSize: 16, fontWeight: '700', color: '#111827', marginBottom: 4 },
   cardDesc: { fontSize: 14, color: '#6B7280', marginBottom: 6 },
   cardMeta: { fontSize: 13, color: '#9CA3AF' },
+  cardTap: { fontSize: 12, color: '#16A34A', marginTop: 8, fontWeight: '500' },
   empty: { alignItems: 'center', paddingVertical: 40 },
   emptyText: { color: '#9CA3AF', fontSize: 14 },
   modal: { flex: 1, backgroundColor: '#FFFFFF' },
