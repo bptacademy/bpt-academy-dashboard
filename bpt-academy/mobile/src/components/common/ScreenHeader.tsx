@@ -87,6 +87,6 @@ const styles = StyleSheet.create({
   title: { flex: 1, fontSize: 17, fontWeight: '700', color: '#111827', textAlign: 'center', marginHorizontal: 8 },
   titleDark: { color: '#FFFFFF' },
   menuBtn: { width: 44, alignItems: 'flex-end' },
-  icon: { fontSize: 22, color: '#374151' },
+  icon: { fontSize: 33, color: '#374151' },
   iconDark: { color: '#FFFFFF' },
 });
