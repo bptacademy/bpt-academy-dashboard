@@ -24,12 +24,13 @@ type FormState = {
   division: Division;
   skill_level: SkillLevel;
   duration_weeks: string;
+  price_gbp: string;
   selectedCoachIds: string[];
 };
 
 const EMPTY_FORM: FormState = {
   title: '', description: '', division: 'amateur', skill_level: 'beginner',
-  duration_weeks: '', selectedCoachIds: [],
+  duration_weeks: '', price_gbp: '', selectedCoachIds: [],
 };
 
 export default function ManageProgramsScreen({ navigation }: any) {
@@ -80,6 +81,7 @@ export default function ManageProgramsScreen({ navigation }: any) {
       division: ((p as any).division ?? 'amateur') as Division,
       skill_level: (p.skill_level ?? 'beginner') as SkillLevel,
       duration_weeks: p.duration_weeks ? String(p.duration_weeks) : '',
+      price_gbp: (p as any).price_gbp != null ? String((p as any).price_gbp) : '',
       selectedCoachIds: (programCoaches[p.id] ?? []).map((c) => c.id),
     });
     setModalVisible(true);
@@ -101,6 +103,7 @@ export default function ManageProgramsScreen({ navigation }: any) {
       division: form.division,
       skill_level: form.division === 'amateur' ? form.skill_level : null,
       duration_weeks: form.duration_weeks ? parseInt(form.duration_weeks) : null,
+      price_gbp: form.price_gbp ? parseFloat(form.price_gbp) : null,
     };
 
     let programId: string;
@@ -194,7 +197,13 @@ export default function ManageProgramsScreen({ navigation }: any) {
 
                 <Text style={styles.cardTitle}>{p.title}</Text>
                 {p.description ? <Text style={styles.cardDesc} numberOfLines={2}>{p.description}</Text> : null}
-                <Text style={styles.cardMeta}>{p.duration_weeks ?? '—'} weeks</Text>
+                <View style={styles.cardMetaRow}>
+                  <Text style={styles.cardMeta}>⏱ {p.duration_weeks ?? '—'} weeks</Text>
+                  {(p as any).price_gbp != null
+                    ? <Text style={styles.cardPrice}>£{parseFloat((p as any).price_gbp).toFixed(2)}</Text>
+                    : <Text style={styles.cardPriceFree}>Free</Text>
+                  }
+                </View>
 
                 {/* Coaches */}
                 {(programCoaches[p.id] ?? []).length > 0 && (
@@ -322,6 +331,21 @@ export default function ManageProgramsScreen({ navigation }: any) {
               keyboardType="numeric"
             />
 
+            <Text style={styles.label}>Price (£)</Text>
+            <View style={styles.priceInputRow}>
+              <View style={styles.pricePrefix}>
+                <Text style={styles.pricePrefixText}>£</Text>
+              </View>
+              <TextInput
+                style={styles.priceInput}
+                value={form.price_gbp}
+                onChangeText={(v) => setForm({ ...form, price_gbp: v })}
+                placeholder="0.00"
+                placeholderTextColor="#9CA3AF"
+                keyboardType="decimal-pad"
+              />
+            </View>
+
             <Text style={styles.label}>Coaches</Text>
             <Text style={styles.sublabel}>Select one or more coaches responsible for this program.</Text>
             {availableCoaches.length === 0 ? (
@@ -392,7 +416,10 @@ const styles = StyleSheet.create({
   inactiveText: { color: '#6B7280' },
   cardTitle: { fontSize: 16, fontWeight: '700', color: '#111827', marginBottom: 4 },
   cardDesc: { fontSize: 14, color: '#6B7280', marginBottom: 6 },
-  cardMeta: { fontSize: 13, color: '#9CA3AF', marginBottom: 12 },
+  cardMetaRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
+  cardMeta: { fontSize: 13, color: '#9CA3AF' },
+  cardPrice: { fontSize: 15, fontWeight: '700', color: '#16A34A' },
+  cardPriceFree: { fontSize: 13, color: '#9CA3AF' },
 
   cardActions: { flexDirection: 'row', gap: 8 },
   rosterBtn: { flex: 1, backgroundColor: '#F3F4F6', borderRadius: 8, paddingVertical: 8, alignItems: 'center' },
@@ -439,4 +466,10 @@ const styles = StyleSheet.create({
   coachPickerName: { flex: 1, fontSize: 14, color: '#374151', fontWeight: '500' },
   coachPickerNameSelected: { color: '#166534', fontWeight: '700' },
   coachPickerCheck: { fontSize: 16, color: '#16A34A', fontWeight: '700', width: 20, textAlign: 'center' },
+
+  // Price input
+  priceInputRow: { flexDirection: 'row', borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 10, overflow: 'hidden', marginBottom: 16, backgroundColor: '#F9FAFB' },
+  pricePrefix: { backgroundColor: '#E5E7EB', paddingHorizontal: 14, justifyContent: 'center' },
+  pricePrefixText: { fontSize: 16, fontWeight: '700', color: '#374151' },
+  priceInput: { flex: 1, padding: 14, fontSize: 16, color: '#111827' },
 });

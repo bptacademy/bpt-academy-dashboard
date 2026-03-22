@@ -110,7 +110,10 @@ export default function ProgramsScreen({ navigation }: any) {
 
               <View style={styles.cardFooter}>
                 <Text style={styles.cardMeta}>⏱ {program.duration_weeks ?? '—'} weeks</Text>
-                <Text style={styles.cardMeta}>👤 BPT Academy</Text>
+                {(program as any).price_gbp != null
+                  ? <Text style={styles.cardPrice}>£{parseFloat((program as any).price_gbp).toFixed(2)}</Text>
+                  : <Text style={styles.cardPriceFree}>Free</Text>
+                }
               </View>
 
               {!enrolled && (
@@ -159,6 +162,8 @@ const styles = StyleSheet.create({
   cardDesc: { fontSize: 14, color: '#6B7280', lineHeight: 20, marginBottom: 12 },
   cardFooter: { flexDirection: 'row', gap: 16, marginBottom: 12 },
   cardMeta: { fontSize: 13, color: '#6B7280' },
+  cardPrice: { fontSize: 15, fontWeight: '700', color: '#16A34A' },
+  cardPriceFree: { fontSize: 13, color: '#9CA3AF' },
   enrollButton: { backgroundColor: '#16A34A', borderRadius: 8, padding: 12, alignItems: 'center' },
   enrollButtonLocked: { backgroundColor: '#9CA3AF' },
   enrollButtonText: { color: '#FFFFFF', fontWeight: '700', fontSize: 14 },

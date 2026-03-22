@@ -8,7 +8,7 @@ import { useAuth } from '../../context/AuthContext';
 import { Program, Module, StudentProgress, ProgramSession, Division, DIVISION_LABELS, DIVISION_COLORS } from '../../types';
 import BackHeader from '../../components/common/BackHeader';
 
-const PROGRAM_PRICE_GBP = 49.99;
+const DEFAULT_PRICE_GBP = 49.99;
 
 export default function ProgramDetailScreen({ route, navigation }: any) {
   const { programId } = route.params;
@@ -60,7 +60,7 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
     return unsub;
   }, [navigation, fetchData]);
 
-  const handleEnrollPress = () => {
+  const handleEnrollPress = async () => {
     if (hasActiveEnrollment && !enrolled) {
       Alert.alert(
         'Active Program Running',
@@ -71,11 +71,26 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
     }
 
     const divKey = ((program as any)?.division ?? 'amateur') as Division;
+    const isFree = (program as any)?.price_gbp == null;
+    const price  = isFree ? 0 : parseFloat((program as any).price_gbp);
+
+    if (isFree) {
+      // Free program — enroll directly, no payment screen
+      const { error } = await supabase.from('enrollments').insert({
+        student_id: profile!.id,
+        program_id: programId,
+        status: 'active',
+      });
+      if (error) { Alert.alert('Error', error.message); return; }
+      Alert.alert('🎾 Enrolled!', 'You are now enrolled in this program.');
+      fetchData();
+      return;
+    }
 
     navigation.navigate('Payment', {
       programId,
       studentId: profile!.id,
-      amount: PROGRAM_PRICE_GBP,
+      amount: price,
       programDivision: divKey,
     });
   };
@@ -187,16 +202,32 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
         </View>
       ) : (
         <View style={styles.enrollCard}>
-          <View style={styles.priceRow}>
-            <Text style={styles.priceLabel}>Program Fee</Text>
-            <Text style={styles.priceValue}>£{PROGRAM_PRICE_GBP.toFixed(2)}</Text>
-          </View>
-          <Text style={styles.enrollText}>
-            Payment is required to confirm your enrollment.
-          </Text>
-          <TouchableOpacity style={styles.enrollBtn} onPress={handleEnrollPress}>
-            <Text style={styles.enrollBtnText}>Pay & Enroll — £{PROGRAM_PRICE_GBP.toFixed(2)}</Text>
-          </TouchableOpacity>
+          {(() => {
+            const price = (program as any)?.price_gbp != null
+              ? parseFloat((program as any).price_gbp)
+              : DEFAULT_PRICE_GBP;
+            const isFree = (program as any)?.price_gbp == null;
+            return (
+              <>
+                <View style={styles.priceRow}>
+                  <Text style={styles.priceLabel}>Program Fee</Text>
+                  <Text style={styles.priceValue}>
+                    {isFree ? 'Free' : `£${price.toFixed(2)}`}
+                  </Text>
+                </View>
+                <Text style={styles.enrollText}>
+                  {isFree
+                    ? 'This program is free. Tap below to enroll instantly.'
+                    : 'Payment is required to confirm your enrollment.'}
+                </Text>
+                <TouchableOpacity style={styles.enrollBtn} onPress={handleEnrollPress}>
+                  <Text style={styles.enrollBtnText}>
+                    {isFree ? 'Enroll Now — Free' : `Pay & Enroll — £${price.toFixed(2)}`}
+                  </Text>
+                </TouchableOpacity>
+              </>
+            );
+          })()}
         </View>
       )}
 
