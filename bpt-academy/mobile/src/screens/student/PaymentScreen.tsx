@@ -20,7 +20,7 @@ type BankDetails = {
 export default function PaymentScreen({ navigation, route }: any) {
   const {
     tournamentId, programId, enrollmentId,
-    amount, onPaymentComplete, programDivision,
+    amount, programDivision, studentId,
   } = route.params;
 
   const { profile } = useAuth();
@@ -70,9 +70,17 @@ export default function PaymentScreen({ navigation, route }: any) {
       return;
     }
 
-    // Log the pending payment record first, then open Stripe
+    // Create enrollment + log pending payment
+    if (programId && studentId) {
+      await supabase.from('enrollments').insert({
+        student_id: studentId,
+        program_id: programId,
+        status: 'active',
+      });
+    }
+
     await supabase.from('payments').insert({
-      student_id: profile!.id,
+      student_id: studentId ?? profile!.id,
       tournament_id: tournamentId ?? null,
       program_id: programId ?? null,
       enrollment_id: enrollmentId ?? null,
@@ -81,9 +89,6 @@ export default function PaymentScreen({ navigation, route }: any) {
       status: 'pending',
       notes: `Stripe payment link: ${paymentLink}`,
     });
-
-    // Run enrollment callback (enroll pending payment confirmation)
-    if (onPaymentComplete) await onPaymentComplete();
 
     // Open the Stripe payment link in the browser
     const supported = await Linking.canOpenURL(paymentLink);
@@ -106,8 +111,22 @@ export default function PaymentScreen({ navigation, route }: any) {
     if (!profile) return;
     setLoadingBank2(true);
 
+    // Create enrollment first
+    if (programId && studentId) {
+      const { error: enrollError } = await supabase.from('enrollments').insert({
+        student_id: studentId,
+        program_id: programId,
+        status: 'active',
+      });
+      if (enrollError) {
+        setLoadingBank2(false);
+        Alert.alert('Error', enrollError.message);
+        return;
+      }
+    }
+
     const { error } = await supabase.from('payments').insert({
-      student_id: profile.id,
+      student_id: studentId ?? profile!.id,
       tournament_id: tournamentId ?? null,
       program_id: programId ?? null,
       enrollment_id: enrollmentId ?? null,
@@ -123,8 +142,6 @@ export default function PaymentScreen({ navigation, route }: any) {
       Alert.alert('Error', error.message);
       return;
     }
-
-    if (onPaymentComplete) await onPaymentComplete();
 
     setLoadingBank2(false);
     Alert.alert(
