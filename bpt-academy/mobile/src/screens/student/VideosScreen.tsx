@@ -18,7 +18,7 @@ export default function VideosScreen({ navigation }: any) {
     const [vidRes, bookmarkRes] = await Promise.all([
       supabase
         .from('videos')
-        .select('*, uploader:profiles(full_name)')
+        .select('*')
         .eq('is_published', true)
         .order('created_at', { ascending: false }),
       supabase
@@ -125,7 +125,7 @@ export default function VideosScreen({ navigation }: any) {
                 </View>
 
                 <Text style={styles.uploader}>
-                  by {(video.uploader as any)?.full_name ?? 'BPT Academy'}
+                  by BPT Academy
                 </Text>
               </View>
             </TouchableOpacity>

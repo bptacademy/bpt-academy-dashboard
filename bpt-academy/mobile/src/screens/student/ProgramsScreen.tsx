@@ -25,7 +25,7 @@ export default function ProgramsScreen({ navigation }: any) {
 
   const fetchData = async () => {
     const [progRes, enrollRes] = await Promise.all([
-      supabase.from('programs').select('*, coach:profiles(full_name, avatar_url)').eq('is_active', true),
+      supabase.from('programs').select('*').eq('is_active', true),
       supabase.from('enrollments').select('program_id').eq('student_id', profile!.id),
     ]);
     if (progRes.data) setPrograms(progRes.data);
@@ -117,7 +117,7 @@ export default function ProgramsScreen({ navigation }: any) {
 
               <View style={styles.cardFooter}>
                 <Text style={styles.cardMeta}>⏱ {program.duration_weeks ?? '—'} weeks</Text>
-                <Text style={styles.cardMeta}>👤 {(program.coach as any)?.full_name ?? 'TBA'}</Text>
+                <Text style={styles.cardMeta}>👤 BPT Academy</Text>
               </View>
 
               {!enrolled && (
