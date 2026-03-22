@@ -26,6 +26,7 @@ import ManageProgramsScreen from '../screens/coach/ManageProgramsScreen';
 import ManageStudentsScreen from '../screens/coach/ManageStudentsScreen';
 import SendAnnouncementScreen from '../screens/coach/SendAnnouncementScreen';
 import UploadVideoScreen from '../screens/coach/UploadVideoScreen';
+import ManageVideosScreen from '../screens/coach/ManageVideosScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -77,6 +78,7 @@ function CoachTabs() {
     >
       <Tab.Screen name="Dashboard" component={CoachHomeScreen} />
       <Tab.Screen name="Manage" component={ManageProgramsScreen} />
+      <Tab.Screen name="Videos" component={ManageVideosScreen} />
       <Tab.Screen name="Students" component={ManageStudentsScreen} />
       <Tab.Screen name="Announce" component={SendAnnouncementScreen} />
       <Tab.Screen name="Profile" component={ProfileScreen} />
