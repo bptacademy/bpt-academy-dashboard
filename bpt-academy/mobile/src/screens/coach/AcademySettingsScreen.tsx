@@ -8,12 +8,20 @@ import ScreenHeader from '../../components/common/ScreenHeader';
 
 type Settings = Record<string, string>;
 
-const FIELDS: { key: string; label: string; placeholder: string; multiline?: boolean }[] = [
+const BANK_FIELDS: { key: string; label: string; placeholder: string; multiline?: boolean }[] = [
   { key: 'bank_account_name',   label: 'Account Name',   placeholder: 'e.g. BPT Academy Ltd' },
   { key: 'bank_sort_code',      label: 'Sort Code',      placeholder: 'e.g. 20-12-34' },
   { key: 'bank_account_number', label: 'Account Number', placeholder: 'e.g. 12345678' },
   { key: 'bank_payment_notes',  label: 'Payment Notes',  placeholder: 'Instructions shown to students', multiline: true },
 ];
+
+const PAYMENT_LINK_FIELDS: { key: string; label: string; placeholder: string }[] = [
+  { key: 'stripe_payment_link_amateur',  label: 'Amateur Division',  placeholder: 'https://buy.stripe.com/...' },
+  { key: 'stripe_payment_link_semi_pro', label: 'Semi-Pro Division', placeholder: 'https://buy.stripe.com/...' },
+  { key: 'stripe_payment_link_pro',      label: 'Pro Division',      placeholder: 'https://buy.stripe.com/...' },
+];
+
+const ALL_FIELDS = [...BANK_FIELDS, ...PAYMENT_LINK_FIELDS];
 
 export default function AcademySettingsScreen() {
   const [settings, setSettings] = useState<Settings>({});
@@ -34,7 +42,7 @@ export default function AcademySettingsScreen() {
 
   const handleSave = async () => {
     setSaving(true);
-    const upserts = FIELDS.map(({ key }) => ({ key, value: settings[key] ?? '', updated_at: new Date().toISOString() }));
+    const upserts = ALL_FIELDS.map(({ key }) => ({ key, value: settings[key] ?? '', updated_at: new Date().toISOString() }));
     const { error } = await supabase.from('academy_settings').upsert(upserts, { onConflict: 'key' });
     setSaving(false);
     if (error) { Alert.alert('Error', error.message); return; }
@@ -60,10 +68,10 @@ export default function AcademySettingsScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>🏦 Bank Transfer Details</Text>
           <Text style={styles.sectionHint}>
-            These details are shown to students when they choose bank transfer as their payment method.
+            Shown to students when they choose bank transfer as their payment method.
           </Text>
           <View style={styles.card}>
-            {FIELDS.map(({ key, label, placeholder, multiline }) => (
+            {BANK_FIELDS.map(({ key, label, placeholder, multiline }) => (
               <View key={key} style={styles.field}>
                 <Text style={styles.label}>{label}</Text>
                 <TextInput
@@ -74,6 +82,30 @@ export default function AcademySettingsScreen() {
                   placeholderTextColor="#9CA3AF"
                   multiline={multiline}
                   numberOfLines={multiline ? 3 : 1}
+                />
+              </View>
+            ))}
+          </View>
+        </View>
+
+        {/* Stripe Payment Links */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>🔗 Stripe Payment Links</Text>
+          <Text style={styles.sectionHint}>
+            One Stripe Payment Link per division. Students are sent to the link for their division when paying by card. Generate links at dashboard.stripe.com → Payment Links.
+          </Text>
+          <View style={styles.card}>
+            {PAYMENT_LINK_FIELDS.map(({ key, label, placeholder }) => (
+              <View key={key} style={styles.field}>
+                <Text style={styles.label}>{label}</Text>
+                <TextInput
+                  style={styles.input}
+                  value={settings[key] ?? ''}
+                  onChangeText={(v) => update(key, v)}
+                  placeholder={placeholder}
+                  placeholderTextColor="#9CA3AF"
+                  autoCapitalize="none"
+                  keyboardType="url"
                 />
               </View>
             ))}

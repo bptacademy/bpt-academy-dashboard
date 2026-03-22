@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
-  Alert, ActivityIndicator, TextInput,
+  Alert, ActivityIndicator, TextInput, Linking,
 } from 'react-native';
-import { useStripe } from '@stripe/stripe-react-native';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
 import BackHeader from '../../components/common/BackHeader';
+import { Division } from '../../types';
 
 type PaymentTab = 'card' | 'bank_transfer';
 
@@ -20,97 +20,85 @@ type BankDetails = {
 export default function PaymentScreen({ navigation, route }: any) {
   const {
     tournamentId, programId, enrollmentId,
-    amount, onPaymentComplete,
+    amount, onPaymentComplete, programDivision,
   } = route.params;
 
   const { profile } = useAuth();
-  const { initPaymentSheet, presentPaymentSheet } = useStripe();
 
-  const [tab, setTab]                 = useState<PaymentTab>('card');
-  const [bankDetails, setBankDetails] = useState<BankDetails | null>(null);
-  const [loadingBank, setLoadingBank] = useState(true);
-  const [reference, setReference]     = useState('');
-  const [loadingCard, setLoadingCard] = useState(false);
+  const [tab, setTab]                   = useState<PaymentTab>('card');
+  const [bankDetails, setBankDetails]   = useState<BankDetails | null>(null);
+  const [paymentLink, setPaymentLink]   = useState<string | null>(null);
+  const [loadingBank, setLoadingBank]   = useState(true);
+  const [reference, setReference]       = useState('');
+  const [loadingCard, setLoadingCard]   = useState(false);
   const [loadingBank2, setLoadingBank2] = useState(false);
 
   const generatedRef = `BPT-${profile?.id?.slice(0, 6).toUpperCase()}-${Date.now().toString(36).toUpperCase()}`;
 
-  // Load bank details from DB
+  const divisionLinkKey = programDivision
+    ? `stripe_payment_link_${programDivision}` // e.g. stripe_payment_link_amateur
+    : null;
+
+  // Load bank details + payment link from DB
   useEffect(() => {
+    const keys = [
+      'bank_account_name', 'bank_sort_code',
+      'bank_account_number', 'bank_payment_notes',
+      ...(divisionLinkKey ? [divisionLinkKey] : []),
+    ];
     supabase
       .from('academy_settings')
       .select('key, value')
-      .in('key', ['bank_account_name', 'bank_sort_code', 'bank_account_number', 'bank_payment_notes'])
+      .in('key', keys)
       .then(({ data }) => {
         if (data) {
           const map: Record<string, string> = {};
           data.forEach(({ key, value }) => { map[key] = value; });
           setBankDetails(map as BankDetails);
+          if (divisionLinkKey && map[divisionLinkKey]) {
+            setPaymentLink(map[divisionLinkKey]);
+          }
         }
         setLoadingBank(false);
       });
   }, []);
 
-  // ── Card payment via Stripe ──────────────────────────────────────────────
+  // ── Card payment via Stripe Payment Link ────────────────────────────────
   const handleCardPayment = async () => {
-    setLoadingCard(true);
-    try {
-      // 1. Ask the edge function for a PaymentIntent client secret
-      const { data: session } = await supabase.auth.getSession();
-      const res = await supabase.functions.invoke('create-payment-intent', {
-        body: {
-          amount_gbp: amount,
-          program_id: programId ?? null,
-          tournament_id: tournamentId ?? null,
-          student_id: profile?.id,
-        },
-      });
-
-      if (res.error || !res.data?.clientSecret) {
-        throw new Error(res.error?.message ?? 'Could not create payment');
-      }
-
-      // 2. Initialise the Stripe Payment Sheet
-      const { error: initError } = await initPaymentSheet({
-        merchantDisplayName: 'BPT Academy',
-        paymentIntentClientSecret: res.data.clientSecret,
-        style: 'alwaysLight',
-        defaultBillingDetails: { name: profile?.full_name ?? '' },
-      });
-      if (initError) throw new Error(initError.message);
-
-      // 3. Present the sheet to the user
-      const { error: presentError } = await presentPaymentSheet();
-      if (presentError) {
-        if (presentError.code !== 'Canceled') {
-          Alert.alert('Payment failed', presentError.message);
-        }
-        setLoadingCard(false);
-        return;
-      }
-
-      // 4. Payment succeeded — log it & run post-payment callback
-      await supabase.from('payments').insert({
-        student_id: profile!.id,
-        tournament_id: tournamentId ?? null,
-        program_id: programId ?? null,
-        enrollment_id: enrollmentId ?? null,
-        amount_gbp: amount,
-        method: 'card',
-        status: 'confirmed',
-        notes: 'Stripe card payment',
-      });
-
-      if (onPaymentComplete) await onPaymentComplete();
-
-      Alert.alert('✅ Payment confirmed!', 'Your enrollment is now active.', [
-        { text: 'Done', onPress: () => navigation.goBack() },
-      ]);
-    } catch (err: any) {
-      Alert.alert('Error', err.message);
-    } finally {
-      setLoadingCard(false);
+    if (!paymentLink) {
+      Alert.alert('Not available', 'No payment link configured for this division. Please use bank transfer or contact your coach.');
+      return;
     }
+
+    // Log the pending payment record first, then open Stripe
+    await supabase.from('payments').insert({
+      student_id: profile!.id,
+      tournament_id: tournamentId ?? null,
+      program_id: programId ?? null,
+      enrollment_id: enrollmentId ?? null,
+      amount_gbp: amount,
+      method: 'card',
+      status: 'pending',
+      notes: `Stripe payment link: ${paymentLink}`,
+    });
+
+    // Run enrollment callback (enroll pending payment confirmation)
+    if (onPaymentComplete) await onPaymentComplete();
+
+    // Open the Stripe payment link in the browser
+    const supported = await Linking.canOpenURL(paymentLink);
+    if (supported) {
+      await Linking.openURL(paymentLink);
+    } else {
+      Alert.alert('Error', 'Could not open payment link.');
+      return;
+    }
+
+    Alert.alert(
+      '🔗 Stripe Checkout Opened',
+      'Complete your payment in the browser. Your enrollment has been reserved and will be confirmed once payment is received.',
+      [{ text: 'OK', onPress: () => navigation.goBack() }],
+    );
   };
 
   // ── Bank transfer ────────────────────────────────────────────────────────
@@ -183,7 +171,7 @@ export default function PaymentScreen({ navigation, route }: any) {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Pay by Card</Text>
             <Text style={styles.instructions}>
-              Secure payment powered by Stripe. Your card details are never stored on our servers.
+              Secure checkout powered by Stripe. You'll be taken to a payment page in your browser.
             </Text>
 
             <View style={styles.stripeInfoCard}>
@@ -191,19 +179,27 @@ export default function PaymentScreen({ navigation, route }: any) {
               <View style={{ flex: 1 }}>
                 <Text style={styles.stripeInfoTitle}>Secure Checkout</Text>
                 <Text style={styles.stripeInfoText}>
-                  Tap the button below to open a secure Stripe payment form. All major cards accepted.
+                  All major cards accepted. Your enrollment is reserved immediately.
                 </Text>
               </View>
             </View>
 
+            {!paymentLink && !loadingBank && (
+              <View style={styles.noLinkCard}>
+                <Text style={styles.noLinkText}>
+                  ⚠️ No card payment link set up for this division yet. Please use bank transfer or contact your coach.
+                </Text>
+              </View>
+            )}
+
             <TouchableOpacity
-              style={[styles.submitBtn, loadingCard && styles.submitBtnDisabled]}
+              style={[styles.submitBtn, (!paymentLink || loadingBank) && styles.submitBtnDisabled]}
               onPress={handleCardPayment}
-              disabled={loadingCard}
+              disabled={!paymentLink || loadingBank}
             >
-              {loadingCard
+              {loadingBank
                 ? <ActivityIndicator color="#FFFFFF" />
-                : <Text style={styles.submitBtnText}>Pay £{amount.toFixed(2)} with Card</Text>
+                : <Text style={styles.submitBtnText}>Pay £{amount.toFixed(2)} with Card →</Text>
               }
             </TouchableOpacity>
           </View>
@@ -336,6 +332,11 @@ const styles = StyleSheet.create({
     paddingVertical: 16, alignItems: 'center',
   },
   submitBtnBank: { backgroundColor: '#1D4ED8' },
-  submitBtnDisabled: { opacity: 0.6 },
+  submitBtnDisabled: { opacity: 0.5 },
   submitBtnText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
+  noLinkCard: {
+    backgroundColor: '#FFF7ED', borderRadius: 10, padding: 14,
+    borderWidth: 1, borderColor: '#FED7AA', marginBottom: 16,
+  },
+  noLinkText: { fontSize: 13, color: '#92400E', lineHeight: 20 },
 });

@@ -83,10 +83,8 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
     navigation.navigate('Payment', {
       programId,
       amount: PROGRAM_PRICE_GBP,
+      programDivision: divisionKey, // e.g. 'amateur' | 'semi_pro' | 'pro'
       onPaymentComplete: handleEnrollAfterPayment,
-      // Pass a screen to return to after payment
-      returnScreen: 'ProgramDetail',
-      returnParams: { programId },
     });
   };
 
