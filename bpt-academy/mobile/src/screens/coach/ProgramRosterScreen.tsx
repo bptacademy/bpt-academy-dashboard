@@ -115,6 +115,44 @@ export default function ProgramRosterScreen({ route, navigation }: any) {
         </Text>
       </View>
 
+      {/* Take attendance button */}
+      <TouchableOpacity
+        style={styles.attendanceBtn}
+        onPress={async () => {
+          // Find or create a session for today
+          const today = new Date().toISOString().split('T')[0];
+          const { data: existing } = await supabase
+            .from('program_sessions')
+            .select('id, title')
+            .eq('program_id', programId)
+            .gte('scheduled_at', today + 'T00:00:00')
+            .lte('scheduled_at', today + 'T23:59:59')
+            .limit(1)
+            .maybeSingle();
+
+          if (existing) {
+            navigation.navigate('Attendance', { sessionId: existing.id, sessionTitle: existing.title ?? "Today's Session" });
+          } else {
+            // Create a session for today on the fly
+            const { data: newSession } = await supabase
+              .from('program_sessions')
+              .insert({
+                program_id: programId,
+                title: `Session – ${new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`,
+                scheduled_at: new Date().toISOString(),
+                duration_minutes: 60,
+              })
+              .select('id, title')
+              .single();
+            if (newSession) {
+              navigation.navigate('Attendance', { sessionId: newSession.id, sessionTitle: newSession.title });
+            }
+          }
+        }}
+      >
+        <Text style={styles.attendanceBtnText}>📋 Take Attendance — Today</Text>
+      </TouchableOpacity>
+
       {/* Stats row */}
       <View style={styles.statsRow}>
         {(Object.entries(counts) as [EnrollmentStatus, number][]).map(([status, count]) => (
@@ -202,6 +240,8 @@ export default function ProgramRosterScreen({ route, navigation }: any) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F9FAFB' },
+  attendanceBtn: { backgroundColor: '#16A34A', margin: 16, marginBottom: 0, borderRadius: 12, paddingVertical: 14, alignItems: 'center' },
+  attendanceBtnText: { color: '#FFFFFF', fontSize: 15, fontWeight: '700' },
   header: { backgroundColor: '#111827', padding: 24, paddingTop: 16 },
   programTitle: { fontSize: 22, fontWeight: '700', color: '#FFFFFF', marginBottom: 4 },
   programMeta: { fontSize: 14, color: '#9CA3AF', textTransform: 'capitalize' },
