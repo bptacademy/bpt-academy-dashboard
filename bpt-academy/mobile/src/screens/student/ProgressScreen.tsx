@@ -1,9 +1,17 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, RefreshControl } from 'react-native';
+import React, { useEffect, useState, useCallback } from 'react';
+import {
+  View, Text, ScrollView, StyleSheet, TouchableOpacity,
+  RefreshControl, ActivityIndicator,
+} from 'react-native';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
-import { Enrollment, Module, StudentProgress } from '../../types';
+import {
+  Enrollment, Module, StudentProgress, PromotionCycle,
+  DIVISION_COLORS, DIVISION_LABELS, LEVEL_LABELS, Division,
+} from '../../types';
 import ScreenHeader from '../../components/common/ScreenHeader';
+
+// ─── Types ────────────────────────────────────────────────────
 
 interface ProgramWithProgress extends Enrollment {
   modules: (Module & { progress?: StudentProgress })[];
@@ -11,14 +19,63 @@ interface ProgramWithProgress extends Enrollment {
   totalCount: number;
 }
 
+interface AttendanceStat {
+  attended: number;
+  total: number;
+  pct: number;
+}
+
+interface Badge {
+  id: string;
+  emoji: string;
+  label: string;
+  description: string;
+  earned: boolean;
+}
+
+type Tab = 'overview' | 'attendance' | 'badges';
+
+// ─── Journey path ─────────────────────────────────────────────
+const JOURNEY = [
+  { key: 'amateur_beginner', label: 'Beginner', division: 'amateur' as Division },
+  { key: 'amateur_intermediate', label: 'Intermediate', division: 'amateur' as Division },
+  { key: 'amateur_advanced', label: 'Advanced', division: 'amateur' as Division },
+  { key: 'semi_pro', label: 'Semi-Pro', division: 'semi_pro' as Division },
+  { key: 'pro', label: 'Pro', division: 'pro' as Division },
+];
+
+function getCurrentLevelKey(division?: Division, skillLevel?: string): string {
+  if (division === 'semi_pro') return 'semi_pro';
+  if (division === 'pro') return 'pro';
+  if (division === 'amateur') {
+    if (skillLevel === 'intermediate') return 'amateur_intermediate';
+    if (skillLevel === 'advanced') return 'amateur_advanced';
+    return 'amateur_beginner';
+  }
+  return 'amateur_beginner';
+}
+
+// ─── Main Component ───────────────────────────────────────────
 export default function ProgressScreen() {
   const { profile } = useAuth();
-  const [programs, setPrograms] = useState<ProgramWithProgress[]>([]);
+  const [tab, setTab] = useState<Tab>('overview');
   const [refreshing, setRefreshing] = useState(false);
 
-  const fetchData = async () => {
-    if (!profile) return;
+  // Overview state
+  const [programs, setPrograms] = useState<ProgramWithProgress[]>([]);
 
+  // Attendance state
+  const [cycle, setCycle] = useState<PromotionCycle | null>(null);
+  const [attendanceStat, setAttendanceStat] = useState<AttendanceStat>({ attended: 0, total: 0, pct: 0 });
+  const [cycleLoading, setCycleLoading] = useState(true);
+
+  // Badges state
+  const [badges, setBadges] = useState<Badge[]>([]);
+  const [badgesLoading, setBadgesLoading] = useState(true);
+
+  // ── Fetch overview data ──────────────────────────────────────
+  const fetchOverview = useCallback(async () => {
+    if (!profile) return;
     const { data: enrollments } = await supabase
       .from('enrollments')
       .select('*, program:programs(*)')
@@ -57,119 +114,562 @@ export default function ProgressScreen() {
     );
 
     setPrograms(withProgress);
-  };
+  }, [profile]);
+
+  // ── Fetch promotion cycle & attendance ───────────────────────
+  const fetchCycle = useCallback(async () => {
+    if (!profile) return;
+    setCycleLoading(true);
+
+    // Get active cycle
+    const { data: cycleData } = await supabase
+      .from('promotion_cycles')
+      .select('*')
+      .eq('student_id', profile.id)
+      .in('status', ['active', 'eligible', 'approved'])
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (!cycleData) {
+      setCycle(null);
+      setAttendanceStat({ attended: 0, total: 0, pct: 0 });
+      setCycleLoading(false);
+      return;
+    }
+
+    setCycle(cycleData as PromotionCycle);
+
+    // Get enrolled program(s)
+    const { data: enrollments } = await supabase
+      .from('enrollments')
+      .select('program_id')
+      .eq('student_id', profile.id)
+      .eq('status', 'active');
+
+    const programIds = (enrollments ?? []).map((e: { program_id: string }) => e.program_id);
+
+    if (programIds.length === 0) {
+      setAttendanceStat({ attended: 0, total: 0, pct: 0 });
+      setCycleLoading(false);
+      return;
+    }
+
+    // Total sessions in cycle window
+    const { count: totalCount } = await supabase
+      .from('program_sessions')
+      .select('*', { count: 'exact', head: true })
+      .in('program_id', programIds)
+      .gte('scheduled_at', cycleData.cycle_start_date)
+      .lte('scheduled_at', cycleData.cycle_end_date);
+
+    // Attended sessions in cycle window
+    const { data: sessionIds } = await supabase
+      .from('program_sessions')
+      .select('id')
+      .in('program_id', programIds)
+      .gte('scheduled_at', cycleData.cycle_start_date)
+      .lte('scheduled_at', cycleData.cycle_end_date);
+
+    const ids = (sessionIds ?? []).map((s: { id: string }) => s.id);
+    let attendedCount = 0;
+
+    if (ids.length > 0) {
+      const { count } = await supabase
+        .from('session_attendance')
+        .select('*', { count: 'exact', head: true })
+        .eq('student_id', profile.id)
+        .eq('attended', true)
+        .in('session_id', ids);
+      attendedCount = count ?? 0;
+    }
+
+    const total = totalCount ?? 0;
+    const pct = total > 0 ? Math.round((attendedCount / total) * 100) : 0;
+    setAttendanceStat({ attended: attendedCount, total, pct });
+    setCycleLoading(false);
+  }, [profile]);
+
+  // ── Fetch badges ─────────────────────────────────────────────
+  const fetchBadges = useCallback(async () => {
+    if (!profile) return;
+    setBadgesLoading(true);
+
+    // Check total sessions attended
+    const { count: totalAttended } = await supabase
+      .from('session_attendance')
+      .select('*', { count: 'exact', head: true })
+      .eq('student_id', profile.id)
+      .eq('attended', true);
+
+    // Check if has tournament ranking event
+    const { data: tournamentEvents } = await supabase
+      .from('ranking_events')
+      .select('id')
+      .eq('student_id', profile.id)
+      .ilike('reason', '%tournament%')
+      .limit(1);
+
+    // Days since joined
+    const joinedAt = new Date(profile.created_at);
+    const now = new Date();
+    const daysSinceJoin = Math.floor((now.getTime() - joinedAt.getTime()) / (1000 * 60 * 60 * 24));
+
+    // Check 80% cycle achievement
+    const { data: promotedCycles } = await supabase
+      .from('promotion_cycles')
+      .select('id')
+      .eq('student_id', profile.id)
+      .in('status', ['eligible', 'approved', 'promoted'])
+      .limit(1);
+
+    const attended = totalAttended ?? 0;
+    const hasTournamentPodium = (tournamentEvents ?? []).length > 0;
+    const hasPromoReady = (promotedCycles ?? []).length > 0;
+
+    setBadges([
+      {
+        id: 'first_session',
+        emoji: '🎾',
+        label: 'First Session',
+        description: 'Attended your first training session',
+        earned: attended >= 1,
+      },
+      {
+        id: 'on_fire',
+        emoji: '🔥',
+        label: 'On Fire',
+        description: 'Attended 5 or more sessions',
+        earned: attended >= 5,
+      },
+      {
+        id: 'month_one',
+        emoji: '📅',
+        label: 'Month One',
+        description: 'Completed your first month at the academy',
+        earned: daysSinceJoin >= 30,
+      },
+      {
+        id: 'halfway',
+        emoji: '⭐',
+        label: '50% There',
+        description: 'Reached 50% attendance in a promotion cycle',
+        earned: attendanceStat.pct >= 50,
+      },
+      {
+        id: 'promotion_ready',
+        emoji: '🏆',
+        label: 'Promotion Ready',
+        description: 'Achieved 80% attendance in a cycle',
+        earned: hasPromoReady,
+      },
+      {
+        id: 'tournament_podium',
+        emoji: '🥇',
+        label: 'Tournament Podium',
+        description: 'Placed in the top 3 at a BPT tournament',
+        earned: hasTournamentPodium,
+      },
+    ]);
+
+    setBadgesLoading(false);
+  }, [profile, attendanceStat.pct]);
+
+  const fetchAll = useCallback(async () => {
+    await Promise.all([fetchOverview(), fetchCycle()]);
+  }, [fetchOverview, fetchCycle]);
+
+  useEffect(() => { fetchAll(); }, [fetchAll]);
+  useEffect(() => { if (tab === 'badges') fetchBadges(); }, [tab, fetchBadges]);
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await fetchData();
+    await fetchAll();
+    if (tab === 'badges') await fetchBadges();
     setRefreshing(false);
   };
 
-  useEffect(() => { fetchData(); }, [profile]);
-
+  // ── Derived values ───────────────────────────────────────────
   const overallCompleted = programs.reduce((a, p) => a + p.completedCount, 0);
   const overallTotal = programs.reduce((a, p) => a + p.totalCount, 0);
   const overallPct = overallTotal > 0 ? Math.round((overallCompleted / overallTotal) * 100) : 0;
 
-  return (
-    <ScrollView
-      style={styles.container}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-    >
-      <ScreenHeader title="Progress" />
+  const currentLevelKey = getCurrentLevelKey(profile?.division, profile?.skill_level);
+  const divColor = profile?.division ? DIVISION_COLORS[profile.division] : '#3B82F6';
 
-      {/* Overall card */}
-      <View style={styles.overallCard}>
-        <Text style={styles.overallLabel}>Overall Completion</Text>
-        <Text style={styles.overallPct}>{overallPct}%</Text>
-        <View style={styles.bigBar}>
-          <View style={[styles.bigBarFill, { width: `${overallPct}%` }]} />
-        </View>
-        <Text style={styles.overallSub}>{overallCompleted} of {overallTotal} modules complete</Text>
+  // Days remaining in cycle
+  const daysLeft = cycle
+    ? Math.max(0, Math.ceil((new Date(cycle.cycle_end_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
+    : 0;
+
+  // Sessions needed to hit 80%
+  const sessionsNeeded = cycle
+    ? Math.max(0, Math.ceil((cycle.required_attendance_pct / 100) * attendanceStat.total) - attendanceStat.attended)
+    : 0;
+
+  // ─── Render ──────────────────────────────────────────────────
+  return (
+    <View style={styles.container}>
+      <ScreenHeader title="My Progress" />
+
+      {/* Tab bar */}
+      <View style={styles.tabs}>
+        {(['overview', 'attendance', 'badges'] as Tab[]).map((t) => (
+          <TouchableOpacity
+            key={t}
+            style={[styles.tab, tab === t && { borderBottomColor: divColor }]}
+            onPress={() => setTab(t)}
+          >
+            <Text style={[styles.tabText, tab === t && { color: divColor }]}>
+              {t === 'overview' ? '📊 Overview' : t === 'attendance' ? '📅 Promotion' : '🏅 Badges'}
+            </Text>
+          </TouchableOpacity>
+        ))}
       </View>
 
-      {/* Per-program breakdown */}
-      <View style={styles.section}>
-        {programs.map((p) => {
-          const pct = p.totalCount > 0 ? Math.round((p.completedCount / p.totalCount) * 100) : 0;
-          return (
-            <View key={p.id} style={styles.programCard}>
-              <View style={styles.programHeader}>
-                <Text style={styles.programTitle}>{(p.program as any)?.title}</Text>
-                <Text style={styles.programPct}>{pct}%</Text>
-              </View>
+      <ScrollView
+        style={styles.scroll}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.content}
+      >
 
-              <View style={styles.progressBar}>
-                <View style={[styles.progressFill, { width: `${pct}%` }]} />
-              </View>
+        {/* ── OVERVIEW TAB ─────────────────────────────────── */}
+        {tab === 'overview' && (
+          <>
+            {/* Current level card */}
+            <View style={[styles.levelCard, { backgroundColor: divColor }]}>
+              <Text style={styles.levelLabel}>Current Level</Text>
+              <Text style={styles.levelValue}>
+                {LEVEL_LABELS[currentLevelKey] ?? (profile?.division ? DIVISION_LABELS[profile.division] : 'Not set')}
+              </Text>
+              {profile?.ranking_points != null && profile.ranking_points > 0 && (
+                <Text style={styles.levelPoints}>{profile.ranking_points} ranking points</Text>
+              )}
+            </View>
 
-              <Text style={styles.moduleCount}>{p.completedCount}/{p.totalCount} modules</Text>
-
-              {/* Module list */}
-              <View style={styles.modules}>
-                {p.modules.map((m) => (
-                  <View key={m.id} style={styles.moduleRow}>
-                    <View style={[styles.moduleCheck, m.progress?.completed && styles.moduleCheckDone]}>
-                      {m.progress?.completed && <Text style={styles.checkMark}>✓</Text>}
-                    </View>
-                    <View style={styles.moduleInfo}>
-                      <Text style={[styles.moduleName, m.progress?.completed && styles.moduleNameDone]}>
-                        {m.title}
-                      </Text>
-                      {m.progress?.score != null && (
-                        <Text style={styles.moduleScore}>Score: {m.progress.score}%</Text>
+            {/* Journey path */}
+            <View style={styles.sectionCard}>
+              <Text style={styles.sectionTitle}>Your Journey</Text>
+              <View style={styles.journeyPath}>
+                {JOURNEY.map((step, idx) => {
+                  const isCurrent = step.key === currentLevelKey;
+                  const isPast = JOURNEY.findIndex((j) => j.key === currentLevelKey) > idx;
+                  const color = DIVISION_COLORS[step.division];
+                  return (
+                    <React.Fragment key={step.key}>
+                      <View style={styles.journeyStep}>
+                        <View style={[
+                          styles.journeyDot,
+                          isPast && { backgroundColor: '#16A34A', borderColor: '#16A34A' },
+                          isCurrent && { backgroundColor: color, borderColor: color, transform: [{ scale: 1.25 }] },
+                        ]}>
+                          {isPast && <Text style={styles.journeyCheck}>✓</Text>}
+                          {isCurrent && <Text style={styles.journeyDotInner}>●</Text>}
+                        </View>
+                        <Text style={[
+                          styles.journeyLabel,
+                          isCurrent && { color: color, fontWeight: '700' },
+                          isPast && { color: '#16A34A' },
+                        ]}>
+                          {step.label}
+                        </Text>
+                      </View>
+                      {idx < JOURNEY.length - 1 && (
+                        <View style={[styles.journeyLine, isPast && { backgroundColor: '#16A34A' }]} />
                       )}
-                    </View>
-                  </View>
-                ))}
-                {p.modules.length === 0 && (
-                  <Text style={styles.noModules}>No modules yet</Text>
-                )}
+                    </React.Fragment>
+                  );
+                })}
               </View>
             </View>
-          );
-        })}
 
-        {programs.length === 0 && (
-          <View style={styles.empty}>
-            <Text style={styles.emptyText}>Enroll in a program to track your progress.</Text>
-          </View>
+            {/* Module completion */}
+            <View style={styles.sectionCard}>
+              <Text style={styles.sectionTitle}>Program Completion</Text>
+              <View style={styles.overallRow}>
+                <Text style={styles.overallPct}>{overallPct}%</Text>
+                <Text style={styles.overallSub}>{overallCompleted}/{overallTotal} modules</Text>
+              </View>
+              <View style={styles.progressBar}>
+                <View style={[styles.progressFill, { width: `${overallPct}%`, backgroundColor: divColor }]} />
+              </View>
+              {programs.map((p) => {
+                const pct = p.totalCount > 0 ? Math.round((p.completedCount / p.totalCount) * 100) : 0;
+                return (
+                  <View key={p.id} style={styles.programRow}>
+                    <View style={styles.programRowTop}>
+                      <Text style={styles.programTitle} numberOfLines={1}>{(p.program as any)?.title}</Text>
+                      <Text style={[styles.programPct, { color: divColor }]}>{pct}%</Text>
+                    </View>
+                    <View style={styles.miniBar}>
+                      <View style={[styles.miniBarFill, { width: `${pct}%`, backgroundColor: divColor }]} />
+                    </View>
+                    <Text style={styles.miniCount}>{p.completedCount}/{p.totalCount} modules</Text>
+                  </View>
+                );
+              })}
+              {programs.length === 0 && (
+                <Text style={styles.emptyNote}>Enroll in a program to see completion stats.</Text>
+              )}
+            </View>
+          </>
         )}
-      </View>
-    </ScrollView>
+
+        {/* ── ATTENDANCE / PROMOTION TAB ───────────────────── */}
+        {tab === 'attendance' && (
+          <>
+            {cycleLoading ? (
+              <ActivityIndicator size="large" color={divColor} style={styles.loader} />
+            ) : !cycle ? (
+              <View style={styles.emptyCard}>
+                <Text style={styles.emptyIcon}>📅</Text>
+                <Text style={styles.emptyTitle}>No Active Promotion Cycle</Text>
+                <Text style={styles.emptyNote}>Ask your coach to start your promotion cycle.</Text>
+              </View>
+            ) : (
+              <>
+                {/* Cycle header */}
+                <View style={[styles.cycleCard, { borderColor: divColor }]}>
+                  <View style={styles.cycleHeader}>
+                    <View>
+                      <Text style={styles.cycleFrom}>{LEVEL_LABELS[cycle.from_level] ?? cycle.from_level}</Text>
+                      <Text style={styles.cycleArrow}>↓</Text>
+                      <Text style={[styles.cycleTo, { color: divColor }]}>{LEVEL_LABELS[cycle.to_level] ?? cycle.to_level}</Text>
+                    </View>
+                    <View style={styles.cycleDays}>
+                      <Text style={[styles.cycleDaysNum, daysLeft < 14 && { color: '#EF4444' }]}>{daysLeft}</Text>
+                      <Text style={styles.cycleDaysLabel}>days left</Text>
+                    </View>
+                  </View>
+                  <Text style={styles.cycleDates}>
+                    {new Date(cycle.cycle_start_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                    {' → '}
+                    {new Date(cycle.cycle_end_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  </Text>
+                </View>
+
+                {/* Attendance bar */}
+                <View style={styles.sectionCard}>
+                  <Text style={styles.sectionTitle}>Attendance Progress</Text>
+                  <View style={styles.attRow}>
+                    <Text style={[styles.attPct, { color: attendanceStat.pct >= 80 ? '#16A34A' : divColor }]}>
+                      {attendanceStat.pct}%
+                    </Text>
+                    <Text style={styles.attTarget}>Target: {cycle.required_attendance_pct}%</Text>
+                  </View>
+                  <View style={styles.attBarBg}>
+                    <View style={[
+                      styles.attBarFill,
+                      {
+                        width: `${Math.min(100, attendanceStat.pct)}%`,
+                        backgroundColor: attendanceStat.pct >= 80 ? '#16A34A' : divColor,
+                      },
+                    ]} />
+                    {/* 80% marker */}
+                    <View style={styles.attMarker} />
+                  </View>
+                  <View style={styles.attStats}>
+                    <View style={styles.attStat}>
+                      <Text style={styles.attStatNum}>{attendanceStat.attended}</Text>
+                      <Text style={styles.attStatLabel}>Attended</Text>
+                    </View>
+                    <View style={styles.attStat}>
+                      <Text style={styles.attStatNum}>{attendanceStat.total}</Text>
+                      <Text style={styles.attStatLabel}>Total Sessions</Text>
+                    </View>
+                    <View style={styles.attStat}>
+                      <Text style={[styles.attStatNum, { color: '#EF4444' }]}>{attendanceStat.total - attendanceStat.attended}</Text>
+                      <Text style={styles.attStatLabel}>Missed</Text>
+                    </View>
+                  </View>
+                </View>
+
+                {/* Status message */}
+                {attendanceStat.pct >= cycle.required_attendance_pct && cycle.status === 'eligible' && (
+                  <View style={[styles.statusBanner, { backgroundColor: '#FEF9C3' }]}>
+                    <Text style={styles.statusBannerIcon}>⏳</Text>
+                    <Text style={styles.statusBannerText}>
+                      You've hit {cycle.required_attendance_pct}%!{cycle.requires_coach_approval ? ' Awaiting coach approval.' : ' Processing your promotion.'}
+                    </Text>
+                  </View>
+                )}
+                {cycle.status === 'approved' && (
+                  <View style={[styles.statusBanner, { backgroundColor: '#DCFCE7' }]}>
+                    <Text style={styles.statusBannerIcon}>🎉</Text>
+                    <Text style={styles.statusBannerText}>Promotion approved! You'll be moved up shortly.</Text>
+                  </View>
+                )}
+                {cycle.status === 'active' && attendanceStat.pct < cycle.required_attendance_pct && (
+                  <View style={[styles.statusBanner, { backgroundColor: '#EFF6FF' }]}>
+                    <Text style={styles.statusBannerIcon}>💪</Text>
+                    <Text style={styles.statusBannerText}>
+                      {sessionsNeeded > 0
+                        ? `${sessionsNeeded} more session${sessionsNeeded !== 1 ? 's' : ''} to reach ${cycle.required_attendance_pct}% — keep going!`
+                        : `You're on track! Keep attending to hit ${cycle.required_attendance_pct}%.`}
+                    </Text>
+                  </View>
+                )}
+              </>
+            )}
+          </>
+        )}
+
+        {/* ── BADGES TAB ───────────────────────────────────── */}
+        {tab === 'badges' && (
+          <>
+            {badgesLoading ? (
+              <ActivityIndicator size="large" color={divColor} style={styles.loader} />
+            ) : (
+              <View style={styles.badgesGrid}>
+                {badges.map((badge) => (
+                  <View
+                    key={badge.id}
+                    style={[styles.badgeCard, !badge.earned && styles.badgeCardLocked]}
+                  >
+                    <Text style={[styles.badgeEmoji, !badge.earned && styles.badgeEmojiLocked]}>
+                      {badge.earned ? badge.emoji : '🔒'}
+                    </Text>
+                    <Text style={[styles.badgeLabel, !badge.earned && styles.badgeLabelLocked]}>
+                      {badge.label}
+                    </Text>
+                    <Text style={styles.badgeDesc} numberOfLines={2}>
+                      {badge.description}
+                    </Text>
+                    {badge.earned && (
+                      <View style={[styles.badgeEarnedDot, { backgroundColor: divColor }]} />
+                    )}
+                  </View>
+                ))}
+              </View>
+            )}
+          </>
+        )}
+
+      </ScrollView>
+    </View>
   );
 }
 
+// ─── Styles ───────────────────────────────────────────────────
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F9FAFB' },
-  header: { padding: 24, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
-  title: { fontSize: 26, fontWeight: '700', color: '#111827' },
-  overallCard: {
-    margin: 16, backgroundColor: '#16A34A', borderRadius: 16, padding: 24, alignItems: 'center',
+  tabs: {
+    flexDirection: 'row', backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1, borderBottomColor: '#E5E7EB',
   },
-  overallLabel: { color: '#DCFCE7', fontSize: 14, fontWeight: '600' },
-  overallPct: { color: '#FFFFFF', fontSize: 48, fontWeight: '700', marginVertical: 8 },
-  bigBar: { width: '100%', height: 8, backgroundColor: 'rgba(255,255,255,0.3)', borderRadius: 4 },
-  bigBarFill: { height: '100%', backgroundColor: '#FFFFFF', borderRadius: 4 },
-  overallSub: { color: '#DCFCE7', fontSize: 13, marginTop: 8 },
-  section: { padding: 16 },
-  programCard: { backgroundColor: '#FFFFFF', borderRadius: 14, padding: 16, marginBottom: 14, borderWidth: 1, borderColor: '#E5E7EB' },
-  programHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
-  programTitle: { fontSize: 16, fontWeight: '700', color: '#111827', flex: 1 },
-  programPct: { fontSize: 16, fontWeight: '700', color: '#16A34A' },
-  progressBar: { height: 6, backgroundColor: '#E5E7EB', borderRadius: 3, marginBottom: 6 },
-  progressFill: { height: '100%', backgroundColor: '#16A34A', borderRadius: 3 },
-  moduleCount: { fontSize: 12, color: '#6B7280', marginBottom: 14 },
-  modules: { gap: 10 },
-  moduleRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  moduleCheck: { width: 22, height: 22, borderRadius: 11, borderWidth: 2, borderColor: '#D1D5DB', alignItems: 'center', justifyContent: 'center' },
-  moduleCheckDone: { backgroundColor: '#16A34A', borderColor: '#16A34A' },
-  checkMark: { color: '#FFFFFF', fontSize: 12, fontWeight: '700' },
-  moduleInfo: { flex: 1 },
-  moduleName: { fontSize: 14, color: '#374151' },
-  moduleNameDone: { color: '#9CA3AF', textDecorationLine: 'line-through' },
-  moduleScore: { fontSize: 12, color: '#16A34A', fontWeight: '600' },
-  noModules: { color: '#9CA3AF', fontSize: 13, fontStyle: 'italic' },
-  empty: { alignItems: 'center', paddingVertical: 40 },
-  emptyText: { color: '#9CA3AF', fontSize: 15, textAlign: 'center' },
+  tab: {
+    flex: 1, paddingVertical: 12, alignItems: 'center',
+    borderBottomWidth: 2, borderBottomColor: 'transparent',
+  },
+  tabText: { fontSize: 13, fontWeight: '600', color: '#6B7280' },
+  scroll: { flex: 1 },
+  content: { padding: 16, paddingBottom: 40 },
+  loader: { marginTop: 60 },
+
+  // Level card
+  levelCard: {
+    borderRadius: 16, padding: 24, marginBottom: 14, alignItems: 'center',
+  },
+  levelLabel: { color: 'rgba(255,255,255,0.8)', fontSize: 13, fontWeight: '600' },
+  levelValue: { color: '#FFFFFF', fontSize: 26, fontWeight: '800', marginTop: 6, textAlign: 'center' },
+  levelPoints: { color: 'rgba(255,255,255,0.75)', fontSize: 13, marginTop: 4 },
+
+  // Section card
+  sectionCard: {
+    backgroundColor: '#FFFFFF', borderRadius: 14, padding: 16,
+    marginBottom: 14, borderWidth: 1, borderColor: '#E5E7EB',
+  },
+  sectionTitle: { fontSize: 15, fontWeight: '700', color: '#111827', marginBottom: 14 },
+
+  // Journey
+  journeyPath: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', flexWrap: 'nowrap' },
+  journeyStep: { alignItems: 'center', width: 56 },
+  journeyDot: {
+    width: 28, height: 28, borderRadius: 14,
+    borderWidth: 2, borderColor: '#D1D5DB', backgroundColor: '#FFFFFF',
+    alignItems: 'center', justifyContent: 'center', marginBottom: 6,
+  },
+  journeyCheck: { color: '#FFFFFF', fontSize: 12, fontWeight: '800' },
+  journeyDotInner: { color: '#FFFFFF', fontSize: 10 },
+  journeyLine: { flex: 1, height: 2, backgroundColor: '#E5E7EB', marginBottom: 20 },
+  journeyLabel: { fontSize: 10, fontWeight: '600', color: '#9CA3AF', textAlign: 'center' },
+
+  // Overview
+  overallRow: { flexDirection: 'row', alignItems: 'baseline', gap: 8, marginBottom: 8 },
+  overallPct: { fontSize: 36, fontWeight: '800', color: '#111827' },
+  overallSub: { fontSize: 14, color: '#6B7280' },
+  progressBar: { height: 10, backgroundColor: '#E5E7EB', borderRadius: 5, marginBottom: 16 },
+  progressFill: { height: '100%', borderRadius: 5 },
+  programRow: { marginBottom: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: '#F3F4F6' },
+  programRowTop: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 },
+  programTitle: { fontSize: 14, fontWeight: '600', color: '#374151', flex: 1, marginRight: 8 },
+  programPct: { fontSize: 14, fontWeight: '700' },
+  miniBar: { height: 6, backgroundColor: '#E5E7EB', borderRadius: 3, marginBottom: 4 },
+  miniBarFill: { height: '100%', borderRadius: 3 },
+  miniCount: { fontSize: 11, color: '#9CA3AF' },
+  emptyNote: { color: '#9CA3AF', fontSize: 13, textAlign: 'center', paddingVertical: 20 },
+
+  // Cycle
+  cycleCard: {
+    backgroundColor: '#FFFFFF', borderRadius: 14, padding: 16,
+    marginBottom: 14, borderWidth: 2,
+  },
+  cycleHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
+  cycleFrom: { fontSize: 14, color: '#6B7280', fontWeight: '600' },
+  cycleArrow: { fontSize: 18, color: '#D1D5DB', marginVertical: 2 },
+  cycleTo: { fontSize: 18, fontWeight: '800' },
+  cycleDays: { alignItems: 'center' },
+  cycleDaysNum: { fontSize: 32, fontWeight: '800', color: '#111827' },
+  cycleDaysLabel: { fontSize: 11, color: '#9CA3AF' },
+  cycleDates: { fontSize: 12, color: '#9CA3AF' },
+
+  // Attendance
+  attRow: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 10 },
+  attPct: { fontSize: 42, fontWeight: '800' },
+  attTarget: { fontSize: 13, color: '#6B7280' },
+  attBarBg: { height: 16, backgroundColor: '#E5E7EB', borderRadius: 8, marginBottom: 16, overflow: 'hidden', position: 'relative' },
+  attBarFill: { height: '100%', borderRadius: 8 },
+  attMarker: {
+    position: 'absolute', left: '80%', top: 0, bottom: 0,
+    width: 2, backgroundColor: '#374151',
+  },
+  attStats: { flexDirection: 'row', justifyContent: 'space-around' },
+  attStat: { alignItems: 'center' },
+  attStatNum: { fontSize: 22, fontWeight: '800', color: '#111827' },
+  attStatLabel: { fontSize: 11, color: '#9CA3AF', marginTop: 2 },
+
+  // Status banner
+  statusBanner: {
+    borderRadius: 12, padding: 14, marginBottom: 14,
+    flexDirection: 'row', alignItems: 'center', gap: 10,
+  },
+  statusBannerIcon: { fontSize: 24 },
+  statusBannerText: { flex: 1, fontSize: 14, fontWeight: '600', color: '#374151' },
+
+  // Empty
+  emptyCard: {
+    backgroundColor: '#FFFFFF', borderRadius: 14, padding: 40,
+    alignItems: 'center', borderWidth: 1, borderColor: '#E5E7EB', marginTop: 20,
+  },
+  emptyIcon: { fontSize: 48, marginBottom: 12 },
+  emptyTitle: { fontSize: 17, fontWeight: '700', color: '#111827', marginBottom: 6 },
+
+  // Badges
+  badgesGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
+  badgeCard: {
+    width: '47%', backgroundColor: '#FFFFFF', borderRadius: 14,
+    padding: 16, alignItems: 'center', borderWidth: 1, borderColor: '#E5E7EB',
+    position: 'relative',
+  },
+  badgeCardLocked: { backgroundColor: '#F9FAFB', borderColor: '#F3F4F6' },
+  badgeEmoji: { fontSize: 32, marginBottom: 8 },
+  badgeEmojiLocked: { opacity: 0.4 },
+  badgeLabel: { fontSize: 13, fontWeight: '700', color: '#111827', textAlign: 'center', marginBottom: 4 },
+  badgeLabelLocked: { color: '#9CA3AF' },
+  badgeDesc: { fontSize: 11, color: '#9CA3AF', textAlign: 'center', lineHeight: 15 },
+  badgeEarnedDot: {
+    position: 'absolute', top: 10, right: 10,
+    width: 8, height: 8, borderRadius: 4,
+  },
 });

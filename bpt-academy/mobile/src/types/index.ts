@@ -244,3 +244,27 @@ export interface Notification {
   read: boolean;
   created_at: string;
 }
+
+export interface PromotionCycle {
+  id: string;
+  student_id: string;
+  from_level: string;
+  to_level: string;
+  cycle_start_date: string;
+  cycle_end_date: string;
+  required_attendance_pct: number;
+  requires_coach_approval: boolean;
+  status: 'active' | 'eligible' | 'approved' | 'promoted' | 'expired';
+  coach_approved_by?: string;
+  coach_approved_at?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export const LEVEL_LABELS: Record<string, string> = {
+  amateur_beginner: 'Amateur · Beginner',
+  amateur_intermediate: 'Amateur · Intermediate',
+  amateur_advanced: 'Amateur · Advanced',
+  semi_pro: 'Semi-Pro',
+  pro: 'Pro',
+};

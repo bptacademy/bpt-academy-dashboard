@@ -13,8 +13,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.bptacademy.app",
-      "merchantId": "merchant.com.bptacademy.app"
+      "bundleIdentifier": "com.bptacademy.app"
     },
     "android": {
       "package": "com.bptacademy.app",
