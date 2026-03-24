@@ -69,9 +69,17 @@ export default function PaymentScreen({ navigation, route }: any) {
 
     // Create enrollment or tournament registration
     if (programId && studentId) {
-      await supabase.from('enrollments').insert({
-        student_id: studentId, program_id: programId, status: 'active',
-      });
+      const { data: existingEnroll } = await supabase
+        .from('enrollments')
+        .select('id')
+        .eq('student_id', studentId)
+        .eq('program_id', programId)
+        .maybeSingle();
+      if (existingEnroll) {
+        await supabase.from('enrollments').update({ status: 'active' }).eq('id', existingEnroll.id);
+      } else {
+        await supabase.from('enrollments').insert({ student_id: studentId, program_id: programId, status: 'active' });
+      }
     }
     if (tournamentId && studentId) {
       await supabase.from('tournament_registrations').insert({
@@ -104,15 +112,27 @@ export default function PaymentScreen({ navigation, route }: any) {
     setLoadingBank(true);
 
     if (programId && studentId) {
-      const { error: enrollError } = await supabase.from('enrollments').insert({
-        student_id: studentId,
-        program_id: programId,
-        status: 'active',
-      });
-      if (enrollError) {
-        setLoadingBank(false);
-        Alert.alert('Error', enrollError.message);
-        return;
+      // Check if enrollment already exists — if so, just update status to active
+      const { data: existing } = await supabase
+        .from('enrollments')
+        .select('id')
+        .eq('student_id', studentId)
+        .eq('program_id', programId)
+        .maybeSingle();
+
+      if (existing) {
+        await supabase.from('enrollments').update({ status: 'active' }).eq('id', existing.id);
+      } else {
+        const { error: enrollError } = await supabase.from('enrollments').insert({
+          student_id: studentId,
+          program_id: programId,
+          status: 'active',
+        });
+        if (enrollError) {
+          setLoadingBank(false);
+          Alert.alert('Error', enrollError.message);
+          return;
+        }
       }
     }
 
