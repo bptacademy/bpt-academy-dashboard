@@ -466,9 +466,8 @@ export default function ProgressScreen() {
                         backgroundColor: attendanceStat.pct >= 80 ? '#16A34A' : divColor,
                       },
                     ]} />
-                    {/* 80% marker */}
-                    <View style={styles.attMarker} />
                   </View>
+                  <Text style={styles.attMarkerLabel}>▲ 80% target</Text>
                   <View style={styles.attStats}>
                     <View style={styles.attStat}>
                       <Text style={styles.attStatNum}>{attendanceStat.attended}</Text>
@@ -630,10 +629,7 @@ const styles = StyleSheet.create({
   attTarget: { fontSize: 13, color: '#6B7280' },
   attBarBg: { height: 16, backgroundColor: '#E5E7EB', borderRadius: 8, marginBottom: 16, overflow: 'hidden', position: 'relative' },
   attBarFill: { height: '100%', borderRadius: 8 },
-  attMarker: {
-    position: 'absolute', left: '80%', top: 0, bottom: 0,
-    width: 2, backgroundColor: '#374151',
-  },
+  attMarkerLabel: { fontSize: 11, color: '#6B7280', textAlign: 'right', marginTop: 2, marginBottom: 8 },
   attStats: { flexDirection: 'row', justifyContent: 'space-around' },
   attStat: { alignItems: 'center' },
   attStatNum: { fontSize: 22, fontWeight: '800', color: '#111827' },
