@@ -275,6 +275,18 @@ export default function StudentDetailScreen({ route, navigation }: any) {
             })
           )}
         </View>
+
+        {/* Promotion management */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Promotion Cycle</Text>
+          <TouchableOpacity
+            style={styles.promoBtn}
+            onPress={() => navigation.navigate('PromotionManage', { studentId: student.id, studentName: student.full_name })}
+          >
+            <Text style={styles.promoBtnText}>🎯 Manage Promotion Cycle</Text>
+            <Text style={styles.promoBtnChevron}>›</Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
 
       {/* Edit modal */}
@@ -409,4 +421,11 @@ const styles = StyleSheet.create({
   selectChipTextActive: { color: '#FFFFFF', fontWeight: '700' },
   warningBox: { backgroundColor: '#FFFBEB', borderRadius: 10, padding: 14, borderWidth: 1, borderColor: '#FDE68A' },
   warningText: { fontSize: 13, color: '#92400E', lineHeight: 20 },
+  promoBtn: {
+    backgroundColor: '#FFFFFF', borderRadius: 12, padding: 16,
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    borderWidth: 1, borderColor: '#E5E7EB',
+  },
+  promoBtnText: { fontSize: 15, fontWeight: '600', color: '#16A34A' },
+  promoBtnChevron: { fontSize: 22, color: '#D1D5DB' },
 });
