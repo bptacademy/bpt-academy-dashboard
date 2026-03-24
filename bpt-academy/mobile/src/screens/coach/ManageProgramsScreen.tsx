@@ -25,12 +25,13 @@ type FormState = {
   skill_level: SkillLevel;
   duration_weeks: string;
   price_gbp: string;
+  sessions_per_week: number;
   selectedCoachIds: string[];
 };
 
 const EMPTY_FORM: FormState = {
   title: '', description: '', division: 'amateur', skill_level: 'beginner',
-  duration_weeks: '', price_gbp: '', selectedCoachIds: [],
+  duration_weeks: '', price_gbp: '', sessions_per_week: 2, selectedCoachIds: [],
 };
 
 export default function ManageProgramsScreen({ navigation }: any) {
@@ -82,6 +83,7 @@ export default function ManageProgramsScreen({ navigation }: any) {
       skill_level: (p.skill_level ?? 'beginner') as SkillLevel,
       duration_weeks: p.duration_weeks ? String(p.duration_weeks) : '',
       price_gbp: (p as any).price_gbp != null ? String((p as any).price_gbp) : '',
+      sessions_per_week: (p as any).sessions_per_week ?? 2,
       selectedCoachIds: (programCoaches[p.id] ?? []).map((c) => c.id),
     });
     setModalVisible(true);
@@ -104,6 +106,7 @@ export default function ManageProgramsScreen({ navigation }: any) {
       skill_level: form.division === 'amateur' ? form.skill_level : null,
       duration_weeks: form.duration_weeks ? parseInt(form.duration_weeks) : null,
       price_gbp: form.price_gbp ? parseFloat(form.price_gbp) : null,
+      sessions_per_week: form.sessions_per_week,
     };
 
     let programId: string;
@@ -198,7 +201,7 @@ export default function ManageProgramsScreen({ navigation }: any) {
                 <Text style={styles.cardTitle}>{p.title}</Text>
                 {p.description ? <Text style={styles.cardDesc} numberOfLines={2}>{p.description}</Text> : null}
                 <View style={styles.cardMetaRow}>
-                  <Text style={styles.cardMeta}>⏱ {p.duration_weeks ?? '—'} weeks</Text>
+                  <Text style={styles.cardMeta}>⏱ {p.duration_weeks ?? '—'} weeks · {(p as any).sessions_per_week ?? 2}x/week</Text>
                   {(p as any).price_gbp != null
                     ? <Text style={styles.cardPrice}>£{parseFloat((p as any).price_gbp).toFixed(2)}</Text>
                     : <Text style={styles.cardPriceFree}>Free</Text>
@@ -330,6 +333,22 @@ export default function ManageProgramsScreen({ navigation }: any) {
               placeholderTextColor="#9CA3AF"
               keyboardType="numeric"
             />
+
+            <Text style={styles.label}>Sessions per week</Text>
+            <Text style={styles.sublabel}>How many training sessions per week</Text>
+            <View style={styles.chipRow}>
+              {[2, 3, 4].map((n) => (
+                <TouchableOpacity
+                  key={n}
+                  style={[styles.chip, form.sessions_per_week === n && { backgroundColor: '#16A34A', borderColor: '#16A34A' }]}
+                  onPress={() => setForm({ ...form, sessions_per_week: n })}
+                >
+                  <Text style={[styles.chipText, form.sessions_per_week === n && styles.chipTextActive]}>
+                    {n}x / week
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
 
             <Text style={styles.label}>Price (£)</Text>
             <View style={styles.priceInputRow}>
