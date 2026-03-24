@@ -140,7 +140,6 @@ export default function HomeScreen({ navigation }: any) {
             { icon: '🎾', label: 'Tournaments',      screen: 'Tournaments' },
             { icon: '💬', label: 'Messages',         screen: 'Messages' },
             { icon: '📝', label: 'Coach Notes',      screen: 'MyCoachNotes' },
-            { icon: '🔔', label: 'Notifications',    screen: 'Notifications' },
           ].map((item) => (
             <TouchableOpacity
               key={item.screen}

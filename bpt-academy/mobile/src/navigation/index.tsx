@@ -22,7 +22,6 @@ import TournamentDetailScreen from '../screens/student/TournamentDetailScreen';
 import PaymentScreen from '../screens/student/PaymentScreen';
 import LeaderboardScreen from '../screens/student/LeaderboardScreen';
 import MyCoachNotesScreen from '../screens/student/MyCoachNotesScreen';
-import NotificationsScreen from '../screens/student/NotificationsScreen';
 
 // Coach/Admin screens
 import CoachHomeScreen from '../screens/coach/CoachHomeScreen';
@@ -78,7 +77,6 @@ function StudentStack() {
       <Stack.Screen name="MyCoachNotes"     component={MyCoachNotesScreen} />
       <Stack.Screen name="Chat"             component={ChatScreen} />
       <Stack.Screen name="NewConversation"  component={NewConversationScreen} />
-      <Stack.Screen name="Notifications"    component={NotificationsScreen} />
     </Stack.Navigator>
   );
 }
@@ -87,30 +85,29 @@ function AdminStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       {/* Main */}
-      <Stack.Screen name="Dashboard"   component={CoachHomeScreen} />
-      <Stack.Screen name="Manage"      component={ManageProgramsScreen} />
-      <Stack.Screen name="Videos"      component={ManageVideosScreen} />
-      <Stack.Screen name="Students"    component={ManageStudentsScreen} />
-      <Stack.Screen name="Messages"    component={MessagesScreen} />
-      <Stack.Screen name="Announce"    component={SendAnnouncementScreen} />
-      <Stack.Screen name="Profile"     component={ProfileScreen} />
-      <Stack.Screen name="Divisions"   component={DivisionDashboardScreen} />
+      <Stack.Screen name="Dashboard"  component={CoachHomeScreen} />
+      <Stack.Screen name="Manage"     component={ManageProgramsScreen} />
+      <Stack.Screen name="Videos"     component={ManageVideosScreen} />
+      <Stack.Screen name="Students"   component={ManageStudentsScreen} />
+      <Stack.Screen name="Messages"   component={MessagesScreen} />
+      <Stack.Screen name="Announce"   component={SendAnnouncementScreen} />
+      <Stack.Screen name="Profile"    component={ProfileScreen} />
+      <Stack.Screen name="Divisions"  component={DivisionDashboardScreen} />
       <Stack.Screen name="Tournaments" component={TournamentManageScreen} />
-      <Stack.Screen name="Payments"    component={PaymentReconciliationScreen} />
-      <Stack.Screen name="BulkMsg"     component={BulkMessageScreen} />
+      <Stack.Screen name="Payments"   component={PaymentReconciliationScreen} />
+      <Stack.Screen name="BulkMsg"    component={BulkMessageScreen} />
       {/* Push */}
-      <Stack.Screen name="ProgramRoster"    component={ProgramRosterScreen} />
-      <Stack.Screen name="StudentDetail"    component={StudentDetailScreen} />
-      <Stack.Screen name="UploadVideo"      component={UploadVideoScreen} />
-      <Stack.Screen name="Attendance"       component={AttendanceScreen} />
+      <Stack.Screen name="ProgramRoster"   component={ProgramRosterScreen} />
+      <Stack.Screen name="StudentDetail"   component={StudentDetailScreen} />
+      <Stack.Screen name="UploadVideo"     component={UploadVideoScreen} />
+      <Stack.Screen name="Attendance"      component={AttendanceScreen} />
       <Stack.Screen name="CoachNotes"       component={CoachNotesScreen} />
       <Stack.Screen name="AcademySettings"  component={AcademySettingsScreen} />
-      <Stack.Screen name="BillingSettings"  component={BillingSettingsScreen} />
-      <Stack.Screen name="PromotionManage"  component={PromotionManageScreen} />
-      <Stack.Screen name="VideoPlayer"      component={VideoPlayerScreen} />
-      <Stack.Screen name="Chat"             component={ChatScreen} />
-      <Stack.Screen name="NewConversation"  component={NewConversationScreen} />
-      <Stack.Screen name="Notifications"    component={NotificationsScreen} />
+      <Stack.Screen name="BillingSettings" component={BillingSettingsScreen} />
+      <Stack.Screen name="PromotionManage" component={PromotionManageScreen} />
+      <Stack.Screen name="VideoPlayer"     component={VideoPlayerScreen} />
+      <Stack.Screen name="Chat"            component={ChatScreen} />
+      <Stack.Screen name="NewConversation" component={NewConversationScreen} />
     </Stack.Navigator>
   );
 }

@@ -242,7 +242,6 @@ export interface Notification {
   type?: string;
   data?: Record<string, unknown>;
   read: boolean;
-  email_sent?: boolean;
   created_at: string;
 }
 

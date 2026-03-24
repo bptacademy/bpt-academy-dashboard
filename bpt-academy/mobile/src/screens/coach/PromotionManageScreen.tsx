@@ -9,8 +9,8 @@ import { PromotionCycle, LEVEL_LABELS } from '../../types';
 import BackHeader from '../../components/common/BackHeader';
 
 interface Props {
-  route?: { params?: { studentId?: string; studentName?: string } };
-  navigation?: any;
+  route: { params: { studentId: string; studentName: string } };
+  navigation: any;
 }
 
 type FromLevel = 'amateur_beginner' | 'amateur_intermediate' | 'amateur_advanced' | 'semi_pro';
@@ -72,7 +72,7 @@ const STATUS_COLORS: Record<string, { bg: string; text: string }> = {
 };
 
 export default function PromotionManageScreen({ route, navigation }: Props) {
-  const { studentId = '', studentName = '' } = route?.params ?? {};
+  const { studentId, studentName } = route.params;
   const { profile: coachProfile } = useAuth();
 
   const [cycle, setCycle] = useState<PromotionCycle | null>(null);
