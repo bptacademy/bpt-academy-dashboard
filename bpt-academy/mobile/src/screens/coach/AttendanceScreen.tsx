@@ -60,6 +60,37 @@ export default function AttendanceScreen({ route }: any) {
 
   useEffect(() => { load(); }, [sessionId]);
 
+  // When a student is marked attended, complete their next pending module
+  const completeNextModule = async (studentId: string, programId: string) => {
+    // Get all modules for this program in order
+    const { data: modules } = await supabase
+      .from('modules')
+      .select('id')
+      .eq('program_id', programId)
+      .order('order_index', { ascending: true });
+    if (!modules?.length) return;
+
+    // Get already completed modules for this student
+    const { data: completed } = await supabase
+      .from('student_progress')
+      .select('module_id')
+      .eq('student_id', studentId)
+      .eq('completed', true)
+      .in('module_id', modules.map((m: { id: string }) => m.id));
+
+    const completedIds = new Set((completed ?? []).map((p: { module_id: string }) => p.module_id));
+    const nextModule = modules.find((m: { id: string }) => !completedIds.has(m.id));
+    if (!nextModule) return;
+
+    // Upsert progress for next module
+    await supabase.from('student_progress').upsert({
+      student_id: studentId,
+      module_id: nextModule.id,
+      completed: true,
+      completed_at: new Date().toISOString(),
+    }, { onConflict: 'student_id,module_id' });
+  };
+
   const toggleAttendance = async (row: StudentRow) => {
     setSaving(row.profile.id);
     const nowAttended = !(row.attendance?.attended ?? false);
@@ -68,6 +99,12 @@ export default function AttendanceScreen({ route }: any) {
     } else {
       await supabase.from('session_attendance').insert({ session_id: sessionId, student_id: row.profile.id, attended: nowAttended });
     }
+
+    // If marking as present, complete their next module
+    if (nowAttended && session?.program_id) {
+      await completeNextModule(row.profile.id, session.program_id);
+    }
+
     setRows(prev => prev.map(r =>
       r.profile.id === row.profile.id
         ? { ...r, attendance: r.attendance
@@ -108,6 +145,10 @@ export default function AttendanceScreen({ route }: any) {
               attended,
             }));
             await supabase.from('session_attendance').upsert(upserts, { onConflict: 'session_id,student_id' });
+            // Complete next module for each attended student
+            if (attended && session?.program_id) {
+              await Promise.all([...selected].map(sid => completeNextModule(sid, session!.program_id)));
+            }
             await load();
             setSaving(null);
           },
@@ -128,6 +169,10 @@ export default function AttendanceScreen({ route }: any) {
             setSaving('all');
             const upserts = rows.map(r => ({ session_id: sessionId, student_id: r.profile.id, attended }));
             await supabase.from('session_attendance').upsert(upserts, { onConflict: 'session_id,student_id' });
+            // Complete next module for all students if marking present
+            if (attended && session?.program_id) {
+              await Promise.all(rows.map(r => completeNextModule(r.profile.id, session!.program_id)));
+            }
             await load();
             setSaving(null);
           },

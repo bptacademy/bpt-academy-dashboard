@@ -133,6 +133,24 @@ export default function ManageProgramsScreen({ navigation }: any) {
       );
     }
 
+    // Auto-generate modules for NEW programs only (sessions_per_week × duration_weeks)
+    if (!editingProgram && form.duration_weeks && parseInt(form.duration_weeks) > 0) {
+      const totalSessions = parseInt(form.duration_weeks) * form.sessions_per_week;
+      // Check if modules already exist
+      const { count } = await supabase
+        .from('modules')
+        .select('*', { count: 'exact', head: true })
+        .eq('program_id', programId);
+      if (!count || count === 0) {
+        const modules = Array.from({ length: totalSessions }, (_, i) => ({
+          program_id: programId,
+          title: `Session ${i + 1}`,
+          order_index: i + 1,
+        }));
+        await supabase.from('modules').insert(modules);
+      }
+    }
+
     setSaving(false);
     closeModal();
     fetchPrograms();
