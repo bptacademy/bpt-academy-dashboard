@@ -276,6 +276,18 @@ export default function StudentDetailScreen({ route, navigation }: any) {
           )}
         </View>
 
+        {/* Coach Notes */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Coach Notes</Text>
+          <TouchableOpacity
+            style={styles.promoBtn}
+            onPress={() => navigation.navigate('CoachNotes', { studentId: student.id, studentName: student.full_name })}
+          >
+            <Text style={styles.promoBtnText}>📝 View / Add Notes</Text>
+            <Text style={styles.promoBtnChevron}>›</Text>
+          </TouchableOpacity>
+        </View>
+
         {/* Promotion management */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Promotion Cycle</Text>

@@ -82,6 +82,15 @@ export default function CoachNotesScreen({ navigation, route }: Props) {
     if (error) {
       Alert.alert('Error', error.message);
     } else {
+      // Notify student if note is not private
+      if (!isPrivate) {
+        await supabase.from('notifications').insert({
+          recipient_id: selectedStudent.id,
+          title: '📝 New coach note',
+          body: `${coachProfile.full_name} left you a note. Check your Coach Notes section for feedback.`,
+          type: 'message',
+        });
+      }
       setNoteText('');
       setIsPrivate(false);
       setModalVisible(false);
