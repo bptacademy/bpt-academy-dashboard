@@ -32,9 +32,17 @@ export default function PaymentScreen({ navigation, route }: any) {
   const [loadingCard, setLoadingCard]         = useState(false);
   const [loadingBank, setLoadingBank]         = useState(false);
 
-  const generatedRef = useRef(
-    `BPT-${(studentId ?? profile?.id ?? '').slice(0, 6).toUpperCase()}-${Date.now().toString(36).toUpperCase()}`
-  ).current;
+  const divisionShort: Record<string, string> = {
+    amateur:       'AM',
+    semi_pro:      'SP',
+    pro:           'PRO',
+    junior_9_11:   'JR1',
+    junior_12_15:  'JR2',
+    junior_15_18:  'JR3',
+  };
+  const divSlug = programDivision ? (divisionShort[programDivision] ?? programDivision.toUpperCase().slice(0, 3)) : 'GEN';
+  const lastName = (profile?.full_name ?? '').split(' ').pop()?.toUpperCase().slice(0, 6) ?? 'STUDENT';
+  const generatedRef = useRef(`BPT-${divSlug}-${lastName}`).current;
 
   const divisionLinkKey = programDivision ? `stripe_payment_link_${programDivision}` : null;
 
