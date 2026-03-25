@@ -157,6 +157,16 @@ export default function PromotionManageScreen({ route, navigation }: Props) {
 
   useEffect(() => { fetchCycle(); }, [fetchCycle]);
 
+  // ── Notify student ────────────────────────────────────────
+  const notify = async (title: string, body: string) => {
+    await supabase.from('notifications').insert({
+      recipient_id: studentId,
+      title,
+      body,
+      type: 'promotion',
+    });
+  };
+
   // ── Actions ───────────────────────────────────────────────
 
   const handleMarkEligible = () => {
@@ -167,6 +177,10 @@ export default function PromotionManageScreen({ route, navigation }: Props) {
           if (!cycle) return;
           setActioning(true);
           await supabase.from('promotion_cycles').update({ status: 'eligible' }).eq('id', cycle.id);
+          await notify(
+            '⭐ You\'re eligible for promotion!',
+            `Great work! Your coach has confirmed you're ready to move from ${LEVEL_LABELS[cycle.from_level] ?? cycle.from_level} to ${LEVEL_LABELS[cycle.to_level] ?? cycle.to_level}. Awaiting final approval.`
+          );
           await fetchCycle();
           setActioning(false);
         },
@@ -186,6 +200,10 @@ export default function PromotionManageScreen({ route, navigation }: Props) {
             coach_approved_by: coachProfile.id,
             coach_approved_at: new Date().toISOString(),
           }).eq('id', cycle.id);
+          await notify(
+            '✅ Promotion approved!',
+            `Your promotion to ${LEVEL_LABELS[cycle.to_level] ?? cycle.to_level} has been approved by your coach. It will be applied to your profile shortly.`
+          );
           await fetchCycle();
           setActioning(false);
         },
@@ -216,6 +234,10 @@ export default function PromotionManageScreen({ route, navigation }: Props) {
             reason: `promotion_to_${cycle.to_level}`,
           });
 
+          await notify(
+            `🚀 You've been promoted to ${toLabel}!`,
+            `Congratulations ${studentName}! You've officially moved up to ${toLabel}. Keep training hard and aim for the next level!`
+          );
           Alert.alert('🎉 Promoted!', `${studentName} has been promoted to ${toLabel}.`);
           await fetchCycle();
           setActioning(false);
@@ -232,6 +254,10 @@ export default function PromotionManageScreen({ route, navigation }: Props) {
           if (!cycle) return;
           setActioning(true);
           await supabase.from('promotion_cycles').update({ status: 'expired' }).eq('id', cycle.id);
+          await notify(
+            '📅 Promotion cycle ended',
+            'Your current promotion cycle has ended. Speak to your coach to start a new one and keep working towards your next level!'
+          );
           await fetchCycle();
           setActioning(false);
         },
@@ -261,6 +287,10 @@ export default function PromotionManageScreen({ route, navigation }: Props) {
             if (error) {
               Alert.alert('Error', error.message);
             } else {
+              await notify(
+                '🎯 Your promotion cycle has started!',
+                `Your journey from ${LEVEL_LABELS[fromLevel]} to ${LEVEL_LABELS[toLevel]} begins now. Attend at least 80% of your sessions before ${endDate} to earn your promotion!`
+              );
               await fetchCycle();
             }
             setActioning(false);

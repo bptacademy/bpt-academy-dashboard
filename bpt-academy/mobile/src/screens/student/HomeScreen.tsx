@@ -21,6 +21,7 @@ export default function HomeScreen({ navigation }: any) {
   const { profile, signOut } = useAuth();
   const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
   const [refreshing, setRefreshing] = useState(false);
 
   const fetchData = async () => {
@@ -43,7 +44,7 @@ export default function HomeScreen({ navigation }: any) {
     ]);
 
     if (enrollRes.data) setEnrollments(enrollRes.data);
-    if (notifRes.data) setNotifications(notifRes.data);
+    if (notifRes.data) setNotifications(notifRes.data.filter((n: Notification) => !dismissedIds.has(n.id)));
   };
 
   const onRefresh = async () => {
@@ -91,6 +92,7 @@ export default function HomeScreen({ navigation }: any) {
               style={styles.notifCard}
               onPress={async () => {
                 await supabase.from('notifications').update({ read: true }).eq('id', n.id);
+                setDismissedIds(prev => new Set([...prev, n.id]));
                 setNotifications(prev => prev.filter(x => x.id !== n.id));
               }}
               activeOpacity={0.7}
