@@ -107,7 +107,8 @@ function AdminStack() {
       <Stack.Screen name="BillingSettings" component={BillingSettingsScreen} />
       <Stack.Screen name="PromotionManage" component={PromotionManageScreen} />
       <Stack.Screen name="ProgramModules" component={ProgramModulesScreen} />
-      <Stack.Screen name="VideoPlayer"     component={VideoPlayerScreen} />
+      <Stack.Screen name="VideoPlayer"       component={VideoPlayerScreen} />
+      <Stack.Screen name="TournamentDetail" component={TournamentDetailScreen} />
       <Stack.Screen name="Chat"            component={ChatScreen} />
       <Stack.Screen name="NewConversation" component={NewConversationScreen} />
     </Stack.Navigator>

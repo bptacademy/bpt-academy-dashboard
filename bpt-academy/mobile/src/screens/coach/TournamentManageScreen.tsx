@@ -126,6 +126,12 @@ export default function TournamentManageScreen({ navigation }: any) {
                     </View>
                   ))}
                 </View>
+                <TouchableOpacity
+                  style={styles.viewRegsBtn}
+                  onPress={() => navigation.navigate('TournamentDetail', { tournamentId: t.id })}
+                >
+                  <Text style={styles.viewRegsBtnText}>👥 View Registrations</Text>
+                </TouchableOpacity>
               </View>
             );
           })}
@@ -214,4 +220,10 @@ const styles = StyleSheet.create({
   divChipActive: { backgroundColor: '#16A34A', borderColor: '#16A34A' },
   divChipText: { fontSize: 13, color: '#374151' },
   divChipTextActive: { color: '#FFFFFF', fontWeight: '600' },
+  viewRegsBtn: {
+    marginTop: 12, backgroundColor: '#EFF6FF', borderRadius: 8,
+    paddingVertical: 9, alignItems: 'center',
+    borderWidth: 1, borderColor: '#BFDBFE',
+  },
+  viewRegsBtnText: { fontSize: 13, fontWeight: '700', color: '#2563EB' },
 });

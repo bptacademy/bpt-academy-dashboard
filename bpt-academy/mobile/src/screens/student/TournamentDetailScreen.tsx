@@ -8,19 +8,30 @@ import { supabase } from '../../lib/supabase';
 import { Tournament, TournamentRegistration, TournamentMatch, Division, DIVISION_LABELS, DIVISION_COLORS } from '../../types';
 import BackHeader from '../../components/common/BackHeader';
 
+interface ParticipantRow {
+  id: string;
+  status: string;
+  registered_at: string;
+  profile: { full_name: string; division: string | null };
+  payment?: { status: string; method: string } | null;
+}
+
 export default function TournamentDetailScreen({ navigation, route }: any) {
   const { tournamentId } = route.params;
-  const { profile } = useAuth();
+  const { profile, effectiveRole } = useAuth();
+  const isAdmin = effectiveRole === 'admin' || effectiveRole === 'coach';
 
-  const [tournament, setTournament]         = useState<Tournament | null>(null);
-  const [matches, setMatches]               = useState<TournamentMatch[]>([]);
-  const [myRegistration, setMyRegistration] = useState<TournamentRegistration | null>(null);
+  const [tournament, setTournament]             = useState<Tournament | null>(null);
+  const [matches, setMatches]                   = useState<TournamentMatch[]>([]);
+  const [myRegistration, setMyRegistration]     = useState<TournamentRegistration | null>(null);
   const [participantCount, setParticipantCount] = useState(0);
-  const [loading, setLoading]               = useState(true);
-  const [refreshing, setRefreshing]         = useState(false);
+  const [loading, setLoading]                   = useState(true);
+  const [refreshing, setRefreshing]             = useState(false);
+  const [participants, setParticipants]         = useState<ParticipantRow[]>([]);
+  const [showParticipants, setShowParticipants] = useState(false);
 
   const load = useCallback(async () => {
-    const [tRes, mRes, regRes, countRes] = await Promise.all([
+    const [tRes, mRes, regRes, countRes, participantsRes] = await Promise.all([
       supabase.from('tournaments').select('*').eq('id', tournamentId).single(),
       supabase.from('tournament_matches').select('*').eq('tournament_id', tournamentId).order('round'),
       profile
@@ -33,11 +44,17 @@ export default function TournamentDetailScreen({ navigation, route }: any) {
         .select('id', { count: 'exact' })
         .eq('tournament_id', tournamentId)
         .neq('status', 'withdrawn'),
+      supabase.from('tournament_registrations')
+        .select('id, status, registered_at, profile:profiles!student_id(full_name, division), payment:payments(status, method)')
+        .eq('tournament_id', tournamentId)
+        .neq('status', 'withdrawn')
+        .order('registered_at'),
     ]);
     if (tRes.data)   setTournament(tRes.data as Tournament);
     if (mRes.data)   setMatches(mRes.data as TournamentMatch[]);
     if (regRes.data) setMyRegistration(regRes.data as TournamentRegistration);
     if (countRes.count !== null) setParticipantCount(countRes.count);
+    if (participantsRes.data) setParticipants(participantsRes.data as any);
     setLoading(false);
   }, [tournamentId, profile]);
 
@@ -70,6 +87,20 @@ export default function TournamentDetailScreen({ navigation, route }: any) {
                 .select().single();
               if (error) { Alert.alert('Error', error.message); return; }
               setMyRegistration(data as TournamentRegistration);
+              // Notify admins
+              const { data: admins } = await supabase
+                .from('profiles').select('id').in('role', ['admin', 'coach']);
+              if (admins && admins.length > 0) {
+                await supabase.from('notifications').insert(
+                  admins.map((a: { id: string }) => ({
+                    recipient_id: a.id,
+                    title: '🎾 New Tournament Registration',
+                    body: `${profile.full_name} registered for ${tournament.title} (free entry). Spot confirmed.`,
+                    type: 'payment',
+                    read: false,
+                  }))
+                );
+              }
               Alert.alert('✅ Registered!', `You're registered for ${tournament.title}.`);
             },
           },
@@ -263,6 +294,81 @@ export default function TournamentDetailScreen({ navigation, route }: any) {
           </View>
         )}
 
+        {/* Participants */}
+        {participants.length > 0 && (
+          <View style={styles.section}>
+            <TouchableOpacity
+              style={styles.participantsHeader}
+              onPress={() => setShowParticipants(!showParticipants)}
+            >
+              <Text style={styles.sectionTitle}>
+                👥 Participants ({participants.length})
+              </Text>
+              <Text style={styles.participantsChevron}>{showParticipants ? '▲' : '▼'}</Text>
+            </TouchableOpacity>
+
+            {showParticipants && (
+              <View style={styles.participantsList}>
+                {participants.map((p, idx) => {
+                  const payment = Array.isArray(p.payment) ? p.payment[0] : p.payment;
+                  const pStatus = p.status === 'confirmed' ? 'confirmed'
+                    : payment?.status === 'pending' ? 'pending' : p.status;
+                  return (
+                    <View key={p.id} style={styles.participantRow}>
+                      <View style={styles.participantNum}>
+                        <Text style={styles.participantNumText}>{idx + 1}</Text>
+                      </View>
+                      <View style={styles.participantInfo}>
+                        <Text style={styles.participantName}>
+                          {(p.profile as any)?.full_name ?? 'Unknown'}
+                        </Text>
+                        {(p.profile as any)?.division && (
+                          <Text style={styles.participantDiv}>
+                            {DIVISION_LABELS[(p.profile as any).division as Division] ?? (p.profile as any).division}
+                          </Text>
+                        )}
+                      </View>
+                      {/* Payment status — admins see full detail, students see simpler view */}
+                      {isAdmin ? (
+                        <View style={styles.participantRight}>
+                          <View style={[
+                            styles.participantStatus,
+                            { backgroundColor: pStatus === 'confirmed' ? '#DCFCE7' : '#FFF7ED' }
+                          ]}>
+                            <Text style={[
+                              styles.participantStatusText,
+                              { color: pStatus === 'confirmed' ? '#16A34A' : '#D97706' }
+                            ]}>
+                              {pStatus === 'confirmed' ? '✓ Confirmed' : '⏳ Pending'}
+                            </Text>
+                          </View>
+                          {payment?.method && (
+                            <Text style={styles.participantMethod}>
+                              {payment.method === 'bank_transfer' ? '🏦 Bank' : '💳 Card'}
+                            </Text>
+                          )}
+                        </View>
+                      ) : (
+                        <View style={[
+                          styles.participantStatus,
+                          { backgroundColor: pStatus === 'confirmed' ? '#DCFCE7' : '#F3F4F6' }
+                        ]}>
+                          <Text style={[
+                            styles.participantStatusText,
+                            { color: pStatus === 'confirmed' ? '#16A34A' : '#6B7280' }
+                          ]}>
+                            {pStatus === 'confirmed' ? '✓' : '⏳'}
+                          </Text>
+                        </View>
+                      )}
+                    </View>
+                  );
+                })}
+              </View>
+            )}
+          </View>
+        )}
+
         {/* Bracket */}
         {matches.length > 0 && (
           <View style={styles.section}>
@@ -383,6 +489,31 @@ const styles = StyleSheet.create({
   fullIcon: { fontSize: 32, marginBottom: 8 },
   fullTitle: { fontSize: 16, fontWeight: '700', color: '#92400E', marginBottom: 6 },
   fullText: { fontSize: 13, color: '#78350F', textAlign: 'center', lineHeight: 20 },
+
+  // Participants
+  participantsHeader: {
+    flexDirection: 'row', justifyContent: 'space-between',
+    alignItems: 'center', marginBottom: 12,
+  },
+  participantsChevron: { fontSize: 13, color: '#9CA3AF', fontWeight: '700' },
+  participantsList: { gap: 6 },
+  participantRow: {
+    flexDirection: 'row', alignItems: 'center', gap: 10,
+    backgroundColor: '#FFFFFF', borderRadius: 10, padding: 12,
+    borderWidth: 1, borderColor: '#E5E7EB',
+  },
+  participantNum: {
+    width: 26, height: 26, borderRadius: 13,
+    backgroundColor: '#F3F4F6', alignItems: 'center', justifyContent: 'center',
+  },
+  participantNumText: { fontSize: 12, fontWeight: '700', color: '#6B7280' },
+  participantInfo: { flex: 1 },
+  participantName: { fontSize: 14, fontWeight: '600', color: '#111827' },
+  participantDiv: { fontSize: 11, color: '#9CA3AF', marginTop: 1 },
+  participantRight: { alignItems: 'flex-end', gap: 3 },
+  participantStatus: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 10 },
+  participantStatusText: { fontSize: 11, fontWeight: '700' },
+  participantMethod: { fontSize: 10, color: '#9CA3AF' },
 
   // Bracket
   roundBlock: { marginBottom: 16 },
