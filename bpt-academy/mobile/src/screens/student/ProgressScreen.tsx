@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
-  RefreshControl, ActivityIndicator,
+  RefreshControl, ActivityIndicator, Modal,
 } from 'react-native';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
@@ -72,6 +72,9 @@ export default function ProgressScreen() {
   // Badges state
   const [badges, setBadges] = useState<Badge[]>([]);
   const [badgesLoading, setBadgesLoading] = useState(true);
+
+  // Module detail modal
+  const [selectedModule, setSelectedModule] = useState<(Module & { progress?: StudentProgress }) | null>(null);
 
   // ── Fetch overview data ──────────────────────────────────────
   const fetchOverview = useCallback(async () => {
@@ -406,6 +409,32 @@ export default function ProgressScreen() {
                       <View style={[styles.miniBarFill, { width: `${pct}%`, backgroundColor: divColor }]} />
                     </View>
                     <Text style={styles.miniCount}>{p.completedCount}/{p.totalCount} modules</Text>
+                    {/* Module list */}
+                    <View style={styles.moduleList}>
+                      {p.modules.map((mod, idx) => {
+                        const done = !!mod.progress?.completed;
+                        const hasDesc = !!mod.description;
+                        return (
+                          <TouchableOpacity
+                            key={mod.id}
+                            style={[styles.moduleRow, done && styles.moduleRowDone]}
+                            onPress={() => setSelectedModule(mod)}
+                            activeOpacity={hasDesc || done ? 0.7 : 1}
+                          >
+                            <View style={[styles.moduleDot, done && { backgroundColor: divColor, borderColor: divColor }]}>
+                              {done
+                                ? <Text style={styles.moduleDotCheck}>✓</Text>
+                                : <Text style={styles.moduleDotNum}>{idx + 1}</Text>
+                              }
+                            </View>
+                            <Text style={[styles.moduleRowTitle, done && { color: '#16A34A' }]} numberOfLines={1}>
+                              {mod.title}
+                            </Text>
+                            {hasDesc && <Text style={styles.moduleInfoIcon}>ℹ️</Text>}
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </View>
                   </View>
                 );
               })}
@@ -546,6 +575,64 @@ export default function ProgressScreen() {
         )}
 
       </ScrollView>
+
+      {/* Module detail modal */}
+      <Modal
+        visible={!!selectedModule}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setSelectedModule(null)}
+      >
+        <View style={styles.modModal}>
+          <View style={styles.modModalHeader}>
+            <View style={styles.modModalHandle} />
+          </View>
+          <ScrollView style={styles.modModalBody} showsVerticalScrollIndicator={false}>
+            {selectedModule && (
+              <>
+                <View style={styles.modStatusRow}>
+                  {selectedModule.progress?.completed ? (
+                    <View style={[styles.modStatusBadge, { backgroundColor: '#DCFCE7' }]}>
+                      <Text style={[styles.modStatusText, { color: '#16A34A' }]}>✓ Completed</Text>
+                    </View>
+                  ) : (
+                    <View style={[styles.modStatusBadge, { backgroundColor: '#F3F4F6' }]}>
+                      <Text style={[styles.modStatusText, { color: '#6B7280' }]}>Not completed yet</Text>
+                    </View>
+                  )}
+                </View>
+                <Text style={styles.modTitle}>{selectedModule.title}</Text>
+                {selectedModule.description ? (
+                  <>
+                    <Text style={styles.modSectionLabel}>SESSION GOAL</Text>
+                    <Text style={styles.modDescription}>{selectedModule.description}</Text>
+                  </>
+                ) : (
+                  <View style={styles.modNoDesc}>
+                    <Text style={styles.modNoDescIcon}>📋</Text>
+                    <Text style={styles.modNoDescText}>
+                      Your coach hasn't added a description for this session yet.
+                    </Text>
+                  </View>
+                )}
+                {selectedModule.progress?.completed_at && (
+                  <View style={styles.modCompletedAt}>
+                    <Text style={styles.modCompletedAtText}>
+                      ✅ Completed on {new Date(selectedModule.progress.completed_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
+                    </Text>
+                  </View>
+                )}
+              </>
+            )}
+          </ScrollView>
+          <TouchableOpacity
+            style={[styles.modCloseBtn, { backgroundColor: divColor }]}
+            onPress={() => setSelectedModule(null)}
+          >
+            <Text style={styles.modCloseBtnText}>Close</Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -650,6 +737,52 @@ const styles = StyleSheet.create({
   },
   emptyIcon: { fontSize: 48, marginBottom: 12 },
   emptyTitle: { fontSize: 17, fontWeight: '700', color: '#111827', marginBottom: 6 },
+
+  // Module rows in program card
+  moduleList: { marginTop: 10, gap: 6 },
+  moduleRow: {
+    flexDirection: 'row', alignItems: 'center', gap: 10,
+    paddingVertical: 8, paddingHorizontal: 10,
+    backgroundColor: '#F9FAFB', borderRadius: 8,
+    borderWidth: 1, borderColor: '#F3F4F6',
+  },
+  moduleRowDone: { backgroundColor: '#F0FDF4', borderColor: '#BBF7D0' },
+  moduleDot: {
+    width: 24, height: 24, borderRadius: 12,
+    borderWidth: 1.5, borderColor: '#D1D5DB', backgroundColor: '#FFFFFF',
+    alignItems: 'center', justifyContent: 'center',
+  },
+  moduleDotCheck: { color: '#FFFFFF', fontSize: 11, fontWeight: '800' },
+  moduleDotNum: { color: '#9CA3AF', fontSize: 10, fontWeight: '700' },
+  moduleRowTitle: { flex: 1, fontSize: 13, fontWeight: '600', color: '#374151' },
+  moduleInfoIcon: { fontSize: 14 },
+
+  // Module detail modal
+  modModal: { flex: 1, backgroundColor: '#FFFFFF', borderTopLeftRadius: 20, borderTopRightRadius: 20 },
+  modModalHeader: { alignItems: 'center', paddingTop: 12, paddingBottom: 4 },
+  modModalHandle: { width: 40, height: 4, backgroundColor: '#E5E7EB', borderRadius: 2 },
+  modModalBody: { flex: 1, padding: 24 },
+  modStatusRow: { marginBottom: 14 },
+  modStatusBadge: { alignSelf: 'flex-start', paddingHorizontal: 12, paddingVertical: 5, borderRadius: 20 },
+  modStatusText: { fontSize: 13, fontWeight: '700' },
+  modTitle: { fontSize: 22, fontWeight: '800', color: '#111827', marginBottom: 20 },
+  modSectionLabel: {
+    fontSize: 11, fontWeight: '700', color: '#6B7280',
+    letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 10,
+  },
+  modDescription: { fontSize: 16, color: '#374151', lineHeight: 26 },
+  modNoDesc: { alignItems: 'center', paddingVertical: 30 },
+  modNoDescIcon: { fontSize: 36, marginBottom: 12 },
+  modNoDescText: { fontSize: 14, color: '#9CA3AF', textAlign: 'center', lineHeight: 22 },
+  modCompletedAt: {
+    marginTop: 24, backgroundColor: '#F0FDF4', borderRadius: 10,
+    padding: 14, borderWidth: 1, borderColor: '#BBF7D0',
+  },
+  modCompletedAtText: { fontSize: 13, color: '#16A34A', fontWeight: '600' },
+  modCloseBtn: {
+    margin: 20, borderRadius: 14, padding: 16, alignItems: 'center',
+  },
+  modCloseBtnText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
 
   // Badges
   badgesGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },

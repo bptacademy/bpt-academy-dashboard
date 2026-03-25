@@ -35,7 +35,6 @@ export default function CoachNotesScreen({ navigation, route }: Props) {
     const { data } = await supabase
       .from('profiles')
       .select('*')
-      .eq('role', 'student')
       .order('full_name');
     if (data) setStudents(data as Profile[]);
   };

@@ -41,6 +41,7 @@ import BulkMessageScreen from '../screens/coach/BulkMessageScreen';
 import AcademySettingsScreen from '../screens/coach/AcademySettingsScreen';
 import BillingSettingsScreen from '../screens/coach/BillingSettingsScreen';
 import PromotionManageScreen from '../screens/coach/PromotionManageScreen';
+import ProgramModulesScreen from '../screens/coach/ProgramModulesScreen';
 
 // Messaging
 import NewConversationScreen from '../screens/messaging/NewConversationScreen';
@@ -105,6 +106,7 @@ function AdminStack() {
       <Stack.Screen name="AcademySettings"  component={AcademySettingsScreen} />
       <Stack.Screen name="BillingSettings" component={BillingSettingsScreen} />
       <Stack.Screen name="PromotionManage" component={PromotionManageScreen} />
+      <Stack.Screen name="ProgramModules" component={ProgramModulesScreen} />
       <Stack.Screen name="VideoPlayer"     component={VideoPlayerScreen} />
       <Stack.Screen name="Chat"            component={ChatScreen} />
       <Stack.Screen name="NewConversation" component={NewConversationScreen} />

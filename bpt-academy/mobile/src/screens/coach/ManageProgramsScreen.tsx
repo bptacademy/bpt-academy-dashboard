@@ -245,10 +245,16 @@ export default function ManageProgramsScreen({ navigation }: any) {
                     <Text style={styles.rosterBtnText}>👥 Roster</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
+                    style={styles.modulesBtn}
+                    onPress={() => navigation.navigate('ProgramModules', { programId: p.id, programTitle: p.title })}
+                  >
+                    <Text style={styles.modulesBtnText}>📋 Modules</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
                     style={styles.editBtn}
                     onPress={() => openEdit(p)}
                   >
-                    <Text style={styles.editBtnText}>✏️ Edit</Text>
+                    <Text style={styles.editBtnText}>✏️</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={styles.deleteBtn}
@@ -461,8 +467,10 @@ const styles = StyleSheet.create({
   cardActions: { flexDirection: 'row', gap: 8 },
   rosterBtn: { flex: 1, backgroundColor: '#F3F4F6', borderRadius: 8, paddingVertical: 8, alignItems: 'center' },
   rosterBtnText: { fontSize: 13, fontWeight: '600', color: '#374151' },
-  editBtn: { flex: 1, backgroundColor: '#EFF6FF', borderRadius: 8, paddingVertical: 8, alignItems: 'center' },
-  editBtnText: { fontSize: 13, fontWeight: '600', color: '#2563EB' },
+  modulesBtn: { flex: 1, backgroundColor: '#FFF7ED', borderRadius: 8, paddingVertical: 8, alignItems: 'center' },
+  modulesBtnText: { fontSize: 13, fontWeight: '600', color: '#D97706' },
+  editBtn: { width: 38, backgroundColor: '#EFF6FF', borderRadius: 8, paddingVertical: 8, alignItems: 'center' },
+  editBtnText: { fontSize: 14, fontWeight: '600', color: '#2563EB' },
   deleteBtn: { width: 38, backgroundColor: '#FEF2F2', borderRadius: 8, paddingVertical: 8, alignItems: 'center' },
   deleteBtnText: { fontSize: 14 },
 

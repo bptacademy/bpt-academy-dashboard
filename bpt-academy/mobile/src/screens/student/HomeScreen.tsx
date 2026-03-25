@@ -90,12 +90,11 @@ export default function HomeScreen({ navigation }: any) {
   useEffect(() => { fetchData(); }, [profile]);
 
   const dismissNotification = async (id: string) => {
-    // Mark as read in DB
-    await supabase.from('notifications').update({ read: true }).eq('id', id);
-    // Add to persistent dismissed set
+    // Remove from UI immediately — do this first so it's instant
     dismissedRef.current.add(id);
-    // Remove from UI
     setNotifications(prev => prev.filter(n => n.id !== id));
+    // Best-effort mark as read in DB (may silently fail due to RLS for admin accounts)
+    await supabase.from('notifications').update({ read: true }).eq('id', id);
   };
 
   const skillBadgeColor: Record<string, string> = {
@@ -103,6 +102,14 @@ export default function HomeScreen({ navigation }: any) {
     intermediate: '#F59E0B',
     advanced:     '#EF4444',
   };
+
+  const greeting = (() => {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 12) return 'Good morning 🌅';
+    if (hour >= 12 && hour < 17) return 'Good afternoon ☀️';
+    if (hour >= 17 && hour < 21) return 'Good evening 🌆';
+    return 'Good night 🌙';
+  })();
 
   return (
     <ScrollView
@@ -114,7 +121,7 @@ export default function HomeScreen({ navigation }: any) {
       {/* Welcome strip */}
       <View style={styles.header}>
         <View>
-          <Text style={styles.greeting}>Welcome back 👋</Text>
+          <Text style={styles.greeting}>{greeting}</Text>
           <Text style={styles.name}>{profile?.full_name}</Text>
         </View>
         {profile?.skill_level && (
