@@ -45,7 +45,7 @@ export default function TournamentDetailScreen({ navigation, route }: any) {
         .eq('tournament_id', tournamentId)
         .neq('status', 'withdrawn'),
       supabase.from('tournament_registrations')
-        .select('id, status, registered_at, profile:profiles!student_id(full_name, division), payment:payments(status, method)')
+        .select('id, status, student_id, registered_at, profile:profiles!student_id(id, full_name, division), payment:payments(status, method)')
         .eq('tournament_id', tournamentId)
         .neq('status', 'withdrawn')
         .order('registered_at'),
@@ -118,6 +118,44 @@ export default function TournamentDetailScreen({ navigation, route }: any) {
     });
   };
 
+  const handleConfirmRegistration = (participantId: string, studentName: string, registrationId: string) => {
+    Alert.alert(
+      'Confirm Registration',
+      `Confirm ${studentName}'s spot in ${tournament?.title}?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Confirm ✅',
+          onPress: async () => {
+            await supabase
+              .from('tournament_registrations')
+              .update({ status: 'confirmed' })
+              .eq('id', registrationId);
+
+            // Update associated payment if exists
+            await supabase
+              .from('payments')
+              .update({ status: 'confirmed', confirmed_by: profile!.id, confirmed_at: new Date().toISOString() })
+              .eq('tournament_id', tournament!.id)
+              .eq('student_id', participantId)
+              .eq('status', 'pending');
+
+            // Notify student
+            await supabase.from('notifications').insert({
+              recipient_id: participantId,
+              title: '✅ Tournament Registration Confirmed',
+              body: `Your registration for ${tournament?.title} has been confirmed by your coach. See you on the court!`,
+              type: 'payment',
+              read: false,
+            });
+
+            load();
+          },
+        },
+      ]
+    );
+  };
+
   const handleWithdraw = () => {
     Alert.alert(
       'Withdraw',
@@ -153,10 +191,12 @@ export default function TournamentDetailScreen({ navigation, route }: any) {
     </View>
   );
 
-  const isFree      = !tournament.entry_fee_gbp || tournament.entry_fee_gbp === 0;
-  const canRegister = tournament.status === 'registration_open' && !myRegistration;
-  const isRegistered = !!myRegistration && myRegistration.status !== 'withdrawn';
-  const isFull      = tournament.max_participants
+  const isFree        = !tournament.entry_fee_gbp || tournament.entry_fee_gbp === 0;
+  const isRegistered  = !!myRegistration && myRegistration.status !== 'withdrawn';
+  const isPending     = myRegistration?.status === 'pending';
+  const isConfirmed   = myRegistration?.status === 'confirmed';
+  const canRegister   = tournament.status === 'registration_open' && !myRegistration;
+  const isFull        = tournament.max_participants
     ? participantCount >= tournament.max_participants
     : false;
   const rounds = [...new Set(matches.map((m) => m.round))].sort();
@@ -227,24 +267,26 @@ export default function TournamentDetailScreen({ navigation, route }: any) {
         )}
 
         {/* Registration status card */}
-        {isRegistered && (
-          <View style={[
-            styles.regCard,
-            myRegistration?.status === 'confirmed' ? styles.regCardConfirmed : styles.regCardPending,
-          ]}>
-            <Text style={styles.regCardIcon}>
-              {myRegistration?.status === 'confirmed' ? '✅' : '⏳'}
-            </Text>
+        {isConfirmed && (
+          <View style={[styles.regCard, styles.regCardConfirmed]}>
+            <Text style={styles.regCardIcon}>✅</Text>
             <View style={{ flex: 1 }}>
-              <Text style={styles.regCardTitle}>
-                {myRegistration?.status === 'confirmed'
-                  ? 'You\'re registered!'
-                  : 'Registration pending payment'}
-              </Text>
+              <Text style={styles.regCardTitle}>You're registered!</Text>
+              <Text style={styles.regCardSub}>Your spot is confirmed. See you on the court!</Text>
+            </View>
+            <TouchableOpacity style={styles.withdrawBtn} onPress={handleWithdraw}>
+              <Text style={styles.withdrawBtnText}>Withdraw</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {isPending && (
+          <View style={[styles.regCard, styles.regCardPending]}>
+            <Text style={styles.regCardIcon}>⏳</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.regCardTitle}>Awaiting payment confirmation</Text>
               <Text style={styles.regCardSub}>
-                {myRegistration?.status === 'confirmed'
-                  ? 'Your spot is confirmed. See you on the court!'
-                  : 'Complete your payment to confirm your spot.'}
+                Your registration is reserved. The coach will confirm your spot once your payment is verified.
               </Text>
             </View>
             <TouchableOpacity style={styles.withdrawBtn} onPress={handleWithdraw}>
@@ -254,8 +296,7 @@ export default function TournamentDetailScreen({ navigation, route }: any) {
         )}
 
         {/* Register / Pay button */}
-        {/* Not open yet */}
-        {tournament.status === 'upcoming' && !isRegistered && (
+        {tournament.status === 'upcoming' && !isRegistered && !isPending && (
           <View style={styles.upcomingCard}>
             <Text style={styles.upcomingIcon}>🗓</Text>
             <Text style={styles.upcomingTitle}>Registration Not Open Yet</Text>
@@ -328,20 +369,25 @@ export default function TournamentDetailScreen({ navigation, route }: any) {
                           </Text>
                         )}
                       </View>
-                      {/* Payment status — admins see full detail, students see simpler view */}
+                      {/* Payment status — admins see full detail + confirm button, students see simple status */}
                       {isAdmin ? (
                         <View style={styles.participantRight}>
-                          <View style={[
-                            styles.participantStatus,
-                            { backgroundColor: pStatus === 'confirmed' ? '#DCFCE7' : '#FFF7ED' }
-                          ]}>
-                            <Text style={[
-                              styles.participantStatusText,
-                              { color: pStatus === 'confirmed' ? '#16A34A' : '#D97706' }
-                            ]}>
-                              {pStatus === 'confirmed' ? '✓ Confirmed' : '⏳ Pending'}
-                            </Text>
-                          </View>
+                          {pStatus !== 'confirmed' ? (
+                            <TouchableOpacity
+                              style={styles.confirmRegBtn}
+                              onPress={() => handleConfirmRegistration(
+                                (p as any).student_id,
+                                (p.profile as any)?.full_name ?? 'Student',
+                                p.id,
+                              )}
+                            >
+                              <Text style={styles.confirmRegBtnText}>Confirm ✅</Text>
+                            </TouchableOpacity>
+                          ) : (
+                            <View style={[styles.participantStatus, { backgroundColor: '#DCFCE7' }]}>
+                              <Text style={[styles.participantStatusText, { color: '#16A34A' }]}>✓ Confirmed</Text>
+                            </View>
+                          )}
                           {payment?.method && (
                             <Text style={styles.participantMethod}>
                               {payment.method === 'bank_transfer' ? '🏦 Bank' : '💳 Card'}
@@ -510,10 +556,16 @@ const styles = StyleSheet.create({
   participantInfo: { flex: 1 },
   participantName: { fontSize: 14, fontWeight: '600', color: '#111827' },
   participantDiv: { fontSize: 11, color: '#9CA3AF', marginTop: 1 },
-  participantRight: { alignItems: 'flex-end', gap: 3 },
+  participantRight: { alignItems: 'flex-end', gap: 4 },
   participantStatus: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 10 },
   participantStatusText: { fontSize: 11, fontWeight: '700' },
   participantMethod: { fontSize: 10, color: '#9CA3AF' },
+  confirmRegBtn: {
+    backgroundColor: '#ECFDF5', borderRadius: 8,
+    paddingHorizontal: 10, paddingVertical: 5,
+    borderWidth: 1, borderColor: '#A7F3D0',
+  },
+  confirmRegBtnText: { fontSize: 12, fontWeight: '700', color: '#16A34A' },
 
   // Bracket
   roundBlock: { marginBottom: 16 },

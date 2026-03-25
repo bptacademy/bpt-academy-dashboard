@@ -81,6 +81,15 @@ export default function PaymentReconciliationScreen() {
                 .eq('id', payment.enrollment_id);
             }
 
+            // Update tournament registration status
+            if (payment.tournament_id && newStatus === 'confirmed') {
+              await supabase.from('tournament_registrations')
+                .update({ status: 'confirmed' })
+                .eq('tournament_id', payment.tournament_id)
+                .eq('student_id', payment.student_id)
+                .eq('status', 'pending');
+            }
+
             // Notify student
             await supabase.from('notifications').insert({
               recipient_id: payment.student_id,
