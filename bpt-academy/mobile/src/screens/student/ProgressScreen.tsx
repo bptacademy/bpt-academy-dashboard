@@ -11,6 +11,31 @@ import {
 } from '../../types';
 import ScreenHeader from '../../components/common/ScreenHeader';
 
+// ─── Goal types ───────────────────────────────────────────────
+type GoalCategory = 'technical' | 'tactical' | 'physical' | 'mindset';
+type GoalStatus   = 'active' | 'in_progress' | 'achieved';
+
+interface StudentGoalItem {
+  id: string;
+  category: GoalCategory;
+  title: string;
+  status: GoalStatus;
+  achieved_at: string | null;
+}
+
+const GOAL_CATEGORIES: { key: GoalCategory; label: string; emoji: string; color: string }[] = [
+  { key: 'technical', label: 'Technical',  emoji: '🎯', color: '#2563EB' },
+  { key: 'tactical',  label: 'Tactical',   emoji: '🧠', color: '#7C3AED' },
+  { key: 'physical',  label: 'Physical',   emoji: '💪', color: '#EA580C' },
+  { key: 'mindset',   label: 'Mindset',    emoji: '🧘', color: '#0891B2' },
+];
+
+const GOAL_STATUSES: Record<GoalStatus, { label: string; color: string; bg: string }> = {
+  active:      { label: 'Active',       color: '#2563EB', bg: '#EFF6FF' },
+  in_progress: { label: 'In Progress',  color: '#D97706', bg: '#FFF7ED' },
+  achieved:    { label: 'Achieved ✓',   color: '#16A34A', bg: '#ECFDF5' },
+};
+
 // ─── Types ────────────────────────────────────────────────────
 
 interface ProgramWithProgress extends Enrollment {
@@ -33,7 +58,7 @@ interface Badge {
   earned: boolean;
 }
 
-type Tab = 'overview' | 'attendance' | 'badges';
+type Tab = 'overview' | 'attendance' | 'badges' | 'goals';
 
 // ─── Journey path ─────────────────────────────────────────────
 const JOURNEY = [
@@ -75,6 +100,10 @@ export default function ProgressScreen() {
 
   // Module detail modal
   const [selectedModule, setSelectedModule] = useState<(Module & { progress?: StudentProgress }) | null>(null);
+
+  // Goals state
+  const [goals, setGoals] = useState<StudentGoalItem[]>([]);
+  const [goalsLoading, setGoalsLoading] = useState(false);
 
   // ── Fetch overview data ──────────────────────────────────────
   const fetchOverview = useCallback(async () => {
@@ -278,17 +307,32 @@ export default function ProgressScreen() {
     setBadgesLoading(false);
   }, [profile, attendanceStat.pct]);
 
+  const fetchGoals = useCallback(async () => {
+    if (!profile) return;
+    setGoalsLoading(true);
+    const { data } = await supabase
+      .from('student_goals')
+      .select('id, category, title, status, achieved_at')
+      .eq('student_id', profile.id)
+      .order('category')
+      .order('created_at');
+    setGoals((data ?? []) as StudentGoalItem[]);
+    setGoalsLoading(false);
+  }, [profile]);
+
   const fetchAll = useCallback(async () => {
     await Promise.all([fetchOverview(), fetchCycle()]);
   }, [fetchOverview, fetchCycle]);
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
   useEffect(() => { if (tab === 'badges') fetchBadges(); }, [tab, fetchBadges]);
+  useEffect(() => { if (tab === 'goals') fetchGoals(); }, [tab, fetchGoals]);
 
   const onRefresh = async () => {
     setRefreshing(true);
     await fetchAll();
     if (tab === 'badges') await fetchBadges();
+    if (tab === 'goals') await fetchGoals();
     setRefreshing(false);
   };
 
@@ -317,14 +361,17 @@ export default function ProgressScreen() {
 
       {/* Tab bar */}
       <View style={styles.tabs}>
-        {(['overview', 'attendance', 'badges'] as Tab[]).map((t) => (
+        {(['overview', 'attendance', 'goals', 'badges'] as Tab[]).map((t) => (
           <TouchableOpacity
             key={t}
             style={[styles.tab, tab === t && { borderBottomColor: divColor }]}
             onPress={() => setTab(t)}
           >
             <Text style={[styles.tabText, tab === t && { color: divColor }]}>
-              {t === 'overview' ? '📊 Overview' : t === 'attendance' ? '📅 Promotion' : '🏅 Badges'}
+              {t === 'overview' ? '📊 Overview'
+                : t === 'attendance' ? '📅 Promotion'
+                : t === 'goals' ? '🎯 My Goals'
+                : '🏅 Badges'}
             </Text>
           </TouchableOpacity>
         ))}
@@ -543,6 +590,73 @@ export default function ProgressScreen() {
           </>
         )}
 
+        {/* ── MY GOALS TAB ─────────────────────────────────── */}
+        {tab === 'goals' && (
+          <>
+            {goalsLoading ? (
+              <ActivityIndicator size="large" color={divColor} style={styles.loader} />
+            ) : goals.length === 0 ? (
+              <View style={styles.emptyCard}>
+                <Text style={styles.emptyIcon}>🎯</Text>
+                <Text style={styles.emptyTitle}>No goals yet</Text>
+                <Text style={styles.emptyNote}>
+                  Your coach will set personalised development goals for you here. Check back after your next session!
+                </Text>
+              </View>
+            ) : (
+              <>
+                {/* Achieved count banner */}
+                {goals.filter((g) => g.status === 'achieved').length > 0 && (
+                  <View style={[styles.goalsBanner, { backgroundColor: divColor }]}>
+                    <Text style={styles.goalsBannerNum}>
+                      {goals.filter((g) => g.status === 'achieved').length}
+                    </Text>
+                    <Text style={styles.goalsBannerLabel}>
+                      goal{goals.filter((g) => g.status === 'achieved').length !== 1 ? 's' : ''} achieved 🏆
+                    </Text>
+                  </View>
+                )}
+                {GOAL_CATEGORIES.map(({ key, label, emoji, color }) => {
+                  const catGoals = goals.filter((g) => g.category === key);
+                  if (catGoals.length === 0) return null;
+                  return (
+                    <View key={key} style={styles.goalSection}>
+                      <Text style={[styles.goalSectionTitle, { color }]}>{emoji} {label}</Text>
+                      {catGoals.map((goal) => {
+                        const st = GOAL_STATUSES[goal.status];
+                        return (
+                          <View
+                            key={goal.id}
+                            style={[styles.goalRow, goal.status === 'achieved' && styles.goalRowAchieved]}
+                          >
+                            <View style={[styles.goalDot, { backgroundColor: st.color }]} />
+                            <View style={styles.goalRowContent}>
+                              <Text style={[
+                                styles.goalRowTitle,
+                                goal.status === 'achieved' && { textDecorationLine: 'line-through', color: '#16A34A' },
+                              ]}>
+                                {goal.title}
+                              </Text>
+                              {goal.achieved_at && (
+                                <Text style={styles.goalRowDate}>
+                                  Achieved {new Date(goal.achieved_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                </Text>
+                              )}
+                            </View>
+                            <View style={[styles.goalRowBadge, { backgroundColor: st.bg }]}>
+                              <Text style={[styles.goalRowBadgeText, { color: st.color }]}>{st.label}</Text>
+                            </View>
+                          </View>
+                        );
+                      })}
+                    </View>
+                  );
+                })}
+              </>
+            )}
+          </>
+        )}
+
         {/* ── BADGES TAB ───────────────────────────────────── */}
         {tab === 'badges' && (
           <>
@@ -737,6 +851,31 @@ const styles = StyleSheet.create({
   },
   emptyIcon: { fontSize: 48, marginBottom: 12 },
   emptyTitle: { fontSize: 17, fontWeight: '700', color: '#111827', marginBottom: 6 },
+
+  // Goals tab
+  goalsBanner: {
+    borderRadius: 14, padding: 16, marginBottom: 14,
+    flexDirection: 'row', alignItems: 'center', gap: 10,
+  },
+  goalsBannerNum: { fontSize: 32, fontWeight: '800', color: '#FFFFFF' },
+  goalsBannerLabel: { fontSize: 16, fontWeight: '600', color: 'rgba(255,255,255,0.9)' },
+  goalSection: { marginBottom: 16 },
+  goalSectionTitle: {
+    fontSize: 13, fontWeight: '800', textTransform: 'uppercase',
+    letterSpacing: 0.5, marginBottom: 8,
+  },
+  goalRow: {
+    backgroundColor: '#FFFFFF', borderRadius: 12, padding: 12, marginBottom: 6,
+    borderWidth: 1, borderColor: '#E5E7EB',
+    flexDirection: 'row', alignItems: 'center', gap: 10,
+  },
+  goalRowAchieved: { backgroundColor: '#F0FDF4', borderColor: '#BBF7D0' },
+  goalDot: { width: 8, height: 8, borderRadius: 4, flexShrink: 0 },
+  goalRowContent: { flex: 1 },
+  goalRowTitle: { fontSize: 14, fontWeight: '600', color: '#111827' },
+  goalRowDate: { fontSize: 11, color: '#16A34A', marginTop: 2 },
+  goalRowBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 10, flexShrink: 0 },
+  goalRowBadgeText: { fontSize: 11, fontWeight: '700' },
 
   // Module rows in program card
   moduleList: { marginTop: 10, gap: 6 },

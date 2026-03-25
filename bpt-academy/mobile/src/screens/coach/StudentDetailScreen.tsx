@@ -1,11 +1,40 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
-  RefreshControl, Alert, Modal, TextInput,
+  RefreshControl, Alert, Modal, TextInput, ActivityIndicator,
 } from 'react-native';
 import { supabase } from '../../lib/supabase';
 import { Profile, UserRole, SkillLevel, EnrollmentStatus } from '../../types';
 import BackHeader from '../../components/common/BackHeader';
+import { useAuth } from '../../context/AuthContext';
+
+// ─── Goal types ───────────────────────────────────────────────
+type GoalCategory = 'technical' | 'tactical' | 'physical' | 'mindset';
+type GoalStatus   = 'active' | 'in_progress' | 'achieved';
+
+interface StudentGoal {
+  id: string;
+  student_id: string;
+  coach_id: string;
+  category: GoalCategory;
+  title: string;
+  status: GoalStatus;
+  achieved_at: string | null;
+  created_at: string;
+}
+
+const GOAL_CATEGORIES: { key: GoalCategory; label: string; emoji: string; color: string }[] = [
+  { key: 'technical', label: 'Technical',  emoji: '🎯', color: '#2563EB' },
+  { key: 'tactical',  label: 'Tactical',   emoji: '🧠', color: '#7C3AED' },
+  { key: 'physical',  label: 'Physical',   emoji: '💪', color: '#EA580C' },
+  { key: 'mindset',   label: 'Mindset',    emoji: '🧘', color: '#0891B2' },
+];
+
+const GOAL_STATUSES: { key: GoalStatus; label: string; color: string; bg: string }[] = [
+  { key: 'active',      label: 'Active',      color: '#2563EB', bg: '#EFF6FF' },
+  { key: 'in_progress', label: 'In Progress', color: '#D97706', bg: '#FFF7ED' },
+  { key: 'achieved',    label: 'Achieved ✓',  color: '#16A34A', bg: '#ECFDF5' },
+];
 
 interface EnrollmentWithProgram {
   id: string;
@@ -42,12 +71,23 @@ const SKILL_COLORS: Record<string, string> = {
 
 export default function StudentDetailScreen({ route, navigation }: any) {
   const { studentId } = route.params;
+  const { profile: coachProfile } = useAuth();
   const [student, setStudent] = useState<Profile | null>(null);
   const [enrollments, setEnrollments] = useState<EnrollmentWithProgram[]>([]);
   const [overallPct, setOverallPct] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
   const [editModal, setEditModal] = useState(false);
   const [editForm, setEditForm] = useState({ skill_level: '' as SkillLevel, role: '' as UserRole });
+
+  // Goals state
+  const [goals, setGoals] = useState<StudentGoal[]>([]);
+  const [goalsLoading, setGoalsLoading] = useState(true);
+  const [goalModal, setGoalModal] = useState(false);
+  const [editingGoal, setEditingGoal] = useState<StudentGoal | null>(null);
+  const [goalForm, setGoalForm] = useState<{ category: GoalCategory; title: string; status: GoalStatus }>({
+    category: 'technical', title: '', status: 'active',
+  });
+  const [goalSaving, setGoalSaving] = useState(false);
 
   const fetchData = async () => {
     // Fetch profile
@@ -99,8 +139,100 @@ export default function StudentDetailScreen({ route, navigation }: any) {
     }
   };
 
-  const onRefresh = async () => { setRefreshing(true); await fetchData(); setRefreshing(false); };
-  useEffect(() => { fetchData(); }, [studentId]);
+  // ── Goals ─────────────────────────────────────────────────
+  const fetchGoals = useCallback(async () => {
+    setGoalsLoading(true);
+    const { data } = await supabase
+      .from('student_goals')
+      .select('*')
+      .eq('student_id', studentId)
+      .order('category')
+      .order('created_at');
+    setGoals(data ?? []);
+    setGoalsLoading(false);
+  }, [studentId]);
+
+  const openAddGoal = () => {
+    setEditingGoal(null);
+    setGoalForm({ category: 'technical', title: '', status: 'active' });
+    setGoalModal(true);
+  };
+
+  const openEditGoal = (goal: StudentGoal) => {
+    setEditingGoal(goal);
+    setGoalForm({ category: goal.category, title: goal.title, status: goal.status });
+    setGoalModal(true);
+  };
+
+  const closeGoalModal = () => {
+    setGoalModal(false);
+    setEditingGoal(null);
+  };
+
+  const handleSaveGoal = async () => {
+    if (!goalForm.title.trim()) { Alert.alert('Error', 'Goal title is required'); return; }
+    setGoalSaving(true);
+
+    const wasAchieved = editingGoal?.status === 'achieved';
+    const nowAchieved = goalForm.status === 'achieved';
+
+    if (editingGoal) {
+      await supabase.from('student_goals').update({
+        category: goalForm.category,
+        title: goalForm.title.trim(),
+        status: goalForm.status,
+        achieved_at: nowAchieved && !wasAchieved ? new Date().toISOString() : editingGoal.achieved_at,
+      }).eq('id', editingGoal.id);
+
+      // Notify student if just marked achieved
+      if (nowAchieved && !wasAchieved) {
+        await supabase.from('notifications').insert({
+          recipient_id: studentId,
+          title: '🏆 Goal achieved!',
+          body: `Your coach marked "${goalForm.title.trim()}" as achieved. Keep it up!`,
+          type: 'goal',
+          read: false,
+        });
+      }
+    } else {
+      await supabase.from('student_goals').insert({
+        student_id: studentId,
+        coach_id: coachProfile!.id,
+        category: goalForm.category,
+        title: goalForm.title.trim(),
+        status: goalForm.status,
+        achieved_at: goalForm.status === 'achieved' ? new Date().toISOString() : null,
+      });
+    }
+
+    setGoalSaving(false);
+    closeGoalModal();
+    fetchGoals();
+  };
+
+  const handleDeleteGoal = (goal: StudentGoal) => {
+    Alert.alert(
+      'Delete goal',
+      `Delete "${goal.title}"?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete', style: 'destructive',
+          onPress: async () => {
+            await supabase.from('student_goals').delete().eq('id', goal.id);
+            fetchGoals();
+          },
+        },
+      ]
+    );
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await Promise.all([fetchData(), fetchGoals()]);
+    setRefreshing(false);
+  };
+  useEffect(() => { fetchData(); fetchGoals(); }, [studentId]);
 
   const handleSaveEdit = async () => {
     const { error } = await supabase
@@ -192,7 +324,7 @@ export default function StudentDetailScreen({ route, navigation }: any) {
 
         {/* Account info */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Account Info</Text>
+          <Text style={[styles.sectionTitle, { marginBottom: 10 }]}>Account Info</Text>
           <View style={styles.card}>
             <View style={styles.row}>
               <Text style={styles.rowLabel}>Phone</Text>
@@ -210,7 +342,7 @@ export default function StudentDetailScreen({ route, navigation }: any) {
 
         {/* Overall progress */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Overall Progress</Text>
+          <Text style={[styles.sectionTitle, { marginBottom: 10 }]}>Overall Progress</Text>
           <View style={styles.progressCard}>
             <View style={styles.progressHeader}>
               <Text style={styles.progressLabel}>{enrollments.length} program{enrollments.length !== 1 ? 's' : ''} enrolled</Text>
@@ -224,7 +356,7 @@ export default function StudentDetailScreen({ route, navigation }: any) {
 
         {/* Enrollments */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Programs ({enrollments.length})</Text>
+          <Text style={[styles.sectionTitle, { marginBottom: 10 }]}>Programs ({enrollments.length})</Text>
           {enrollments.length === 0 ? (
             <View style={styles.empty}>
               <Text style={styles.emptyText}>Not enrolled in any programs yet.</Text>
@@ -276,9 +408,64 @@ export default function StudentDetailScreen({ route, navigation }: any) {
           )}
         </View>
 
+        {/* Student Goals */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Development Goals</Text>
+            <TouchableOpacity style={styles.addGoalBtn} onPress={openAddGoal}>
+              <Text style={styles.addGoalBtnText}>+ Add Goal</Text>
+            </TouchableOpacity>
+          </View>
+          {goalsLoading ? (
+            <ActivityIndicator size="small" color="#16A34A" style={{ marginTop: 8 }} />
+          ) : goals.length === 0 ? (
+            <View style={styles.empty}>
+              <Text style={styles.emptyText}>No goals set yet. Tap "+ Add Goal" to get started.</Text>
+            </View>
+          ) : (
+            GOAL_CATEGORIES.map(({ key, label, emoji, color }) => {
+              const catGoals = goals.filter((g) => g.category === key);
+              if (catGoals.length === 0) return null;
+              return (
+                <View key={key} style={styles.goalCategory}>
+                  <Text style={[styles.goalCategoryHeader, { color }]}>{emoji} {label}</Text>
+                  {catGoals.map((goal) => {
+                    const st = GOAL_STATUSES.find((s) => s.key === goal.status)!;
+                    return (
+                      <TouchableOpacity
+                        key={goal.id}
+                        style={[styles.goalCard, goal.status === 'achieved' && styles.goalCardAchieved]}
+                        onPress={() => openEditGoal(goal)}
+                        activeOpacity={0.75}
+                      >
+                        <View style={styles.goalCardLeft}>
+                          <Text style={[
+                            styles.goalTitle,
+                            goal.status === 'achieved' && { color: '#16A34A', textDecorationLine: 'line-through' }
+                          ]}>
+                            {goal.title}
+                          </Text>
+                          {goal.achieved_at && (
+                            <Text style={styles.goalAchievedAt}>
+                              ✓ {new Date(goal.achieved_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                            </Text>
+                          )}
+                        </View>
+                        <View style={[styles.goalStatusBadge, { backgroundColor: st.bg }]}>
+                          <Text style={[styles.goalStatusText, { color: st.color }]}>{st.label}</Text>
+                        </View>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              );
+            })
+          )}
+        </View>
+
         {/* Coach Notes */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Coach Notes</Text>
+          <Text style={[styles.sectionTitle, { marginBottom: 10 }]}>Coach Notes</Text>
           <TouchableOpacity
             style={styles.promoBtn}
             onPress={() => navigation.navigate('CoachNotes', { studentId: student.id, studentName: student.full_name })}
@@ -290,7 +477,7 @@ export default function StudentDetailScreen({ route, navigation }: any) {
 
         {/* Promotion management */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Promotion Cycle</Text>
+          <Text style={[styles.sectionTitle, { marginBottom: 10 }]}>Promotion Cycle</Text>
           <TouchableOpacity
             style={styles.promoBtn}
             onPress={() => navigation.navigate('PromotionManage', { studentId: student.id, studentName: student.full_name })}
@@ -300,6 +487,99 @@ export default function StudentDetailScreen({ route, navigation }: any) {
           </TouchableOpacity>
         </View>
       </ScrollView>
+
+      {/* Goal modal */}
+      <Modal visible={goalModal} animationType="slide" presentationStyle="pageSheet" onRequestClose={closeGoalModal}>
+        <ScrollView style={styles.modal} keyboardShouldPersistTaps="handled">
+          <View style={styles.modalHeader}>
+            <TouchableOpacity onPress={closeGoalModal}>
+              <Text style={styles.cancelBtn}>Cancel</Text>
+            </TouchableOpacity>
+            <Text style={styles.modalTitle}>{editingGoal ? 'Edit Goal' : 'New Goal'}</Text>
+            <TouchableOpacity onPress={handleSaveGoal} disabled={goalSaving}>
+              <Text style={[styles.saveBtn, goalSaving && { opacity: 0.4 }]}>
+                {goalSaving ? 'Saving…' : 'Save'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.modalBody}>
+            {/* Category */}
+            <Text style={styles.fieldLabel}>Category</Text>
+            <View style={styles.chipGrid}>
+              {GOAL_CATEGORIES.map(({ key, label, emoji, color }) => {
+                const selected = goalForm.category === key;
+                return (
+                  <TouchableOpacity
+                    key={key}
+                    style={[styles.selectChip, selected && { backgroundColor: color, borderColor: color }]}
+                    onPress={() => setGoalForm({ ...goalForm, category: key })}
+                  >
+                    <Text style={[styles.selectChipText, selected && styles.selectChipTextActive]}>
+                      {emoji} {label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
+            {/* Title */}
+            <Text style={styles.fieldLabel}>Goal</Text>
+            <TextInput
+              style={styles.goalInput}
+              value={goalForm.title}
+              onChangeText={(v) => setGoalForm({ ...goalForm, title: v })}
+              placeholder="e.g. Vibora to the double glass"
+              placeholderTextColor="#9CA3AF"
+              autoFocus={!editingGoal}
+            />
+
+            {/* Status */}
+            <Text style={styles.fieldLabel}>Status</Text>
+            <View style={styles.chipGrid}>
+              {GOAL_STATUSES.map(({ key, label, color, bg }) => {
+                const selected = goalForm.status === key;
+                return (
+                  <TouchableOpacity
+                    key={key}
+                    style={[styles.selectChip, selected && { backgroundColor: color, borderColor: color }]}
+                    onPress={() => setGoalForm({ ...goalForm, status: key })}
+                  >
+                    <Text style={[styles.selectChipText, selected && styles.selectChipTextActive]}>
+                      {label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
+            {goalForm.status === 'achieved' && !editingGoal?.achieved_at && (
+              <View style={styles.achievedHint}>
+                <Text style={styles.achievedHintText}>
+                  🏆 Saving as achieved will notify the student immediately.
+                </Text>
+              </View>
+            )}
+            {editingGoal && goalForm.status === 'achieved' && editingGoal.status !== 'achieved' && (
+              <View style={styles.achievedHint}>
+                <Text style={styles.achievedHintText}>
+                  🏆 Marking as achieved will notify the student immediately.
+                </Text>
+              </View>
+            )}
+
+            {/* Delete */}
+            {editingGoal && (
+              <TouchableOpacity
+                style={styles.deleteGoalBtn}
+                onPress={() => { closeGoalModal(); handleDeleteGoal(editingGoal); }}
+              >
+                <Text style={styles.deleteGoalBtnText}>🗑 Delete Goal</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        </ScrollView>
+      </Modal>
 
       {/* Edit modal */}
       <Modal visible={editModal} animationType="slide" presentationStyle="pageSheet">
@@ -383,7 +663,7 @@ const styles = StyleSheet.create({
 
   // Sections
   section: { padding: 16 },
-  sectionTitle: { fontSize: 13, fontWeight: '700', color: '#6B7280', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 10 },
+  sectionTitle: { fontSize: 13, fontWeight: '700', color: '#6B7280', textTransform: 'uppercase', letterSpacing: 0.5 },
 
   // Info card
   card: { backgroundColor: '#FFFFFF', borderRadius: 14, borderWidth: 1, borderColor: '#E5E7EB', overflow: 'hidden' },
@@ -433,6 +713,39 @@ const styles = StyleSheet.create({
   selectChipTextActive: { color: '#FFFFFF', fontWeight: '700' },
   warningBox: { backgroundColor: '#FFFBEB', borderRadius: 10, padding: 14, borderWidth: 1, borderColor: '#FDE68A' },
   warningText: { fontSize: 13, color: '#92400E', lineHeight: 20 },
+  // Goals
+  sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
+  addGoalBtn: { backgroundColor: '#16A34A', borderRadius: 16, paddingHorizontal: 14, paddingVertical: 6 },
+  addGoalBtnText: { color: '#FFFFFF', fontSize: 13, fontWeight: '700' },
+  goalCategory: { marginBottom: 14 },
+  goalCategoryHeader: { fontSize: 13, fontWeight: '800', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 },
+  goalCard: {
+    backgroundColor: '#FFFFFF', borderRadius: 10, padding: 12, marginBottom: 6,
+    borderWidth: 1, borderColor: '#E5E7EB',
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+  },
+  goalCardAchieved: { backgroundColor: '#F0FDF4', borderColor: '#BBF7D0' },
+  goalCardLeft: { flex: 1, marginRight: 10 },
+  goalTitle: { fontSize: 14, fontWeight: '600', color: '#111827' },
+  goalAchievedAt: { fontSize: 11, color: '#16A34A', marginTop: 2 },
+  goalStatusBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, flexShrink: 0 },
+  goalStatusText: { fontSize: 12, fontWeight: '700' },
+  goalInput: {
+    borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 10,
+    padding: 14, fontSize: 15, color: '#111827',
+    marginBottom: 20, backgroundColor: '#F9FAFB',
+  },
+  achievedHint: {
+    backgroundColor: '#FEF9C3', borderRadius: 10, padding: 12,
+    borderWidth: 1, borderColor: '#FDE68A', marginBottom: 16,
+  },
+  achievedHintText: { fontSize: 13, color: '#92400E', fontWeight: '500' },
+  deleteGoalBtn: {
+    marginTop: 16, backgroundColor: '#FEF2F2', borderRadius: 10,
+    padding: 14, alignItems: 'center', borderWidth: 1, borderColor: '#FECACA',
+  },
+  deleteGoalBtnText: { color: '#DC2626', fontWeight: '700', fontSize: 15 },
+
   promoBtn: {
     backgroundColor: '#FFFFFF', borderRadius: 12, padding: 16,
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
