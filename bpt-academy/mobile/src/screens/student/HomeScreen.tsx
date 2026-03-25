@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   View, Text, ScrollView, StyleSheet,
   TouchableOpacity, RefreshControl,
@@ -8,21 +8,19 @@ import { supabase } from '../../lib/supabase';
 import { Enrollment, Notification } from '../../types';
 import ScreenHeader from '../../components/common/ScreenHeader';
 
-const MENU = [
-  { icon: '🏠', label: 'Home',     screen: 'Home' },
-  { icon: '📚', label: 'Programs', screen: 'Programs' },
-  { icon: '🎬', label: 'Videos',   screen: 'Videos' },
-  { icon: '📈', label: 'Progress', screen: 'Progress' },
-  { icon: '💬', label: 'Messages', screen: 'Messages' },
-  { icon: '👤', label: 'Profile',  screen: 'Profile' },
-];
+interface EnrollmentWithProgress extends Enrollment {
+  completedModules: number;
+  totalModules: number;
+}
 
 export default function HomeScreen({ navigation }: any) {
-  const { profile, signOut } = useAuth();
-  const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
+  const { profile } = useAuth();
+  const [enrollments, setEnrollments] = useState<EnrollmentWithProgress[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
   const [refreshing, setRefreshing] = useState(false);
+
+  // Keep dismissed IDs in a ref so they survive re-renders and re-fetches
+  const dismissedRef = useRef<Set<string>>(new Set());
 
   const fetchData = async () => {
     if (!profile) return;
@@ -43,8 +41,44 @@ export default function HomeScreen({ navigation }: any) {
         .limit(5),
     ]);
 
-    if (enrollRes.data) setEnrollments(enrollRes.data);
-    if (notifRes.data) setNotifications(notifRes.data.filter((n: Notification) => !dismissedIds.has(n.id)));
+    // Wire real progress for each enrollment
+    if (enrollRes.data) {
+      const withProgress = await Promise.all(
+        enrollRes.data.map(async (e) => {
+          const { data: modules } = await supabase
+            .from('modules')
+            .select('id')
+            .eq('program_id', e.program_id);
+
+          const moduleIds = (modules ?? []).map((m: { id: string }) => m.id);
+          let completedModules = 0;
+
+          if (moduleIds.length > 0) {
+            const { count } = await supabase
+              .from('student_progress')
+              .select('*', { count: 'exact', head: true })
+              .eq('student_id', profile.id)
+              .eq('completed', true)
+              .in('module_id', moduleIds);
+            completedModules = count ?? 0;
+          }
+
+          return {
+            ...e,
+            completedModules,
+            totalModules: moduleIds.length,
+          };
+        })
+      );
+      setEnrollments(withProgress);
+    }
+
+    // Filter out already-dismissed notifications using the ref
+    if (notifRes.data) {
+      setNotifications(
+        notifRes.data.filter((n: Notification) => !dismissedRef.current.has(n.id))
+      );
+    }
   };
 
   const onRefresh = async () => {
@@ -55,11 +89,19 @@ export default function HomeScreen({ navigation }: any) {
 
   useEffect(() => { fetchData(); }, [profile]);
 
-  const skillBadgeColor = {
-    beginner: '#3B82F6',
+  const dismissNotification = async (id: string) => {
+    // Mark as read in DB
+    await supabase.from('notifications').update({ read: true }).eq('id', id);
+    // Add to persistent dismissed set
+    dismissedRef.current.add(id);
+    // Remove from UI
+    setNotifications(prev => prev.filter(n => n.id !== id));
+  };
+
+  const skillBadgeColor: Record<string, string> = {
+    beginner:     '#3B82F6',
     intermediate: '#F59E0B',
-    advanced: '#EF4444',
-    competition: '#8B5CF6',
+    advanced:     '#EF4444',
   };
 
   return (
@@ -72,14 +114,16 @@ export default function HomeScreen({ navigation }: any) {
       {/* Welcome strip */}
       <View style={styles.header}>
         <View>
-          <Text style={styles.greeting}>Good morning 👋</Text>
+          <Text style={styles.greeting}>Welcome back 👋</Text>
           <Text style={styles.name}>{profile?.full_name}</Text>
         </View>
-        <View style={[styles.badge, { backgroundColor: skillBadgeColor[profile?.skill_level ?? 'beginner'] }]}>
-          <Text style={styles.badgeText}>
-            {profile?.skill_level?.charAt(0).toUpperCase() + (profile?.skill_level?.slice(1) ?? '')}
-          </Text>
-        </View>
+        {profile?.skill_level && (
+          <View style={[styles.badge, { backgroundColor: skillBadgeColor[profile.skill_level] ?? '#6B7280' }]}>
+            <Text style={styles.badgeText}>
+              {profile.skill_level.charAt(0).toUpperCase() + profile.skill_level.slice(1)}
+            </Text>
+          </View>
+        )}
       </View>
 
       {/* Notifications */}
@@ -90,18 +134,14 @@ export default function HomeScreen({ navigation }: any) {
             <TouchableOpacity
               key={n.id}
               style={styles.notifCard}
-              onPress={async () => {
-                await supabase.from('notifications').update({ read: true }).eq('id', n.id);
-                setDismissedIds(prev => new Set([...prev, n.id]));
-                setNotifications(prev => prev.filter(x => x.id !== n.id));
-              }}
+              onPress={() => dismissNotification(n.id)}
               activeOpacity={0.7}
             >
               <View style={styles.notifRow}>
                 <Text style={styles.notifTitle}>{n.title}</Text>
                 <Text style={styles.notifDismiss}>✕</Text>
               </View>
-              {n.body && <Text style={styles.notifBody}>{n.body}</Text>}
+              {n.body ? <Text style={styles.notifBody} numberOfLines={2}>{n.body}</Text> : null}
             </TouchableOpacity>
           ))}
         </View>
@@ -123,22 +163,30 @@ export default function HomeScreen({ navigation }: any) {
             </TouchableOpacity>
           </View>
         ) : (
-          enrollments.map((e) => (
-            <TouchableOpacity
-              key={e.id}
-              style={styles.programCard}
-              onPress={() => navigation.navigate('ProgramDetail', { programId: e.program_id })}
-            >
-              <Text style={styles.programTitle}>{e.program?.title}</Text>
-              <Text style={styles.programMeta}>
-                {e.program?.skill_level} · {e.program?.duration_weeks} weeks
-              </Text>
-              <View style={styles.progressBar}>
-                <View style={[styles.progressFill, { width: '40%' }]} />
-              </View>
-              <Text style={styles.progressLabel}>40% complete</Text>
-            </TouchableOpacity>
-          ))
+          enrollments.map((e) => {
+            const pct = e.totalModules > 0
+              ? Math.round((e.completedModules / e.totalModules) * 100)
+              : 0;
+            return (
+              <TouchableOpacity
+                key={e.id}
+                style={styles.programCard}
+                onPress={() => navigation.navigate('ProgramDetail', { programId: e.program_id })}
+              >
+                <Text style={styles.programTitle}>{(e.program as any)?.title}</Text>
+                <Text style={styles.programMeta}>
+                  {(e.program as any)?.duration_weeks} weeks
+                  {(e.program as any)?.sessions_per_week ? ` · ${(e.program as any).sessions_per_week}x/week` : ''}
+                </Text>
+                <View style={styles.progressBar}>
+                  <View style={[styles.progressFill, { width: `${pct}%` }]} />
+                </View>
+                <Text style={styles.progressLabel}>
+                  {e.completedModules}/{e.totalModules} sessions complete · {pct}%
+                </Text>
+              </TouchableOpacity>
+            );
+          })
         )}
       </View>
 
@@ -191,7 +239,7 @@ const styles = StyleSheet.create({
   notifRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   notifTitle: { fontSize: 14, fontWeight: '600', color: '#111827', flex: 1 },
   notifDismiss: { fontSize: 14, color: '#9CA3AF', paddingLeft: 8 },
-  notifBody: { fontSize: 13, color: '#6B7280', marginTop: 2 },
+  notifBody: { fontSize: 13, color: '#6B7280', marginTop: 4, lineHeight: 18 },
   emptyCard: {
     backgroundColor: '#FFFFFF', borderRadius: 12, padding: 20,
     alignItems: 'center', borderWidth: 1, borderColor: '#E5E7EB',
@@ -203,10 +251,8 @@ const styles = StyleSheet.create({
     marginBottom: 12, borderWidth: 1, borderColor: '#E5E7EB',
   },
   programTitle: { fontSize: 16, fontWeight: '700', color: '#111827' },
-  programMeta: { fontSize: 13, color: '#6B7280', marginTop: 4, textTransform: 'capitalize' },
-  progressBar: {
-    height: 6, backgroundColor: '#E5E7EB', borderRadius: 3, marginTop: 12,
-  },
+  programMeta: { fontSize: 13, color: '#6B7280', marginTop: 4 },
+  progressBar: { height: 6, backgroundColor: '#E5E7EB', borderRadius: 3, marginTop: 12 },
   progressFill: { height: '100%', backgroundColor: '#16A34A', borderRadius: 3 },
   progressLabel: { fontSize: 12, color: '#6B7280', marginTop: 4 },
   quickGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
