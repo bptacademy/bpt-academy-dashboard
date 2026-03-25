@@ -86,10 +86,21 @@ export default function HomeScreen({ navigation }: any) {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>🔔 Notifications</Text>
           {notifications.map((n) => (
-            <View key={n.id} style={styles.notifCard}>
-              <Text style={styles.notifTitle}>{n.title}</Text>
+            <TouchableOpacity
+              key={n.id}
+              style={styles.notifCard}
+              onPress={async () => {
+                await supabase.from('notifications').update({ read: true }).eq('id', n.id);
+                setNotifications(prev => prev.filter(x => x.id !== n.id));
+              }}
+              activeOpacity={0.7}
+            >
+              <View style={styles.notifRow}>
+                <Text style={styles.notifTitle}>{n.title}</Text>
+                <Text style={styles.notifDismiss}>✕</Text>
+              </View>
               {n.body && <Text style={styles.notifBody}>{n.body}</Text>}
-            </View>
+            </TouchableOpacity>
           ))}
         </View>
       )}
@@ -175,7 +186,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#ECFDF5', borderRadius: 10, padding: 14,
     marginBottom: 8, borderLeftWidth: 3, borderLeftColor: '#16A34A',
   },
-  notifTitle: { fontSize: 14, fontWeight: '600', color: '#111827' },
+  notifRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  notifTitle: { fontSize: 14, fontWeight: '600', color: '#111827', flex: 1 },
+  notifDismiss: { fontSize: 14, color: '#9CA3AF', paddingLeft: 8 },
   notifBody: { fontSize: 13, color: '#6B7280', marginTop: 2 },
   emptyCard: {
     backgroundColor: '#FFFFFF', borderRadius: 12, padding: 20,
