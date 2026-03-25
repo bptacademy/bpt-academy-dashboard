@@ -367,7 +367,7 @@ export default function ProgressScreen() {
             style={[styles.tab, tab === t && { borderBottomColor: divColor }]}
             onPress={() => setTab(t)}
           >
-            <Text style={[styles.tabText, tab === t && { color: divColor }]}>
+            <Text style={[styles.tabText, tab === t && { color: divColor }]} numberOfLines={1}>
               {t === 'overview' ? '📊 Overview'
                 : t === 'attendance' ? '📅 Promotion'
                 : t === 'goals' ? '🎯 My Goals'
@@ -759,10 +759,11 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1, borderBottomColor: '#E5E7EB',
   },
   tab: {
-    flex: 1, paddingVertical: 12, alignItems: 'center',
+    flex: 1, paddingVertical: 11, alignItems: 'center', justifyContent: 'center',
     borderBottomWidth: 2, borderBottomColor: 'transparent',
+    paddingHorizontal: 4,
   },
-  tabText: { fontSize: 13, fontWeight: '600', color: '#6B7280' },
+  tabText: { fontSize: 11, fontWeight: '700', color: '#6B7280', textAlign: 'center' },
   scroll: { flex: 1 },
   content: { padding: 16, paddingBottom: 40 },
   loader: { marginTop: 60 },
