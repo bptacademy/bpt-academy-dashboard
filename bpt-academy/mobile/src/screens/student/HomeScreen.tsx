@@ -1,4 +1,5 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import {
   View, Text, ScrollView, StyleSheet,
   TouchableOpacity, RefreshControl,
@@ -90,6 +91,9 @@ export default function HomeScreen({ navigation }: any) {
   };
 
   useEffect(() => { fetchData(); }, [profile]);
+
+  // Re-fetch whenever screen comes into focus (e.g. after enrolling in a program)
+  useFocusEffect(useCallback(() => { fetchData(); }, [profile]));
 
   const dismissNotification = async (id: string) => {
     // Remove from UI immediately — do this first so it's instant
