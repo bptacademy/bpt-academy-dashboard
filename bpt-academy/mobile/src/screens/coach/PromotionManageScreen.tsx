@@ -72,15 +72,24 @@ export default function PromotionManageScreen({ route, navigation }: any) {
   const { studentId, studentName } = route.params;
   const { profile: coachProfile } = useAuth();
 
-  const [cycle, setCycle]         = useState<PromotionCycle | null>(null);
-  const [history, setHistory]     = useState<PromotionCycle[]>([]);
-  const [loading, setLoading]     = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [actioning, setActioning] = useState(false);
+  const [cycle, setCycle]             = useState<PromotionCycle | null>(null);
+  const [history, setHistory]         = useState<PromotionCycle[]>([]);
+  const [studentDivision, setStudentDivision] = useState<string | null>(null);
+  const [loading, setLoading]         = useState(true);
+  const [refreshing, setRefreshing]   = useState(false);
+  const [actioning, setActioning]     = useState(false);
 
   // ── Fetch ──────────────────────────────────────────────────
   const fetchCycle = useCallback(async () => {
     setLoading(true);
+
+    // Fetch student's division so we know if they're at top level
+    const { data: studentProfile } = await supabase
+      .from('profiles')
+      .select('division')
+      .eq('id', studentId)
+      .single();
+    setStudentDivision(studentProfile?.division ?? null);
 
     // Active/eligible/approved cycle
     const { data: active } = await supabase
@@ -381,47 +390,59 @@ export default function PromotionManageScreen({ route, navigation }: any) {
             )}
           </>
         ) : (
-          /* ── No cycle — system auto-creates on enrollment ── */
+          /* ── No cycle ── */
           <View style={styles.card}>
-            <Text style={styles.emptyIcon}>🎯</Text>
-            <Text style={styles.emptyTitle}>No Active Promotion Cycle</Text>
-            <Text style={styles.emptyText}>
-              A promotion cycle starts automatically when a student enrolls in a program.
-              If {studentName} is enrolled and no cycle appears, tap the button below to start one manually.
-            </Text>
-            <TouchableOpacity
-              style={[styles.btn, styles.btnGreen, { marginTop: 16 }]}
-              onPress={async () => {
-                setActioning(true);
-                const { data: enroll } = await supabase
-                  .from('enrollments')
-                  .select('program_id')
-                  .eq('student_id', studentId)
-                  .eq('status', 'active')
-                  .limit(1)
-                  .maybeSingle();
+            {studentDivision === 'pro' ? (
+              <>
+                <Text style={styles.emptyIcon}>🏆</Text>
+                <Text style={styles.emptyTitle}>Pro Division — Top Level</Text>
+                <Text style={styles.emptyText}>
+                  {studentName} is already in the Pro Division — the highest level at BPT Academy. No promotion cycle is applicable.
+                </Text>
+              </>
+            ) : (
+              <>
+                <Text style={styles.emptyIcon}>🎯</Text>
+                <Text style={styles.emptyTitle}>No Active Promotion Cycle</Text>
+                <Text style={styles.emptyText}>
+                  A promotion cycle starts automatically when a student enrolls in a program.
+                  If {studentName} is enrolled and no cycle appears, tap below to start one manually.
+                </Text>
+                <TouchableOpacity
+                  style={[styles.btn, styles.btnGreen, { marginTop: 16 }]}
+                  onPress={async () => {
+                    setActioning(true);
+                    const { data: enroll } = await supabase
+                      .from('enrollments')
+                      .select('program_id')
+                      .eq('student_id', studentId)
+                      .eq('status', 'active')
+                      .limit(1)
+                      .maybeSingle();
 
-                if (!enroll) {
-                  Alert.alert('Not enrolled', `${studentName} is not currently enrolled in an active program.`);
-                  setActioning(false);
-                  return;
-                }
+                    if (!enroll) {
+                      Alert.alert('Not enrolled', `${studentName} is not currently enrolled in an active program.`);
+                      setActioning(false);
+                      return;
+                    }
 
-                const { error } = await supabase.rpc('start_promotion_cycle_for_student', {
-                  p_student_id: studentId,
-                  p_program_id: enroll.program_id,
-                });
-                setActioning(false);
-                if (error) { Alert.alert('Error', error.message); return; }
-                await fetchCycle();
-              }}
-              disabled={actioning}
-            >
-              {actioning
-                ? <ActivityIndicator color="#FFFFFF" />
-                : <Text style={[styles.btnText, styles.btnTextWhite]}>▶ Start Cycle Manually</Text>
-              }
-            </TouchableOpacity>
+                    const { error } = await supabase.rpc('start_promotion_cycle_for_student', {
+                      p_student_id: studentId,
+                      p_program_id: enroll.program_id,
+                    });
+                    setActioning(false);
+                    if (error) { Alert.alert('Error', error.message); return; }
+                    await fetchCycle();
+                  }}
+                  disabled={actioning}
+                >
+                  {actioning
+                    ? <ActivityIndicator color="#FFFFFF" />
+                    : <Text style={[styles.btnText, styles.btnTextWhite]}>▶ Start Cycle Manually</Text>
+                  }
+                </TouchableOpacity>
+              </>
+            )}
           </View>
         )}
       </ScrollView>
