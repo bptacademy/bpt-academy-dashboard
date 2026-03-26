@@ -1,11 +1,16 @@
 import React, { useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity,
-  StyleSheet, Alert, KeyboardAvoidingView, Platform, ScrollView, Image,
+  StyleSheet, Alert, KeyboardAvoidingView, Platform, ScrollView, Image, Dimensions,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Division, DIVISION_LABELS, DIVISION_COLORS, SkillLevel } from '../../types';
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const LOGO_WIDTH = Math.min(SCREEN_WIDTH - 48, 320);
+const LOGO_HEIGHT = LOGO_WIDTH * 0.55;
 
 type Props = { navigation: NativeStackNavigationProp<any> };
 
@@ -54,10 +59,11 @@ export default function RegisterScreen({ navigation }: Props) {
   };
 
   return (
-    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <ScrollView contentContainerStyle={styles.inner}>
+    <SafeAreaView style={styles.container}>
+    <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+      <ScrollView contentContainerStyle={styles.inner} keyboardShouldPersistTaps="handled">
         <View style={styles.header}>
-          <Image source={require('../../../assets/logo.png')} style={styles.logo} resizeMode="contain" />
+          <Image source={require('../../../assets/logo.png')} style={[styles.logo, { width: LOGO_WIDTH, height: LOGO_HEIGHT }]} resizeMode="contain" />
           <Text style={styles.subtitle}>Create your account</Text>
         </View>
 
@@ -136,14 +142,16 @@ export default function RegisterScreen({ navigation }: Props) {
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#FFFFFF' },
+  flex: { flex: 1 },
   inner: { flexGrow: 1, padding: 24 },
   header: { alignItems: 'center', marginBottom: 32, marginTop: 20 },
-  logo: { width: 360, height: 200, marginBottom: 8 },
+  logo: { marginBottom: 8 },
   subtitle: { fontSize: 15, color: '#6B7280', marginTop: 4 },
   form: {},
   label: { fontSize: 14, fontWeight: '600', color: '#374151', marginBottom: 6, marginTop: 4 },
