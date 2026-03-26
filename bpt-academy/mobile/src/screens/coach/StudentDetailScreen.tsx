@@ -45,6 +45,7 @@ interface EnrollmentWithProgram {
   totalModules: number;
 }
 
+// super_admin role assignment is done through the Super Admin screen only
 const ROLES: UserRole[] = ['student', 'coach', 'admin'];
 const SKILL_LEVELS: SkillLevel[] = ['beginner', 'intermediate', 'advanced'];
 

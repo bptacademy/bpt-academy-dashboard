@@ -16,6 +16,20 @@ const STUDENT_MENU = [
   { icon: '👤', label: 'Profile',     screen: 'Profile' },
 ];
 
+// Coach: no billing, no settings, no payment reconciliation
+const COACH_MENU = [
+  { icon: '📊', label: 'Dashboard',   screen: 'Dashboard' },
+  { icon: '📋', label: 'Programs',    screen: 'Manage' },
+  { icon: '🎬', label: 'Videos',      screen: 'Videos' },
+  { icon: '👥', label: 'Students',    screen: 'Students' },
+  { icon: '🏅', label: 'Divisions',   screen: 'Divisions' },
+  { icon: '🎾', label: 'Tournaments', screen: 'Tournaments' },
+  { icon: '💬', label: 'Messages',    screen: 'Messages' },
+  { icon: '🔔', label: 'Announce',    screen: 'Announce' },
+  { icon: '👤', label: 'Profile',     screen: 'Profile' },
+];
+
+// Admin: full access except user management
 const ADMIN_MENU = [
   { icon: '📊', label: 'Dashboard',   screen: 'Dashboard' },
   { icon: '📋', label: 'Programs',    screen: 'Manage' },
@@ -27,7 +41,26 @@ const ADMIN_MENU = [
   { icon: '💬', label: 'Messages',    screen: 'Messages' },
   { icon: '📣', label: 'Bulk Msg',    screen: 'BulkMsg' },
   { icon: '🔔', label: 'Announce',    screen: 'Announce' },
+  { icon: '⚙️', label: 'Settings',    screen: 'AcademySettings' },
   { icon: '👤', label: 'Profile',     screen: 'Profile' },
+];
+
+// Super Admin: everything + user management
+const SUPER_ADMIN_MENU = [
+  { icon: '👑', label: 'Users',        screen: 'SuperAdminHome' },
+  { icon: '📊', label: 'Dashboard',    screen: 'Dashboard' },
+  { icon: '📋', label: 'Programs',     screen: 'Manage' },
+  { icon: '🎬', label: 'Videos',       screen: 'Videos' },
+  { icon: '👥', label: 'Students',     screen: 'Students' },
+  { icon: '🏅', label: 'Divisions',    screen: 'Divisions' },
+  { icon: '🎾', label: 'Tournaments',  screen: 'Tournaments' },
+  { icon: '💳', label: 'Payments',     screen: 'Payments' },
+  { icon: '💬', label: 'Messages',     screen: 'Messages' },
+  { icon: '📣', label: 'Bulk Msg',     screen: 'BulkMsg' },
+  { icon: '🔔', label: 'Announce',     screen: 'Announce' },
+  { icon: '⚙️', label: 'Settings',     screen: 'AcademySettings' },
+  { icon: '💰', label: 'Billing',      screen: 'BillingSettings' },
+  { icon: '👤', label: 'Profile',      screen: 'Profile' },
 ];
 
 interface Props {
@@ -38,11 +71,16 @@ interface Props {
 export default function ScreenHeader({ title, dark = false }: Props) {
   const [open, setOpen] = useState(false);
   const navigation = useNavigation<any>();
-  const { effectiveRole } = useAuth();
+  const { isSuperAdmin, isAdmin, isCoach } = useAuth();
 
-  const isAdmin = effectiveRole === 'admin' || effectiveRole === 'coach';
-  const menu = isAdmin ? ADMIN_MENU : STUDENT_MENU;
-  const homeScreen = isAdmin ? 'Dashboard' : 'Home';
+  const menu = isSuperAdmin ? SUPER_ADMIN_MENU
+             : isAdmin      ? ADMIN_MENU
+             : isCoach      ? COACH_MENU
+             : STUDENT_MENU;
+
+  const homeScreen = isSuperAdmin ? 'SuperAdminHome'
+                   : (isAdmin || isCoach) ? 'Dashboard'
+                   : 'Home';
 
   return (
     <>

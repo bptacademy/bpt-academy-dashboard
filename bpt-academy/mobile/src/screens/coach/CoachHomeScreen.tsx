@@ -46,8 +46,10 @@ export default function CoachHomeScreen({ navigation }: any) {
           <Text style={styles.greeting}>Admin Dashboard 👋</Text>
           <Text style={styles.name}>{profile?.full_name}</Text>
         </View>
-        <View style={styles.adminBadge}>
-          <Text style={styles.adminBadgeText}>Admin</Text>
+        <View style={[styles.adminBadge, profile?.role === 'super_admin' && { backgroundColor: '#7C3AED' }]}>
+          <Text style={styles.adminBadgeText}>
+            {profile?.role === 'super_admin' ? '👑 Super Admin' : 'Admin'}
+          </Text>
         </View>
       </View>
 
