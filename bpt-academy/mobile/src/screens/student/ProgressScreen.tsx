@@ -149,7 +149,7 @@ export default function ProgressScreen() {
     );
 
     setPrograms(withProgress);
-  }, [profile]);
+  }, [profile?.id, profile?.division, profile?.skill_level]);
 
   // ── Fetch promotion cycle & attendance ───────────────────────
   const fetchCycle = useCallback(async () => {
@@ -223,7 +223,7 @@ export default function ProgressScreen() {
     const pct = total > 0 ? Math.round((attendedCount / total) * 100) : 0;
     setAttendanceStat({ attended: attendedCount, total, pct });
     setCycleLoading(false);
-  }, [profile]);
+  }, [profile?.id]);
 
   // ── Fetch badges ─────────────────────────────────────────────
   const fetchBadges = useCallback(async () => {
@@ -308,7 +308,7 @@ export default function ProgressScreen() {
     ]);
 
     setBadgesLoading(false);
-  }, [profile, attendanceStat.pct]);
+  }, [profile?.id, attendanceStat.pct]);
 
   const fetchGoals = useCallback(async () => {
     if (!profile) return;
@@ -321,7 +321,7 @@ export default function ProgressScreen() {
       .order('created_at');
     setGoals((data ?? []) as StudentGoalItem[]);
     setGoalsLoading(false);
-  }, [profile]);
+  }, [profile?.id]);
 
   const fetchAll = useCallback(async () => {
     await Promise.all([fetchOverview(), fetchCycle()]);
