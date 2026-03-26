@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import {
   View, Text, FlatList, StyleSheet, TextInput,
   TouchableOpacity, KeyboardAvoidingView, Platform, ActivityIndicator,
+  Keyboard,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
@@ -186,11 +187,18 @@ export default function ChatScreen({ route, navigation }: any) {
     </View>
   );
 
+  // On iOS: KeyboardAvoidingView needs the exact height of everything
+  // above the keyboard — that's the header (insets.top + 10 + 72 padding/logo)
+  // Using a fixed offset causes the blank gap seen on iPhone.
+  // Solution: use 'padding' on iOS with offset = 0 and let the
+  // inputRow sit naturally; dismiss keyboard on tap outside.
+  const headerHeight = insets.top + 62; // status bar + header content
+
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={headerHeight}
     >
       <BackHeader title={title ?? 'Chat'} />
       <FlatList
@@ -198,9 +206,11 @@ export default function ChatScreen({ route, navigation }: any) {
         data={messages}
         renderItem={renderMessage}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={[styles.messageList, { paddingBottom: insets.bottom + 8 }]}
+        contentContainerStyle={styles.messageList}
         onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: false })}
         maintainVisibleContentPosition={{ minIndexForVisible: 0 }}
+        keyboardDismissMode="interactive"
+        keyboardShouldPersistTaps="handled"
         ListEmptyComponent={
           <View style={styles.empty}>
             <Text style={styles.emptyIcon}>💬</Text>
@@ -208,7 +218,7 @@ export default function ChatScreen({ route, navigation }: any) {
           </View>
         }
       />
-      <View style={[styles.inputRow, { paddingBottom: insets.bottom + 8 }]}>
+      <View style={[styles.inputRow, { paddingBottom: Math.max(insets.bottom, 8) }]}>
         <TextInput
           style={styles.input}
           value={text}
@@ -236,7 +246,7 @@ export default function ChatScreen({ route, navigation }: any) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F9FAFB' },
   loading: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  messageList: { padding: 16 },
+  messageList: { padding: 16, paddingBottom: 8 },
   dateSeparator: { alignItems: 'center', marginVertical: 16 },
   dateSeparatorText: {
     fontSize: 12, color: '#9CA3AF', backgroundColor: '#F3F4F6',
