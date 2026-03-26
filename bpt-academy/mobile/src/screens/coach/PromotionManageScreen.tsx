@@ -1,140 +1,87 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
-  Alert, ActivityIndicator, RefreshControl, TextInput,
+  Alert, ActivityIndicator, RefreshControl,
 } from 'react-native';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
-import { PromotionCycle, LEVEL_LABELS } from '../../types';
+import { LEVEL_LABELS } from '../../types';
 import BackHeader from '../../components/common/BackHeader';
 
-interface Props {
-  route: any;
-  navigation: any;
+interface PromotionCycle {
+  id: string;
+  student_id: string;
+  program_id: string | null;
+  from_level: string;
+  to_level: string;
+  cycle_start_date: string;
+  cycle_end_date: string;
+  required_attendance_pct: number;
+  min_active_weeks: number;
+  active_weeks_so_far: number;
+  attendance_pct: number;
+  performance_pct: number;
+  requires_coach_approval: boolean;
+  status: 'active' | 'eligible' | 'approved' | 'promoted' | 'expired';
+  coach_approved_by: string | null;
+  coach_approved_at: string | null;
+  rejection_note: string | null;
+  last_evaluated_at: string | null;
+  created_at: string;
 }
 
-type FromLevel = 'amateur_beginner' | 'amateur_intermediate' | 'amateur_advanced' | 'semi_pro';
-
-const FROM_LEVELS: FromLevel[] = [
-  'amateur_beginner',
-  'amateur_intermediate',
-  'amateur_advanced',
-  'semi_pro',
-];
-
-const NEXT_LEVEL: Record<FromLevel, string> = {
-  amateur_beginner:     'amateur_intermediate',
-  amateur_intermediate: 'amateur_advanced',
-  amateur_advanced:     'semi_pro',
-  semi_pro:             'pro',
+const STATUS_META: Record<string, { bg: string; text: string; label: string }> = {
+  active:   { bg: '#EFF6FF', text: '#2563EB', label: 'In Progress' },
+  eligible: { bg: '#FEF9C3', text: '#92400E', label: '⭐ Eligible' },
+  approved: { bg: '#DCFCE7', text: '#16A34A', label: '✅ Approved' },
+  promoted: { bg: '#F0FDF4', text: '#15803D', label: '🚀 Promoted' },
+  expired:  { bg: '#F3F4F6', text: '#6B7280', label: 'Expired' },
 };
 
-const NEEDS_APPROVAL: Record<FromLevel, boolean> = {
-  amateur_beginner:     false,
-  amateur_intermediate: false,
-  amateur_advanced:     true,
-  semi_pro:             true,
-};
-
-const CYCLE_MONTHS: Record<FromLevel, number> = {
-  amateur_beginner:     2,
-  amateur_intermediate: 2,
-  amateur_advanced:     3,
-  semi_pro:             3,
-};
-
-function addMonths(dateStr: string, months: number): string {
-  const d = new Date(dateStr);
-  d.setMonth(d.getMonth() + months);
-  return d.toISOString().split('T')[0];
+function MetricBar({ label, value, target, suffix = '%' }: {
+  label: string; value: number; target: number; suffix?: string;
+}) {
+  const pct = Math.min(100, Math.round((value / target) * 100));
+  const met = value >= target;
+  return (
+    <View style={styles.metricRow}>
+      <View style={styles.metricHeader}>
+        <Text style={styles.metricLabel}>{label}</Text>
+        <View style={styles.metricRight}>
+          <Text style={[styles.metricValue, met && styles.metricMet]}>
+            {value}{suffix}
+          </Text>
+          <Text style={styles.metricTarget}> / {target}{suffix}</Text>
+          <Text style={[styles.metricCheck, met ? styles.metricCheckMet : styles.metricCheckNo]}>
+            {met ? ' ✓' : ' ✗'}
+          </Text>
+        </View>
+      </View>
+      <View style={styles.barBg}>
+        <View style={[styles.barFill, { width: `${pct}%`, backgroundColor: met ? '#16A34A' : '#3B82F6' }]} />
+        {/* Target marker */}
+        <View style={[styles.barMarker, { left: '80%' }]} />
+      </View>
+    </View>
+  );
 }
 
-function todayStr(): string {
-  return new Date().toISOString().split('T')[0];
-}
-
-function applyPromotion(toLevelKey: string): { division: string; skill_level: string | null } {
-  switch (toLevelKey) {
-    case 'amateur_intermediate': return { division: 'amateur', skill_level: 'intermediate' };
-    case 'amateur_advanced':     return { division: 'amateur', skill_level: 'advanced' };
-    case 'semi_pro':             return { division: 'semi_pro', skill_level: null };
-    case 'pro':                  return { division: 'pro', skill_level: null };
-    default:                     return { division: 'amateur', skill_level: 'beginner' };
-  }
-}
-
-const STATUS_COLORS: Record<string, { bg: string; text: string }> = {
-  active:   { bg: '#EFF6FF', text: '#2563EB' },
-  eligible: { bg: '#FEF9C3', text: '#92400E' },
-  approved: { bg: '#DCFCE7', text: '#16A34A' },
-  promoted: { bg: '#F0FDF4', text: '#15803D' },
-  expired:  { bg: '#F3F4F6', text: '#6B7280' },
-};
-
-export default function PromotionManageScreen({ route, navigation }: Props) {
+export default function PromotionManageScreen({ route, navigation }: any) {
   const { studentId, studentName } = route.params;
   const { profile: coachProfile } = useAuth();
 
-  const [cycle, setCycle] = useState<PromotionCycle | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [cycle, setCycle]         = useState<PromotionCycle | null>(null);
+  const [history, setHistory]     = useState<PromotionCycle[]>([]);
+  const [loading, setLoading]     = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [actioning, setActioning] = useState(false);
 
-  // Attendance stats
-  const [attended, setAttended] = useState(0);
-  const [totalSessions, setTotalSessions] = useState(0);
-
-  // New cycle form
-  const [fromLevel, setFromLevel] = useState<FromLevel>('amateur_beginner');
-  const [startDate, setStartDate] = useState(todayStr());
-
-  const toLevel = NEXT_LEVEL[fromLevel];
-  const endDate = addMonths(startDate, CYCLE_MONTHS[fromLevel]);
-  const requiresApproval = NEEDS_APPROVAL[fromLevel];
-
-  const fetchAttendance = useCallback(async (c: PromotionCycle) => {
-    const { data: enrollments } = await supabase
-      .from('enrollments')
-      .select('program_id')
-      .eq('student_id', studentId)
-      .eq('status', 'active');
-
-    const programIds = (enrollments ?? []).map((e: { program_id: string }) => e.program_id);
-    if (programIds.length === 0) return;
-
-    const { count: total } = await supabase
-      .from('program_sessions')
-      .select('*', { count: 'exact', head: true })
-      .in('program_id', programIds)
-      .gte('scheduled_at', c.cycle_start_date)
-      .lte('scheduled_at', c.cycle_end_date);
-
-    const { data: sessionRows } = await supabase
-      .from('program_sessions')
-      .select('id')
-      .in('program_id', programIds)
-      .gte('scheduled_at', c.cycle_start_date)
-      .lte('scheduled_at', c.cycle_end_date);
-
-    const ids = (sessionRows ?? []).map((s: { id: string }) => s.id);
-    let att = 0;
-    if (ids.length > 0) {
-      const { count } = await supabase
-        .from('session_attendance')
-        .select('*', { count: 'exact', head: true })
-        .eq('student_id', studentId)
-        .eq('attended', true)
-        .in('session_id', ids);
-      att = count ?? 0;
-    }
-
-    setTotalSessions(total ?? 0);
-    setAttended(att);
-  }, [studentId]);
-
+  // ── Fetch ──────────────────────────────────────────────────
   const fetchCycle = useCallback(async () => {
     setLoading(true);
-    const { data } = await supabase
+
+    // Active/eligible/approved cycle
+    const { data: active } = await supabase
       .from('promotion_cycles')
       .select('*')
       .eq('student_id', studentId)
@@ -143,56 +90,44 @@ export default function PromotionManageScreen({ route, navigation }: Props) {
       .limit(1)
       .maybeSingle();
 
-    const c = data as PromotionCycle | null;
-    setCycle(c);
-    if (c) await fetchAttendance(c);
+    setCycle(active as PromotionCycle | null);
+
+    // History — last 5 completed
+    const { data: hist } = await supabase
+      .from('promotion_cycles')
+      .select('*')
+      .eq('student_id', studentId)
+      .in('status', ['promoted', 'expired'])
+      .order('created_at', { ascending: false })
+      .limit(5);
+
+    setHistory((hist ?? []) as PromotionCycle[]);
     setLoading(false);
-  }, [studentId, fetchAttendance]);
+  }, [studentId]);
 
-  const onRefresh = async () => {
-    setRefreshing(true);
-    await fetchCycle();
-    setRefreshing(false);
-  };
-
+  const onRefresh = async () => { setRefreshing(true); await fetchCycle(); setRefreshing(false); };
   useEffect(() => { fetchCycle(); }, [fetchCycle]);
 
-  // ── Notify student ────────────────────────────────────────
-  const notify = async (title: string, body: string) => {
-    await supabase.from('notifications').insert({
-      recipient_id: studentId,
-      title,
-      body,
-      type: 'promotion',
-    });
+  // ── Trigger manual evaluation ──────────────────────────────
+  const handleEvaluateNow = async () => {
+    if (!cycle) return;
+    setActioning(true);
+    const { error } = await supabase.rpc('evaluate_promotion_cycle', { p_cycle_id: cycle.id });
+    setActioning(false);
+    if (error) { Alert.alert('Error', error.message); return; }
+    await fetchCycle();
+    Alert.alert('✅ Evaluated', 'Stats refreshed from latest attendance and performance data.');
   };
 
-  // ── Actions ───────────────────────────────────────────────
-
-  const handleMarkEligible = () => {
-    Alert.alert('Mark as Eligible', `Mark ${studentName}'s cycle as eligible for promotion?`, [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Mark Eligible', onPress: async () => {
-          if (!cycle) return;
-          setActioning(true);
-          await supabase.from('promotion_cycles').update({ status: 'eligible' }).eq('id', cycle.id);
-          await notify(
-            '⭐ You\'re eligible for promotion!',
-            `Great work! Your coach has confirmed you're ready to move from ${LEVEL_LABELS[cycle.from_level] ?? cycle.from_level} to ${LEVEL_LABELS[cycle.to_level] ?? cycle.to_level}. Awaiting final approval.`
-          );
-          await fetchCycle();
-          setActioning(false);
-        },
-      },
-    ]);
-  };
-
+  // ── Approve ────────────────────────────────────────────────
   const handleApprove = () => {
-    Alert.alert('Approve Promotion', `Approve ${studentName}'s promotion to ${LEVEL_LABELS[cycle?.to_level ?? ''] ?? cycle?.to_level}?`, [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Approve', onPress: async () => {
+    const toLabel = LEVEL_LABELS[cycle?.to_level ?? ''] ?? cycle?.to_level;
+    Alert.alert(
+      '✅ Approve Promotion',
+      `Approve ${studentName}'s promotion to ${toLabel}?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Approve', onPress: async () => {
           if (!cycle || !coachProfile) return;
           setActioning(true);
           await supabase.from('promotion_cycles').update({
@@ -200,276 +135,288 @@ export default function PromotionManageScreen({ route, navigation }: Props) {
             coach_approved_by: coachProfile.id,
             coach_approved_at: new Date().toISOString(),
           }).eq('id', cycle.id);
-          await notify(
-            '✅ Promotion approved!',
-            `Your promotion to ${LEVEL_LABELS[cycle.to_level] ?? cycle.to_level} has been approved by your coach. It will be applied to your profile shortly.`
-          );
-          await fetchCycle();
-          setActioning(false);
-        },
-      },
-    ]);
-  };
-
-  const handlePromote = () => {
-    if (!cycle) return;
-    const toLabel = LEVEL_LABELS[cycle.to_level] ?? cycle.to_level;
-    Alert.alert('Apply Promotion', `Promote ${studentName} to ${toLabel}? This will update their profile.`, [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Promote', onPress: async () => {
-          if (!cycle) return;
-          setActioning(true);
-          const { division, skill_level } = applyPromotion(cycle.to_level);
-
-          const profileUpdate: Record<string, string | null> = { division };
-          if (skill_level !== null) profileUpdate.skill_level = skill_level;
-
-          await supabase.from('profiles').update(profileUpdate).eq('id', studentId);
-          await supabase.from('promotion_cycles').update({ status: 'promoted' }).eq('id', cycle.id);
-          await supabase.from('ranking_events').insert({
-            student_id: studentId,
-            division,
-            points: 50,
-            reason: `promotion_to_${cycle.to_level}`,
+          await supabase.from('notifications').insert({
+            recipient_id: studentId,
+            title: '✅ Promotion approved!',
+            body: `Your coach has approved your promotion to ${toLabel}. It will be applied to your profile now.`,
+            type: 'promotion',
           });
-
-          await notify(
-            `🚀 You've been promoted to ${toLabel}!`,
-            `Congratulations ${studentName}! You've officially moved up to ${toLabel}. Keep training hard and aim for the next level!`
-          );
-          Alert.alert('🎉 Promoted!', `${studentName} has been promoted to ${toLabel}.`);
-          await fetchCycle();
+          await applyPromotion(cycle);
           setActioning(false);
-        },
-      },
-    ]);
-  };
-
-  const handleExpire = () => {
-    Alert.alert('Expire Cycle', `Expire this promotion cycle for ${studentName}? This cannot be undone.`, [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Expire', style: 'destructive', onPress: async () => {
-          if (!cycle) return;
-          setActioning(true);
-          await supabase.from('promotion_cycles').update({ status: 'expired' }).eq('id', cycle.id);
-          await notify(
-            '📅 Promotion cycle ended',
-            'Your current promotion cycle has ended. Speak to your coach to start a new one and keep working towards your next level!'
-          );
-          await fetchCycle();
-          setActioning(false);
-        },
-      },
-    ]);
-  };
-
-  const handleStartCycle = () => {
-    Alert.alert(
-      'Start Promotion Cycle',
-      `Start a cycle for ${studentName}:\n${LEVEL_LABELS[fromLevel]} → ${LEVEL_LABELS[toLevel]}\n${startDate} → ${endDate}`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Start', onPress: async () => {
-            setActioning(true);
-            const { error } = await supabase.from('promotion_cycles').insert({
-              student_id: studentId,
-              from_level: fromLevel,
-              to_level: toLevel,
-              cycle_start_date: startDate,
-              cycle_end_date: endDate,
-              required_attendance_pct: 80,
-              requires_coach_approval: requiresApproval,
-              status: 'active',
-            });
-            if (error) {
-              Alert.alert('Error', error.message);
-            } else {
-              await notify(
-                '🎯 Your promotion cycle has started!',
-                `Your journey from ${LEVEL_LABELS[fromLevel]} to ${LEVEL_LABELS[toLevel]} begins now. Attend at least 80% of your sessions before ${endDate} to earn your promotion!`
-              );
-              await fetchCycle();
-            }
-            setActioning(false);
-          },
-        },
+        }},
       ]
     );
   };
 
-  // ── Render ────────────────────────────────────────────────
+  // ── Reject ────────────────────────────────────────────────
+  const handleReject = () => {
+    Alert.alert(
+      '❌ Reject Promotion',
+      `Reject ${studentName}'s promotion request? They will need to continue working towards the targets.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Reject', style: 'destructive', onPress: async () => {
+          if (!cycle) return;
+          setActioning(true);
+          await supabase.from('promotion_cycles').update({
+            status: 'active',  // back to active so they keep working
+          }).eq('id', cycle.id);
+          await supabase.from('notifications').insert({
+            recipient_id: studentId,
+            title: '📋 Promotion not approved yet',
+            body: 'Your coach has reviewed your progress and feels you need more time. Keep working hard — you\'re on the right track!',
+            type: 'promotion',
+          });
+          await fetchCycle();
+          setActioning(false);
+        }},
+      ]
+    );
+  };
 
-  const attPct = totalSessions > 0 ? Math.round((attended / totalSessions) * 100) : 0;
-  const daysLeft = cycle
-    ? Math.max(0, Math.ceil((new Date(cycle.cycle_end_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
-    : 0;
+  // ── Apply promotion to profile ─────────────────────────────
+  const applyPromotion = async (c: PromotionCycle) => {
+    const map: Record<string, { division: string; skill_level: string | null }> = {
+      amateur_intermediate: { division: 'amateur',   skill_level: 'intermediate' },
+      amateur_advanced:     { division: 'amateur',   skill_level: 'advanced' },
+      semi_pro:             { division: 'semi_pro',  skill_level: null },
+      pro:                  { division: 'pro',       skill_level: null },
+    };
+    const dest = map[c.to_level];
+    if (!dest) return;
+
+    const profileUpdate: Record<string, string | null> = { division: dest.division };
+    if (dest.skill_level !== null) profileUpdate.skill_level = dest.skill_level;
+
+    await supabase.from('profiles').update(profileUpdate).eq('id', studentId);
+    await supabase.from('promotion_cycles').update({ status: 'promoted' }).eq('id', c.id);
+    await supabase.from('ranking_events').insert({
+      student_id: studentId,
+      division: dest.division,
+      points: 50,
+      reason: `promotion_to_${c.to_level}`,
+    });
+    await supabase.from('notifications').insert({
+      recipient_id: studentId,
+      title: `🚀 You've been promoted to ${LEVEL_LABELS[c.to_level] ?? c.to_level}!`,
+      body: `Congratulations! You've officially moved up to ${LEVEL_LABELS[c.to_level] ?? c.to_level}. Keep it up!`,
+      type: 'promotion',
+    });
+
+    Alert.alert('🎉 Promoted!', `${studentName} is now ${LEVEL_LABELS[c.to_level] ?? c.to_level}.`);
+    await fetchCycle();
+  };
+
+  // ── Expire cycle ──────────────────────────────────────────
+  const handleExpire = () => {
+    Alert.alert('Expire Cycle', `End this promotion cycle for ${studentName}?`, [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Expire', style: 'destructive', onPress: async () => {
+        if (!cycle) return;
+        setActioning(true);
+        await supabase.from('promotion_cycles').update({ status: 'expired' }).eq('id', cycle.id);
+        await supabase.from('notifications').insert({
+          recipient_id: studentId,
+          title: '📅 Promotion cycle ended',
+          body: 'Your promotion cycle has been closed by your coach. Speak to them about starting a new one.',
+          type: 'promotion',
+        });
+        await fetchCycle();
+        setActioning(false);
+      }},
+    ]);
+  };
+
+  // ── Render ────────────────────────────────────────────────
+  const attMet   = (cycle?.attendance_pct  ?? 0) >= 80;
+  const perfMet  = (cycle?.performance_pct ?? 0) >= 80;
+  const weeksMet = (cycle?.active_weeks_so_far ?? 0) >= (cycle?.min_active_weeks ?? 999);
+  const allMet   = attMet && perfMet && weeksMet;
 
   return (
-    <View style={styles.container}>
+    <View style={styles.root}>
       <BackHeader title={`${studentName} — Promotion`} />
       <ScrollView
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-        showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.content}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
         {loading ? (
           <ActivityIndicator size="large" color="#16A34A" style={styles.loader} />
         ) : cycle ? (
           <>
-            {/* ── Active cycle card ── */}
-            <View style={styles.cycleCard}>
-              <View style={styles.cycleTop}>
+            {/* ── Status card ── */}
+            <View style={styles.card}>
+              <View style={styles.statusRow}>
                 <View>
-                  <Text style={styles.cycleFromLabel}>From</Text>
-                  <Text style={styles.cycleFrom}>{LEVEL_LABELS[cycle.from_level] ?? cycle.from_level}</Text>
-                  <Text style={styles.cycleArrow}>↓</Text>
-                  <Text style={styles.cycleToLabel}>To</Text>
-                  <Text style={styles.cycleTo}>{LEVEL_LABELS[cycle.to_level] ?? cycle.to_level}</Text>
+                  <Text style={styles.levelFrom}>{LEVEL_LABELS[cycle.from_level] ?? cycle.from_level}</Text>
+                  <Text style={styles.arrow}>→</Text>
+                  <Text style={styles.levelTo}>{LEVEL_LABELS[cycle.to_level] ?? cycle.to_level}</Text>
                 </View>
-                <View style={styles.cycleRight}>
-                  <View style={[styles.statusBadge, { backgroundColor: STATUS_COLORS[cycle.status]?.bg ?? '#F3F4F6' }]}>
-                    <Text style={[styles.statusText, { color: STATUS_COLORS[cycle.status]?.text ?? '#374151' }]}>
-                      {cycle.status.charAt(0).toUpperCase() + cycle.status.slice(1)}
+                <View style={styles.statusRight}>
+                  <View style={[styles.statusBadge, { backgroundColor: STATUS_META[cycle.status]?.bg }]}>
+                    <Text style={[styles.statusText, { color: STATUS_META[cycle.status]?.text }]}>
+                      {STATUS_META[cycle.status]?.label ?? cycle.status}
                     </Text>
                   </View>
-                  <Text style={styles.daysLeft}>{daysLeft}</Text>
-                  <Text style={styles.daysLeftLabel}>days left</Text>
+                  {cycle.requires_coach_approval && (
+                    <Text style={styles.approvalNote}>🔐 Coach approval required</Text>
+                  )}
                 </View>
               </View>
-              <Text style={styles.cycleDates}>
-                {new Date(cycle.cycle_start_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
-                {' → '}
-                {new Date(cycle.cycle_end_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+
+              <Text style={styles.dateRange}>
+                Started {new Date(cycle.cycle_start_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
               </Text>
-              {cycle.requires_coach_approval && (
-                <View style={styles.approvalNote}>
-                  <Text style={styles.approvalNoteText}>🔐 Coach approval required for this promotion</Text>
-                </View>
+              {cycle.last_evaluated_at && (
+                <Text style={styles.lastEval}>
+                  Last checked {new Date(cycle.last_evaluated_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                </Text>
               )}
             </View>
 
-            {/* ── Attendance stats ── */}
+            {/* ── Criteria card ── */}
             <View style={styles.card}>
-              <Text style={styles.cardTitle}>Attendance This Cycle</Text>
-              <View style={styles.attRow}>
-                <Text style={[styles.attPct, attPct >= 80 && { color: '#16A34A' }]}>{attPct}%</Text>
-                <Text style={styles.attTarget}>Target: {cycle.required_attendance_pct}%</Text>
+              <Text style={styles.cardTitle}>Promotion Criteria</Text>
+
+              {/* Overall eligibility pill */}
+              <View style={[styles.eligibilityPill, allMet ? styles.eligibilityPillMet : styles.eligibilityPillNot]}>
+                <Text style={[styles.eligibilityText, allMet ? styles.eligibilityTextMet : styles.eligibilityTextNot]}>
+                  {allMet ? '✅ All criteria met — eligible for promotion' : '⏳ Not yet eligible — keep going'}
+                </Text>
               </View>
-              <View style={styles.attBarBg}>
-                <View style={[
-                  styles.attBarFill,
-                  { width: `${Math.min(100, attPct)}%`, backgroundColor: attPct >= 80 ? '#16A34A' : '#3B82F6' },
-                ]} />
-              </View>
-              <Text style={styles.attMarkerLabel}>▲ 80% target</Text>
-              <View style={styles.attStats}>
-                <View style={styles.attStat}>
-                  <Text style={styles.attStatNum}>{attended}</Text>
-                  <Text style={styles.attStatLabel}>Attended</Text>
-                </View>
-                <View style={styles.attStat}>
-                  <Text style={styles.attStatNum}>{totalSessions}</Text>
-                  <Text style={styles.attStatLabel}>Total</Text>
-                </View>
-                <View style={styles.attStat}>
-                  <Text style={[styles.attStatNum, { color: '#EF4444' }]}>{totalSessions - attended}</Text>
-                  <Text style={styles.attStatLabel}>Missed</Text>
-                </View>
-              </View>
+
+              <MetricBar
+                label="Active Weeks"
+                value={cycle.active_weeks_so_far}
+                target={cycle.min_active_weeks}
+                suffix=" wks"
+              />
+              <MetricBar
+                label="Attendance"
+                value={cycle.attendance_pct}
+                target={80}
+              />
+              <MetricBar
+                label="Performance"
+                value={cycle.performance_pct}
+                target={80}
+              />
+
+              <Text style={styles.criteriaNote}>
+                ℹ️ Active weeks = weeks where the student attended at least one session. Time only counts when they show up.
+              </Text>
             </View>
 
-            {/* ── Action buttons ── */}
-            <View style={styles.actionsCard}>
+            {/* ── Actions ── */}
+            <View style={styles.card}>
               <Text style={styles.cardTitle}>Actions</Text>
-
               {actioning && <ActivityIndicator color="#16A34A" style={{ marginBottom: 12 }} />}
 
-              {cycle.status === 'active' && (
-                <TouchableOpacity style={styles.actionBtn} onPress={handleMarkEligible} disabled={actioning}>
-                  <Text style={styles.actionBtnText}>⭐ Mark as Eligible</Text>
-                </TouchableOpacity>
-              )}
+              {/* Refresh stats */}
+              <TouchableOpacity style={styles.btn} onPress={handleEvaluateNow} disabled={actioning}>
+                <Text style={styles.btnText}>🔄 Refresh Stats Now</Text>
+              </TouchableOpacity>
 
+              {/* Approve — shown when eligible and needs approval */}
               {cycle.status === 'eligible' && cycle.requires_coach_approval && (
-                <TouchableOpacity style={[styles.actionBtn, styles.actionBtnGreen]} onPress={handleApprove} disabled={actioning}>
-                  <Text style={[styles.actionBtnText, styles.actionBtnTextWhite]}>✅ Approve Promotion</Text>
+                <TouchableOpacity style={[styles.btn, styles.btnGreen]} onPress={handleApprove} disabled={actioning}>
+                  <Text style={[styles.btnText, styles.btnTextWhite]}>✅ Approve Promotion</Text>
                 </TouchableOpacity>
               )}
 
+              {/* Auto-promote — eligible and no approval needed */}
               {cycle.status === 'eligible' && !cycle.requires_coach_approval && (
-                <TouchableOpacity style={[styles.actionBtn, styles.actionBtnGreen]} onPress={handlePromote} disabled={actioning}>
-                  <Text style={[styles.actionBtnText, styles.actionBtnTextWhite]}>🚀 Apply Promotion Now</Text>
+                <TouchableOpacity style={[styles.btn, styles.btnGreen]} onPress={() => applyPromotion(cycle)} disabled={actioning}>
+                  <Text style={[styles.btnText, styles.btnTextWhite]}>🚀 Apply Promotion</Text>
                 </TouchableOpacity>
               )}
 
+              {/* Apply after approval */}
               {cycle.status === 'approved' && (
-                <TouchableOpacity style={[styles.actionBtn, styles.actionBtnGreen]} onPress={handlePromote} disabled={actioning}>
-                  <Text style={[styles.actionBtnText, styles.actionBtnTextWhite]}>🎉 Apply Promotion to Profile</Text>
+                <TouchableOpacity style={[styles.btn, styles.btnGreen]} onPress={() => applyPromotion(cycle)} disabled={actioning}>
+                  <Text style={[styles.btnText, styles.btnTextWhite]}>🎉 Apply Promotion to Profile</Text>
                 </TouchableOpacity>
               )}
 
-              {(cycle.status === 'active' || cycle.status === 'eligible') && (
-                <TouchableOpacity style={[styles.actionBtn, styles.actionBtnRed]} onPress={handleExpire} disabled={actioning}>
-                  <Text style={[styles.actionBtnText, { color: '#EF4444' }]}>❌ Expire Cycle</Text>
+              {/* Reject — only when eligible */}
+              {cycle.status === 'eligible' && (
+                <TouchableOpacity style={[styles.btn, styles.btnOrange]} onPress={handleReject} disabled={actioning}>
+                  <Text style={[styles.btnText, { color: '#92400E' }]}>❌ Not Ready — Send Back</Text>
+                </TouchableOpacity>
+              )}
+
+              {/* Expire */}
+              {['active', 'eligible'].includes(cycle.status) && (
+                <TouchableOpacity style={[styles.btn, styles.btnRed]} onPress={handleExpire} disabled={actioning}>
+                  <Text style={[styles.btnText, { color: '#DC2626' }]}>🗑 Expire Cycle</Text>
                 </TouchableOpacity>
               )}
             </View>
+
+            {/* ── Promotion history ── */}
+            {history.length > 0 && (
+              <View style={styles.card}>
+                <Text style={styles.cardTitle}>Promotion History</Text>
+                {history.map((h) => (
+                  <View key={h.id} style={styles.historyRow}>
+                    <View>
+                      <Text style={styles.historyLevels}>
+                        {LEVEL_LABELS[h.from_level] ?? h.from_level} → {LEVEL_LABELS[h.to_level] ?? h.to_level}
+                      </Text>
+                      <Text style={styles.historyDate}>
+                        {new Date(h.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      </Text>
+                    </View>
+                    <View style={[styles.historyBadge, { backgroundColor: STATUS_META[h.status]?.bg ?? '#F3F4F6' }]}>
+                      <Text style={[styles.historyBadgeText, { color: STATUS_META[h.status]?.text ?? '#374151' }]}>
+                        {STATUS_META[h.status]?.label ?? h.status}
+                      </Text>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            )}
           </>
         ) : (
-          /* ── No active cycle — show create form ── */
+          /* ── No cycle — system auto-creates on enrollment ── */
           <View style={styles.card}>
-            <Text style={styles.cardTitle}>Start Promotion Cycle</Text>
-            <Text style={styles.fieldLabel}>From Level</Text>
-            <View style={styles.levelGrid}>
-              {FROM_LEVELS.map((lvl) => (
-                <TouchableOpacity
-                  key={lvl}
-                  style={[styles.levelChip, fromLevel === lvl && styles.levelChipActive]}
-                  onPress={() => setFromLevel(lvl)}
-                >
-                  <Text style={[styles.levelChipText, fromLevel === lvl && styles.levelChipTextActive]}>
-                    {LEVEL_LABELS[lvl]}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            <Text style={styles.fieldLabel}>To Level</Text>
-            <View style={styles.readonlyField}>
-              <Text style={styles.readonlyText}>{LEVEL_LABELS[toLevel] ?? toLevel}</Text>
-            </View>
-
-            <Text style={styles.fieldLabel}>Start Date</Text>
-            <TextInput
-              style={styles.textInput}
-              value={startDate}
-              onChangeText={setStartDate}
-              placeholder="YYYY-MM-DD"
-              placeholderTextColor="#9CA3AF"
-            />
-
-            <Text style={styles.fieldLabel}>End Date (auto-calculated)</Text>
-            <View style={styles.readonlyField}>
-              <Text style={styles.readonlyText}>{endDate}</Text>
-            </View>
-
-            <View style={styles.infoRow}>
-              <Text style={styles.infoText}>
-                Duration: {CYCLE_MONTHS[fromLevel]} months · Coach approval: {requiresApproval ? 'Required' : 'Not required'}
-              </Text>
-            </View>
-
+            <Text style={styles.emptyIcon}>🎯</Text>
+            <Text style={styles.emptyTitle}>No Active Promotion Cycle</Text>
+            <Text style={styles.emptyText}>
+              A promotion cycle starts automatically when a student enrolls in a program.
+              If {studentName} is enrolled and no cycle appears, tap the button below to start one manually.
+            </Text>
             <TouchableOpacity
-              style={[styles.actionBtn, styles.actionBtnGreen, { marginTop: 8 }]}
-              onPress={handleStartCycle}
+              style={[styles.btn, styles.btnGreen, { marginTop: 16 }]}
+              onPress={async () => {
+                setActioning(true);
+                const { data: enroll } = await supabase
+                  .from('enrollments')
+                  .select('program_id')
+                  .eq('student_id', studentId)
+                  .eq('status', 'active')
+                  .limit(1)
+                  .maybeSingle();
+
+                if (!enroll) {
+                  Alert.alert('Not enrolled', `${studentName} is not currently enrolled in an active program.`);
+                  setActioning(false);
+                  return;
+                }
+
+                const { error } = await supabase.rpc('start_promotion_cycle_for_student', {
+                  p_student_id: studentId,
+                  p_program_id: enroll.program_id,
+                });
+                setActioning(false);
+                if (error) { Alert.alert('Error', error.message); return; }
+                await fetchCycle();
+              }}
               disabled={actioning}
             >
               {actioning
                 ? <ActivityIndicator color="#FFFFFF" />
-                : <Text style={[styles.actionBtnText, styles.actionBtnTextWhite]}>▶ Start Cycle</Text>
+                : <Text style={[styles.btnText, styles.btnTextWhite]}>▶ Start Cycle Manually</Text>
               }
             </TouchableOpacity>
           </View>
@@ -480,28 +427,9 @@ export default function PromotionManageScreen({ route, navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F9FAFB' },
+  root: { flex: 1, backgroundColor: '#F9FAFB' },
   content: { padding: 16, paddingBottom: 48 },
   loader: { marginTop: 60 },
-
-  cycleCard: {
-    backgroundColor: '#FFFFFF', borderRadius: 14, padding: 16,
-    marginBottom: 14, borderWidth: 1, borderColor: '#E5E7EB',
-  },
-  cycleTop: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 },
-  cycleFromLabel: { fontSize: 11, color: '#9CA3AF', fontWeight: '600', textTransform: 'uppercase' },
-  cycleFrom: { fontSize: 15, fontWeight: '600', color: '#374151' },
-  cycleArrow: { fontSize: 16, color: '#D1D5DB', marginVertical: 2 },
-  cycleToLabel: { fontSize: 11, color: '#9CA3AF', fontWeight: '600', textTransform: 'uppercase' },
-  cycleTo: { fontSize: 18, fontWeight: '800', color: '#16A34A' },
-  cycleRight: { alignItems: 'flex-end' },
-  statusBadge: { paddingHorizontal: 12, paddingVertical: 5, borderRadius: 14, marginBottom: 8 },
-  statusText: { fontSize: 13, fontWeight: '700' },
-  daysLeft: { fontSize: 32, fontWeight: '800', color: '#111827' },
-  daysLeftLabel: { fontSize: 11, color: '#9CA3AF' },
-  cycleDates: { fontSize: 12, color: '#9CA3AF' },
-  approvalNote: { marginTop: 10, backgroundColor: '#FEF9C3', borderRadius: 8, padding: 10 },
-  approvalNoteText: { fontSize: 12, color: '#92400E', fontWeight: '600' },
 
   card: {
     backgroundColor: '#FFFFFF', borderRadius: 14, padding: 16,
@@ -509,48 +437,66 @@ const styles = StyleSheet.create({
   },
   cardTitle: { fontSize: 15, fontWeight: '700', color: '#111827', marginBottom: 14 },
 
-  attRow: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 10 },
-  attPct: { fontSize: 40, fontWeight: '800', color: '#3B82F6' },
-  attTarget: { fontSize: 13, color: '#6B7280' },
-  attBarBg: { height: 16, backgroundColor: '#E5E7EB', borderRadius: 8, marginBottom: 14, overflow: 'hidden', position: 'relative' },
-  attBarFill: { height: '100%', borderRadius: 8 },
-  attMarkerLabel: { fontSize: 11, color: '#6B7280', textAlign: 'right', marginTop: 2, marginBottom: 8 },
-  attStats: { flexDirection: 'row', justifyContent: 'space-around' },
-  attStat: { alignItems: 'center' },
-  attStatNum: { fontSize: 22, fontWeight: '800', color: '#111827' },
-  attStatLabel: { fontSize: 11, color: '#9CA3AF', marginTop: 2 },
+  // Status card
+  statusRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 },
+  levelFrom: { fontSize: 14, color: '#6B7280', fontWeight: '600' },
+  arrow: { fontSize: 18, color: '#D1D5DB', marginVertical: 2 },
+  levelTo: { fontSize: 20, fontWeight: '800', color: '#16A34A' },
+  statusRight: { alignItems: 'flex-end', gap: 6 },
+  statusBadge: { paddingHorizontal: 12, paddingVertical: 5, borderRadius: 14 },
+  statusText: { fontSize: 13, fontWeight: '700' },
+  approvalNote: { fontSize: 11, color: '#92400E', fontWeight: '600' },
+  dateRange: { fontSize: 12, color: '#9CA3AF' },
+  lastEval: { fontSize: 11, color: '#9CA3AF', marginTop: 2 },
 
-  actionsCard: {
-    backgroundColor: '#FFFFFF', borderRadius: 14, padding: 16,
-    marginBottom: 14, borderWidth: 1, borderColor: '#E5E7EB',
-  },
-  actionBtn: {
+  // Criteria
+  eligibilityPill: { borderRadius: 10, padding: 12, marginBottom: 16 },
+  eligibilityPillMet: { backgroundColor: '#DCFCE7' },
+  eligibilityPillNot: { backgroundColor: '#F3F4F6' },
+  eligibilityText: { fontSize: 13, fontWeight: '700', textAlign: 'center' },
+  eligibilityTextMet: { color: '#15803D' },
+  eligibilityTextNot: { color: '#6B7280' },
+
+  // Metric bar
+  metricRow: { marginBottom: 16 },
+  metricHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
+  metricLabel: { fontSize: 13, fontWeight: '600', color: '#374151' },
+  metricRight: { flexDirection: 'row', alignItems: 'baseline' },
+  metricValue: { fontSize: 16, fontWeight: '800', color: '#3B82F6' },
+  metricMet: { color: '#16A34A' },
+  metricTarget: { fontSize: 12, color: '#9CA3AF' },
+  metricCheck: { fontSize: 14, fontWeight: '800' },
+  metricCheckMet: { color: '#16A34A' },
+  metricCheckNo: { color: '#EF4444' },
+  barBg: { height: 12, backgroundColor: '#E5E7EB', borderRadius: 6, overflow: 'hidden', position: 'relative' },
+  barFill: { height: '100%', borderRadius: 6 },
+  barMarker: { position: 'absolute', top: 0, bottom: 0, width: 2, backgroundColor: '#374151' },
+  criteriaNote: { fontSize: 11, color: '#9CA3AF', marginTop: 4, lineHeight: 16 },
+
+  // Action buttons
+  btn: {
     borderWidth: 1.5, borderColor: '#E5E7EB', borderRadius: 12,
     paddingVertical: 14, alignItems: 'center', marginBottom: 10,
+    backgroundColor: '#F9FAFB',
   },
-  actionBtnGreen: { backgroundColor: '#16A34A', borderColor: '#16A34A' },
-  actionBtnRed: { borderColor: '#FCA5A5', backgroundColor: '#FEF2F2' },
-  actionBtnText: { fontSize: 15, fontWeight: '700', color: '#374151' },
-  actionBtnTextWhite: { color: '#FFFFFF' },
+  btnGreen:  { backgroundColor: '#16A34A', borderColor: '#16A34A' },
+  btnOrange: { backgroundColor: '#FFF7ED', borderColor: '#FED7AA' },
+  btnRed:    { backgroundColor: '#FEF2F2', borderColor: '#FECACA' },
+  btnText:   { fontSize: 15, fontWeight: '700', color: '#374151' },
+  btnTextWhite: { color: '#FFFFFF' },
 
-  fieldLabel: { fontSize: 13, fontWeight: '700', color: '#374151', marginBottom: 8, marginTop: 12 },
-  levelGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 4 },
-  levelChip: {
-    borderWidth: 1.5, borderColor: '#D1D5DB', borderRadius: 20,
-    paddingHorizontal: 14, paddingVertical: 8, backgroundColor: '#F9FAFB',
+  // History
+  historyRow: {
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    paddingVertical: 10, borderTopWidth: 1, borderTopColor: '#F3F4F6',
   },
-  levelChipActive: { backgroundColor: '#16A34A', borderColor: '#16A34A' },
-  levelChipText: { fontSize: 13, color: '#374151', fontWeight: '600' },
-  levelChipTextActive: { color: '#FFFFFF' },
-  readonlyField: {
-    backgroundColor: '#F3F4F6', borderRadius: 10, padding: 14,
-    borderWidth: 1, borderColor: '#E5E7EB', marginBottom: 4,
-  },
-  readonlyText: { fontSize: 15, color: '#374151', fontWeight: '600' },
-  textInput: {
-    backgroundColor: '#F9FAFB', borderRadius: 10, padding: 14,
-    borderWidth: 1.5, borderColor: '#D1D5DB', fontSize: 15, color: '#111827',
-  },
-  infoRow: { backgroundColor: '#EFF6FF', borderRadius: 8, padding: 10, marginTop: 10 },
-  infoText: { fontSize: 12, color: '#1D4ED8', fontWeight: '600' },
+  historyLevels: { fontSize: 14, fontWeight: '600', color: '#111827' },
+  historyDate: { fontSize: 12, color: '#9CA3AF', marginTop: 2 },
+  historyBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
+  historyBadgeText: { fontSize: 12, fontWeight: '700' },
+
+  // Empty state
+  emptyIcon: { fontSize: 48, textAlign: 'center', marginBottom: 12 },
+  emptyTitle: { fontSize: 17, fontWeight: '700', color: '#111827', textAlign: 'center', marginBottom: 8 },
+  emptyText: { fontSize: 14, color: '#6B7280', textAlign: 'center', lineHeight: 22 },
 });

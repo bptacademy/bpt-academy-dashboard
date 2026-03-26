@@ -1,0 +1,23 @@
+-- =============================================
+-- Migration: Promotion cron scheduling
+-- 2026-03-26
+-- =============================================
+-- NOTE: pg_cron must be enabled in Supabase dashboard first:
+-- Dashboard → Database → Extensions → search "pg_cron" → Enable
+--
+-- Until then, evaluate_all_promotion_cycles() is called
+-- via the evaluate-promotions Edge Function, triggered hourly
+-- by the OpenClaw cron scheduler.
+--
+-- Once pg_cron is enabled, run this manually in SQL editor:
+--
+--   select cron.schedule(
+--     'evaluate-promotion-cycles',
+--     '0 * * * *',
+--     $$select evaluate_all_promotion_cycles()$$
+--   );
+-- =============================================
+
+-- Nothing to execute until pg_cron is enabled.
+-- This file is a placeholder / documentation.
+select 1;
