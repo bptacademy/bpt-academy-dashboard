@@ -153,7 +153,7 @@ export default function ProgressScreen() {
 
   // ── Fetch promotion cycle & attendance ───────────────────────
   const fetchCycle = useCallback(async () => {
-    if (!profile) return;
+    if (!profile) { setCycleLoading(false); return; }
     setCycleLoading(true);
 
     // Get active cycle
@@ -513,11 +513,23 @@ export default function ProgressScreen() {
               <ActivityIndicator size="large" color={divColor} style={styles.loader} />
             ) : !cycle ? (
               <View style={styles.emptyCard}>
-                <Text style={styles.emptyIcon}>🎯</Text>
-                <Text style={styles.emptyTitle}>No Active Promotion Cycle</Text>
-                <Text style={styles.emptyNote}>
-                  Ask your coach to start your promotion cycle. Once started, your progress will appear here automatically.
-                </Text>
+                {profile?.division === 'pro' ? (
+                  <>
+                    <Text style={styles.emptyIcon}>🏆</Text>
+                    <Text style={styles.emptyTitle}>You're at the top!</Text>
+                    <Text style={styles.emptyNote}>
+                      You're in the Pro Division — the highest level at BPT Academy. Keep training and competing to maintain your ranking.
+                    </Text>
+                  </>
+                ) : (
+                  <>
+                    <Text style={styles.emptyIcon}>🎯</Text>
+                    <Text style={styles.emptyTitle}>No Active Promotion Cycle</Text>
+                    <Text style={styles.emptyNote}>
+                      Ask your coach to start your promotion cycle. Once started, your progress will appear here automatically.
+                    </Text>
+                  </>
+                )}
               </View>
             ) : (
               <>

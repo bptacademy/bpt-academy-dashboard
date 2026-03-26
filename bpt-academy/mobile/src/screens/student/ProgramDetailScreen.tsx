@@ -77,21 +77,37 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
     const price  = isFree ? 0 : parseFloat((program as any).price_gbp);
 
     if (isFree) {
-      // Free program — enroll directly, no payment screen
-      const { error } = await supabase.from('enrollments').insert({
-        student_id: profile!.id,
-        program_id: programId,
-        status: 'active',
-      });
-      if (error) { Alert.alert('Error', error.message); return; }
+      // Check for existing enrollment (e.g. previously cancelled)
+      const { data: existing } = await supabase
+        .from('enrollments')
+        .select('id, status')
+        .eq('student_id', profile!.id)
+        .eq('program_id', programId)
+        .maybeSingle();
 
-      // Explicitly kick off promotion cycle (trigger may not fire on direct insert)
+      if (existing) {
+        // Reactivate existing row instead of inserting a duplicate
+        const { error } = await supabase
+          .from('enrollments')
+          .update({ status: 'active' })
+          .eq('id', existing.id);
+        if (error) { Alert.alert('Error', error.message); return; }
+      } else {
+        const { error } = await supabase.from('enrollments').insert({
+          student_id: profile!.id,
+          program_id: programId,
+          status: 'active',
+        });
+        if (error) { Alert.alert('Error', error.message); return; }
+      }
+
+      // Kick off promotion cycle
       await supabase.rpc('start_promotion_cycle_for_student', {
         p_student_id: profile!.id,
         p_program_id: programId,
       });
 
-      Alert.alert('🎾 Enrolled!', 'You are now enrolled in this program. Your promotion cycle has started!');
+      Alert.alert('🎾 Enrolled!', 'You are now enrolled in this program.');
       fetchData();
       return;
     }
