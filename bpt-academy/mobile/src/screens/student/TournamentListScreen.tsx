@@ -13,6 +13,7 @@ const ALL_DIVISIONS: Division[] = ['amateur', 'semi_pro', 'pro', 'junior_9_11', 
 export default function TournamentListScreen({ navigation }: { navigation: any }) {
   const { profile } = useAuth();
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
+  const [myRegistrations, setMyRegistrations] = useState<Record<string, string>>({}); // tournamentId → status
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedDivision, setSelectedDivision] = useState<Division | 'all'>('all');
@@ -25,15 +26,29 @@ export default function TournamentListScreen({ navigation }: { navigation: any }
     if (data) setTournaments(data as Tournament[]);
   };
 
+  const fetchMyRegistrations = async () => {
+    if (!profile) return;
+    const { data } = await supabase
+      .from('tournament_registrations')
+      .select('tournament_id, status')
+      .eq('student_id', profile.id)
+      .neq('status', 'withdrawn');
+    if (data) {
+      const map: Record<string, string> = {};
+      data.forEach((r: any) => { map[r.tournament_id] = r.status; });
+      setMyRegistrations(map);
+    }
+  };
+
   const load = async () => {
     setLoading(true);
-    await fetchTournaments();
+    await Promise.all([fetchTournaments(), fetchMyRegistrations()]);
     setLoading(false);
   };
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await fetchTournaments();
+    await Promise.all([fetchTournaments(), fetchMyRegistrations()]);
     setRefreshing(false);
   };
 
@@ -128,14 +143,27 @@ export default function TournamentListScreen({ navigation }: { navigation: any }
                     </View>
                   ))}
                 </View>
-                {t.status === 'registration_open' && (
-                  <TouchableOpacity
-                    style={styles.registerBtn}
-                    onPress={() => navigation.navigate('TournamentDetail', { tournamentId: t.id })}
-                  >
-                    <Text style={styles.registerBtnText}>Register Now</Text>
-                  </TouchableOpacity>
-                )}
+                {t.status === 'registration_open' && (() => {
+                  const regStatus = myRegistrations[t.id];
+                  if (regStatus === 'confirmed') return (
+                    <View style={styles.registeredBtn}>
+                      <Text style={styles.registeredBtnText}>✅ Registered</Text>
+                    </View>
+                  );
+                  if (regStatus === 'pending') return (
+                    <View style={styles.pendingBtn}>
+                      <Text style={styles.pendingBtnText}>⏳ Awaiting Confirmation</Text>
+                    </View>
+                  );
+                  return (
+                    <TouchableOpacity
+                      style={styles.registerBtn}
+                      onPress={() => navigation.navigate('TournamentDetail', { tournamentId: t.id })}
+                    >
+                      <Text style={styles.registerBtnText}>Register Now →</Text>
+                    </TouchableOpacity>
+                  );
+                })()}
               </TouchableOpacity>
             ))}
           </View>
@@ -175,6 +203,16 @@ const styles = StyleSheet.create({
   divisionRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 10 },
   divChip: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10 },
   divText: { fontSize: 11, fontWeight: '600' },
+  registeredBtn: {
+    marginTop: 12, borderRadius: 10, paddingVertical: 12, alignItems: 'center',
+    backgroundColor: '#DCFCE7', borderWidth: 1, borderColor: '#A7F3D0',
+  },
+  registeredBtnText: { color: '#16A34A', fontSize: 15, fontWeight: '700' },
+  pendingBtn: {
+    marginTop: 12, borderRadius: 10, paddingVertical: 12, alignItems: 'center',
+    backgroundColor: '#FFF7ED', borderWidth: 1, borderColor: '#FED7AA',
+  },
+  pendingBtnText: { color: '#D97706', fontSize: 15, fontWeight: '600' },
   registerBtn: {
     marginTop: 14, backgroundColor: '#16A34A', borderRadius: 10,
     paddingVertical: 12, alignItems: 'center',
