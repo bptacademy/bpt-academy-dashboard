@@ -149,7 +149,9 @@ export default function TournamentDetailScreen({ navigation, route }: any) {
               read: false,
             });
 
-            load();
+            // Force full reload so myRegistration state refreshes too
+            setMyRegistration(null);
+            await load();
           },
         },
       ]

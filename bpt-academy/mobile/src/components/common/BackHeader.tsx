@@ -50,7 +50,13 @@ export default function BackHeader({ title, dark = false }: Props) {
       <View style={[styles.header, dark && styles.headerDark]}>
         {/* Back or logo */}
         {canGoBack ? (
-          <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
+          <TouchableOpacity
+            style={styles.backBtn}
+            onPress={() => {
+              try { navigation.goBack(); }
+              catch { navigation.navigate(homeScreen); }
+            }}
+          >
             <Text style={[styles.backIcon, dark && styles.lightText]}>‹</Text>
           </TouchableOpacity>
         ) : (
