@@ -1,4 +1,5 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
   RefreshControl, ActivityIndicator, Modal,
@@ -82,7 +83,7 @@ function getCurrentLevelKey(division?: Division, skillLevel?: string): string {
 }
 
 // ─── Main Component ───────────────────────────────────────────
-export default function ProgressScreen({ navigation }: any) {
+export default function ProgressScreen() {
   const insets = useSafeAreaInsets();
   const { profile, refreshProfile } = useAuth();
   const [tab, setTab] = useState<Tab>('overview');
@@ -330,15 +331,13 @@ export default function ProgressScreen({ navigation }: any) {
   useEffect(() => { if (tab === 'badges') fetchBadges(); }, [tab, fetchBadges]);
   useEffect(() => { if (tab === 'goals') fetchGoals(); }, [tab, fetchGoals]);
 
-  // Refresh profile + data whenever screen comes into focus
-  // This ensures division/level updates from promotions are reflected immediately
-  useEffect(() => {
-    const unsub = navigation?.addListener?.('focus', async () => {
-      await refreshProfile();
-      await fetchAll();
-    });
-    return unsub;
-  }, [navigation, refreshProfile, fetchAll]);
+  // Every time screen comes into focus: refresh profile from DB + reload data
+  // Ensures division/level/colour updates after promotions without sign-out
+  useFocusEffect(
+    useCallback(() => {
+      refreshProfile().then(() => fetchAll());
+    }, [refreshProfile, fetchAll])
+  );
 
   const onRefresh = async () => {
     setRefreshing(true);
