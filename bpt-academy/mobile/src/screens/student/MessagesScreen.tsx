@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View, Text, ScrollView, StyleSheet,
   TouchableOpacity, RefreshControl,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import ScreenHeader from '../../components/common/ScreenHeader';
@@ -11,19 +12,22 @@ import ScreenHeader from '../../components/common/ScreenHeader';
 interface ConvRow {
   id: string;
   is_group: boolean;
+  conversation_type: string;
   title?: string;
   lastMessage?: string;
   lastAt?: string;
   otherName?: string;
+  unread?: boolean;
 }
 
 export default function MessagesScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
   const { profile } = useAuth();
-  const [conversations, setConversations] = useState<ConvRow[]>([]);
+  const [direct, setDirect]     = useState<ConvRow[]>([]);
+  const [groups, setGroups]     = useState<ConvRow[]>([]);
   const [refreshing, setRefreshing] = useState(false);
 
-  const fetchConversations = async () => {
+  const fetchConversations = useCallback(async () => {
     if (!profile) return;
 
     const { data: memberOf } = await supabase
@@ -31,21 +35,20 @@ export default function MessagesScreen({ navigation }: any) {
       .select('conversation_id')
       .eq('profile_id', profile.id);
 
-    if (!memberOf?.length) { setConversations([]); return; }
+    if (!memberOf?.length) { setDirect([]); setGroups([]); return; }
 
-    const ids = memberOf.map((m) => m.conversation_id);
+    const ids = memberOf.map((m: any) => m.conversation_id);
 
     const { data: convs } = await supabase
       .from('conversations')
-      .select('id, is_group, title')
+      .select('id, is_group, title, conversation_type')
       .in('id', ids)
       .order('created_at', { ascending: false });
 
     if (!convs) return;
 
-    // For each conversation, get last message and other member's name
     const enriched: ConvRow[] = await Promise.all(
-      convs.map(async (conv) => {
+      convs.map(async (conv: any) => {
         const [{ data: lastMsg }, { data: members }] = await Promise.all([
           supabase
             .from('messages')
@@ -53,7 +56,7 @@ export default function MessagesScreen({ navigation }: any) {
             .eq('conversation_id', conv.id)
             .order('created_at', { ascending: false })
             .limit(1)
-            .single(),
+            .maybeSingle(),
           supabase
             .from('conversation_members')
             .select('profile_id')
@@ -62,7 +65,7 @@ export default function MessagesScreen({ navigation }: any) {
         ]);
 
         let otherName = conv.title ?? 'Chat';
-        if (!conv.is_group && members?.length) {
+        if (conv.conversation_type === 'direct' && members?.length) {
           const { data: other } = await supabase
             .from('profiles')
             .select('full_name')
@@ -74,6 +77,7 @@ export default function MessagesScreen({ navigation }: any) {
         return {
           id: conv.id,
           is_group: conv.is_group,
+          conversation_type: conv.conversation_type,
           title: conv.title,
           otherName,
           lastMessage: lastMsg?.content,
@@ -82,11 +86,13 @@ export default function MessagesScreen({ navigation }: any) {
       })
     );
 
-    setConversations(enriched);
-  };
+    setDirect(enriched.filter((c) => c.conversation_type === 'direct'));
+    setGroups(enriched.filter((c) => c.conversation_type === 'program_group'));
+  }, [profile?.id]);
 
   const onRefresh = async () => { setRefreshing(true); await fetchConversations(); setRefreshing(false); };
-  useEffect(() => { fetchConversations(); }, [profile]);
+  useEffect(() => { fetchConversations(); }, [fetchConversations]);
+  useFocusEffect(useCallback(() => { fetchConversations(); }, [fetchConversations]));
 
   const formatTime = (iso?: string) => {
     if (!iso) return '';
@@ -97,6 +103,30 @@ export default function MessagesScreen({ navigation }: any) {
     return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
   };
 
+  const renderConv = (conv: ConvRow) => (
+    <TouchableOpacity
+      key={conv.id}
+      style={styles.card}
+      onPress={() => navigation.navigate('Chat', { conversationId: conv.id, title: conv.otherName })}
+    >
+      <View style={[styles.avatar, conv.is_group && styles.avatarGroup]}>
+        <Text style={styles.avatarIcon}>{conv.is_group ? '👥' : '👤'}</Text>
+      </View>
+      <View style={styles.info}>
+        <View style={styles.nameRow}>
+          <Text style={styles.convName} numberOfLines={1}>{conv.otherName}</Text>
+          {conv.lastAt && <Text style={styles.time}>{formatTime(conv.lastAt)}</Text>}
+        </View>
+        {conv.lastMessage
+          ? <Text style={styles.lastMsg} numberOfLines={1}>{conv.lastMessage}</Text>
+          : <Text style={styles.lastMsgEmpty}>No messages yet</Text>
+        }
+      </View>
+    </TouchableOpacity>
+  );
+
+  const isCoachOrAdmin = profile?.role === 'coach' || profile?.role === 'admin' || profile?.role === 'super_admin';
+
   return (
     <View style={styles.wrapper}>
       <ScrollView
@@ -106,56 +136,60 @@ export default function MessagesScreen({ navigation }: any) {
       >
         <ScreenHeader title="Messages" />
 
-        <View style={styles.list}>
-          {conversations.map((conv) => (
-            <TouchableOpacity
-              key={conv.id}
-              style={styles.card}
-              onPress={() => navigation.navigate('Chat', { conversationId: conv.id, title: conv.otherName })}
-            >
-              <View style={[styles.avatar, conv.is_group && styles.avatarGroup]}>
-                <Text style={styles.avatarIcon}>{conv.is_group ? '👥' : '👤'}</Text>
+        {/* ── Direct Messages ── */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>🔒 Direct Messages</Text>
+            <Text style={styles.sectionHint}>Private — only you and your coach</Text>
+          </View>
+          {direct.length > 0
+            ? direct.map(renderConv)
+            : <View style={styles.emptySection}>
+                <Text style={styles.emptySectionText}>No direct messages yet. Your coach can message you directly from your profile.</Text>
               </View>
-              <View style={styles.info}>
-                <View style={styles.nameRow}>
-                  <Text style={styles.convName} numberOfLines={1}>{conv.otherName}</Text>
-                  {conv.lastAt && <Text style={styles.time}>{formatTime(conv.lastAt)}</Text>}
-                </View>
-                {conv.lastMessage && (
-                  <Text style={styles.lastMsg} numberOfLines={1}>{conv.lastMessage}</Text>
-                )}
-              </View>
-            </TouchableOpacity>
-          ))}
+          }
+        </View>
 
-          {conversations.length === 0 && (
-            <View style={styles.empty}>
-              <Text style={styles.emptyIcon}>💬</Text>
-              <Text style={styles.emptyTitle}>No messages yet</Text>
-              <Text style={styles.emptyText}>Tap the button below to start a conversation.</Text>
-            </View>
-          )}
+        {/* ── Program Group Channels ── */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>👥 Program Channels</Text>
+            <Text style={styles.sectionHint}>All students + coaches in your program</Text>
+          </View>
+          {groups.length > 0
+            ? groups.map(renderConv)
+            : <View style={styles.emptySection}>
+                <Text style={styles.emptySectionText}>Enroll in a program to join its group channel.</Text>
+              </View>
+          }
         </View>
       </ScrollView>
 
-      {/* New message FAB */}
-      <TouchableOpacity
-        style={styles.fab}
-        onPress={() => navigation.navigate('NewConversation')}
-      >
-        <Text style={styles.fabIcon}>✏️</Text>
-      </TouchableOpacity>
+      {/* FAB — coaches/admins can initiate DMs; students cannot */}
+      {isCoachOrAdmin && (
+        <TouchableOpacity
+          style={styles.fab}
+          onPress={() => navigation.navigate('NewConversation')}
+        >
+          <Text style={styles.fabIcon}>✏️</Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  wrapper: { flex: 1 },
-  container: { flex: 1, backgroundColor: '#F9FAFB' },
-  header: { padding: 24, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
-  title: { fontSize: 26, fontWeight: '700', color: '#111827' },
-  list: { padding: 16 },
-  card: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', borderRadius: 14, padding: 14, marginBottom: 10, borderWidth: 1, borderColor: '#E5E7EB', gap: 12 },
+  wrapper: { flex: 1, backgroundColor: '#F9FAFB' },
+  container: { flex: 1 },
+  section: { padding: 16, paddingBottom: 4 },
+  sectionHeader: { marginBottom: 10 },
+  sectionTitle: { fontSize: 15, fontWeight: '700', color: '#111827' },
+  sectionHint: { fontSize: 12, color: '#9CA3AF', marginTop: 2 },
+  card: {
+    flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF',
+    borderRadius: 14, padding: 14, marginBottom: 10,
+    borderWidth: 1, borderColor: '#E5E7EB', gap: 12,
+  },
   avatar: { width: 48, height: 48, borderRadius: 24, backgroundColor: '#F3F4F6', alignItems: 'center', justifyContent: 'center' },
   avatarGroup: { backgroundColor: '#ECFDF5' },
   avatarIcon: { fontSize: 22 },
@@ -164,10 +198,18 @@ const styles = StyleSheet.create({
   convName: { fontSize: 15, fontWeight: '600', color: '#111827', flex: 1 },
   time: { fontSize: 12, color: '#9CA3AF', marginLeft: 8 },
   lastMsg: { fontSize: 13, color: '#6B7280', marginTop: 3 },
-  empty: { alignItems: 'center', paddingVertical: 60 },
-  emptyIcon: { fontSize: 48, marginBottom: 12 },
-  emptyTitle: { fontSize: 17, fontWeight: '600', color: '#374151', marginBottom: 4 },
-  emptyText: { color: '#9CA3AF', fontSize: 14, textAlign: 'center' },
-  fab: { position: 'absolute', bottom: 24, right: 24, width: 56, height: 56, borderRadius: 28, backgroundColor: '#16A34A', alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.2, shadowRadius: 4, elevation: 4 },
+  lastMsgEmpty: { fontSize: 13, color: '#D1D5DB', marginTop: 3, fontStyle: 'italic' },
+  emptySection: {
+    backgroundColor: '#FFFFFF', borderRadius: 12, padding: 16,
+    borderWidth: 1, borderColor: '#F3F4F6', marginBottom: 10,
+  },
+  emptySectionText: { fontSize: 13, color: '#9CA3AF', lineHeight: 20 },
+  fab: {
+    position: 'absolute', bottom: 24, right: 24,
+    width: 56, height: 56, borderRadius: 28,
+    backgroundColor: '#16A34A', alignItems: 'center', justifyContent: 'center',
+    shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2, shadowRadius: 4, elevation: 4,
+  },
   fabIcon: { fontSize: 22 },
 });

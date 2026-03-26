@@ -47,13 +47,15 @@ export default function NewConversationScreen({ navigation }: any) {
     if (myConvIds.length > 0) {
       const { data: sharedMembers } = await supabase
         .from('conversation_members')
-        .select('conversation_id')
+        .select('conversation_id, conversation:conversations!inner(conversation_type)')
         .eq('profile_id', recipient.id)
         .in('conversation_id', myConvIds);
 
-      if (sharedMembers && sharedMembers.length > 0) {
-        existingConvId = sharedMembers[0].conversation_id;
-      }
+      // Only match direct conversations — not group channels
+      const directMatch = (sharedMembers ?? []).find(
+        (m: any) => m.conversation?.conversation_type === 'direct'
+      );
+      if (directMatch) existingConvId = directMatch.conversation_id;
     }
 
     if (existingConvId) {
@@ -64,10 +66,10 @@ export default function NewConversationScreen({ navigation }: any) {
       return;
     }
 
-    // Create new conversation
+    // Create new direct conversation
     const { data: conv, error } = await supabase
       .from('conversations')
-      .insert({ is_group: false, created_by: profile!.id })
+      .insert({ is_group: false, conversation_type: 'direct', created_by: profile!.id })
       .select()
       .single();
 

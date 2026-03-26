@@ -511,11 +511,11 @@ export default function StudentDetailScreen({ route, navigation }: any) {
                 // Find a non-group conversation that also has the student
                 const { data: shared } = await supabase
                   .from('conversation_members')
-                  .select('conversation_id, conversation:conversations!inner(is_group)')
+                  .select('conversation_id, conversation:conversations!inner(is_group, conversation_type)')
                   .eq('profile_id', student.id)
                   .in('conversation_id', myConvIds);
 
-                const direct = (shared ?? []).find((m: any) => !m.conversation?.is_group);
+                const direct = (shared ?? []).find((m: any) => m.conversation?.conversation_type === 'direct');
                 if (direct) conversationId = direct.conversation_id;
               }
 
@@ -523,7 +523,7 @@ export default function StudentDetailScreen({ route, navigation }: any) {
               if (!conversationId) {
                 const { data: newConv, error } = await supabase
                   .from('conversations')
-                  .insert({ is_group: false, created_by: coachProfile.id })
+                  .insert({ is_group: false, conversation_type: 'direct', created_by: coachProfile.id })
                   .select('id')
                   .single();
 
