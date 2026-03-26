@@ -248,15 +248,22 @@ export interface Notification {
 export interface PromotionCycle {
   id: string;
   student_id: string;
+  program_id?: string;
   from_level: string;
   to_level: string;
   cycle_start_date: string;
   cycle_end_date: string;
   required_attendance_pct: number;
+  min_active_weeks: number;
+  active_weeks_so_far: number;
+  attendance_pct: number;
+  performance_pct: number;
   requires_coach_approval: boolean;
   status: 'active' | 'eligible' | 'approved' | 'promoted' | 'expired';
   coach_approved_by?: string;
   coach_approved_at?: string;
+  last_evaluated_at?: string;
+  rejection_note?: string;
   created_at: string;
   updated_at: string;
 }

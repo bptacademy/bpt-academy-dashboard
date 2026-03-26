@@ -492,99 +492,236 @@ export default function ProgressScreen() {
           </>
         )}
 
-        {/* ── ATTENDANCE / PROMOTION TAB ───────────────────── */}
+        {/* ── PROMOTION TAB ────────────────────────────────── */}
         {tab === 'attendance' && (
           <>
             {cycleLoading ? (
               <ActivityIndicator size="large" color={divColor} style={styles.loader} />
             ) : !cycle ? (
               <View style={styles.emptyCard}>
-                <Text style={styles.emptyIcon}>📅</Text>
+                <Text style={styles.emptyIcon}>🎯</Text>
                 <Text style={styles.emptyTitle}>No Active Promotion Cycle</Text>
-                <Text style={styles.emptyNote}>Ask your coach to start your promotion cycle.</Text>
+                <Text style={styles.emptyNote}>
+                  Ask your coach to start your promotion cycle. Once started, your progress will appear here automatically.
+                </Text>
               </View>
             ) : (
               <>
-                {/* Cycle header */}
-                <View style={[styles.cycleCard, { borderColor: divColor }]}>
-                  <View style={styles.cycleHeader}>
-                    <View>
-                      <Text style={styles.cycleFrom}>{LEVEL_LABELS[cycle.from_level] ?? cycle.from_level}</Text>
-                      <Text style={styles.cycleArrow}>↓</Text>
-                      <Text style={[styles.cycleTo, { color: divColor }]}>{LEVEL_LABELS[cycle.to_level] ?? cycle.to_level}</Text>
+                {/* ── Status banner ── */}
+                {cycle.status === 'eligible' && (
+                  <View style={styles.promoAlertEligible}>
+                    <Text style={styles.promoAlertIcon}>⭐</Text>
+                    <View style={styles.promoAlertBody}>
+                      <Text style={styles.promoAlertTitle}>You're eligible for promotion!</Text>
+                      <Text style={styles.promoAlertSub}>
+                        {cycle.requires_coach_approval
+                          ? 'Your coach is reviewing your progress. You\'ll be notified once approved.'
+                          : 'Great work — your promotion is being processed!'}
+                      </Text>
                     </View>
-                    <View style={styles.cycleDays}>
-                      <Text style={[styles.cycleDaysNum, daysLeft < 14 && { color: '#EF4444' }]}>{daysLeft}</Text>
-                      <Text style={styles.cycleDaysLabel}>days left</Text>
-                    </View>
-                  </View>
-                  <Text style={styles.cycleDates}>
-                    {new Date(cycle.cycle_start_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
-                    {' → '}
-                    {new Date(cycle.cycle_end_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
-                  </Text>
-                </View>
-
-                {/* Attendance bar */}
-                <View style={styles.sectionCard}>
-                  <Text style={styles.sectionTitle}>Attendance Progress</Text>
-                  <View style={styles.attRow}>
-                    <Text style={[styles.attPct, { color: attendanceStat.pct >= 80 ? '#16A34A' : divColor }]}>
-                      {attendanceStat.pct}%
-                    </Text>
-                    <Text style={styles.attTarget}>Target: {cycle.required_attendance_pct}%</Text>
-                  </View>
-                  <View style={styles.attBarBg}>
-                    <View style={[
-                      styles.attBarFill,
-                      {
-                        width: `${Math.min(100, attendanceStat.pct)}%`,
-                        backgroundColor: attendanceStat.pct >= 80 ? '#16A34A' : divColor,
-                      },
-                    ]} />
-                  </View>
-                  <Text style={styles.attMarkerLabel}>▲ 80% target</Text>
-                  <View style={styles.attStats}>
-                    <View style={styles.attStat}>
-                      <Text style={styles.attStatNum}>{attendanceStat.attended}</Text>
-                      <Text style={styles.attStatLabel}>Attended</Text>
-                    </View>
-                    <View style={styles.attStat}>
-                      <Text style={styles.attStatNum}>{attendanceStat.total}</Text>
-                      <Text style={styles.attStatLabel}>Total Sessions</Text>
-                    </View>
-                    <View style={styles.attStat}>
-                      <Text style={[styles.attStatNum, { color: '#EF4444' }]}>{attendanceStat.total - attendanceStat.attended}</Text>
-                      <Text style={styles.attStatLabel}>Missed</Text>
-                    </View>
-                  </View>
-                </View>
-
-                {/* Status message */}
-                {attendanceStat.pct >= cycle.required_attendance_pct && cycle.status === 'eligible' && (
-                  <View style={[styles.statusBanner, { backgroundColor: '#FEF9C3' }]}>
-                    <Text style={styles.statusBannerIcon}>⏳</Text>
-                    <Text style={styles.statusBannerText}>
-                      You've hit {cycle.required_attendance_pct}%!{cycle.requires_coach_approval ? ' Awaiting coach approval.' : ' Processing your promotion.'}
-                    </Text>
                   </View>
                 )}
                 {cycle.status === 'approved' && (
-                  <View style={[styles.statusBanner, { backgroundColor: '#DCFCE7' }]}>
-                    <Text style={styles.statusBannerIcon}>🎉</Text>
-                    <Text style={styles.statusBannerText}>Promotion approved! You'll be moved up shortly.</Text>
+                  <View style={styles.promoAlertApproved}>
+                    <Text style={styles.promoAlertIcon}>🎉</Text>
+                    <View style={styles.promoAlertBody}>
+                      <Text style={styles.promoAlertTitle}>Promotion approved!</Text>
+                      <Text style={styles.promoAlertSub}>
+                        Your coach has signed off. You'll be moved to {LEVEL_LABELS[cycle.to_level] ?? cycle.to_level} shortly.
+                      </Text>
+                    </View>
                   </View>
                 )}
-                {cycle.status === 'active' && attendanceStat.pct < cycle.required_attendance_pct && (
-                  <View style={[styles.statusBanner, { backgroundColor: '#EFF6FF' }]}>
-                    <Text style={styles.statusBannerIcon}>💪</Text>
-                    <Text style={styles.statusBannerText}>
-                      {sessionsNeeded > 0
-                        ? `${sessionsNeeded} more session${sessionsNeeded !== 1 ? 's' : ''} to reach ${cycle.required_attendance_pct}% — keep going!`
-                        : `You're on track! Keep attending to hit ${cycle.required_attendance_pct}%.`}
+                {cycle.status === 'active' && (
+                  <View style={[styles.promoAlertActive, { borderColor: divColor }]}>
+                    <Text style={styles.promoAlertIcon}>💪</Text>
+                    <View style={styles.promoAlertBody}>
+                      <Text style={[styles.promoAlertTitle, { color: divColor }]}>Keep going!</Text>
+                      <Text style={styles.promoAlertSub}>
+                        Hit all three targets below to become eligible for promotion.
+                      </Text>
+                    </View>
+                  </View>
+                )}
+
+                {/* ── Journey card ── */}
+                <View style={[styles.cycleCard, { borderColor: divColor }]}>
+                  <View style={styles.cycleHeader}>
+                    <View style={styles.cycleLevels}>
+                      <Text style={styles.cycleFromLabel}>Current Level</Text>
+                      <Text style={styles.cycleFrom}>{LEVEL_LABELS[cycle.from_level] ?? cycle.from_level}</Text>
+                      <Text style={styles.cycleArrow}>↓</Text>
+                      <Text style={styles.cycleToLabel}>Promoting To</Text>
+                      <Text style={[styles.cycleTo, { color: divColor }]}>{LEVEL_LABELS[cycle.to_level] ?? cycle.to_level}</Text>
+                    </View>
+                    <View style={styles.cycleDays}>
+                      <Text style={styles.cycleDaysLabel}>Started</Text>
+                      <Text style={styles.cycleDaysNum}>
+                        {Math.floor((Date.now() - new Date(cycle.cycle_start_date).getTime()) / (1000 * 60 * 60 * 24))}
+                      </Text>
+                      <Text style={styles.cycleDaysLabel}>days ago</Text>
+                    </View>
+                  </View>
+                  <Text style={styles.cycleDates}>
+                    Started {new Date(cycle.cycle_start_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
+                  </Text>
+                  {cycle.requires_coach_approval && (
+                    <View style={styles.approvalNote}>
+                      <Text style={styles.approvalNoteText}>🔐 Coach approval required for this promotion</Text>
+                    </View>
+                  )}
+                </View>
+
+                {/* ── Three criteria ── */}
+                <View style={styles.sectionCard}>
+                  <Text style={styles.sectionTitle}>Promotion Criteria</Text>
+                  <Text style={styles.criteriaSubtitle}>All three must reach 100% to become eligible</Text>
+
+                  {/* 1 — Active weeks */}
+                  {(() => {
+                    const val = cycle.active_weeks_so_far ?? 0;
+                    const target = cycle.min_active_weeks ?? 8;
+                    const pct = Math.min(100, Math.round((val / target) * 100));
+                    const met = val >= target;
+                    return (
+                      <View style={styles.criterionBlock}>
+                        <View style={styles.criterionHeader}>
+                          <View style={styles.criterionLabelRow}>
+                            <Text style={styles.criterionEmoji}>⏱</Text>
+                            <View>
+                              <Text style={styles.criterionLabel}>Active Weeks</Text>
+                              <Text style={styles.criterionHint}>Only weeks you attended count</Text>
+                            </View>
+                          </View>
+                          <View style={styles.criterionValueRow}>
+                            <Text style={[styles.criterionValue, met && styles.criterionValueMet]}>
+                              {val}<Text style={styles.criterionTarget}>/{target} wks</Text>
+                            </Text>
+                            <Text style={[styles.criterionCheck, met ? styles.checkMet : styles.checkNo]}>
+                              {met ? '✓' : '✗'}
+                            </Text>
+                          </View>
+                        </View>
+                        <View style={styles.criterionBarBg}>
+                          <View style={[styles.criterionBarFill, {
+                            width: `${pct}%`,
+                            backgroundColor: met ? '#16A34A' : divColor,
+                          }]} />
+                          <View style={styles.criterionMarker} />
+                        </View>
+                      </View>
+                    );
+                  })()}
+
+                  {/* 2 — Attendance % */}
+                  {(() => {
+                    const val = cycle.attendance_pct ?? 0;
+                    const met = val >= 80;
+                    return (
+                      <View style={styles.criterionBlock}>
+                        <View style={styles.criterionHeader}>
+                          <View style={styles.criterionLabelRow}>
+                            <Text style={styles.criterionEmoji}>📅</Text>
+                            <View>
+                              <Text style={styles.criterionLabel}>Session Attendance</Text>
+                              <Text style={styles.criterionHint}>Sessions attended vs scheduled</Text>
+                            </View>
+                          </View>
+                          <View style={styles.criterionValueRow}>
+                            <Text style={[styles.criterionValue, met && styles.criterionValueMet]}>
+                              {val}<Text style={styles.criterionTarget}>/80%</Text>
+                            </Text>
+                            <Text style={[styles.criterionCheck, met ? styles.checkMet : styles.checkNo]}>
+                              {met ? '✓' : '✗'}
+                            </Text>
+                          </View>
+                        </View>
+                        <View style={styles.criterionBarBg}>
+                          <View style={[styles.criterionBarFill, {
+                            width: `${Math.min(100, val)}%`,
+                            backgroundColor: met ? '#16A34A' : divColor,
+                          }]} />
+                          <View style={styles.criterionMarker} />
+                        </View>
+                      </View>
+                    );
+                  })()}
+
+                  {/* 3 — Performance % */}
+                  {(() => {
+                    const val = cycle.performance_pct ?? 0;
+                    const met = val >= 80;
+                    return (
+                      <View style={styles.criterionBlock}>
+                        <View style={styles.criterionHeader}>
+                          <View style={styles.criterionLabelRow}>
+                            <Text style={styles.criterionEmoji}>📊</Text>
+                            <View>
+                              <Text style={styles.criterionLabel}>Performance Score</Text>
+                              <Text style={styles.criterionHint}>Avg module score in your program</Text>
+                            </View>
+                          </View>
+                          <View style={styles.criterionValueRow}>
+                            <Text style={[styles.criterionValue, met && styles.criterionValueMet]}>
+                              {val}<Text style={styles.criterionTarget}>/80%</Text>
+                            </Text>
+                            <Text style={[styles.criterionCheck, met ? styles.checkMet : styles.checkNo]}>
+                              {met ? '✓' : '✗'}
+                            </Text>
+                          </View>
+                        </View>
+                        <View style={styles.criterionBarBg}>
+                          <View style={[styles.criterionBarFill, {
+                            width: `${Math.min(100, val)}%`,
+                            backgroundColor: met ? '#16A34A' : divColor,
+                          }]} />
+                          <View style={styles.criterionMarker} />
+                        </View>
+                      </View>
+                    );
+                  })()}
+
+                  {/* Last updated */}
+                  {cycle.last_evaluated_at && (
+                    <Text style={styles.lastUpdated}>
+                      Last updated {new Date(cycle.last_evaluated_at).toLocaleDateString('en-GB', {
+                        day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',
+                      })}
                     </Text>
-                  </View>
-                )}
+                  )}
+                </View>
+
+                {/* ── What happens next ── */}
+                <View style={styles.sectionCard}>
+                  <Text style={styles.sectionTitle}>What Happens Next?</Text>
+                  {[
+                    {
+                      done: (cycle.active_weeks_so_far ?? 0) >= (cycle.min_active_weeks ?? 8)
+                        && (cycle.attendance_pct ?? 0) >= 80
+                        && (cycle.performance_pct ?? 0) >= 80,
+                      icon: '⭐', text: 'You\'re flagged as eligible — your coach is notified',
+                    },
+                    {
+                      done: cycle.status === 'approved' || cycle.status === 'promoted',
+                      icon: '✅', text: cycle.requires_coach_approval
+                        ? 'Your coach reviews and approves your promotion'
+                        : 'Promotion is applied automatically',
+                    },
+                    {
+                      done: cycle.status === 'promoted',
+                      icon: '🚀', text: `You move up to ${LEVEL_LABELS[cycle.to_level] ?? cycle.to_level} and earn 50 ranking points`,
+                    },
+                  ].map((step, i) => (
+                    <View key={i} style={styles.nextStep}>
+                      <View style={[styles.nextStepDot, step.done && styles.nextStepDotDone]}>
+                        <Text style={styles.nextStepDotText}>{step.done ? '✓' : (i + 1).toString()}</Text>
+                      </View>
+                      <Text style={[styles.nextStepText, step.done && styles.nextStepTextDone]}>
+                        {step.icon} {step.text}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
               </>
             )}
           </>
@@ -941,4 +1078,78 @@ const styles = StyleSheet.create({
     position: 'absolute', top: 10, right: 10,
     width: 8, height: 8, borderRadius: 4,
   },
+
+  // ── Promotion tab ──────────────────────────────────────────
+
+  // Status banners
+  promoAlertEligible: {
+    flexDirection: 'row', alignItems: 'flex-start', gap: 12,
+    backgroundColor: '#FEF9C3', borderRadius: 14, padding: 14,
+    marginBottom: 14, borderWidth: 1, borderColor: '#FDE68A',
+  },
+  promoAlertApproved: {
+    flexDirection: 'row', alignItems: 'flex-start', gap: 12,
+    backgroundColor: '#DCFCE7', borderRadius: 14, padding: 14,
+    marginBottom: 14, borderWidth: 1, borderColor: '#BBF7D0',
+  },
+  promoAlertActive: {
+    flexDirection: 'row', alignItems: 'flex-start', gap: 12,
+    backgroundColor: '#FFFFFF', borderRadius: 14, padding: 14,
+    marginBottom: 14, borderWidth: 1.5,
+  },
+  promoAlertIcon: { fontSize: 24 },
+  promoAlertBody: { flex: 1 },
+  promoAlertTitle: { fontSize: 15, fontWeight: '700', color: '#111827', marginBottom: 2 },
+  promoAlertSub: { fontSize: 13, color: '#6B7280', lineHeight: 18 },
+
+  // Cycle card
+  cycleFromLabel: { fontSize: 10, color: '#9CA3AF', fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
+  cycleToLabel:   { fontSize: 10, color: '#9CA3AF', fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 6 },
+  cycleLevels: { flex: 1 },
+  approvalNote: {
+    marginTop: 10, backgroundColor: '#FEF9C3',
+    borderRadius: 8, padding: 8,
+  },
+  approvalNoteText: { fontSize: 12, color: '#92400E', fontWeight: '600' },
+
+  // Criteria block
+  criteriaSubtitle: { fontSize: 12, color: '#9CA3AF', marginBottom: 16, marginTop: -8 },
+  criterionBlock: { marginBottom: 18 },
+  criterionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
+  criterionLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 },
+  criterionEmoji: { fontSize: 22 },
+  criterionLabel: { fontSize: 14, fontWeight: '700', color: '#111827' },
+  criterionHint:  { fontSize: 11, color: '#9CA3AF', marginTop: 1 },
+  criterionValueRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  criterionValue: { fontSize: 18, fontWeight: '800', color: '#3B82F6' },
+  criterionValueMet: { color: '#16A34A' },
+  criterionTarget: { fontSize: 12, color: '#9CA3AF', fontWeight: '400' },
+  criterionCheck: { fontSize: 16, fontWeight: '800' },
+  checkMet: { color: '#16A34A' },
+  checkNo:  { color: '#EF4444' },
+  criterionBarBg: {
+    height: 10, backgroundColor: '#E5E7EB', borderRadius: 5,
+    overflow: 'hidden', position: 'relative',
+  },
+  criterionBarFill: { height: '100%', borderRadius: 5 },
+  criterionMarker: {
+    position: 'absolute', left: '80%', top: 0, bottom: 0,
+    width: 2, backgroundColor: 'rgba(0,0,0,0.2)',
+  },
+  lastUpdated: { fontSize: 11, color: '#9CA3AF', textAlign: 'right', marginTop: 4 },
+
+  // What happens next
+  nextStep: {
+    flexDirection: 'row', alignItems: 'flex-start',
+    gap: 12, marginBottom: 14,
+  },
+  nextStepDot: {
+    width: 28, height: 28, borderRadius: 14,
+    backgroundColor: '#E5E7EB', alignItems: 'center',
+    justifyContent: 'center', flexShrink: 0,
+  },
+  nextStepDotDone: { backgroundColor: '#16A34A' },
+  nextStepDotText: { fontSize: 12, fontWeight: '700', color: '#FFFFFF' },
+  nextStepText: { flex: 1, fontSize: 14, color: '#374151', lineHeight: 20, paddingTop: 4 },
+  nextStepTextDone: { color: '#16A34A', textDecorationLine: 'line-through' },
 });
