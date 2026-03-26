@@ -3,6 +3,7 @@ import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
   RefreshControl, Alert,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
 import { Program, EnrollmentStatus, Division, DIVISION_LABELS, DIVISION_COLORS } from '../../types';
 import BackHeader from '../../components/common/BackHeader';
@@ -27,6 +28,7 @@ const STATUS_COLORS: Record<EnrollmentStatus, { bg: string; text: string }> = {
 };
 
 export default function ProgramRosterScreen({ route, navigation }: any) {
+  const insets = useSafeAreaInsets();
   const { programId } = route.params;
   const [program, setProgram] = useState<Program | null>(null);
   const [enrollments, setEnrollments] = useState<EnrollmentRow[]>([]);
@@ -99,6 +101,7 @@ export default function ProgramRosterScreen({ route, navigation }: any) {
 
   return (
     <ScrollView
+      contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
       style={styles.container}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
     >

@@ -3,6 +3,7 @@ import {
   View, Text, ScrollView, StyleSheet,
   TouchableOpacity, RefreshControl,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { Enrollment, Notification } from '../../types';
@@ -15,6 +16,7 @@ interface EnrollmentWithProgress extends Enrollment {
 
 export default function HomeScreen({ navigation }: any) {
   const { profile } = useAuth();
+  const insets = useSafeAreaInsets();
   const [enrollments, setEnrollments] = useState<EnrollmentWithProgress[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [refreshing, setRefreshing] = useState(false);
@@ -114,6 +116,7 @@ export default function HomeScreen({ navigation }: any) {
   return (
     <ScrollView
       style={styles.container}
+      contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
     >
       <ScreenHeader title="BPT Academy 🎾" />

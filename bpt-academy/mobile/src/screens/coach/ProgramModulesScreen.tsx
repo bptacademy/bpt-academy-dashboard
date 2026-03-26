@@ -3,11 +3,13 @@ import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
   TextInput, Alert, ActivityIndicator, Modal, RefreshControl,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
 import BackHeader from '../../components/common/BackHeader';
 import { Module } from '../../types';
 
 export default function ProgramModulesScreen({ route }: any) {
+  const insets = useSafeAreaInsets();
   const { programId, programTitle } = route.params;
   const [modules, setModules] = useState<Module[]>([]);
   const [loading, setLoading] = useState(true);
@@ -81,6 +83,7 @@ export default function ProgramModulesScreen({ route }: any) {
       <BackHeader title={`${programTitle} — Modules`} />
 
       <ScrollView
+        contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}

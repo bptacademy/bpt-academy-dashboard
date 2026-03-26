@@ -1,8 +1,9 @@
 import React from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet, Modal,
-  SafeAreaView, Image, ScrollView,
+  Image, ScrollView,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../../context/AuthContext';
 
 interface MenuItem {
@@ -20,6 +21,7 @@ interface Props {
 
 export default function MenuDrawer({ visible, onClose, onNavigate, items }: Props) {
   const { profile, signOut, effectiveRole, setPreviewRole } = useAuth();
+  const insets = useSafeAreaInsets();
   const isActualAdmin = profile?.role === 'admin' || profile?.role === 'coach';
   const isViewingAsStudent = effectiveRole === 'student';
 
@@ -40,8 +42,11 @@ export default function MenuDrawer({ visible, onClose, onNavigate, items }: Prop
     >
       <View style={styles.overlay}>
         <TouchableOpacity style={styles.backdrop} onPress={onClose} activeOpacity={1} />
-        <SafeAreaView style={styles.drawer}>
-          <ScrollView bounces={false}>
+        <View style={[styles.drawer, { paddingTop: insets.top }]}>
+          <ScrollView
+            bounces={false}
+            contentContainerStyle={{ paddingBottom: insets.bottom + 16 }}
+          >
             {/* Profile header */}
             <View style={styles.header}>
               {profile?.avatar_url ? (
@@ -101,7 +106,7 @@ export default function MenuDrawer({ visible, onClose, onNavigate, items }: Prop
               <Text style={styles.signOutLabel}>Sign Out</Text>
             </TouchableOpacity>
           </ScrollView>
-        </SafeAreaView>
+        </View>
       </View>
     </Modal>
   );
@@ -111,7 +116,7 @@ const styles = StyleSheet.create({
   overlay: { flex: 1, flexDirection: 'row' },
   backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)' },
   drawer: { width: 300, backgroundColor: '#FFFFFF', shadowColor: '#000', shadowOffset: { width: -2, height: 0 }, shadowOpacity: 0.2, shadowRadius: 8, elevation: 16 },
-  header: { padding: 24, paddingTop: 48, backgroundColor: '#111827', alignItems: 'center' },
+  header: { padding: 24, paddingTop: 24, backgroundColor: '#111827', alignItems: 'center' },
   avatar: { width: 70, height: 70, borderRadius: 35, marginBottom: 10 },
   avatarFallback: { width: 70, height: 70, borderRadius: 35, backgroundColor: '#16A34A', alignItems: 'center', justifyContent: 'center', marginBottom: 10 },
   avatarText: { color: '#FFFFFF', fontSize: 24, fontWeight: '700' },

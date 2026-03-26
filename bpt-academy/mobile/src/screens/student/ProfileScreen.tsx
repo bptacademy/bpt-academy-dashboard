@@ -4,6 +4,7 @@ import {
   Alert, Switch, TextInput, Image, ActivityIndicator,
   KeyboardAvoidingView, Platform, Modal,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useAuth } from '../../context/AuthContext';
@@ -20,6 +21,7 @@ const SKILL_COLORS: Record<SkillLevel, string> = {
 const DIVISIONS: Division[] = ['amateur', 'semi_pro', 'pro'];
 
 export default function ProfileScreen() {
+  const insets = useSafeAreaInsets();
   const { profile, signOut, previewRole, setPreviewRole, effectiveRole, refreshProfile } = useAuth();
 
   const isActualAdmin = profile?.role === 'admin' || profile?.role === 'coach';

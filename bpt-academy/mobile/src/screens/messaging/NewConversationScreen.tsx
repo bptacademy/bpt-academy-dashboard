@@ -3,12 +3,14 @@ import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
   TextInput, Alert,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { Profile } from '../../types';
 import BackHeader from '../../components/common/BackHeader';
 
 export default function NewConversationScreen({ navigation }: any) {
+  const insets = useSafeAreaInsets();
   const { profile } = useAuth();
   const [people, setPeople] = useState<Profile[]>([]);
   const [search, setSearch] = useState('');

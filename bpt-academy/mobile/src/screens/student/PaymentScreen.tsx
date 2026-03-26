@@ -3,6 +3,7 @@ import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
   Alert, ActivityIndicator, TextInput, Linking,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
 import BackHeader from '../../components/common/BackHeader';
@@ -17,6 +18,7 @@ type BankDetails = {
 };
 
 export default function PaymentScreen({ navigation, route }: any) {
+  const insets = useSafeAreaInsets();
   const {
     tournamentId, programId, enrollmentId,
     amount, programDivision, studentId, label,

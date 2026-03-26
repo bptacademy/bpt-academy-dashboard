@@ -3,6 +3,7 @@ import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
   RefreshControl, Alert, ActivityIndicator,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { Payment } from '../../types';
@@ -15,6 +16,7 @@ interface PaymentRow extends Payment {
 }
 
 export default function PaymentReconciliationScreen() {
+  const insets = useSafeAreaInsets();
   const { profile } = useAuth();
   const [payments, setPayments] = useState<PaymentRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -115,6 +117,7 @@ export default function PaymentReconciliationScreen() {
 
   return (
     <ScrollView
+      contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
       style={styles.container}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
     >

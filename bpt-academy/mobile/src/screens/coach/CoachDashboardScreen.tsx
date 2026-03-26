@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, RefreshControl } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
 import ScreenHeader from '../../components/common/ScreenHeader';
@@ -18,6 +19,7 @@ const COACH_ACTIONS = [
 ];
 
 export default function CoachDashboardScreen({ navigation }: any) {
+  const insets = useSafeAreaInsets();
   const { profile } = useAuth();
   const [stats, setStats] = useState({ myStudents: 0, myPrograms: 0, videos: 0 });
   const [refreshing, setRefreshing] = useState(false);
@@ -64,6 +66,7 @@ export default function CoachDashboardScreen({ navigation }: any) {
 
   return (
     <ScrollView
+      contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
       style={styles.container}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
     >

@@ -3,6 +3,7 @@ import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
   ActivityIndicator, Alert, Switch,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
 import { SessionAttendance, Profile, ProgramSession } from '../../types';
 import BackHeader from '../../components/common/BackHeader';
@@ -13,6 +14,7 @@ interface StudentRow {
 }
 
 export default function AttendanceScreen({ route }: any) {
+  const insets = useSafeAreaInsets();
   const { sessionId, sessionTitle } = route.params;
   const [session, setSession] = useState<ProgramSession | null>(null);
   const [rows, setRows] = useState<StudentRow[]>([]);

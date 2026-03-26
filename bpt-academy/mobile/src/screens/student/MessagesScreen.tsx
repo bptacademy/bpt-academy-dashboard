@@ -3,6 +3,7 @@ import {
   View, Text, ScrollView, StyleSheet,
   TouchableOpacity, RefreshControl,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import ScreenHeader from '../../components/common/ScreenHeader';
@@ -17,6 +18,7 @@ interface ConvRow {
 }
 
 export default function MessagesScreen({ navigation }: any) {
+  const insets = useSafeAreaInsets();
   const { profile } = useAuth();
   const [conversations, setConversations] = useState<ConvRow[]>([]);
   const [refreshing, setRefreshing] = useState(false);
@@ -98,6 +100,7 @@ export default function MessagesScreen({ navigation }: any) {
   return (
     <View style={styles.wrapper}>
       <ScrollView
+        contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
         style={styles.container}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >

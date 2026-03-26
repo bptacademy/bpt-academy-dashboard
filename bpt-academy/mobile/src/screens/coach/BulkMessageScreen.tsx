@@ -3,6 +3,7 @@ import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
   TextInput, Alert, KeyboardAvoidingView, Platform, ActivityIndicator,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { Division, DIVISION_LABELS, DIVISION_COLORS } from '../../types';
@@ -11,6 +12,7 @@ import ScreenHeader from '../../components/common/ScreenHeader';
 const ALL_DIVISIONS: Division[] = ['amateur', 'semi_pro', 'pro', 'junior_9_11', 'junior_12_15', 'junior_15_18'];
 
 export default function BulkMessageScreen() {
+  const insets = useSafeAreaInsets();
   const { profile } = useAuth();
   const [selectedDivisions, setSelectedDivisions] = useState<Division[]>([]);
   const [title, setTitle] = useState('');

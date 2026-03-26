@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import MenuDrawer from './MenuDrawer';
 import { useAuth } from '../../context/AuthContext';
@@ -71,6 +72,7 @@ interface Props {
 export default function ScreenHeader({ title, dark = false }: Props) {
   const [open, setOpen] = useState(false);
   const navigation = useNavigation<any>();
+  const insets = useSafeAreaInsets();
   const { isSuperAdmin, isAdmin, isCoach } = useAuth();
 
   const menu = isSuperAdmin ? SUPER_ADMIN_MENU
@@ -84,7 +86,7 @@ export default function ScreenHeader({ title, dark = false }: Props) {
 
   return (
     <>
-      <View style={[styles.header, dark && styles.headerDark]}>
+      <View style={[styles.header, dark && styles.headerDark, { paddingTop: insets.top + 10 }]}>
         {/* Logo — taps to home */}
         <TouchableOpacity onPress={() => navigation.navigate(homeScreen)} style={styles.logoBtn}>
           <Image
@@ -116,7 +118,7 @@ export default function ScreenHeader({ title, dark = false }: Props) {
 const styles = StyleSheet.create({
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: 16, paddingTop: 52, paddingBottom: 10,
+    paddingHorizontal: 16, paddingBottom: 10,
     backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#F3F4F6',
   },
   headerDark: { backgroundColor: '#111827', borderBottomColor: '#1F2937' },

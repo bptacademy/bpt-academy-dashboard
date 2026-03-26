@@ -3,6 +3,7 @@ import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
   ActivityIndicator, RefreshControl,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { Division, DIVISION_LABELS, DIVISION_COLORS } from '../../types';
@@ -52,6 +53,7 @@ function resultLabel(reason: string): string {
 // ─── Component ────────────────────────────────────────────────
 
 export default function LeaderboardScreen() {
+  const insets = useSafeAreaInsets();
   const { profile } = useAuth();
   const [mainTab, setMainTab] = useState<MainTab>('rankings');
   const [activeDivision, setActiveDivision] = useState<Division>('amateur');
@@ -213,6 +215,7 @@ export default function LeaderboardScreen() {
         <>
           {/* Division filter */}
           <ScrollView
+            contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.divTabs}

@@ -3,6 +3,7 @@ import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
   RefreshControl, Alert, ActivityIndicator,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { Program, Module, StudentProgress, ProgramSession, Division, DIVISION_LABELS, DIVISION_COLORS } from '../../types';
@@ -11,6 +12,7 @@ import BackHeader from '../../components/common/BackHeader';
 const DEFAULT_PRICE_GBP = 49.99;
 
 export default function ProgramDetailScreen({ route, navigation }: any) {
+  const insets = useSafeAreaInsets();
   const { programId } = route.params;
   const { profile } = useAuth();
 
@@ -133,6 +135,7 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
 
   return (
     <ScrollView
+      contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
       style={styles.container}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={async () => { setRefreshing(true); await fetchData(); setRefreshing(false); }} />}
     >

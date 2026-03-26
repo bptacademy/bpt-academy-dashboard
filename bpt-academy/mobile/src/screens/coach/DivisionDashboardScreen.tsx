@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, RefreshControl, ActivityIndicator } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
 import { Division, DIVISION_LABELS, DIVISION_COLORS } from '../../types';
 import ScreenHeader from '../../components/common/ScreenHeader';
@@ -14,6 +15,7 @@ interface DivisionStat {
 }
 
 export default function DivisionDashboardScreen({ navigation }: any) {
+  const insets = useSafeAreaInsets();
   const [stats, setStats] = useState<DivisionStat[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -51,6 +53,7 @@ export default function DivisionDashboardScreen({ navigation }: any) {
 
   return (
     <ScrollView
+      contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
       style={styles.container}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
     >

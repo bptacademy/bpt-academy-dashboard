@@ -3,6 +3,7 @@ import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
   RefreshControl, ActivityIndicator, Modal,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import {
@@ -82,6 +83,7 @@ function getCurrentLevelKey(division?: Division, skillLevel?: string): string {
 
 // ─── Main Component ───────────────────────────────────────────
 export default function ProgressScreen() {
+  const insets = useSafeAreaInsets();
   const { profile } = useAuth();
   const [tab, setTab] = useState<Tab>('overview');
   const [refreshing, setRefreshing] = useState(false);
@@ -378,6 +380,7 @@ export default function ProgressScreen() {
       </View>
 
       <ScrollView
+        contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
         style={styles.scroll}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         showsVerticalScrollIndicator={false}

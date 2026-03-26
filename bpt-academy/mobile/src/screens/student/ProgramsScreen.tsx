@@ -3,6 +3,7 @@ import {
   View, Text, ScrollView, StyleSheet,
   TouchableOpacity, RefreshControl, Alert,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { Program, SkillLevel, Division, DIVISION_LABELS, DIVISION_COLORS } from '../../types';
@@ -11,6 +12,7 @@ import ScreenHeader from '../../components/common/ScreenHeader';
 const DIVISIONS: Division[] = ['amateur', 'semi_pro', 'pro'];
 
 export default function ProgramsScreen({ navigation }: any) {
+  const insets = useSafeAreaInsets();
   const { profile } = useAuth();
   const [programs, setPrograms] = useState<Program[]>([]);
   const [enrolledIds, setEnrolledIds] = useState<string[]>([]);
@@ -46,6 +48,7 @@ export default function ProgramsScreen({ navigation }: any) {
 
   return (
     <ScrollView
+      contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
       style={styles.container}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
     >

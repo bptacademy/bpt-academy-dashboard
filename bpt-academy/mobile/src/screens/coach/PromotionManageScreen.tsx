@@ -3,6 +3,7 @@ import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
   Alert, ActivityIndicator, RefreshControl,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { LEVEL_LABELS } from '../../types';
@@ -67,6 +68,7 @@ function MetricBar({ label, value, target, suffix = '%' }: {
 }
 
 export default function PromotionManageScreen({ route, navigation }: any) {
+  const insets = useSafeAreaInsets();
   const { studentId, studentName } = route.params;
   const { profile: coachProfile } = useAuth();
 
@@ -237,6 +239,7 @@ export default function PromotionManageScreen({ route, navigation }: any) {
     <View style={styles.root}>
       <BackHeader title={`${studentName} — Promotion`} />
       <ScrollView
+        contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
         contentContainerStyle={styles.content}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >

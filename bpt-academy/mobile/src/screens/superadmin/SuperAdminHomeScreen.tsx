@@ -3,6 +3,7 @@ import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
   RefreshControl, Alert, Modal, ActivityIndicator, TextInput,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
 import { Profile, UserRole } from '../../types';
 import ScreenHeader from '../../components/common/ScreenHeader';
@@ -24,6 +25,7 @@ const initials = (name: string) =>
 
 // ─── Component ──────────────────────────────────────────────────────────
 export default function SuperAdminHomeScreen({ navigation }: any) {
+  const insets = useSafeAreaInsets();
   const { profile: me } = useAuth();
 
   // Stats
@@ -139,6 +141,7 @@ export default function SuperAdminHomeScreen({ navigation }: any) {
       <ScreenHeader title="Super Admin" dark />
 
       <ScrollView
+        contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         stickyHeaderIndices={[1]}
       >

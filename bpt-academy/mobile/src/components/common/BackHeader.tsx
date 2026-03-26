@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import MenuDrawer from './MenuDrawer';
 import { useAuth } from '../../context/AuthContext';
 
+// Menus kept in sync with ScreenHeader
 const STUDENT_MENU = [
   { icon: '🏠', label: 'Home',        screen: 'Home' },
   { icon: '📚', label: 'Programs',    screen: 'Programs' },
@@ -13,6 +15,18 @@ const STUDENT_MENU = [
   { icon: '🎾', label: 'Tournaments', screen: 'Tournaments' },
   { icon: '💬', label: 'Messages',    screen: 'Messages' },
   { icon: '📝', label: 'Coach Notes', screen: 'MyCoachNotes' },
+  { icon: '👤', label: 'Profile',     screen: 'Profile' },
+];
+
+const COACH_MENU = [
+  { icon: '📊', label: 'Dashboard',   screen: 'Dashboard' },
+  { icon: '📋', label: 'Programs',    screen: 'Manage' },
+  { icon: '🎬', label: 'Videos',      screen: 'Videos' },
+  { icon: '👥', label: 'Students',    screen: 'Students' },
+  { icon: '🏅', label: 'Divisions',   screen: 'Divisions' },
+  { icon: '🎾', label: 'Tournaments', screen: 'Tournaments' },
+  { icon: '💬', label: 'Messages',    screen: 'Messages' },
+  { icon: '🔔', label: 'Announce',    screen: 'Announce' },
   { icon: '👤', label: 'Profile',     screen: 'Profile' },
 ];
 
@@ -27,7 +41,25 @@ const ADMIN_MENU = [
   { icon: '💬', label: 'Messages',    screen: 'Messages' },
   { icon: '📣', label: 'Bulk Msg',    screen: 'BulkMsg' },
   { icon: '🔔', label: 'Announce',    screen: 'Announce' },
+  { icon: '⚙️', label: 'Settings',    screen: 'AcademySettings' },
   { icon: '👤', label: 'Profile',     screen: 'Profile' },
+];
+
+const SUPER_ADMIN_MENU = [
+  { icon: '👑', label: 'Users',        screen: 'SuperAdminHome' },
+  { icon: '📊', label: 'Dashboard',    screen: 'Dashboard' },
+  { icon: '📋', label: 'Programs',     screen: 'Manage' },
+  { icon: '🎬', label: 'Videos',       screen: 'Videos' },
+  { icon: '👥', label: 'Students',     screen: 'Students' },
+  { icon: '🏅', label: 'Divisions',    screen: 'Divisions' },
+  { icon: '🎾', label: 'Tournaments',  screen: 'Tournaments' },
+  { icon: '💳', label: 'Payments',     screen: 'Payments' },
+  { icon: '💬', label: 'Messages',     screen: 'Messages' },
+  { icon: '📣', label: 'Bulk Msg',     screen: 'BulkMsg' },
+  { icon: '🔔', label: 'Announce',     screen: 'Announce' },
+  { icon: '⚙️', label: 'Settings',     screen: 'AcademySettings' },
+  { icon: '💰', label: 'Billing',      screen: 'BillingSettings' },
+  { icon: '👤', label: 'Profile',      screen: 'Profile' },
 ];
 
 interface Props {
@@ -37,17 +69,24 @@ interface Props {
 
 export default function BackHeader({ title, dark = false }: Props) {
   const navigation = useNavigation<any>();
-  const { effectiveRole } = useAuth();
+  const insets = useSafeAreaInsets();
+  const { isSuperAdmin, isAdmin, isCoach } = useAuth();
   const [open, setOpen] = useState(false);
 
-  const isAdmin = effectiveRole === 'admin' || effectiveRole === 'coach';
-  const menu = isAdmin ? ADMIN_MENU : STUDENT_MENU;
-  const homeScreen = isAdmin ? 'Dashboard' : 'Home';
+  const menu = isSuperAdmin ? SUPER_ADMIN_MENU
+             : isAdmin      ? ADMIN_MENU
+             : isCoach      ? COACH_MENU
+             : STUDENT_MENU;
+
+  const homeScreen = isSuperAdmin ? 'SuperAdminHome'
+                   : (isAdmin || isCoach) ? 'Dashboard'
+                   : 'Home';
+
   const canGoBack = navigation.canGoBack();
 
   return (
     <>
-      <View style={[styles.header, dark && styles.headerDark]}>
+      <View style={[styles.header, dark && styles.headerDark, { paddingTop: insets.top + 10 }]}>
         {/* Back or logo */}
         {canGoBack ? (
           <TouchableOpacity
@@ -69,7 +108,7 @@ export default function BackHeader({ title, dark = false }: Props) {
           </TouchableOpacity>
         )}
 
-        {/* Title — centred */}
+        {/* Title */}
         {title
           ? <Text style={[styles.title, dark && styles.lightText]} numberOfLines={1}>{title}</Text>
           : <View style={{ flex: 1 }} />
@@ -94,7 +133,7 @@ export default function BackHeader({ title, dark = false }: Props) {
 const styles = StyleSheet.create({
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: 16, paddingTop: 52, paddingBottom: 10,
+    paddingHorizontal: 16, paddingBottom: 10,
     backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#F3F4F6',
   },
   headerDark: { backgroundColor: '#111827', borderBottomColor: '#1F2937' },

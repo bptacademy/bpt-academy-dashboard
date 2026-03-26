@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, ActivityIndicator, RefreshControl,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { CoachNote } from '../../types';
@@ -12,6 +13,7 @@ interface NoteWithCoach extends CoachNote {
 }
 
 export default function MyCoachNotesScreen() {
+  const insets = useSafeAreaInsets();
   const { profile } = useAuth();
   const [notes, setNotes] = useState<NoteWithCoach[]>([]);
   const [loading, setLoading] = useState(true);
@@ -49,6 +51,7 @@ export default function MyCoachNotesScreen() {
     <View style={styles.container}>
       <ScreenHeader title="Coach Notes" />
       <ScrollView
+        contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.content}

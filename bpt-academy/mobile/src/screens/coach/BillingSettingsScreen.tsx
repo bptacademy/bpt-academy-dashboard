@@ -3,6 +3,7 @@ import {
   View, Text, ScrollView, StyleSheet, TextInput,
   TouchableOpacity, Alert, ActivityIndicator, Linking,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
 import ScreenHeader from '../../components/common/ScreenHeader';
 
@@ -31,6 +32,7 @@ type Tab = 'bank' | 'stripe';
 // ─── Screen ──────────────────────────────────────────────────────────────────
 
 export default function BillingSettingsScreen() {
+  const insets = useSafeAreaInsets();
   const [tab, setTab]           = useState<Tab>('stripe');
   const [settings, setSettings] = useState<Record<string, string>>({});
   const [loading, setLoading]   = useState(true);
