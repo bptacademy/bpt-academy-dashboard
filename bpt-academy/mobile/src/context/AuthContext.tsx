@@ -8,9 +8,12 @@ interface AuthContextType {
   user: User | null;
   profile: Profile | null;
   loading: boolean;
-  previewRole: 'admin' | 'student' | null;
-  setPreviewRole: (role: 'admin' | 'student' | null) => void;
+  previewRole: 'super_admin' | 'admin' | 'coach' | 'student' | null;
+  setPreviewRole: (role: 'super_admin' | 'admin' | 'coach' | 'student' | null) => void;
   effectiveRole: string;
+  isSuperAdmin: boolean;
+  isAdmin: boolean;
+  isCoach: boolean;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
@@ -23,6 +26,9 @@ const AuthContext = createContext<AuthContextType>({
   previewRole: null,
   setPreviewRole: () => {},
   effectiveRole: 'student',
+  isSuperAdmin: false,
+  isAdmin: false,
+  isCoach: false,
   signOut: async () => {},
   refreshProfile: async () => {},
 });
@@ -31,9 +37,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [previewRole, setPreviewRole] = useState<'admin' | 'student' | null>(null);
+  const [previewRole, setPreviewRole] = useState<'super_admin' | 'admin' | 'coach' | 'student' | null>(null);
 
   const effectiveRole = previewRole ?? profile?.role ?? 'student';
+  const isSuperAdmin = effectiveRole === 'super_admin';
+  const isAdmin = effectiveRole === 'admin' || effectiveRole === 'super_admin';
+  const isCoach = effectiveRole === 'coach' || effectiveRole === 'admin' || effectiveRole === 'super_admin';
 
   const fetchProfile = async (userId: string) => {
     const { data } = await supabase
@@ -82,6 +91,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       previewRole,
       setPreviewRole,
       effectiveRole,
+      isSuperAdmin,
+      isAdmin,
+      isCoach,
       signOut,
       refreshProfile,
     }}>

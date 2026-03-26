@@ -1,4 +1,4 @@
-export type UserRole = 'student' | 'coach' | 'admin' | 'parent';
+export type UserRole = 'student' | 'coach' | 'admin' | 'super_admin' | 'parent';
 export type SkillLevel = 'beginner' | 'intermediate' | 'advanced';
 export type EnrollmentStatus = 'active' | 'waitlisted' | 'completed' | 'cancelled';
 export type Division = 'amateur' | 'semi_pro' | 'pro' | 'junior_9_11' | 'junior_12_15' | 'junior_15_18';

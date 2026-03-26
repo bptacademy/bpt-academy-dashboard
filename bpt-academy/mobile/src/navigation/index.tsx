@@ -117,12 +117,20 @@ function AdminStack() {
 }
 
 export default function RootNavigator() {
-  const { session, loading, effectiveRole } = useAuth();
+  const { session, loading, isSuperAdmin, isAdmin, isCoach } = useAuth();
   if (loading) return null;
-  const isAdmin = effectiveRole === 'admin' || effectiveRole === 'coach';
+
+  const renderStack = () => {
+    if (!session) return <AuthStack />;
+    if (isSuperAdmin) return <AdminStack />; // SuperAdminStack to be built separately
+    if (isAdmin)      return <AdminStack />;
+    if (isCoach)      return <AdminStack />; // CoachStack (restricted) — next step
+    return <StudentStack />;
+  };
+
   return (
     <NavigationContainer>
-      {!session ? <AuthStack /> : isAdmin ? <AdminStack /> : <StudentStack />}
+      {renderStack()}
     </NavigationContainer>
   );
 }
