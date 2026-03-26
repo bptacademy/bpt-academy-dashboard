@@ -331,12 +331,14 @@ export default function ProgressScreen() {
   useEffect(() => { if (tab === 'badges') fetchBadges(); }, [tab, fetchBadges]);
   useEffect(() => { if (tab === 'goals') fetchGoals(); }, [tab, fetchGoals]);
 
-  // Every time screen comes into focus: refresh profile from DB + reload data
-  // Ensures division/level/colour updates after promotions without sign-out
+  // On focus: refresh profile from DB — fetchOverview/fetchCycle will
+  // re-run automatically via their [profile] dependency when profile state updates.
+  // Do NOT manually call fetchAll() here — profile hasn't re-rendered yet
+  // so fetchAll would run with stale profile data.
   useFocusEffect(
     useCallback(() => {
-      refreshProfile().then(() => fetchAll());
-    }, [refreshProfile, fetchAll])
+      refreshProfile();
+    }, [refreshProfile])
   );
 
   const onRefresh = async () => {
