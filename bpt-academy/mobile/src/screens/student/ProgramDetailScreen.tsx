@@ -14,7 +14,7 @@ const DEFAULT_PRICE_GBP = 49.99;
 export default function ProgramDetailScreen({ route, navigation }: any) {
   const insets = useSafeAreaInsets();
   const { programId } = route.params;
-  const { profile } = useAuth();
+  const { profile, refreshProfile } = useAuth();
 
   const [program, setProgram]                     = useState<Program | null>(null);
   const [modules, setModules]                     = useState<(Module & { progress?: StudentProgress })[]>([]);
@@ -84,7 +84,14 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
         status: 'active',
       });
       if (error) { Alert.alert('Error', error.message); return; }
-      Alert.alert('🎾 Enrolled!', 'You are now enrolled in this program.');
+
+      // Explicitly kick off promotion cycle (trigger may not fire on direct insert)
+      await supabase.rpc('start_promotion_cycle_for_student', {
+        p_student_id: profile!.id,
+        p_program_id: programId,
+      });
+
+      Alert.alert('🎾 Enrolled!', 'You are now enrolled in this program. Your promotion cycle has started!');
       fetchData();
       return;
     }

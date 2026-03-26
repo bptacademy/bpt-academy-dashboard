@@ -490,6 +490,66 @@ export default function StudentDetailScreen({ route, navigation }: any) {
             <Text style={styles.promoBtnChevron}>›</Text>
           </TouchableOpacity>
         </View>
+
+        {/* Direct message */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { marginBottom: 10 }]}>Messaging</Text>
+          <TouchableOpacity
+            style={styles.promoBtn}
+            onPress={async () => {
+              if (!coachProfile) return;
+              // Find existing 1-on-1 conversation between coach and student
+              const { data: existingMemberships } = await supabase
+                .from('conversation_members')
+                .select('conversation_id')
+                .eq('profile_id', coachProfile.id);
+
+              const myConvIds = (existingMemberships ?? []).map((m: any) => m.conversation_id);
+              let conversationId: string | null = null;
+
+              if (myConvIds.length > 0) {
+                // Find a non-group conversation that also has the student
+                const { data: shared } = await supabase
+                  .from('conversation_members')
+                  .select('conversation_id, conversation:conversations!inner(is_group)')
+                  .eq('profile_id', student.id)
+                  .in('conversation_id', myConvIds);
+
+                const direct = (shared ?? []).find((m: any) => !m.conversation?.is_group);
+                if (direct) conversationId = direct.conversation_id;
+              }
+
+              // Create new 1-on-1 conversation if none exists
+              if (!conversationId) {
+                const { data: newConv, error } = await supabase
+                  .from('conversations')
+                  .insert({ is_group: false, created_by: coachProfile.id })
+                  .select('id')
+                  .single();
+
+                if (error || !newConv) {
+                  Alert.alert('Error', 'Could not start conversation.');
+                  return;
+                }
+                conversationId = newConv.id;
+
+                // Add both members
+                await supabase.from('conversation_members').insert([
+                  { conversation_id: conversationId, profile_id: coachProfile.id },
+                  { conversation_id: conversationId, profile_id: student.id },
+                ]);
+              }
+
+              navigation.navigate('Chat', {
+                conversationId,
+                title: student.full_name,
+              });
+            }}
+          >
+            <Text style={styles.promoBtnText}>💬 Send Message</Text>
+            <Text style={styles.promoBtnChevron}>›</Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
 
       {/* Goal modal */}

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
   RefreshControl, ActivityIndicator, Modal,
@@ -82,9 +82,9 @@ function getCurrentLevelKey(division?: Division, skillLevel?: string): string {
 }
 
 // ─── Main Component ───────────────────────────────────────────
-export default function ProgressScreen() {
+export default function ProgressScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
-  const { profile } = useAuth();
+  const { profile, refreshProfile } = useAuth();
   const [tab, setTab] = useState<Tab>('overview');
   const [refreshing, setRefreshing] = useState(false);
 
@@ -329,6 +329,16 @@ export default function ProgressScreen() {
   useEffect(() => { fetchAll(); }, [fetchAll]);
   useEffect(() => { if (tab === 'badges') fetchBadges(); }, [tab, fetchBadges]);
   useEffect(() => { if (tab === 'goals') fetchGoals(); }, [tab, fetchGoals]);
+
+  // Refresh profile + data whenever screen comes into focus
+  // This ensures division/level updates from promotions are reflected immediately
+  useEffect(() => {
+    const unsub = navigation?.addListener?.('focus', async () => {
+      await refreshProfile();
+      await fetchAll();
+    });
+    return unsub;
+  }, [navigation, refreshProfile, fetchAll]);
 
   const onRefresh = async () => {
     setRefreshing(true);

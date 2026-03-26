@@ -110,6 +110,11 @@ export default function PaymentScreen({ navigation, route }: any) {
       } else {
         await supabase.from('enrollments').insert({ student_id: studentId, program_id: programId, status: 'active' });
       }
+      // Kick off promotion cycle (explicit call in case trigger doesn't fire)
+      await supabase.rpc('start_promotion_cycle_for_student', {
+        p_student_id: studentId,
+        p_program_id: programId,
+      });
     }
     if (tournamentId && studentId) {
       await supabase.from('tournament_registrations').insert({
@@ -165,6 +170,11 @@ export default function PaymentScreen({ navigation, route }: any) {
           return;
         }
       }
+      // Kick off promotion cycle (explicit call in case trigger doesn't fire)
+      await supabase.rpc('start_promotion_cycle_for_student', {
+        p_student_id: studentId,
+        p_program_id: programId,
+      });
     }
 
     if (tournamentId && studentId) {
