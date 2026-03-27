@@ -1,0 +1,1657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BPT Academy — Amateur Division — April 2026 Training Program</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      color: #1a1a2e;
+      background: #f5f7fa;
+      line-height: 1.6;
+    }
+
+    /* ── HEADER ── */
+    header {
+      background: #1a2744;
+      color: #fff;
+      padding: 32px 48px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .logo-block .logo-text {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      color: #fff;
+    }
+    .logo-block .logo-accent {
+      color: #4e8ef7;
+    }
+    .header-subtitle {
+      font-size: 13px;
+      font-weight: 400;
+      color: #a8bfdf;
+      margin-top: 4px;
+      letter-spacing: 0.5px;
+    }
+    .header-meta {
+      text-align: right;
+      font-size: 11px;
+      color: #7090b8;
+      line-height: 1.8;
+    }
+
+    /* ── OVERVIEW TABLE ── */
+    .overview {
+      background: #fff;
+      margin: 28px 40px;
+      border-radius: 10px;
+      box-shadow: 0 2px 12px rgba(26,39,68,0.08);
+      overflow: hidden;
+    }
+    .overview-title {
+      background: #1a2744;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 12px 20px;
+    }
+    .overview table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    .overview thead th {
+      background: #eef2fa;
+      color: #1a2744;
+      font-weight: 600;
+      padding: 10px 16px;
+      text-align: left;
+      border-bottom: 2px solid #d0daf0;
+    }
+    .overview tbody tr:nth-child(even) { background: #f8f9fd; }
+    .overview tbody td {
+      padding: 9px 16px;
+      border-bottom: 1px solid #eaeef8;
+      vertical-align: top;
+    }
+    .overview tbody tr:last-child td { border-bottom: none; }
+    .badge-sm {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 20px;
+      margin-right: 4px;
+      margin-bottom: 2px;
+    }
+    .badge-beg { background: #d1fae5; color: #065f46; }
+    .badge-int { background: #fef3c7; color: #92400e; }
+    .badge-adv { background: #fee2e2; color: #991b1b; }
+
+    /* ── MAIN CONTENT ── */
+    main { padding: 0 40px 60px; }
+
+    /* ── MODULE CARD ── */
+    .module {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 16px rgba(26,39,68,0.09);
+      margin-bottom: 36px;
+      overflow: hidden;
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+    .module-header {
+      background: #1a2744;
+      color: #fff;
+      padding: 18px 24px 16px;
+      display: flex;
+      align-items: baseline;
+      gap: 14px;
+    }
+    .module-num {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: #7090b8;
+      white-space: nowrap;
+    }
+    .module-title-block { flex: 1; }
+    .module-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #fff;
+    }
+    .module-date {
+      font-size: 11px;
+      color: #a8bfdf;
+      margin-top: 2px;
+    }
+    .module-body { padding: 0; }
+
+    /* ── LEVEL SECTIONS ── */
+    .level-section {
+      border-bottom: 1px solid #eaeef8;
+    }
+    .level-section:last-child { border-bottom: none; }
+
+    .level-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 24px 10px;
+      background: #fafbfd;
+      border-bottom: 1px solid #eaeef8;
+    }
+    .level-badge {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 4px 14px;
+      border-radius: 20px;
+    }
+    .level-badge.beg { background: #d1fae5; color: #065f46; }
+    .level-badge.int { background: #fef3c7; color: #92400e; }
+    .level-badge.adv { background: #fee2e2; color: #991b1b; }
+
+    .level-content { padding: 16px 24px 20px; }
+
+    /* ── SUB-SECTIONS ── */
+    .section-block { margin-bottom: 16px; }
+    .section-block:last-child { margin-bottom: 0; }
+
+    .section-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: #5a72a0;
+      margin-bottom: 6px;
+      padding-bottom: 4px;
+      border-bottom: 1px dashed #d0daf0;
+    }
+
+    .exercise-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: #1a2744;
+      margin: 10px 0 5px;
+    }
+    .exercise-type {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: #7090b8;
+      margin: 5px 0 3px;
+    }
+
+    ul.drill-list {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 4px 0;
+    }
+    ul.drill-list li {
+      padding: 2px 0 2px 18px;
+      position: relative;
+      color: #2d3748;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+    ul.drill-list li::before {
+      content: '›';
+      position: absolute;
+      left: 4px;
+      color: #7090b8;
+      font-weight: 700;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      background: #1a2744;
+      color: #7090b8;
+      text-align: center;
+      font-size: 11px;
+      padding: 14px;
+      letter-spacing: 0.5px;
+    }
+
+    /* ── PRINT ── */
+    @media print {
+      body { background: #fff; font-size: 11px; }
+      header {
+        background: #1a2744 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+        padding: 20px 32px;
+      }
+      .overview, main { margin: 12px 24px; }
+      main { padding: 0 24px 20px; }
+      .module {
+        box-shadow: none;
+        border: 1px solid #d0daf0;
+        page-break-before: always;
+        break-before: page;
+        margin-bottom: 0;
+      }
+      .module:first-of-type { page-break-before: auto; break-before: auto; }
+      .module-header, .level-header, .overview-title {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      .level-badge {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      footer {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      .overview { page-break-after: always; break-after: page; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo-block">
+    <div class="logo-text">BPT <span class="logo-accent">Academy</span></div>
+    <div class="header-subtitle">Amateur Division — April 2026 Training Program</div>
+  </div>
+  <div class="header-meta">
+    8 Sessions &nbsp;·&nbsp; April 2026<br>
+    3 Levels: Beginners · Intermediate · Advanced<br>
+    Coach Reference Document
+  </div>
+</header>
+
+<!-- OVERVIEW TABLE -->
+<div class="overview">
+  <div class="overview-title">Program Overview — 8 Sessions</div>
+  <table>
+    <thead>
+      <tr>
+        <th style="width:60px">#</th>
+        <th style="width:110px">Date</th>
+        <th>Theme</th>
+        <th>Beginners &amp; Intermediate</th>
+        <th>Advanced</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Module 1</strong></td>
+        <td>Tue 3 Apr</td>
+        <td>Groundstrokes + Serve Intro</td>
+        <td>FH/BH drills, serve intro, back rally games</td>
+        <td>FH/BH + side glass, tactical points</td>
+      </tr>
+      <tr>
+        <td><strong>Module 2</strong></td>
+        <td>Fri 8 Apr</td>
+        <td>Volleys + Net Game + Serve</td>
+        <td>FH/BH volley drills, serve stance &amp; toss, net games</td>
+        <td>Volley + drop shot intro, tactical points</td>
+      </tr>
+      <tr>
+        <td><strong>Module 3</strong></td>
+        <td>Tue 10 Apr</td>
+        <td>Back Glass + Transition</td>
+        <td>FH/BH off back glass, transition to net</td>
+        <td>Glass mix, rulo intro, tactical points</td>
+      </tr>
+      <tr>
+        <td><strong>Module 4</strong></td>
+        <td>Fri 15 Apr</td>
+        <td>Lob + Bandeja/Vibora</td>
+        <td>Lob drills, bandeja/vibora intro, serve games</td>
+        <td>Rulo + drop shot + bandeja/vibora, tactical points</td>
+      </tr>
+      <tr>
+        <td><strong>Module 5</strong></td>
+        <td>Tue 17 Apr</td>
+        <td>Mixed Review — Glass + Volleys + Serve</td>
+        <td>Rotation drill courts, serve practice, king of court</td>
+        <td>Drop shot + rulo focused, king of court (rule-based)</td>
+      </tr>
+      <tr>
+        <td><strong>Module 6</strong></td>
+        <td>Fri 22 Apr</td>
+        <td>Transition — Defense to Attack</td>
+        <td>Glass to net transition drills, tactical games</td>
+        <td>Net dominance, down the line, full tactical points</td>
+      </tr>
+      <tr>
+        <td><strong>Module 7</strong></td>
+        <td>Tue 24 Apr</td>
+        <td>Mixed Game — All Skills Combined</td>
+        <td>Random volley, lob + volley combo, points</td>
+        <td>Rulo + drop shot + tactical, glass rule points</td>
+      </tr>
+      <tr>
+        <td><strong>Module 8</strong></td>
+        <td>Fri 29 Apr</td>
+        <td>Match Play + King of the Court</td>
+        <td>Drill review, match play tiebreaks, king of court</td>
+        <td>Tactical review, free tiebreaks, king of court</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<main>
+
+  <!-- ════════════════ MODULE 1 ════════════════ -->
+  <div class="module">
+    <div class="module-header">
+      <span class="module-num">Module 1</span>
+      <div class="module-title-block">
+        <div class="module-title">Groundstrokes + Serve Intro</div>
+        <div class="module-date">Tuesday 3 April 2026</div>
+      </div>
+    </div>
+    <div class="module-body">
+
+      <!-- BEGINNERS -->
+      <div class="level-section">
+        <div class="level-header"><span class="level-badge beg">Beginners</span></div>
+        <div class="level-content">
+          <div class="section-block">
+            <div class="section-label">Warm Up — 10 min</div>
+            <ul class="drill-list">
+              <li>Free rally in a reduced court (yellow marks on the middle)</li>
+              <li>Goal: keep the ball in play, slow and controlled</li>
+            </ul>
+          </div>
+          <div class="section-block">
+            <div class="section-label">First Part — Drill + Rally — 25 min</div>
+            <div class="exercise-title">Exercise 1 — Forehand</div>
+            <div class="exercise-type">Drill</div>
+            <ul class="drill-list">
+              <li>1 player in the back hitting forehands</li>
+              <li>Cone behind player → recover position after each shot</li>
+              <li>Cone on opposite side → guide target direction</li>
+            </ul>
+            <div class="exercise-type">Rally</div>
+            <ul class="drill-list">
+              <li>2 players in the back, forehand to forehand</li>
+              <li>Goal: long rallies, slow and in control</li>
+              <li>Court reduced with yellow marks</li>
+            </ul>
+            <div class="exercise-title">Exercise 2 — Backhand</div>
+            <div class="exercise-type">Drill</div>
+            <ul class="drill-list">
+              <li>Same structure as forehand drill but for backhand</li>
+            </ul>
+            <div class="exercise-type">Rally</div>
+            <ul class="drill-list">
+              <li>2 players in the back, backhand to backhand</li>
+              <li>Same reduced court setup</li>
+            </ul>
+          </div>
+          <div class="section-block">
+            <div class="section-label">Second Part — Serve Intro + Game — 25 min</div>
+            <div class="exercise-type">Serve Practice</div>
+            <ul class="drill-list">
+              <li>1–2 players serving from each side</li>
+              <li>Coach demonstrates grip and motion</li>
+              <li>Focus: get the ball in — no power needed</li>
+              <li>Rotate after 5 serves each</li>
+            </ul>
+            <div class="exercise-type">Game 1</div>
+            <ul class="drill-list">
+              <li>4 players all in the back — coach feeds the ball</li>
+              <li>Goal: reach 10 consecutive shots without missing</li>
+              <li>Communicate!</li>
+            </ul>
+            <div class="exercise-type">Game 2</div>
+            <ul class="drill-list">
+              <li>Same setup — each team has 5 lives</li>
+              <li>Lose a life on every miss — first to 0 loses</li>
+            </ul>
+            <div class="exercise-type">If Time Left</div>
+            <ul class="drill-list">
+              <li>Tiebreak to 10 — all players starting from the back</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- INTERMEDIATE -->
+      <div class="level-section">
+        <div class="level-header"><span class="level-badge int">Intermediate</span></div>
+        <div class="level-content">
+          <div class="section-block">
+            <div class="section-label">Warm Up — 10 min</div>
+            <ul class="drill-list">
+              <li>Free rally, full court</li>
+              <li>Mix of groundstrokes, moving side to side</li>
+            </ul>
+          </div>
+          <div class="section-block">
+            <div class="section-label">First Part — Drill + Rally — 25 min</div>
+            <div class="exercise-title">Exercise 1 — Forehand</div>
+            <div class="exercise-type">Drill</div>
+            <ul class="drill-list">
+              <li>1 player in the back hitting forehands</li>
+              <li>Cone to recover position, cone to guide target</li>
+            </ul>
+            <div class="exercise-type">Rally</div>
+            <ul class="drill-list">
+              <li>2 players in the back, forehand to forehand</li>
+              <li>Ball must bounce before the service line (deep and controlled)</li>
+            </ul>
+            <div class="exercise-title">Exercise 2 — Backhand</div>
+            <div class="exercise-type">Drill</div>
+            <ul class="drill-list">
+              <li>Same structure but for backhand</li>
+            </ul>
+            <div class="exercise-type">Rally</div>
+            <ul class="drill-list">
+              <li>2 players in the back, backhand to backhand</li>
+              <li>Ball must bounce before the service line</li>
+            </ul>
+          </div>
+          <div class="section-block">
+            <div class="section-label">Second Part — Serve + Game — 25 min</div>
+            <div class="exercise-type">Serve Practice</div>
+            <ul class="drill-list">
+              <li>Players serve — the other returns</li>
+              <li>Rotate after 5 serves</li>
+              <li>Focus: consistent motion and placement</li>
+            </ul>
+            <div class="exercise-type">Game 1</div>
+            <ul class="drill-list">
+              <li>2 players in the back, 2 at the net — coach feeds ball</li>
+              <li>Goal: 10–15 consecutive shots</li>
+            </ul>
+            <div class="exercise-type">Game 2</div>
+            <ul class="drill-list">
+              <li>Same formation — each team has 5 lives</li>
+              <li>Lose a life on every miss</li>
+            </ul>
+            <div class="exercise-type">If Time Left</div>
+            <ul class="drill-list">
+              <li>Tiebreak to 10, starting from the back</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- ADVANCED -->
+      <div class="level-section">
+        <div class="level-header"><span class="level-badge adv">Advanced</span></div>
+        <div class="level-content">
+          <div class="section-block">
+            <div class="section-label">Warm Up — 10 min</div>
+            <ul class="drill-list">
+              <li>Full court warm up including overhead smashes</li>
+            </ul>
+          </div>
+          <div class="section-block">
+            <div class="section-label">First Part — Drill + Rally — 25 min</div>
+            <div class="exercise-title">Exercise 1 — Forehand + Side Glass</div>
+            <div class="exercise-type">Drill</div>
+            <ul class="drill-list">
+              <li>1 player in the back — forehand plus immediate side glass recovery</li>
+              <li>Cone to mark recovery position</li>
+            </ul>
+            <div class="exercise-type">Rally</div>
+            <ul class="drill-list">
+              <li>2 players in the back</li>
+              <li>One plays down the line, the other defends using forehand off the glass</li>
+            </ul>
+            <div class="exercise-title">Exercise 2 — Backhand + Side Glass</div>
+            <div class="exercise-type">Drill</div>
+            <ul class="drill-list">
+              <li>Same structure but backhand, using the glass</li>
+            </ul>
+            <div class="exercise-type">Rally</div>
+            <ul class="drill-list">
+              <li>1 in the back, 1 at the net</li>
+              <li>Net player directs ball to the backhand side</li>
+              <li>Back player aims down the line or cross</li>
+            </ul>
+          </div>
+          <div class="section-block">
+            <div class="section-label">Second Part — Tactical Points — 25 min</div>
+            <div class="exercise-type">Points 1</div>
+            <ul class="drill-list">
+              <li>2 in the back, 2 at the net — normal coach-fed points</li>
+              <li>Net team controls the point — no passive volleys</li>
+            </ul>
+            <div class="exercise-type">Points 2</div>
+            <ul class="drill-list">
+              <li>Back players must use the glass at least once per point</li>
+              <li>Win off the glass → counts double</li>
+            </ul>
+            <div class="exercise-type">Last 10 min</div>
+            <ul class="drill-list">
+              <li>King of the court</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════ MODULE 2 ════════════════ -->
+  <div class="module">
+    <div class="module-header">
+      <span class="module-num">Module 2</span>
+      <div class="module-title-block">
+        <div class="module-title">Volleys + Net Game + Serve</div>
+        <div class="module-date">Friday 8 April 2026</div>
+      </div>
+    </div>
+    <div class="module-body">
+
+      <!-- BEGINNERS -->
+      <div class="level-section">
+        <div class="level-header"><span class="level-badge beg">Beginners</span></div>
+        <div class="level-content">
+          <div class="section-block">
+            <div class="section-label">Warm Up — 10 min</div>
+            <ul class="drill-list">
+              <li>Reduced court rally</li>
+              <li>Double-touch warm up: tap the ball once with the racket before hitting it over</li>
+            </ul>
+          </div>
+          <div class="section-block">
+            <div class="section-label">First Part — Drill + Rally — 25 min</div>
+            <div class="exercise-title">Exercise 1 — Forehand Volley</div>
+            <div class="exercise-type">Drill</div>
+            <ul class="drill-list">
+              <li>1 player at the net hitting forehand volleys</li>
+              <li>Cone behind to recover to the T position</li>
+              <li>Cone on the other side to guide where to aim</li>
+            </ul>
+            <div class="exercise-type">Rally</div>
+            <ul class="drill-list">
+              <li>1 at the net, 1 in the back</li>
+              <li>Volleys must land before the service line</li>
+            </ul>
+            <div class="exercise-title">Exercise 2 — Backhand Volley</div>
+            <div class="exercise-type">Drill</div>
+            <ul class="drill-list">
+              <li>Same structure but backhand volley</li>
+            </ul>
+            <div class="exercise-type">Rally</div>
+            <ul class="drill-list">
+              <li>1 at the net, 1 in the back — volleys only from the net player</li>
+            </ul>
+          </div>
+          <div class="section-block">
+            <div class="section-label">Second Part — Serve + Game — 25 min</div>
+            <div class="exercise-type">Serve Practice</div>
+            <ul class="drill-list">
+              <li>Focus on stance and toss</li>
+              <li>Rotate after 5 serves each</li>
+            </ul>
+            <div class="exercise-type">Game 1</div>
+            <ul class="drill-list">
+              <li>2 at the net, 2 in the back — no lobs, only flat shots</li>
+              <li>Goal: 10–15 consecutive shots</li>
+            </ul>
+            <div class="exercise-type">Game 2</div>
+            <ul class="drill-list">
+              <li>4 players start in the back</li>
+              <li>Coach feeds to one side — those two go to the net</li>
+              <li>Other side plays flat only</li>
+              <li>Tiebreak to 10</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- INTERMEDIATE -->
+      <div class="level-section">
+        <div class="level-header"><span class="level-badge int">Intermediate</span></div>
+        <div class="level-content">
+          <div class="section-block">
+            <div class="section-label">Warm Up — 10 min</div>
+            <ul class="drill-list">
+              <li>Full court rally including going to the net (no overhead smash yet)</li>
+            </ul>
+          </div>
+          <div class="section-block">
+            <div class="section-label">First Part — Drill + Rally — 25 min</div>
+            <div class="exercise-title">Exercise 1 — Forehand Volley</div>
+            <div class="exercise-type">Drill</div>
+            <ul class="drill-list">
+              <li>1 player at the net, forehand volley</li>
+            </ul>
+            <div class="exercise-type">Rally 1</div>
+            <ul class="drill-list">
+              <li>1 at the net, 1 in the back — net player volleys only (before service line)</li>
+            </ul>
+            <div class="exercise-type">Rally 2 (Progression)</div>
+            <ul class="drill-list">
+              <li>Volley-to-volley between the two net players</li>
+            </ul>
+            <div class="exercise-title">Exercise 2 — Backhand Volley</div>
+            <div class="exercise-type">Drill</div>
+            <ul class="drill-list">
+              <li>Same structure but backhand</li>
+            </ul>
+            <div class="exercise-type">Rally 1</div>
+            <ul class="drill-list">
+              <li>Groundstrokes vs volleys</li>
+            </ul>
+            <div class="exercise-type">Rally 2</div>
+            <ul class="drill-list">
+              <li>Volley-to-volley after the drill</li>
+            </ul>
+          </div>
+          <div class="section-block">
+            <div class="section-label">Second Part — Serve + Game — 25 min</div>
+            <div class="exercise-type">Serve Practice</div>
+            <ul class="drill-list">
+              <li>One serves, one returns — returner picks a side and commits</li>
+              <li>Rotate every 5</li>
+            </ul>
+            <div class="exercise-type">Game 1</div>
+            <ul class="drill-list">
+              <li>2 at the net, 2 in the back — no lobs</li>
+              <li>Off-glass counts double</li>
+            </ul>
+            <div class="exercise-type">Game 2</div>
+            <ul class="drill-list">
+              <li>4 players in the back — coach feeds one side, they go to the net</li>
+              <li>Tiebreak to 10</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- ADVANCED -->
+      <div class="level-section">
+        <div class="level-header"><span class="level-badge adv">Advanced</span></div>
+        <div class="level-content">
+          <div class="section-block">
+            <div class="section-label">Warm Up — 10 min</div>
+            <ul class="drill-list">
+              <li>Full court warm up with overhead smashes included</li>
+            </ul>
+          </div>
+          <div class="section-block">
+            <div class="section-label">First Part — Drill + Rally — 25 min</div>
+            <div class="exercise-title">Exercise 1 — Forehand Volley + Drop Shot Intro</div>
+            <div class="exercise-type">Drill</div>
+            <ul class="drill-list">
+              <li>1 at the net — coach feeds short balls</li>
+              <li>Player decides: volley away or drop shot</li>
+            </ul>
+            <div class="exercise-type">Rally</div>
+            <ul class="drill-list">
+              <li>1 at the net, 1 in the back — net player mixes volleys and drop shots</li>
+            </ul>
+            <div class="exercise-title">Exercise 2 — Backhand Volley + Drop Shot</div>
+            <div class="exercise-type">Drill</div>
+            <ul class="drill-list">
+              <li>Same as above but backhand side</li>
+            </ul>
+            <div class="exercise-type">Rally</div>
+            <ul class="drill-list">
+              <li>Net player uses both backhand volley and drop shot variation</li>
+            </ul>
+          </div>
+          <div class="section-block">
+            <div class="section-label">Second Part — Tactical Points — 25 min</div>
+            <div class="exercise-type">Points 1</div>
+            <ul class="drill-list">
+              <li>Net team must use at least one drop shot per point</li>
+              <li>Drop shot winner counts double</li>
+            </ul>
+            <div class="exercise-type">Points 2</div>
+            <ul class="drill-list">
+              <li>Tiebreak to 7 — net team cannot smash</li>
+              <li>Only volleys and drop shots allowed</li>
+            </ul>
+            <div class="exercise-type">Last 10 min</div>
+            <ul class="drill-list">
+              <li>King of the court</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════ MODULE 3 ════════════════ -->
+  <div class="module">
+    <div class="module-header">
+      <span class="module-num">Module 3</span>
+      <div class="module-title-block">
+        <div class="module-title">Back Glass + Transition</div>
+        <div class="module-date">Tuesday 10 April 2026</div>
+      </div>
+    </div>
+    <div class="module-body">
+
+      <!-- BEGINNERS -->
+      <div class="level-section">
+        <div class="level-header"><span class="level-badge beg">Beginners</span></div>
+        <div class="level-content">
+          <div class="section-block">
+            <div class="section-label">Warm Up — 10 min</div>
+            <ul class="drill-list">
+              <li>Rally in the middle, reduced court</li>
+            </ul>
+          </div>
+          <div class="section-block">
+            <div class="section-label">First Part — Drill + Rally — 25 min</div>
+            <div class="exercise-title">Exercise 1 — Forehand off the Back Glass</div>
+            <div class="exercise-type">Drill</div>
+            <ul class="drill-list">
+              <li>Coach feeds a deep ball; player hits it after the back glass using a forehand</li>
+              <li>Cone to mark recovery position, cone for target direction</li>
+            </ul>
+            <div class="exercise-type">Rally</div>
+            <ul class="drill-list">
+              <li>2 in the back — both aim deep and down the line</li>
+              <li>Defending using forehand off the glass</li>
+            </ul>
+            <div class="exercise-title">Exercise 2 — Backhand off the Back Glass</div>
+            <div class="exercise-type">Drill</div>
+            <ul class="drill-list">
+              <li>Same structure but backhand</li>
+            </ul>
+            <div class="exercise-type">Rally</div>
+            <ul class="drill-list">
+              <li>2 in the back — both aim deep and down the line using backhand off the glass</li>
+            </ul>
+          </div>
+          <div class="section-block">
+            <div class="section-label">Second Part — Transition + Game — 25 min</div>
+            <div class="exercise-type">Tactical 1</div>
+            <ul class="drill-list">
+              <li>4 in the back — coach feeds deep</li>
+              <li>Players return off the glass and move up to the net — point continues</li>
+            </ul>
+            <div class="exercise-type">Tactical 2</div>
+            <ul class="drill-list">
+              <li>Same setup — glass win counts double</li>
+            </ul>
+            <div class="exercise-type">If Time Left</div>
+            <ul class="drill-list">
+              <li>King of the court</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- INTERMEDIATE -->
+      <div class="level-section">
+        <div class="level-header"><span class="level-badge int">Intermediate</span></div>
+        <div class="level-content">
+          <div class="section-block">
+            <div class="section-label">Warm Up — 10 min</div>
+            <ul class="drill-list">
+              <li>Full court rally, going to the net included (no overhead)</li>
+            </ul>
+          </div>
+          <div class="section-block">
+            <div class="section-label">First Part — Drill + Rally — 25 min</div>
+            <div class="exercise-title">Exercise 1 — Forehand off the Back Glass</div>
+            <div class="exercise-type">Drill</div>
+            <ul class="drill-list">
+              <li>Forehand off the glass — cone recovery + target</li>
+            </ul>
+            <div class="exercise-type">Rally 1</div>
+            <ul class="drill-list">
+              <li>2 in the back — aim down the line, deep</li>
+            </ul>
+            <div class="exercise-type">Rally 2 (Progression)</div>
+            <ul class="drill-list">
+              <li>1 in the back, 1 at the net</li>
+              <li>Back player defends off the glass and tries to pass the net player</li>
+            </ul>
+            <div class="exercise-title">Exercise 2 — Backhand off the Back Glass</div>
+            <div class="exercise-type">Drill</div>
+            <ul class="drill-list">
+              <li>Same structure, backhand side</li>
+            </ul>
+            <div class="exercise-type">Rally 1</div>
+            <ul class="drill-list">
+              <li>2 in the back — down the line, deep, backhand off glass</li>
+            </ul>
+            <div class="exercise-type">Rally 2</div>
+            <ul class="drill-list">
+              <li>1 in the back, 1 at the net — back player defends backhand off glass</li>
+            </ul>
+          </div>
+          <div class="section-block">
+            <div class="section-label">Second Part — Transition + Game — 25 min</div>
+            <div class="exercise-type">Tactical 1</div>
+            <ul class="drill-list">
+              <li>2 in the back, 2 at the net — back players defend off glass, then transition to the net</li>
+            </ul>
+            <div class="exercise-type">Tactical 2</div>
+            <ul class="drill-list">
+              <li>Back players start with a lob, follow it to the net</li>
+              <li>Net players let the lob bounce — defensive transition</li>
+            </ul>
+            <div class="exercise-type">If Time Left</div>
+            <ul class="drill-list">
+              <li>King of the court</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- ADVANCED -->
+      <div class="level-section">
+        <div class="level-header"><span class="level-badge adv">Advanced</span></div>
+        <div class="level-content">
+          <div class="section-block">
+            <div class="section-label">Warm Up — 10 min</div>
+            <ul class="drill-list">
+              <li>Full court warm up with overheads</li>
+            </ul>
+          </div>
+          <div class="section-block">
+            <div class="section-label">First Part — Drill + Rulo Intro — 25 min</div>
+            <div class="exercise-title">Exercise 1 — Side Glass + Back Glass (Mixed)</div>
+            <div class="exercise-type">Drill</div>
+            <ul class="drill-list">
+              <li>Coach feeds varied balls to side glass and back glass — player reads and adapts</li>
+            </ul>
+            <div class="exercise-type">Rally</div>
+            <ul class="drill-list">
+              <li>2 in the back — random mix of glass shots</li>
+            </ul>
+            <div class="exercise-title">Exercise 2 — Rulo Intro</div>
+            <div class="exercise-type">Drill</div>
+            <ul class="drill-list">
+              <li>1 at the net — coach feeds a low ball</li>
+              <li>Player practises the rulo (wrist-heavy topspin smash, angled towards the side glass)</li>
+              <li>Focus: grip, swing path, follow-through</li>
+            </ul>
+            <div class="exercise-type">Rally</div>
+            <ul class="drill-list">
+              <li>1 in the back plays a lob; 1 at the net attempts the rulo</li>
+              <li>Back player practises defensive position after the rulo</li>
+            </ul>
+          </div>
+          <div class="section-block">
+            <div class="section-label">Second Part — Tactical Points — 25 min</div>
+            <div class="exercise-type">Points 1</div>
+            <ul class="drill-list">
+              <li>Back team must use the glass at least once per point</li>
+              <li>Net team practises rulo when a lob presents</li>
+            </ul>
+            <div class="exercise-type">Points 2</div>
+            <ul class="drill-list">
+              <li>Tiebreak to 7 — rulo winner counts double</li>
+            </ul>
+            <div class="exercise-type">Last 10 min</div>
+            <ul class="drill-list">
+              <li>King of the court</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════ MODULE 4 ════════════════ -->
+  <div class="module">
+    <div class="module-header">
+      <span class="module-num">Module 4</span>
+      <div class="module-title-block">
+        <div class="module-title">Lob + Bandeja/Vibora</div>
+        <div class="module-date">Friday 15 April 2026</div>
+      </div>
+    </div>
+    <div class="module-body">
+
+      <!-- BEGINNERS -->
+      <div class="level-section">
+        <div class="level-header"><span class="level-badge beg">Beginners</span></div>
+        <div class="level-content">
+          <div class="section-block">
+            <div class="section-label">Warm Up — 10 min</div>
+            <ul class="drill-list">
+              <li>Reduced court rally — focus on height and depth of shots</li>
+            </ul>
+          </div>
+          <div class="section-block">
+            <div class="section-label">First Part — Drill + Rally — 25 min</div>
+            <div class="exercise-title">Exercise 1 — Lob</div>
+            <div class="exercise-type">Drill</div>
+            <ul class="drill-list">
+              <li>1 at the net hitting lobs — cone to recover, cone/zone to aim for (deep, behind service line)</li>
+            </ul>
+            <div class="exercise-type">Rally</div>
+            <ul class="drill-list">
+              <li>2 in the back — lob to lob, high and deep</li>
+            </ul>
+            <div class="exercise-title">Exercise 2 — Bandeja/Vibora (Intro)</div>
+            <div class="exercise-type">Drill</div>
+            <ul class="drill-list">
+              <li>Coach feeds a lob — player practises bandeja or vibora</li>
+              <li>Cone for recovery and target</li>
+            </ul>
+            <div class="exercise-type">Rally</div>
+            <ul class="drill-list">
+              <li>1 in the back, 1 at the net</li>
+              <li>Back player hits low groundstrokes; net player volleys only, slow and in control</li>
+            </ul>
+          </div>
+          <div class="section-block">
+            <div class="section-label">Second Part — Serve + Game — 25 min</div>
+            <div class="exercise-type">Serve Practice</div>
+            <ul class="drill-list">
+              <li>5 serves each — focus on toss and contact point</li>
+            </ul>
+            <div class="exercise-type">Tactical 1</div>
+            <ul class="drill-list">
+              <li>Coach feeds lob to net players — they start with a bandeja or vibora</li>
+            </ul>
+            <div class="exercise-type">Tactical 2</div>
+            <ul class="drill-list">
+              <li>Coach feeds to back players — they start with a lob</li>
+              <li>Net players respond with bandeja or vibora</li>
+            </ul>
+            <div class="exercise-type">If Time Left</div>
+            <ul class="drill-list">
+              <li>Tiebreak to 10</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- INTERMEDIATE -->
+      <div class="level-section">
+        <div class="level-header"><span class="level-badge int">Intermediate</span></div>
+        <div class="level-content">
+          <div class="section-block">
+            <div class="section-label">Warm Up — 10 min</div>
+            <ul class="drill-list">
+              <li>Full court rally — include going to the net with overhead</li>
+            </ul>
+          </div>
+          <div class="section-block">
+            <div class="section-label">First Part — Drill + Rally — 25 min</div>
+            <div class="exercise-title">Exercise 1 — Lob</div>
+            <div class="exercise-type">Drill</div>
+            <ul class="drill-list">
+              <li>1 at the net hitting lobs — cone for recovery, cone/zone for target</li>
+            </ul>
+            <div class="exercise-type">Rally 1</div>
+            <ul class="drill-list">
+              <li>2 in the back — lob to lob, high and deep</li>
+            </ul>
+            <div class="exercise-type">Rally 2</div>
+            <ul class="drill-list">
+              <li>1 in the back, 1 at the net — low groundstrokes vs volleys (before service line)</li>
+            </ul>
+            <div class="exercise-title">Exercise 2 — Bandeja/Vibora</div>
+            <div class="exercise-type">Drill</div>
+            <ul class="drill-list">
+              <li>Coach feeds lob — player executes bandeja or vibora</li>
+            </ul>
+            <div class="exercise-type">Rally</div>
+            <ul class="drill-list">
+              <li>Back player: one lob, two low shots</li>
+              <li>Net player: one vibora, two volleys — structured rhythm</li>
+            </ul>
+          </div>
+          <div class="section-block">
+            <div class="section-label">Second Part — Serve + Game — 25 min</div>
+            <div class="exercise-type">Serve + Return</div>
+            <ul class="drill-list">
+              <li>One serves, one returns to a target side — rotate every 5</li>
+            </ul>
+            <div class="exercise-type">Tactical 1</div>
+            <ul class="drill-list">
+              <li>Coach feeds lob to net team — point starts with bandeja/vibora</li>
+            </ul>
+            <div class="exercise-type">Tactical 2</div>
+            <ul class="drill-list">
+              <li>Back team starts with a lob — net team responds</li>
+            </ul>
+            <div class="exercise-type">Tactical 3</div>
+            <ul class="drill-list">
+              <li>Back player varies freely — lobs, low shots, glass</li>
+              <li>Net team must read and react</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- ADVANCED -->
+      <div class="level-section">
+        <div class="level-header"><span class="level-badge adv">Advanced</span></div>
+        <div class="level-content">
+          <div class="section-block">
+            <div class="section-label">Warm Up — 10 min</div>
+            <ul class="drill-list">
+              <li>Full court with overheads</li>
+            </ul>
+          </div>
+          <div class="section-block">
+            <div class="section-label">First Part — Rulo + Drop Shot + Bandeja/Vibora — 25 min</div>
+            <div class="exercise-title">Exercise 1 — Bandeja/Vibora vs Lob</div>
+            <div class="exercise-type">Drill</div>
+            <ul class="drill-list">
+              <li>Coach alternates lobs to different positions</li>
+              <li>Player plays bandeja or vibora depending on position and height</li>
+            </ul>
+            <div class="exercise-type">Rally</div>
+            <ul class="drill-list">
+              <li>Back: one lob, two low. Net: one vibora, two volleys</li>
+            </ul>
+            <div class="exercise-title">Exercise 2 — Rulo + Drop Shot</div>
+            <div class="exercise-type">Drill</div>
+            <ul class="drill-list">
+              <li>High ball = rulo. Low ball = drop shot — player reads and decides quickly</li>
+            </ul>
+            <div class="exercise-type">Rally</div>
+            <ul class="drill-list">
+              <li>Net player uses all weapons — bandeja, vibora, rulo (high balls), drop shot (low balls)</li>
+            </ul>
+          </div>
+          <div class="section-block">
+            <div class="section-label">Second Part — Tactical Points — 25 min</div>
+            <div class="exercise-type">Points 1</div>
+            <ul class="drill-list">
+              <li>Net team uses all tools — back team: glass win counts double</li>
+            </ul>
+            <div class="exercise-type">Points 2</div>
+            <ul class="drill-list">
+              <li>Tiebreak to 7 — net team must earn position</li>
+              <li>Only stay at net if they won the previous rally</li>
+            </ul>
+            <div class="exercise-type">Last 10 min</div>
+            <ul class="drill-list">
+              <li>King of the court</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════ MODULE 5 ════════════════ -->
+  <div class="module">
+    <div class="module-header">
+      <span class="module-num">Module 5</span>
+      <div class="module-title-block">
+        <div class="module-title">Mixed Review — Glass + Volleys + Serve</div>
+        <div class="module-date">Tuesday 17 April 2026</div>
+      </div>
+    </div>
+    <div class="module-body">
+
+      <!-- BEGINNERS -->
+      <div class="level-section">
+        <div class="level-header"><span class="level-badge beg">Beginners</span></div>
+        <div class="level-content">
+          <div class="section-block">
+            <div class="section-label">Warm Up — 10 min</div>
+            <ul class="drill-list">
+              <li>Free rally, reduced court</li>
+            </ul>
+          </div>
+          <div class="section-block">
+            <div class="section-label">First Part — Rotation Drill — 25 min</div>
+            <div class="exercise-type">Court 1</div>
+            <ul class="drill-list">
+              <li>Forehand off the back glass drill + rally (2 in the back, reduced court)</li>
+            </ul>
+            <div class="exercise-type">Court 2</div>
+            <ul class="drill-list">
+              <li>Forehand volley drill + rally (1 at net, 1 in back, groundstrokes vs volleys)</li>
+            </ul>
+            <ul class="drill-list" style="margin-top:6px">
+              <li>Teams of 2 rotate between courts — 4 rotations</li>
+            </ul>
+          </div>
+          <div class="section-block">
+            <div class="section-label">Second Part — Serve + Game — 25 min</div>
+            <div class="exercise-type">Serve Practice</div>
+            <ul class="drill-list">
+              <li>Same motion every time — 5 serves each, rotate</li>
+            </ul>
+            <div class="exercise-type">Game</div>
+            <ul class="drill-list">
+              <li>King of the court — tiebreaks to 10</li>
+              <li>All start from the back — coach feeds</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- INTERMEDIATE -->
+      <div class="level-section">
+        <div class="level-header"><span class="level-badge int">Intermediate</span></div>
+        <div class="level-content">
+          <div class="section-block">
+            <div class="section-label">Warm Up — 10 min</div>
+            <ul class="drill-list">
+              <li>Full court rally going to the net (no overhead)</li>
+            </ul>
+          </div>
+          <div class="section-block">
+            <div class="section-label">First Part — Rotation Drill — 25 min</div>
+            <div class="exercise-type">Court 1</div>
+            <ul class="drill-list">
+              <li>Forehand + side glass drill + rally (2 in the back, aim down the line)</li>
+            </ul>
+            <div class="exercise-type">Court 2</div>
+            <ul class="drill-list">
+              <li>Backhand + side glass drill + rally (1 in back, 1 at net, low shots vs volleys)</li>
+            </ul>
+            <ul class="drill-list" style="margin-top:6px">
+              <li>4 rotations</li>
+            </ul>
+          </div>
+          <div class="section-block">
+            <div class="section-label">Second Part — Serve + Game — 25 min</div>
+            <div class="exercise-type">Serve + Return</div>
+            <ul class="drill-list">
+              <li>One serves, partner returns to a target zone — rotate every 5</li>
+            </ul>
+            <div class="exercise-type">Game</div>
+            <ul class="drill-list">
+              <li>King of the court — glass win counts double</li>
+              <li>Tiebreaks to 10</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- ADVANCED -->
+      <div class="level-section">
+        <div class="level-header"><span class="level-badge adv">Advanced</span></div>
+        <div class="level-content">
+          <div class="section-block">
+            <div class="section-label">Warm Up — 10 min</div>
+            <ul class="drill-list">
+              <li>Full court with overheads</li>
+            </ul>
+          </div>
+          <div class="section-block">
+            <div class="section-label">First Part — Drop Shot + Rulo Focused — 25 min</div>
+            <div class="exercise-title">Exercise 1</div>
+            <ul class="drill-list">
+              <li>1 at the net — high ball = rulo, low ball = drop shot</li>
+              <li>Quick decisions — back varies, net uses the right shot every time</li>
+            </ul>
+            <div class="exercise-title">Exercise 2</div>
+            <ul class="drill-list">
+              <li>2 at the net — coach feeds lobs to random positions</li>
+              <li>Both communicate, decide who takes it and which shot</li>
+              <li>Rally: 2 in the back vs 2 at net — back varies, net team communicates</li>
+            </ul>
+          </div>
+          <div class="section-block">
+            <div class="section-label">Second Part — King of the Court — 25 min</div>
+            <ul class="drill-list">
+              <li>Tiebreaks to 7</li>
+              <li>Rule 1: Net team scores only if they used a rulo or drop shot in the rally</li>
+              <li>Rule 2: Back team earns double points for winning off the glass</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════ MODULE 6 ════════════════ -->
+  <div class="module">
+    <div class="module-header">
+      <span class="module-num">Module 6</span>
+      <div class="module-title-block">
+        <div class="module-title">Transition — Defense to Attack</div>
+        <div class="module-date">Friday 22 April 2026</div>
+      </div>
+    </div>
+    <div class="module-body">
+
+      <!-- BEGINNERS -->
+      <div class="level-section">
+        <div class="level-header"><span class="level-badge beg">Beginners</span></div>
+        <div class="level-content">
+          <div class="section-block">
+            <div class="section-label">Warm Up — 10 min</div>
+            <ul class="drill-list">
+              <li>Reduced court rally — focus on footwork, recover position after every shot</li>
+            </ul>
+          </div>
+          <div class="section-block">
+            <div class="section-label">First Part — Drill + Rally — 25 min</div>
+            <div class="exercise-title">Exercise 1 — Transition Intro</div>
+            <div class="exercise-type">Drill</div>
+            <ul class="drill-list">
+              <li>1 in the back — coach feeds deep</li>
+              <li>Player defends off glass and moves to net — stop and reset each time</li>
+            </ul>
+            <div class="exercise-type">Rally</div>
+            <ul class="drill-list">
+              <li>2 in the back — one defends off glass, both support and try to finish at the net</li>
+            </ul>
+            <div class="exercise-title">Exercise 2 — Serve</div>
+            <ul class="drill-list">
+              <li>Focus on picking a direction — 5 serves each, rotate</li>
+            </ul>
+          </div>
+          <div class="section-block">
+            <div class="section-label">Second Part — Tactical Game — 25 min</div>
+            <div class="exercise-type">Tactical 1</div>
+            <ul class="drill-list">
+              <li>4 in the back — coach feeds deep</li>
+              <li>Return off glass, transition to net together</li>
+            </ul>
+            <div class="exercise-type">Tactical 2</div>
+            <ul class="drill-list">
+              <li>First team to transition to net and win the rally gets a bonus point</li>
+            </ul>
+            <div class="exercise-type">If Time Left</div>
+            <ul class="drill-list">
+              <li>Tiebreak to 10</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- INTERMEDIATE -->
+      <div class="level-section">
+        <div class="level-header"><span class="level-badge int">Intermediate</span></div>
+        <div class="level-content">
+          <div class="section-block">
+            <div class="section-label">Warm Up — 10 min</div>
+            <ul class="drill-list">
+              <li>Full court rally, going to the net included</li>
+            </ul>
+          </div>
+          <div class="section-block">
+            <div class="section-label">First Part — Drill + Rally — 25 min</div>
+            <div class="exercise-title">Exercise 1 — Transition</div>
+            <div class="exercise-type">Drill</div>
+            <ul class="drill-list">
+              <li>1 in the back — coach feeds deep</li>
+              <li>Return off glass, move to net immediately</li>
+            </ul>
+            <div class="exercise-type">Rally 1</div>
+            <ul class="drill-list">
+              <li>2 in the back — one defends off glass, both transition</li>
+            </ul>
+            <div class="exercise-type">Rally 2</div>
+            <ul class="drill-list">
+              <li>2 in the back, 2 at net — back starts with lob then transitions</li>
+              <li>Net lets lob bounce — defensive transition back</li>
+            </ul>
+            <div class="exercise-title">Exercise 2 — Serve + Return</div>
+            <ul class="drill-list">
+              <li>Server picks direction — returner plays to a target zone</li>
+              <li>Rotate every 5</li>
+            </ul>
+          </div>
+          <div class="section-block">
+            <div class="section-label">Second Part — Tactical Game — 25 min</div>
+            <div class="exercise-type">Tactical 1</div>
+            <ul class="drill-list">
+              <li>4 in the back — return off glass, transition to net</li>
+              <li>Net win counts double</li>
+            </ul>
+            <div class="exercise-type">Tactical 2</div>
+            <ul class="drill-list">
+              <li>2 in the back, 2 at net — back team lob + transition</li>
+              <li>Net team defends and recovers — first to 5</li>
+            </ul>
+            <div class="exercise-type">If Time Left</div>
+            <ul class="drill-list">
+              <li>King of the court</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- ADVANCED -->
+      <div class="level-section">
+        <div class="level-header"><span class="level-badge adv">Advanced</span></div>
+        <div class="level-content">
+          <div class="section-block">
+            <div class="section-label">Warm Up — 10 min</div>
+            <ul class="drill-list">
+              <li>Full court with overheads</li>
+            </ul>
+          </div>
+          <div class="section-block">
+            <div class="section-label">First Part — Net Dominance — 25 min</div>
+            <div class="exercise-title">Exercise 1</div>
+            <ul class="drill-list">
+              <li>2 at the net — coach feeds random balls (high, low, middle)</li>
+              <li>Communicate and play the right shot: volley, bandeja, vibora, rulo, or drop shot</li>
+              <li>Rally: 2 in back vs 2 at net — net team attacks, back team defends using glass, lobs, variation</li>
+            </ul>
+            <div class="exercise-title">Exercise 2 — Down the Line</div>
+            <ul class="drill-list">
+              <li>2 at net vs 1 in back — defender plays two shots to the same player alternating direction</li>
+              <li>Forces direction control under pressure</li>
+            </ul>
+          </div>
+          <div class="section-block">
+            <div class="section-label">Second Part — Full Tactical Points — 25 min</div>
+            <div class="exercise-type">Points 1</div>
+            <ul class="drill-list">
+              <li>Tiebreak to 7 — net team must win from the net</li>
+              <li>If pushed back, they lose a life</li>
+            </ul>
+            <div class="exercise-type">Points 2</div>
+            <ul class="drill-list">
+              <li>Tiebreak to 7 — free play, all shots</li>
+              <li>Focus on reading the game</li>
+            </ul>
+            <div class="exercise-type">Last 10 min</div>
+            <ul class="drill-list">
+              <li>King of the court</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════ MODULE 7 ════════════════ -->
+  <div class="module">
+    <div class="module-header">
+      <span class="module-num">Module 7</span>
+      <div class="module-title-block">
+        <div class="module-title">Mixed Game — All Skills Combined</div>
+        <div class="module-date">Tuesday 24 April 2026</div>
+      </div>
+    </div>
+    <div class="module-body">
+
+      <!-- BEGINNERS -->
+      <div class="level-section">
+        <div class="level-header"><span class="level-badge beg">Beginners</span></div>
+        <div class="level-content">
+          <div class="section-block">
+            <div class="section-label">Warm Up — 10 min</div>
+            <ul class="drill-list">
+              <li>Double touch rally in a reduced court</li>
+            </ul>
+          </div>
+          <div class="section-block">
+            <div class="section-label">First Part — Drill + Rally — 25 min</div>
+            <div class="exercise-title">Exercise 1 — Random Volley</div>
+            <div class="exercise-type">Drill</div>
+            <ul class="drill-list">
+              <li>1 at the net — coach feeds randomly (forehand then backhand, no warning)</li>
+              <li>Player reads and reacts</li>
+            </ul>
+            <div class="exercise-type">Rally</div>
+            <ul class="drill-list">
+              <li>1 at net, 1 in back — net mixes volleys, back aims low</li>
+            </ul>
+            <div class="exercise-title">Exercise 2 — Lob + Volley Combo</div>
+            <div class="exercise-type">Drill</div>
+            <ul class="drill-list">
+              <li>1 at net hitting lobs — cone for recovery and target</li>
+            </ul>
+            <div class="exercise-type">Rally</div>
+            <ul class="drill-list">
+              <li>Back player: two low, one lob</li>
+              <li>Net player: two volleys, one bandeja</li>
+            </ul>
+          </div>
+          <div class="section-block">
+            <div class="section-label">Second Part — Serve + Points — 25 min</div>
+            <div class="exercise-type">Serve Practice</div>
+            <ul class="drill-list">
+              <li>3 serves each</li>
+            </ul>
+            <div class="exercise-type">Game 1</div>
+            <ul class="drill-list">
+              <li>2 in back, 2 at net — normal coach-fed points</li>
+            </ul>
+            <div class="exercise-type">Game 2</div>
+            <ul class="drill-list">
+              <li>Tiebreak to 10 — all start from the back</li>
+              <li>Glass win counts double</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- INTERMEDIATE -->
+      <div class="level-section">
+        <div class="level-header"><span class="level-badge int">Intermediate</span></div>
+        <div class="level-content">
+          <div class="section-block">
+            <div class="section-label">Warm Up — 10 min</div>
+            <ul class="drill-list">
+              <li>Full court rally, including net approach</li>
+            </ul>
+          </div>
+          <div class="section-block">
+            <div class="section-label">First Part — Drill + Rally — 25 min</div>
+            <div class="exercise-title">Exercise 1 — Glass + Volley</div>
+            <div class="exercise-type">Drill</div>
+            <ul class="drill-list">
+              <li>1 in back — coach feeds to back glass, player defends and aims deep</li>
+            </ul>
+            <div class="exercise-type">Rally</div>
+            <ul class="drill-list">
+              <li>1 in back, 1 at net — back uses glass when possible, net varies placement</li>
+            </ul>
+            <div class="exercise-title">Exercise 2 — Lob + Bandeja + Variation</div>
+            <div class="exercise-type">Rally</div>
+            <ul class="drill-list">
+              <li>1 in back, 1 at net — back varies freely (lob, glass, low groundstroke)</li>
+              <li>Net reads and responds — back cannot come to the net</li>
+            </ul>
+          </div>
+          <div class="section-block">
+            <div class="section-label">Second Part — Serve + Points — 25 min</div>
+            <div class="exercise-type">Serve + Return</div>
+            <ul class="drill-list">
+              <li>Server aims to a zone — returner picks a target</li>
+              <li>Rotate every 5</li>
+            </ul>
+            <div class="exercise-type">Game 1</div>
+            <ul class="drill-list">
+              <li>2 in back, 2 at net — glass win = double points, drop shot win = double points</li>
+            </ul>
+            <div class="exercise-type">Game 2</div>
+            <ul class="drill-list">
+              <li>King of the court — tiebreaks to 10</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- ADVANCED -->
+      <div class="level-section">
+        <div class="level-header"><span class="level-badge adv">Advanced</span></div>
+        <div class="level-content">
+          <div class="section-block">
+            <div class="section-label">Warm Up — 10 min</div>
+            <ul class="drill-list">
+              <li>Full court with overheads and smashes</li>
+            </ul>
+          </div>
+          <div class="section-block">
+            <div class="section-label">First Part — Rulo + Drop Shot + Tactical — 25 min</div>
+            <div class="exercise-title">Exercise 1</div>
+            <ul class="drill-list">
+              <li>Coach feeds 3 balls: lob (rulo), low (drop shot), medium (bandeja or vibora)</li>
+              <li>Player reads and executes quickly</li>
+              <li>Rally: 1 in back, 1 at net — net uses all weapons freely</li>
+            </ul>
+            <div class="exercise-title">Exercise 2</div>
+            <ul class="drill-list">
+              <li>2 at net vs 1 in back — back player alternates direction every two shots</li>
+              <li>Net pair communicates and covers both sides</li>
+            </ul>
+          </div>
+          <div class="section-block">
+            <div class="section-label">Second Part — Tactical Points — 25 min</div>
+            <div class="exercise-type">Points 1</div>
+            <ul class="drill-list">
+              <li>Tiebreak to 7 — every rally must include at least one glass shot from the back team</li>
+              <li>If net wins without a glass shot — back team loses a bonus point</li>
+            </ul>
+            <div class="exercise-type">Points 2</div>
+            <ul class="drill-list">
+              <li>Free tiebreak to 7 — full tactical, no rules</li>
+            </ul>
+            <div class="exercise-type">Last 10 min</div>
+            <ul class="drill-list">
+              <li>King of the court</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════ MODULE 8 ════════════════ -->
+  <div class="module">
+    <div class="module-header">
+      <span class="module-num">Module 8</span>
+      <div class="module-title-block">
+        <div class="module-title">Match Play + King of the Court</div>
+        <div class="module-date">Friday 29 April 2026</div>
+      </div>
+    </div>
+    <div class="module-body">
+
+      <!-- BEGINNERS -->
+      <div class="level-section">
+        <div class="level-header"><span class="level-badge beg">Beginners</span></div>
+        <div class="level-content">
+          <div class="section-block">
+            <div class="section-label">Warm Up — 10 min</div>
+            <ul class="drill-list">
+              <li>Free rally, full court — players choose their own warm-up</li>
+            </ul>
+          </div>
+          <div class="section-block">
+            <div class="section-label">First Part — Quick Drill Review — 15 min</div>
+            <ul class="drill-list">
+              <li>Coach picks 2 drills based on group needs:</li>
+              <li>Forehand/backhand off back glass</li>
+              <li>Forehand/backhand volley</li>
+              <li>Lob to lob rally</li>
+            </ul>
+          </div>
+          <div class="section-block">
+            <div class="section-label">Second Part — Match Play — 35 min</div>
+            <div class="exercise-type">Serve Practice</div>
+            <ul class="drill-list">
+              <li>3 serves each</li>
+            </ul>
+            <div class="exercise-type">Match Play</div>
+            <ul class="drill-list">
+              <li>Tiebreaks to 10 — coach feeds first ball</li>
+              <li>Rotate pairs every tiebreak</li>
+            </ul>
+            <div class="exercise-type">King of the Court (Last 15 min)</div>
+            <ul class="drill-list">
+              <li>Winners stay on — challengers rotate in</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- INTERMEDIATE -->
+      <div class="level-section">
+        <div class="level-header"><span class="level-badge int">Intermediate</span></div>
+        <div class="level-content">
+          <div class="section-block">
+            <div class="section-label">Warm Up — 10 min</div>
+            <ul class="drill-list">
+              <li>Full court rally, full warm up</li>
+            </ul>
+          </div>
+          <div class="section-block">
+            <div class="section-label">First Part — Quick Drill Review — 15 min</div>
+            <ul class="drill-list">
+              <li>Coach picks from:</li>
+              <li>Forehand/backhand off glass + transition</li>
+              <li>Volley sequence (random)</li>
+              <li>Lob + bandeja rally</li>
+            </ul>
+          </div>
+          <div class="section-block">
+            <div class="section-label">Second Part — Match Play — 35 min</div>
+            <div class="exercise-type">Serve + Return</div>
+            <ul class="drill-list">
+              <li>3 serves each — focus on placement</li>
+            </ul>
+            <div class="exercise-type">Match Play</div>
+            <ul class="drill-list">
+              <li>Tiebreaks to 10 — glass win counts double</li>
+            </ul>
+            <div class="exercise-type">King of the Court (Last 15 min)</div>
+            <ul class="drill-list">
+              <li>Tiebreaks to 7 — winners stay on</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- ADVANCED -->
+      <div class="level-section">
+        <div class="level-header"><span class="level-badge adv">Advanced</span></div>
+        <div class="level-content">
+          <div class="section-block">
+            <div class="section-label">Warm Up — 10 min</div>
+            <ul class="drill-list">
+              <li>Full court with overheads and smashes</li>
+            </ul>
+          </div>
+          <div class="section-block">
+            <div class="section-label">First Part — Quick Tactical Review — 15 min</div>
+            <ul class="drill-list">
+              <li>Coach picks:</li>
+              <li>Rulo under pressure</li>
+              <li>Drop shot + recovery</li>
+              <li>Transition from glass to net</li>
+            </ul>
+          </div>
+          <div class="section-block">
+            <div class="section-label">Second Part — Match Play — 35 min</div>
+            <div class="exercise-type">Points</div>
+            <ul class="drill-list">
+              <li>Tiebreaks to 7 — free play, full tactical</li>
+              <li>Optional final tiebreak rule: rulo or drop shot winner counts double</li>
+            </ul>
+            <div class="exercise-type">King of the Court (Last 15 min)</div>
+            <ul class="drill-list">
+              <li>Winners stay on</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  BPT Academy &nbsp;·&nbsp; Amateur Division &nbsp;·&nbsp; April 2026 &nbsp;·&nbsp; Confidential
+</footer>
+
+</body>
+</html>
