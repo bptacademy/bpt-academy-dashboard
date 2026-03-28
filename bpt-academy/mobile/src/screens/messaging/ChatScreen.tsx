@@ -81,8 +81,20 @@ export default function ChatScreen({ route, navigation }: any) {
         (payload) => {
           const newMsg = payload.new as Message;
           setMessages((prev) => {
-            // Avoid duplicate if we already added it optimistically
+            // Avoid exact duplicate by real id
             if (prev.some((m) => m.id === newMsg.id)) return prev;
+            // Replace optimistic message from same sender with same content
+            const optimisticIdx = prev.findIndex(
+              (m) =>
+                m.id.startsWith('optimistic_') &&
+                m.sender_id === newMsg.sender_id &&
+                m.content === newMsg.content
+            );
+            if (optimisticIdx !== -1) {
+              const next = [...prev];
+              next[optimisticIdx] = newMsg;
+              return next;
+            }
             return [...prev, newMsg];
           });
           setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
@@ -140,22 +152,20 @@ export default function ChatScreen({ route, navigation }: any) {
     setMessages((prev) => [...prev, optimisticMsg]);
     setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
 
-    const { data, error } = await supabase
+    // Insert only — no .select() to avoid PostgREST SELECT-after-INSERT
+    // RLS race condition. The realtime subscription brings in the confirmed
+    // message and the optimistic update is replaced by the dedup check.
+    const { error } = await supabase
       .from('messages')
-      .insert({ conversation_id: conversationId, sender_id: profile!.id, content })
-      .select('id, sender_id, content, created_at')
-      .single();
+      .insert({ conversation_id: conversationId, sender_id: profile!.id, content });
 
     if (error) {
-      // Remove optimistic message on failure
+      // Remove optimistic message on failure and restore text
       setMessages((prev) => prev.filter((m) => m.id !== optimisticMsg.id));
-      setText(content); // restore text
-    } else if (data) {
-      // Replace optimistic message with real one from DB
-      setMessages((prev) =>
-        prev.map((m) => (m.id === optimisticMsg.id ? data : m))
-      );
+      setText(content);
     }
+    // On success: realtime subscription delivers the confirmed message,
+    // dedup logic (id check) prevents duplicates with the optimistic one.
 
     setSending(false);
   };
