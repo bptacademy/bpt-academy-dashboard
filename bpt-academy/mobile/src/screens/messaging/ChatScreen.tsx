@@ -19,17 +19,36 @@ interface Message {
 }
 
 export default function ChatScreen({ route, navigation }: any) {
-  const { conversationId, title } = route.params;
+  const { conversationId, title, conversationType } = route.params;
   const { profile } = useAuth();
   const insets = useSafeAreaInsets();
-  const [messages, setMessages]   = useState<Message[]>([]);
-  const [text, setText]           = useState('');
-  const [sending, setSending]     = useState(false);
-  const [loading, setLoading]     = useState(true);
-  const flatListRef               = useRef<FlatList>(null);
-  const channelRef                = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const [messages, setMessages]       = useState<Message[]>([]);
+  const [text, setText]               = useState('');
+  const [sending, setSending]         = useState(false);
+  const [loading, setLoading]         = useState(true);
+  const [memberCount, setMemberCount] = useState<number | null>(null);
+  const flatListRef                   = useRef<FlatList>(null);
+  const channelRef                    = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
-  // ── Fetch all messages ─────────────────────────────────────
+  const isDivisionGroup = conversationType === 'division_group';
+
+  // ── Fetch member count for division channels ───────────────────────────────
+  useEffect(() => {
+    if (!isDivisionGroup) return;
+
+    const fetchMemberCount = async () => {
+      const { count } = await supabase
+        .from('conversation_members')
+        .select('profile_id', { count: 'exact', head: true })
+        .eq('conversation_id', conversationId);
+
+      if (count !== null) setMemberCount(count);
+    };
+
+    fetchMemberCount();
+  }, [conversationId, isDivisionGroup]);
+
+  // ── Fetch all messages ─────────────────────────────────────────────────────
   const fetchMessages = useCallback(async () => {
     const { data } = await supabase
       .from('messages')
@@ -41,7 +60,7 @@ export default function ChatScreen({ route, navigation }: any) {
     setTimeout(() => flatListRef.current?.scrollToEnd({ animated: false }), 100);
   }, [conversationId]);
 
-  // ── Real-time subscription ─────────────────────────────────
+  // ── Real-time subscription ─────────────────────────────────────────────────
   const subscribeRealtime = useCallback(() => {
     // Clean up any existing channel first
     if (channelRef.current) {
@@ -79,7 +98,7 @@ export default function ChatScreen({ route, navigation }: any) {
     channelRef.current = channel;
   }, [conversationId, fetchMessages]);
 
-  // ── Mount / unmount ────────────────────────────────────────
+  // ── Mount / unmount ────────────────────────────────────────────────────────
   useEffect(() => {
     fetchMessages();
     subscribeRealtime();
@@ -91,9 +110,9 @@ export default function ChatScreen({ route, navigation }: any) {
     };
   }, [conversationId]);
 
-  // ── Re-subscribe when screen comes back into focus ─────────
-  // This handles the case where the WS connection dropped while
-  // the screen was in the background
+  // ── Re-subscribe when screen comes back into focus ─────────────────────────
+  // Handles the case where the WS connection dropped while the screen was
+  // in the background
   useFocusEffect(
     useCallback(() => {
       fetchMessages();
@@ -104,7 +123,7 @@ export default function ChatScreen({ route, navigation }: any) {
     }, [fetchMessages, subscribeRealtime])
   );
 
-  // ── Send message ────────────────────────────────────────────
+  // ── Send message ───────────────────────────────────────────────────────────
   const sendMessage = async () => {
     if (!text.trim() || sending) return;
     setSending(true);
@@ -141,7 +160,7 @@ export default function ChatScreen({ route, navigation }: any) {
     setSending(false);
   };
 
-  // ── Render helpers ─────────────────────────────────────────
+  // ── Render helpers ─────────────────────────────────────────────────────────
   const formatTime = (iso: string) =>
     new Date(iso).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
 
@@ -201,6 +220,16 @@ export default function ChatScreen({ route, navigation }: any) {
       keyboardVerticalOffset={headerHeight}
     >
       <BackHeader title={title ?? 'Chat'} />
+
+      {/* ── Division Channel info banner ── */}
+      {isDivisionGroup && (
+        <View style={styles.divisionBanner}>
+          <Text style={styles.divisionBannerText}>
+            🏆 Division Channel{memberCount !== null ? ` · ${memberCount} members` : ''}
+          </Text>
+        </View>
+      )}
+
       <FlatList
         ref={flatListRef}
         data={messages}
@@ -246,6 +275,22 @@ export default function ChatScreen({ route, navigation }: any) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F9FAFB' },
   loading: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+
+  /** Subtle gold banner shown only for division_group conversations */
+  divisionBanner: {
+    backgroundColor: '#FFFBEB',
+    borderBottomWidth: 1,
+    borderBottomColor: '#FDE68A',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+  },
+  divisionBannerText: {
+    fontSize: 13,
+    color: '#92400E',
+    fontWeight: '500',
+  },
+
   messageList: { padding: 16, paddingBottom: 8 },
   dateSeparator: { alignItems: 'center', marginVertical: 16 },
   dateSeparatorText: {
