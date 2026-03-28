@@ -498,46 +498,14 @@ export default function StudentDetailScreen({ route, navigation }: any) {
             style={styles.promoBtn}
             onPress={async () => {
               if (!coachProfile) return;
-              // Find existing 1-on-1 conversation between coach and student
-              const { data: existingMemberships } = await supabase
-                .from('conversation_members')
-                .select('conversation_id')
-                .eq('profile_id', coachProfile.id);
+              // Use atomic RPC — creates conversation + adds both members in one call,
+              // also returns existing conversation id if one already exists.
+              const { data: conversationId, error } = await supabase
+                .rpc('create_direct_conversation', { p_recipient_id: student.id });
 
-              const myConvIds = (existingMemberships ?? []).map((m: any) => m.conversation_id);
-              let conversationId: string | null = null;
-
-              if (myConvIds.length > 0) {
-                // Find a non-group conversation that also has the student
-                const { data: shared } = await supabase
-                  .from('conversation_members')
-                  .select('conversation_id, conversation:conversations!inner(is_group, conversation_type)')
-                  .eq('profile_id', student.id)
-                  .in('conversation_id', myConvIds);
-
-                const direct = (shared ?? []).find((m: any) => m.conversation?.conversation_type === 'direct');
-                if (direct) conversationId = direct.conversation_id;
-              }
-
-              // Create new 1-on-1 conversation if none exists
-              if (!conversationId) {
-                const { data: newConv, error } = await supabase
-                  .from('conversations')
-                  .insert({ is_group: false, conversation_type: 'direct', created_by: coachProfile.id })
-                  .select('id')
-                  .single();
-
-                if (error || !newConv) {
-                  Alert.alert('Error', 'Could not start conversation.');
-                  return;
-                }
-                conversationId = newConv.id;
-
-                // Add both members
-                await supabase.from('conversation_members').insert([
-                  { conversation_id: conversationId, profile_id: coachProfile.id },
-                  { conversation_id: conversationId, profile_id: student.id },
-                ]);
+              if (error || !conversationId) {
+                Alert.alert('Error', 'Could not start conversation.');
+                return;
               }
 
               navigation.navigate('Chat', {

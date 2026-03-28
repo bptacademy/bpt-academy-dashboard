@@ -35,53 +35,18 @@ export default function NewConversationScreen({ navigation }: any) {
   }, [profile?.id, profile?.role]);
 
   const startConversation = async (recipient: Profile) => {
-    // Check if direct conversation already exists between these two
-    const { data: existingMembers } = await supabase
-      .from('conversation_members')
-      .select('conversation_id')
-      .eq('profile_id', profile!.id);
+    // Use atomic RPC — creates conversation + adds both members in one call,
+    // also returns existing conversation id if one already exists.
+    const { data: conversationId, error } = await supabase
+      .rpc('create_direct_conversation', { p_recipient_id: recipient.id });
 
-    const myConvIds = existingMembers?.map((m) => m.conversation_id) ?? [];
-
-    let existingConvId: string | null = null;
-    if (myConvIds.length > 0) {
-      const { data: sharedMembers } = await supabase
-        .from('conversation_members')
-        .select('conversation_id, conversation:conversations!inner(conversation_type)')
-        .eq('profile_id', recipient.id)
-        .in('conversation_id', myConvIds);
-
-      // Only match direct conversations — not group channels
-      const directMatch = (sharedMembers ?? []).find(
-        (m: any) => m.conversation?.conversation_type === 'direct'
-      );
-      if (directMatch) existingConvId = directMatch.conversation_id;
-    }
-
-    if (existingConvId) {
-      navigation.replace('Chat', {
-        conversationId: existingConvId,
-        title: recipient.full_name,
-      });
+    if (error || !conversationId) {
+      Alert.alert('Error', error?.message ?? 'Could not start conversation.');
       return;
     }
 
-    // Create new direct conversation
-    const { data: conv, error } = await supabase
-      .from('conversations')
-      .insert({ is_group: false, conversation_type: 'direct', created_by: profile!.id })
-      .select()
-      .single();
-
-    if (error || !conv) { Alert.alert('Error', error?.message); return; }
-
-    await supabase.from('conversation_members').insert([
-      { conversation_id: conv.id, profile_id: profile!.id },
-      { conversation_id: conv.id, profile_id: recipient.id },
-    ]);
-
     navigation.replace('Chat', {
-      conversationId: conv.id,
+      conversationId,
       title: recipient.full_name,
     });
   };
