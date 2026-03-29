@@ -1,1 +1,24 @@
 [20260329_200010] Starting nightly backup...
+[main f8402e4] chore: nightly auto-backup 2026-03-29
+ Committer: Fabian David <iamfabiandavid@Fabians-MacBook-Air.local>
+Your name and email address were configured automatically based
+on your username and hostname. Please check that they are accurate.
+You can suppress this message by setting them explicitly. Run the
+following command and follow the instructions in your editor to edit
+your configuration file:
+
+    git config --global --edit
+
+After doing this, you may fix the identity used for this commit with:
+
+    git commit --amend --reset-author
+
+ 12 files changed, 2708 insertions(+), 33 deletions(-)
+ create mode 100644 bpt-academy/backups/backup-2026-03-29.log
+ create mode 100644 bpt-academy/backups/credentials_20260327_200004.md
+ create mode 100644 bpt-academy/backups/migrations_20260327_200004.sql
+ create mode 100644 bpt-academy/mobile/ecosystem.config.js
+ create mode 100644 memory/2026-03-28.md
+ create mode 100644 memory/2026-03-29.md
+ create mode 100644 memory/bpt-promotion-log.txt
+[OK] Git: committed workspace changes
