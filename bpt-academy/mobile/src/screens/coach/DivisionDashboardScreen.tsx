@@ -22,23 +22,43 @@ export default function DivisionDashboardScreen({ navigation }: any) {
   const [totals, setTotals] = useState({ students: 0, enrollments: 0, revenue: 0 });
 
   const fetchStats = async () => {
-    const results: DivisionStat[] = await Promise.all(
-      ALL_DIVISIONS.map(async (div) => {
-        const [studRes, enrollRes, payRes] = await Promise.all([
-          supabase.from('profiles').select('id', { count: 'exact', head: true })
-            .eq('division', div).eq('role', 'student'),
-          supabase.from('enrollments').select('id', { count: 'exact', head: true })
-            .eq('status', 'active'),
-          supabase.from('payments').select('amount_gbp').eq('status', 'confirmed'),
-        ]);
-        return {
-          division: div,
-          studentCount: studRes.count ?? 0,
-          enrollmentCount: enrollRes.count ?? 0,
-          revenue: (payRes.data ?? []).reduce((s: number, p: any) => s + (p.amount_gbp ?? 0), 0),
-        };
-      })
-    );
+    // Fetch all data in one go rather than per-division queries
+    const [studentsRes, enrollmentsRes, paymentsRes] = await Promise.all([
+      // Students per division
+      supabase.from('profiles')
+        .select('id, division')
+        .eq('role', 'student')
+        .in('division', ALL_DIVISIONS),
+
+      // Active enrollments joined to programs to get division
+      supabase.from('enrollments')
+        .select('id, program:program_id(division)')
+        .eq('status', 'active'),
+
+      // Confirmed payments joined to enrollments → programs to get division
+      supabase.from('payments')
+        .select('amount_gbp, enrollment:enrollment_id(program:program_id(division))')
+        .eq('status', 'confirmed'),
+    ]);
+
+    const students = studentsRes.data ?? [];
+    const enrollments = enrollmentsRes.data ?? [];
+    const payments = paymentsRes.data ?? [];
+
+    const results: DivisionStat[] = ALL_DIVISIONS.map((div) => {
+      const studentCount = students.filter((s: any) => s.division === div).length;
+
+      const enrollmentCount = enrollments.filter((e: any) => {
+        return (e.program as any)?.division === div;
+      }).length;
+
+      const revenue = payments
+        .filter((p: any) => (p.enrollment as any)?.program?.division === div)
+        .reduce((sum: number, p: any) => sum + (p.amount_gbp ?? 0), 0);
+
+      return { division: div, studentCount, enrollmentCount, revenue };
+    });
+
     setStats(results);
     setTotals({
       students: results.reduce((s, r) => s + r.studentCount, 0),
@@ -98,6 +118,10 @@ export default function DivisionDashboardScreen({ navigation }: any) {
                   <View style={styles.cardStat}>
                     <Text style={styles.cardStatNum}>{s.enrollmentCount}</Text>
                     <Text style={styles.cardStatLabel}>Enrolled</Text>
+                  </View>
+                  <View style={styles.cardStat}>
+                    <Text style={styles.cardStatNum}>£{s.revenue.toFixed(0)}</Text>
+                    <Text style={styles.cardStatLabel}>Revenue</Text>
                   </View>
                 </View>
                 <Text style={styles.cardTap}>View students →</Text>
