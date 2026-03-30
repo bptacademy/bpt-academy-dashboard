@@ -1,29 +1,20 @@
 module.exports = {
   apps: [
-    // ── Expo dev server (LAN — stable, never crashes due to ngrok) ──
     {
-      name: 'bpt-expo',
+      name: 'bpt-academy',
       cwd: '/Users/iamfabiandavid/.openclaw/workspace/bpt-academy/mobile',
       script: 'npx',
-      args: 'expo start --lan',
+      args: 'expo start --tunnel',
       interpreter: 'none',
       autorestart: true,
       watch: false,
       max_memory_restart: '1G',
+      restart_delay: 5000,      // wait 5s before restarting on crash
+      max_restarts: 10,         // stop trying after 10 rapid crashes
+      min_uptime: '30s',        // only count as crashed if dies within 30s
       env: {
         NODE_ENV: 'development',
       },
-    },
-
-    // ── ngrok tunnel (independent process — static domain, never changes) ──
-    {
-      name: 'bpt-ngrok',
-      script: '/opt/homebrew/bin/ngrok',
-      args: 'http 8081 --domain=lizeth-wolframic-caressively.ngrok-free.dev --log stdout',
-      interpreter: 'none',
-      autorestart: true,
-      watch: false,
-      max_memory_restart: '256M',
     },
   ],
 };

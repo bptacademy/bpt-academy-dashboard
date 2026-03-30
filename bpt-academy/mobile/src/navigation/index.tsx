@@ -145,38 +145,10 @@ function StudentProfileStack() {
 function StudentTabs() {
   return (
     <Tab.Navigator screenOptions={tabBarScreenOptions}>
-      <Tab.Screen
-        name="HomeTab"
-        component={StudentHomeStack}
-        options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>🏠</Text>,
-        }}
-      />
-      <Tab.Screen
-        name="ProgramsTab"
-        component={StudentProgramsStack}
-        options={{
-          title: 'Programs',
-          tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>📋</Text>,
-        }}
-      />
-      <Tab.Screen
-        name="MessagesTab"
-        component={StudentMessagesStack}
-        options={{
-          title: 'Messages',
-          tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>💬</Text>,
-        }}
-      />
-      <Tab.Screen
-        name="ProfileTab"
-        component={StudentProfileStack}
-        options={{
-          title: 'Profile',
-          tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>👤</Text>,
-        }}
-      />
+      <Tab.Screen name="HomeTab"     component={StudentHomeStack}     options={{ title: 'Home',     tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>🏠</Text> }} />
+      <Tab.Screen name="ProgramsTab" component={StudentProgramsStack} options={{ title: 'Programs', tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>📋</Text> }} />
+      <Tab.Screen name="MessagesTab" component={StudentMessagesStack} options={{ title: 'Messages', tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>💬</Text> }} />
+      <Tab.Screen name="ProfileTab"  component={StudentProfileStack}  options={{ title: 'Profile',  tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>👤</Text> }} />
     </Tab.Navigator>
   );
 }
@@ -242,38 +214,10 @@ function CoachProfileStack() {
 function CoachTabs() {
   return (
     <Tab.Navigator screenOptions={tabBarScreenOptions}>
-      <Tab.Screen
-        name="HomeTab"
-        component={CoachHomeStack}
-        options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>🏠</Text>,
-        }}
-      />
-      <Tab.Screen
-        name="StudentsTab"
-        component={CoachStudentsStack}
-        options={{
-          title: 'Students',
-          tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>👥</Text>,
-        }}
-      />
-      <Tab.Screen
-        name="ProgramsTab"
-        component={CoachProgramsStack}
-        options={{
-          title: 'Programs',
-          tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>📋</Text>,
-        }}
-      />
-      <Tab.Screen
-        name="ProfileTab"
-        component={CoachProfileStack}
-        options={{
-          title: 'Profile',
-          tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>👤</Text>,
-        }}
-      />
+      <Tab.Screen name="HomeTab"     component={CoachHomeStack}     options={{ title: 'Home',     tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>🏠</Text> }} />
+      <Tab.Screen name="StudentsTab" component={CoachStudentsStack} options={{ title: 'Students', tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>👥</Text> }} />
+      <Tab.Screen name="ProgramsTab" component={CoachProgramsStack} options={{ title: 'Programs', tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>📋</Text> }} />
+      <Tab.Screen name="ProfileTab"  component={CoachProfileStack}  options={{ title: 'Profile',  tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>👤</Text> }} />
     </Tab.Navigator>
   );
 }
@@ -284,6 +228,10 @@ function AdminDashboardStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Dashboard"         component={CoachHomeScreen} />
+      <Stack.Screen name="Manage"            component={ManageProgramsScreen} />
+      <Stack.Screen name="ProgramRoster"     component={ProgramRosterScreen} />
+      <Stack.Screen name="ProgramModules"    component={ProgramModulesScreen} />
+      <Stack.Screen name="VideoPlayer"       component={VideoPlayerScreen} />
       <Stack.Screen name="Payments"          component={PaymentReconciliationScreen} />
       <Stack.Screen name="BulkMsg"           component={BulkMessageScreen} />
       <Stack.Screen name="Announce"          component={SendAnnouncementScreen} />
@@ -347,38 +295,10 @@ function AdminMessagesStack() {
 function AdminTabs() {
   return (
     <Tab.Navigator screenOptions={tabBarScreenOptions}>
-      <Tab.Screen
-        name="DashboardTab"
-        component={AdminDashboardStack}
-        options={{
-          title: 'Dashboard',
-          tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>📊</Text>,
-        }}
-      />
-      <Tab.Screen
-        name="StudentsTab"
-        component={AdminStudentsStack}
-        options={{
-          title: 'Students',
-          tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>👥</Text>,
-        }}
-      />
-      <Tab.Screen
-        name="ProgramsTab"
-        component={AdminProgramsStack}
-        options={{
-          title: 'Programs',
-          tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>📋</Text>,
-        }}
-      />
-      <Tab.Screen
-        name="MessagesTab"
-        component={AdminMessagesStack}
-        options={{
-          title: 'Messages',
-          tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>💬</Text>,
-        }}
-      />
+      <Tab.Screen name="DashboardTab" component={AdminDashboardStack} options={{ title: 'Dashboard', tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>📊</Text> }} />
+      <Tab.Screen name="StudentsTab"  component={AdminStudentsStack}  options={{ title: 'Students',  tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>👥</Text> }} />
+      <Tab.Screen name="ProgramsTab"  component={AdminProgramsStack}  options={{ title: 'Programs',  tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>📋</Text> }} />
+      <Tab.Screen name="MessagesTab"  component={AdminMessagesStack}  options={{ title: 'Messages',  tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>💬</Text> }} />
     </Tab.Navigator>
   );
 }
@@ -389,21 +309,32 @@ function SuperAdminDashboardStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Dashboard"         component={CoachHomeScreen} />
+      {/* Programs — navigated to from dashboard quick actions */}
+      <Stack.Screen name="Manage"            component={ManageProgramsScreen} />
+      <Stack.Screen name="ProgramRoster"     component={ProgramRosterScreen} />
+      <Stack.Screen name="ProgramModules"    component={ProgramModulesScreen} />
+      <Stack.Screen name="VideoPlayer"       component={VideoPlayerScreen} />
+      {/* Students */}
       <Stack.Screen name="Students"          component={ManageStudentsScreen} />
       <Stack.Screen name="StudentDetail"     component={StudentDetailScreen} />
       <Stack.Screen name="Attendance"        component={AttendanceScreen} />
       <Stack.Screen name="CoachNotes"        component={CoachNotesScreen} />
       <Stack.Screen name="PromotionManage"   component={PromotionManageScreen} />
+      {/* Videos */}
       <Stack.Screen name="ManageVideos"      component={ManageVideosScreen} />
       <Stack.Screen name="UploadVideo"       component={UploadVideoScreen} />
+      {/* Finance & comms */}
       <Stack.Screen name="Payments"          component={PaymentReconciliationScreen} />
       <Stack.Screen name="BulkMsg"           component={BulkMessageScreen} />
       <Stack.Screen name="Announce"          component={SendAnnouncementScreen} />
+      {/* Settings */}
       <Stack.Screen name="AcademySettings"   component={AcademySettingsScreen} />
       <Stack.Screen name="BillingSettings"   component={BillingSettingsScreen} />
+      {/* Divisions & tournaments */}
       <Stack.Screen name="DivisionDashboard" component={DivisionDashboardScreen} />
       <Stack.Screen name="TournamentManage"  component={TournamentManageScreen} />
       <Stack.Screen name="TournamentDetail"  component={TournamentDetailScreen} />
+      {/* Messaging */}
       <Stack.Screen name="Chat"              component={ChatScreen} />
       <Stack.Screen name="NewConversation"   component={NewConversationScreen} />
     </Stack.Navigator>
@@ -443,38 +374,10 @@ function SuperAdminProfileStack() {
 function SuperAdminTabs() {
   return (
     <Tab.Navigator screenOptions={tabBarScreenOptions}>
-      <Tab.Screen
-        name="DashboardTab"
-        component={SuperAdminDashboardStack}
-        options={{
-          title: 'Dashboard',
-          tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>📊</Text>,
-        }}
-      />
-      <Tab.Screen
-        name="UsersTab"
-        component={SuperAdminUsersStack}
-        options={{
-          title: 'Users',
-          tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>👑</Text>,
-        }}
-      />
-      <Tab.Screen
-        name="MessagesTab"
-        component={SuperAdminMessagesStack}
-        options={{
-          title: 'Messages',
-          tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>💬</Text>,
-        }}
-      />
-      <Tab.Screen
-        name="ProfileTab"
-        component={SuperAdminProfileStack}
-        options={{
-          title: 'Profile',
-          tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>👤</Text>,
-        }}
-      />
+      <Tab.Screen name="DashboardTab" component={SuperAdminDashboardStack} options={{ title: 'Dashboard', tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>📊</Text> }} />
+      <Tab.Screen name="UsersTab"     component={SuperAdminUsersStack}     options={{ title: 'Users',     tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>👑</Text> }} />
+      <Tab.Screen name="MessagesTab"  component={SuperAdminMessagesStack}  options={{ title: 'Messages',  tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>💬</Text> }} />
+      <Tab.Screen name="ProfileTab"   component={SuperAdminProfileStack}   options={{ title: 'Profile',   tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>👤</Text> }} />
     </Tab.Navigator>
   );
 }
