@@ -9,9 +9,7 @@ module.exports = {
       autorestart: true,
       watch: false,
       max_memory_restart: '1G',
-      restart_delay: 5000,      // wait 5s before restarting on crash
-      max_restarts: 10,         // stop trying after 10 rapid crashes
-      min_uptime: '30s',        // only count as crashed if dies within 30s
+      restart_delay: 8000,  // wait 8s before restarting — gives ngrok time to recover
       env: {
         NODE_ENV: 'development',
       },
