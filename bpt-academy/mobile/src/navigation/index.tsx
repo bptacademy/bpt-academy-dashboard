@@ -61,25 +61,16 @@ import ChatScreen from '../screens/messaging/ChatScreen';
 // ─── Tab bar shared options ──────────────────────────────────────────────
 const tabBarScreenOptions = {
   headerShown: false,
-  tabBarStyle: {
-    backgroundColor: '#FFFFFF',
-    borderTopColor: '#E5E7EB',
-    borderTopWidth: 1,
-    paddingTop: 6,
-  },
+  tabBarStyle: { backgroundColor: '#FFFFFF', borderTopColor: '#E5E7EB', borderTopWidth: 1, paddingTop: 6 },
   tabBarActiveTintColor: '#16A34A',
   tabBarInactiveTintColor: '#9CA3AF',
-  tabBarLabelStyle: {
-    fontSize: 11,
-    fontWeight: '600' as const,
-    marginBottom: Platform.OS === 'android' ? 4 : 0,
-  },
+  tabBarLabelStyle: { fontSize: 11, fontWeight: '600' as const, marginBottom: Platform.OS === 'android' ? 4 : 0 },
 };
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
-// ─── Auth stack ─────────────────────────────────────────────────────────
+// ─── Auth ────────────────────────────────────────────────────────────────
 function AuthStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
@@ -89,8 +80,7 @@ function AuthStack() {
   );
 }
 
-// ─── Student tab stacks ──────────────────────────────────────────────────
-
+// ─── Student ─────────────────────────────────────────────────────────────
 function StudentHomeStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
@@ -110,7 +100,6 @@ function StudentHomeStack() {
     </Stack.Navigator>
   );
 }
-
 function StudentProgramsStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
@@ -121,7 +110,6 @@ function StudentProgramsStack() {
     </Stack.Navigator>
   );
 }
-
 function StudentMessagesStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
@@ -132,7 +120,6 @@ function StudentMessagesStack() {
     </Stack.Navigator>
   );
 }
-
 function StudentProfileStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
@@ -140,8 +127,6 @@ function StudentProfileStack() {
     </Stack.Navigator>
   );
 }
-
-// ─── Student tabs ────────────────────────────────────────────────────────
 function StudentTabs() {
   return (
     <Tab.Navigator screenOptions={tabBarScreenOptions}>
@@ -153,12 +138,19 @@ function StudentTabs() {
   );
 }
 
-// ─── Coach tab stacks ────────────────────────────────────────────────────
-
+// ─── Coach ────────────────────────────────────────────────────────────────
 function CoachHomeStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Dashboard"         component={CoachDashboardScreen} />
+      {/* Programs flow — accessible from dashboard quick actions */}
+      <Stack.Screen name="Manage"            component={ManageProgramsScreen} />
+      <Stack.Screen name="ProgramRoster"     component={ProgramRosterScreen} />
+      <Stack.Screen name="ProgramModules"    component={ProgramModulesScreen} />
+      <Stack.Screen name="ManageVideos"      component={ManageVideosScreen} />
+      <Stack.Screen name="UploadVideo"       component={UploadVideoScreen} />
+      <Stack.Screen name="VideoPlayer"       component={VideoPlayerScreen} />
+      {/* Other dashboard actions */}
       <Stack.Screen name="DivisionDashboard" component={DivisionDashboardScreen} />
       <Stack.Screen name="TournamentManage"  component={TournamentManageScreen} />
       <Stack.Screen name="TournamentDetail"  component={TournamentDetailScreen} />
@@ -173,7 +165,6 @@ function CoachHomeStack() {
     </Stack.Navigator>
   );
 }
-
 function CoachStudentsStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
@@ -187,7 +178,6 @@ function CoachStudentsStack() {
     </Stack.Navigator>
   );
 }
-
 function CoachMessagesStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
@@ -198,21 +188,6 @@ function CoachMessagesStack() {
     </Stack.Navigator>
   );
 }
-
-function CoachProgramsStack() {
-  return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="Manage"         component={ManageProgramsScreen} />
-      <Stack.Screen name="ProgramRoster"  component={ProgramRosterScreen} />
-      <Stack.Screen name="ProgramModules" component={ProgramModulesScreen} />
-      <Stack.Screen name="ManageVideos"   component={ManageVideosScreen} />
-      <Stack.Screen name="UploadVideo"    component={UploadVideoScreen} />
-      <Stack.Screen name="VideoPlayer"    component={VideoPlayerScreen} />
-      <Stack.Screen name="StudentDetail"  component={StudentDetailScreen} />
-    </Stack.Navigator>
-  );
-}
-
 function CoachProfileStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
@@ -220,8 +195,7 @@ function CoachProfileStack() {
     </Stack.Navigator>
   );
 }
-
-// ─── Coach tabs: Home / Students / Messages / Profile ────────────────────
+// Coach tabs: Home / Students / Messages / Profile
 function CoachTabs() {
   return (
     <Tab.Navigator screenOptions={tabBarScreenOptions}>
@@ -233,8 +207,7 @@ function CoachTabs() {
   );
 }
 
-// ─── Admin tab stacks ────────────────────────────────────────────────────
-
+// ─── Admin ────────────────────────────────────────────────────────────────
 function AdminDashboardStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
@@ -263,7 +236,6 @@ function AdminDashboardStack() {
     </Stack.Navigator>
   );
 }
-
 function AdminStudentsStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
@@ -277,7 +249,6 @@ function AdminStudentsStack() {
     </Stack.Navigator>
   );
 }
-
 function AdminProgramsStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
@@ -291,7 +262,6 @@ function AdminProgramsStack() {
     </Stack.Navigator>
   );
 }
-
 function AdminMessagesStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
@@ -301,8 +271,6 @@ function AdminMessagesStack() {
     </Stack.Navigator>
   );
 }
-
-// ─── Admin tabs ──────────────────────────────────────────────────────────
 function AdminTabs() {
   return (
     <Tab.Navigator screenOptions={tabBarScreenOptions}>
@@ -314,8 +282,7 @@ function AdminTabs() {
   );
 }
 
-// ─── Super Admin tab stacks ──────────────────────────────────────────────
-
+// ─── Super Admin ──────────────────────────────────────────────────────────
 function SuperAdminDashboardStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
@@ -344,7 +311,6 @@ function SuperAdminDashboardStack() {
     </Stack.Navigator>
   );
 }
-
 function SuperAdminUsersStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
@@ -353,7 +319,6 @@ function SuperAdminUsersStack() {
     </Stack.Navigator>
   );
 }
-
 function SuperAdminMessagesStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
@@ -365,7 +330,6 @@ function SuperAdminMessagesStack() {
     </Stack.Navigator>
   );
 }
-
 function SuperAdminProfileStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
@@ -373,8 +337,6 @@ function SuperAdminProfileStack() {
     </Stack.Navigator>
   );
 }
-
-// ─── Super Admin tabs — Dashboard / Users / Messages / Profile ───────────
 function SuperAdminTabs() {
   return (
     <Tab.Navigator screenOptions={tabBarScreenOptions}>
@@ -386,11 +348,10 @@ function SuperAdminTabs() {
   );
 }
 
-// ─── Root navigator ──────────────────────────────────────────────────────
+// ─── Root ─────────────────────────────────────────────────────────────────
 export default function RootNavigator() {
   const { session, loading, isSuperAdmin, isAdmin, isCoach } = useAuth();
   if (loading) return null;
-
   const renderStack = () => {
     if (!session)     return <AuthStack />;
     if (isSuperAdmin) return <SuperAdminTabs />;
@@ -398,10 +359,5 @@ export default function RootNavigator() {
     if (isCoach)      return <CoachTabs />;
     return <StudentTabs />;
   };
-
-  return (
-    <NavigationContainer>
-      {renderStack()}
-    </NavigationContainer>
-  );
+  return <NavigationContainer>{renderStack()}</NavigationContainer>;
 }
