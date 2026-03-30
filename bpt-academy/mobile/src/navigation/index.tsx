@@ -52,6 +52,7 @@ import CoachDashboardScreen from '../screens/coach/CoachDashboardScreen';
 
 // Super Admin
 import SuperAdminHomeScreen from '../screens/superadmin/SuperAdminHomeScreen';
+import SuperAdminMessagesScreen from '../screens/superadmin/SuperAdminMessagesScreen';
 
 // Messaging
 import NewConversationScreen from '../screens/messaging/NewConversationScreen';
@@ -421,7 +422,7 @@ function SuperAdminUsersStack() {
 function SuperAdminMessagesStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="Messages"        component={MessagesScreen} />
+      <Stack.Screen name="Messages"        component={SuperAdminMessagesScreen} />
       <Stack.Screen name="Chat"            component={ChatScreen} />
       <Stack.Screen name="NewConversation" component={NewConversationScreen} />
       <Stack.Screen name="BulkMsg"         component={BulkMessageScreen} />
