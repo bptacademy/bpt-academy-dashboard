@@ -16,8 +16,9 @@ export default function ProgramModulesScreen({ route }: any) {
   const [refreshing, setRefreshing] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  // Edit modal state
-  const [editingModule, setEditingModule] = useState<Module | null>(null);
+  // Modal state — used for both add and edit
+  const [modalVisible, setModalVisible] = useState(false);
+  const [editingModule, setEditingModule] = useState<Module | null>(null); // null = adding new
   const [editTitle, setEditTitle] = useState('');
   const [editDescription, setEditDescription] = useState('');
 
@@ -39,34 +40,80 @@ export default function ProgramModulesScreen({ route }: any) {
     setRefreshing(false);
   };
 
+  const openAdd = () => {
+    setEditingModule(null);
+    setEditTitle('');
+    setEditDescription('');
+    setModalVisible(true);
+  };
+
   const openEdit = (mod: Module) => {
     setEditingModule(mod);
     setEditTitle(mod.title);
     setEditDescription(mod.description ?? '');
+    setModalVisible(true);
   };
 
-  const closeEdit = () => {
+  const closeModal = () => {
+    setModalVisible(false);
     setEditingModule(null);
     setEditTitle('');
     setEditDescription('');
   };
 
   const handleSave = async () => {
-    if (!editingModule) return;
-    if (!editTitle.trim()) { Alert.alert('Error', 'Title is required'); return; }
+    if (!editTitle.trim()) { Alert.alert('Error', 'Module title is required'); return; }
     setSaving(true);
-    const { error } = await supabase
-      .from('modules')
-      .update({
-        title: editTitle.trim(),
-        description: editDescription.trim() || null,
-      })
-      .eq('id', editingModule.id);
 
-    setSaving(false);
-    if (error) { Alert.alert('Error', error.message); return; }
-    closeEdit();
+    if (editingModule) {
+      // Update existing
+      const { error } = await supabase
+        .from('modules')
+        .update({
+          title: editTitle.trim(),
+          description: editDescription.trim() || null,
+        })
+        .eq('id', editingModule.id);
+      setSaving(false);
+      if (error) { Alert.alert('Error', error.message); return; }
+    } else {
+      // Insert new — order_index = current max + 1
+      const nextIndex = modules.length > 0
+        ? Math.max(...modules.map(m => m.order_index ?? 0)) + 1
+        : 1;
+      const { error } = await supabase
+        .from('modules')
+        .insert({
+          program_id: programId,
+          title: editTitle.trim(),
+          description: editDescription.trim() || null,
+          order_index: nextIndex,
+        });
+      setSaving(false);
+      if (error) { Alert.alert('Error', error.message); return; }
+    }
+
+    closeModal();
     fetchModules();
+  };
+
+  const handleDelete = (mod: Module) => {
+    Alert.alert(
+      'Delete Module',
+      `Remove "${mod.title}" from this program? Student progress for this module will also be removed.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            const { error } = await supabase.from('modules').delete().eq('id', mod.id);
+            if (error) { Alert.alert('Error', error.message); return; }
+            fetchModules();
+          },
+        },
+      ]
+    );
   };
 
   if (loading) {
@@ -80,16 +127,15 @@ export default function ProgramModulesScreen({ route }: any) {
 
   return (
     <View style={styles.container}>
-      <BackHeader title={`${programTitle} — Modules`} />
+      <BackHeader title={`${programTitle ?? 'Program'} — Modules`} />
 
       <ScrollView
-        contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
+        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 100 }]}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-        contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
         <Text style={styles.hint}>
-          Tap any module to add or edit its title and goal description. Students will see this when they tap the module.
+          Tap a module to edit it. Long press to delete. Use the + button to add new modules.
         </Text>
 
         {modules.map((mod, idx) => {
@@ -99,6 +145,7 @@ export default function ProgramModulesScreen({ route }: any) {
               key={mod.id}
               style={[styles.moduleCard, hasDesc && styles.moduleCardFilled]}
               onPress={() => openEdit(mod)}
+              onLongPress={() => handleDelete(mod)}
               activeOpacity={0.75}
             >
               <View style={styles.moduleLeft}>
@@ -112,7 +159,7 @@ export default function ProgramModulesScreen({ route }: any) {
                   {hasDesc ? (
                     <Text style={styles.moduleDesc} numberOfLines={2}>{mod.description}</Text>
                   ) : (
-                    <Text style={styles.moduleDescEmpty}>No description yet — tap to add</Text>
+                    <Text style={styles.moduleDescEmpty}>No description — tap to add</Text>
                   )}
                 </View>
               </View>
@@ -126,25 +173,32 @@ export default function ProgramModulesScreen({ route }: any) {
             <Text style={styles.emptyIcon}>📋</Text>
             <Text style={styles.emptyTitle}>No modules yet</Text>
             <Text style={styles.emptyNote}>
-              Modules are auto-generated when you create a program with a set duration and sessions per week.
+              Tap the + button below to add your first module.
             </Text>
           </View>
         )}
       </ScrollView>
 
-      {/* Edit modal */}
+      {/* Add Module FAB */}
+      <TouchableOpacity style={styles.fab} onPress={openAdd}>
+        <Text style={styles.fabIcon}>+</Text>
+      </TouchableOpacity>
+
+      {/* Add / Edit Modal */}
       <Modal
-        visible={!!editingModule}
+        visible={modalVisible}
         animationType="slide"
         presentationStyle="pageSheet"
-        onRequestClose={closeEdit}
+        onRequestClose={closeModal}
       >
         <View style={styles.modal}>
           <View style={styles.modalHeader}>
-            <TouchableOpacity onPress={closeEdit}>
+            <TouchableOpacity onPress={closeModal}>
               <Text style={styles.cancelBtn}>Cancel</Text>
             </TouchableOpacity>
-            <Text style={styles.modalTitle}>Edit Module</Text>
+            <Text style={styles.modalTitle}>
+              {editingModule ? 'Edit Module' : 'Add Module'}
+            </Text>
             <TouchableOpacity onPress={handleSave} disabled={saving}>
               <Text style={[styles.saveBtn, saving && { opacity: 0.4 }]}>
                 {saving ? 'Saving…' : 'Save'}
@@ -153,30 +207,32 @@ export default function ProgramModulesScreen({ route }: any) {
           </View>
 
           <ScrollView style={styles.modalBody} keyboardShouldPersistTaps="handled">
-            <Text style={styles.fieldLabel}>Module Title</Text>
+            <Text style={styles.fieldLabel}>Module Title *</Text>
             <TextInput
               style={styles.input}
               value={editTitle}
               onChangeText={setEditTitle}
               placeholder="e.g. Session 3 — Volleys"
               placeholderTextColor="#9CA3AF"
+              autoFocus={!editingModule}
             />
 
             <Text style={styles.fieldLabel}>Goal / Description</Text>
             <Text style={styles.fieldHint}>
-              Explain what this session is about — what students will practise and what they should take away. Students can read this before and after the session.
+              What will students practise and learn in this session?
             </Text>
             <TextInput
               style={[styles.input, styles.textarea]}
               value={editDescription}
               onChangeText={setEditDescription}
-              placeholder="e.g. Focus on net positioning and volley technique. By the end of this session students should be able to execute a controlled cross-court volley from the kitchen line."
+              placeholder="e.g. Focus on net positioning and volley technique. By the end of this session students should be able to execute a controlled cross-court volley."
               placeholderTextColor="#9CA3AF"
               multiline
               numberOfLines={6}
               textAlignVertical="top"
             />
 
+            {/* Preview */}
             <View style={styles.previewBox}>
               <Text style={styles.previewLabel}>👁 Student preview</Text>
               <Text style={styles.previewTitle}>{editTitle || 'Module title'}</Text>
@@ -186,6 +242,16 @@ export default function ProgramModulesScreen({ route }: any) {
                 <Text style={styles.previewDescEmpty}>No description yet.</Text>
               )}
             </View>
+
+            {/* Delete option when editing */}
+            {editingModule && (
+              <TouchableOpacity
+                style={styles.deleteBtn}
+                onPress={() => { closeModal(); handleDelete(editingModule); }}
+              >
+                <Text style={styles.deleteBtnText}>🗑 Delete this module</Text>
+              </TouchableOpacity>
+            )}
           </ScrollView>
         </View>
       </Modal>
@@ -196,7 +262,7 @@ export default function ProgramModulesScreen({ route }: any) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F9FAFB' },
   loader: { marginTop: 60 },
-  content: { padding: 16, paddingBottom: 40 },
+  content: { padding: 16 },
 
   hint: {
     fontSize: 13, color: '#6B7280', marginBottom: 16,
@@ -233,7 +299,15 @@ const styles = StyleSheet.create({
   emptyTitle: { fontSize: 16, fontWeight: '700', color: '#111827', marginBottom: 6 },
   emptyNote: { fontSize: 13, color: '#9CA3AF', textAlign: 'center', lineHeight: 20 },
 
-  // Modal
+  fab: {
+    position: 'absolute', bottom: 30, right: 24,
+    width: 60, height: 60, borderRadius: 30,
+    backgroundColor: '#16A34A', alignItems: 'center', justifyContent: 'center',
+    shadowColor: '#000', shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2, shadowRadius: 6, elevation: 5,
+  },
+  fabIcon: { fontSize: 32, color: '#FFFFFF', lineHeight: 36 },
+
   modal: { flex: 1, backgroundColor: '#FFFFFF' },
   modalHeader: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
@@ -255,10 +329,17 @@ const styles = StyleSheet.create({
 
   previewBox: {
     backgroundColor: '#F0FDF4', borderRadius: 12, padding: 16,
-    borderWidth: 1, borderColor: '#BBF7D0', marginBottom: 40,
+    borderWidth: 1, borderColor: '#BBF7D0', marginBottom: 24,
   },
   previewLabel: { fontSize: 11, fontWeight: '700', color: '#16A34A', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 },
   previewTitle: { fontSize: 16, fontWeight: '700', color: '#111827', marginBottom: 6 },
   previewDesc: { fontSize: 14, color: '#374151', lineHeight: 20 },
   previewDescEmpty: { fontSize: 13, color: '#9CA3AF', fontStyle: 'italic' },
+
+  deleteBtn: {
+    backgroundColor: '#FEF2F2', borderRadius: 10, padding: 14,
+    alignItems: 'center', marginBottom: 40,
+    borderWidth: 1, borderColor: '#FECACA',
+  },
+  deleteBtnText: { color: '#DC2626', fontWeight: '600', fontSize: 15 },
 });
