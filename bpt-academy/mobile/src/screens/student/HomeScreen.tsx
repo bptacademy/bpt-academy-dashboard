@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import {
-  View, Text, ScrollView, StyleSheet, FlatList,
+  View, Text, ScrollView, StyleSheet,
   TouchableOpacity, RefreshControl, Dimensions,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -13,17 +13,27 @@ import ScreenHeader from '../../components/common/ScreenHeader';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = (SCREEN_WIDTH - 20 * 2 - 12) / 2;
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
 interface EnrollmentWithProgress extends Enrollment {
   completedModules: number;
   totalModules: number;
 }
 
-interface CalendarDay {
-  date: Date;
-  dateStr: string; // YYYY-MM-DD
-  hasEvents: boolean;
-  events: any[];
+// Build 15-day window: 7 past + today + 7 future
+function buildDays() {
+  const days = [];
+  const now = new Date();
+  for (let i = -7; i <= 7; i++) {
+    const d = new Date(now);
+    d.setDate(now.getDate() + i);
+    days.push({
+      date: d,
+      dateStr: d.toISOString().split('T')[0],
+      events: [] as any[],
+    });
+  }
+  return days;
 }
 
 export default function HomeScreen({ navigation }: any) {
@@ -32,26 +42,12 @@ export default function HomeScreen({ navigation }: any) {
   const [enrollments, setEnrollments] = useState<EnrollmentWithProgress[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [refreshing, setRefreshing] = useState(false);
-  const [calendarDays, setCalendarDays] = useState<CalendarDay[]>([]);
+  const [days, setDays] = useState(buildDays);
+  const calendarRef = useRef<ScrollView>(null);
 
   const dismissedRef = useRef<Set<string>>(new Set());
 
-  // Build 14-day window centred on today
-  const buildCalendarDays = (sessions: any[]): CalendarDay[] => {
-    const days: CalendarDay[] = [];
-    const now = new Date();
-    for (let i = -7; i <= 7; i++) {
-      const d = new Date(now);
-      d.setDate(now.getDate() + i);
-      const dateStr = d.toISOString().split('T')[0];
-      const dayEvents = sessions.filter(s => {
-        const sd = new Date(s.session_date || s.start_time || s.date);
-        return sd.toISOString().split('T')[0] === dateStr;
-      });
-      days.push({ date: d, dateStr, hasEvents: dayEvents.length > 0, events: dayEvents });
-    }
-    return days;
-  };
+  const todayStr = new Date().toISOString().split('T')[0];
 
   const fetchData = async () => {
     if (!profile) return;
@@ -99,16 +95,14 @@ export default function HomeScreen({ navigation }: any) {
     }
 
     if (notifRes.data) {
-      setNotifications(
-        notifRes.data.filter((n: Notification) => !dismissedRef.current.has(n.id))
-      );
+      setNotifications(notifRes.data.filter((n: Notification) => !dismissedRef.current.has(n.id)));
     }
 
-    // Fetch program sessions for calendar
+    // Fetch program sessions for calendar events
     if (programIds.length > 0) {
       const now = new Date();
       const from = new Date(now); from.setDate(now.getDate() - 7);
-      const to = new Date(now); to.setDate(now.getDate() + 7);
+      const to   = new Date(now); to.setDate(now.getDate() + 7);
 
       const { data: sessions } = await supabase
         .from('program_sessions')
@@ -117,15 +111,25 @@ export default function HomeScreen({ navigation }: any) {
         .gte('session_date', from.toISOString().split('T')[0])
         .lte('session_date', to.toISOString().split('T')[0]);
 
-      setCalendarDays(buildCalendarDays(sessions ?? []));
-    } else {
-      setCalendarDays(buildCalendarDays([]));
+      if (sessions) {
+        setDays(prev => prev.map(day => ({
+          ...day,
+          events: sessions.filter((s: any) => s.session_date === day.dateStr),
+        })));
+      }
     }
   };
 
   const onRefresh = async () => { setRefreshing(true); await fetchData(); setRefreshing(false); };
   useEffect(() => { fetchData(); }, [profile]);
   useFocusEffect(useCallback(() => { fetchData(); }, [profile]));
+
+  // Scroll calendar to today (index 7 = centre) once mounted
+  useEffect(() => {
+    setTimeout(() => {
+      calendarRef.current?.scrollTo({ x: 7 * 64, animated: false });
+    }, 100);
+  }, []);
 
   const dismissNotification = async (id: string) => {
     dismissedRef.current.add(id);
@@ -156,30 +160,6 @@ export default function HomeScreen({ navigation }: any) {
     { icon: '💬', label: 'Messages',         onPress: goToMessages },
   ];
 
-  const todayStr = new Date().toISOString().split('T')[0];
-
-  const renderCalendarDay = ({ item }: { item: CalendarDay }) => {
-    const isToday = item.dateStr === todayStr;
-    return (
-      <TouchableOpacity
-        style={[styles.dayCell, isToday && styles.dayCellToday]}
-        onPress={() => navigation.navigate('CalendarDay', { date: item.dateStr, events: item.events })}
-        activeOpacity={0.7}
-      >
-        <Text style={[styles.dayName, isToday && styles.dayNameToday]}>
-          {DAY_NAMES[item.date.getDay()]}
-        </Text>
-        <Text style={[styles.dayNum, isToday && styles.dayNumToday]}>
-          {item.date.getDate()}
-        </Text>
-        {item.hasEvents
-          ? <View style={styles.eventDot} />
-          : <View style={styles.eventDotEmpty} />
-        }
-      </TouchableOpacity>
-    );
-  };
-
   return (
     <ScrollView
       style={styles.container}
@@ -205,17 +185,44 @@ export default function HomeScreen({ navigation }: any) {
 
       {/* ── Calendar Strip ── */}
       <View style={styles.calendarSection}>
-        <Text style={styles.calendarTitle}>📅 Schedule</Text>
-        <FlatList
+        <View style={styles.calendarHeader}>
+          <Text style={styles.calendarTitle}>📅 Schedule</Text>
+          <Text style={styles.calendarMonth}>
+            {MONTH_NAMES[new Date().getMonth()]} {new Date().getFullYear()}
+          </Text>
+        </View>
+        <ScrollView
+          ref={calendarRef}
           horizontal
-          data={calendarDays}
-          keyExtractor={item => item.dateStr}
-          renderItem={renderCalendarDay}
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.calendarList}
-          initialScrollIndex={7}
-          getItemLayout={(_, index) => ({ length: 58, offset: 58 * index, index })}
-        />
+          scrollEnabled
+          nestedScrollEnabled
+        >
+          {days.map((day) => {
+            const isToday = day.dateStr === todayStr;
+            const hasEvents = day.events.length > 0;
+            return (
+              <TouchableOpacity
+                key={day.dateStr}
+                style={[styles.dayCell, isToday && styles.dayCellToday]}
+                onPress={() => navigation.navigate('CalendarDay', {
+                  date: day.dateStr,
+                  events: day.events,
+                })}
+                activeOpacity={0.7}
+              >
+                <Text style={[styles.dayName, isToday && styles.dayNameToday]}>
+                  {DAY_NAMES[day.date.getDay()]}
+                </Text>
+                <Text style={[styles.dayNum, isToday && styles.dayNumToday]}>
+                  {day.date.getDate()}
+                </Text>
+                <View style={hasEvents ? styles.eventDot : styles.eventDotEmpty} />
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
       </View>
 
       {/* Notifications */}
@@ -308,19 +315,74 @@ const styles = StyleSheet.create({
   badge: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20 },
   badgeText: { color: '#FFFFFF', fontSize: 12, fontWeight: '600' },
 
-  // Calendar strip
-  calendarSection: { backgroundColor: '#FFFFFF', paddingTop: 12, paddingBottom: 8, borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
-  calendarTitle: { fontSize: 13, fontWeight: '700', color: '#6B7280', paddingHorizontal: 20, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 },
-  calendarList: { paddingHorizontal: 12 },
-  dayCell: { width: 50, alignItems: 'center', paddingVertical: 8, marginHorizontal: 4, borderRadius: 12 },
-  dayCellToday: { backgroundColor: '#16A34A' },
-  dayName: { fontSize: 11, fontWeight: '600', color: '#9CA3AF', marginBottom: 4 },
+  // ── Calendar ──
+  calendarSection: {
+    backgroundColor: '#FFFFFF',
+    paddingTop: 14,
+    paddingBottom: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
+  },
+  calendarHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    marginBottom: 12,
+  },
+  calendarTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#111827',
+  },
+  calendarMonth: {
+    fontSize: 13,
+    color: '#6B7280',
+    fontWeight: '500',
+  },
+  calendarList: {
+    paddingHorizontal: 10,
+  },
+  dayCell: {
+    width: 56,
+    height: 72,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginHorizontal: 4,
+    borderRadius: 14,
+    backgroundColor: '#F9FAFB',
+  },
+  dayCellToday: {
+    backgroundColor: '#16A34A',
+  },
+  dayName: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#9CA3AF',
+    marginBottom: 4,
+    textTransform: 'uppercase',
+  },
   dayNameToday: { color: '#D1FAE5' },
-  dayNum: { fontSize: 18, fontWeight: '700', color: '#111827' },
+  dayNum: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#111827',
+  },
   dayNumToday: { color: '#FFFFFF' },
-  eventDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#EF4444', marginTop: 4 },
-  eventDotEmpty: { width: 6, height: 6, marginTop: 4 },
+  eventDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#EF4444',
+    marginTop: 4,
+  },
+  eventDotEmpty: {
+    width: 6,
+    height: 6,
+    marginTop: 4,
+  },
 
+  // ── Rest ──
   section: { padding: 20 },
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
   sectionTitle: { fontSize: 17, fontWeight: '700', color: '#111827', marginBottom: 12 },
