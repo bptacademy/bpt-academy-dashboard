@@ -20,11 +20,12 @@ const SKILL_COLORS: Record<SkillLevel, string> = {
 };
 const DIVISIONS: Division[] = ['amateur', 'semi_pro', 'pro'];
 
-export default function ProfileScreen() {
+export default function ProfileScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
   const { profile, signOut, previewRole, setPreviewRole, effectiveRole, refreshProfile } = useAuth();
 
   const isActualAdmin = profile?.role === 'admin' || profile?.role === 'coach';
+  const isStaffOrAdmin = ['super_admin', 'admin', 'coach'].includes(profile?.role ?? '');
   const isViewingAsStudent = effectiveRole === 'student';
 
   // Edit form state
@@ -37,7 +38,6 @@ export default function ProfileScreen() {
   const [changingPassword, setChangingPassword] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
 
-  // Parse stored date (YYYY-MM-DD) into a Date object
   const parseDob = (str: string | null | undefined): Date => {
     if (!str) return new Date(2000, 0, 1);
     const [y, m, d] = str.split('-').map(Number);
@@ -52,14 +52,11 @@ export default function ProfileScreen() {
     emergency_contact: profile?.emergency_contact ?? '',
     skill_level: (profile?.skill_level ?? 'beginner') as SkillLevel,
     division: (profile?.division ?? 'amateur') as Division,
-
   });
 
-  // Format Date → display string
   const formatDobDisplay = (date: Date) =>
     date.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
 
-  // Format Date → ISO string for DB (YYYY-MM-DD)
   const formatDobIso = (date: Date) => {
     const y = date.getFullYear();
     const m = String(date.getMonth() + 1).padStart(2, '0');
@@ -75,30 +72,21 @@ export default function ProfileScreen() {
       Alert.alert('Permission needed', 'Please allow access to your photo library.');
       return;
     }
-
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: 'images',
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.8,
     });
-
     if (result.canceled || !result.assets[0]) return;
-
     const asset = result.assets[0];
     const ext = asset.uri.split('.').pop() ?? 'jpg';
     const filePath = `${profile!.id}.${ext}`;
-
     setUploadingAvatar(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
       const formData = new FormData();
-      formData.append('file', {
-        uri: asset.uri,
-        name: filePath,
-        type: `image/${ext}`,
-      } as any);
-
+      formData.append('file', { uri: asset.uri, name: filePath, type: `image/${ext}` } as any);
       const res = await fetch(
         `https://nobxhhnhakawhbimrate.supabase.co/storage/v1/object/avatars/${filePath}`,
         {
@@ -111,9 +99,7 @@ export default function ProfileScreen() {
           body: formData,
         }
       );
-
       if (!res.ok) throw new Error('Upload failed');
-
       const avatarUrl = supabase.storage.from('avatars').getPublicUrl(filePath).data.publicUrl;
       await supabase.from('profiles').update({ avatar_url: avatarUrl }).eq('id', profile!.id);
       await refreshProfile();
@@ -144,14 +130,8 @@ export default function ProfileScreen() {
   };
 
   const handleChangePassword = async () => {
-    if (!newPassword || newPassword.length < 6) {
-      Alert.alert('Error', 'Password must be at least 6 characters');
-      return;
-    }
-    if (newPassword !== confirmPassword) {
-      Alert.alert('Error', 'Passwords do not match');
-      return;
-    }
+    if (!newPassword || newPassword.length < 6) { Alert.alert('Error', 'Password must be at least 6 characters'); return; }
+    if (newPassword !== confirmPassword) { Alert.alert('Error', 'Passwords do not match'); return; }
     setChangingPassword(true);
     const { error } = await supabase.auth.updateUser({ password: newPassword });
     setChangingPassword(false);
@@ -179,24 +159,16 @@ export default function ProfileScreen() {
 
         {/* Header */}
         <View style={styles.header}>
-          {/* Avatar */}
           <TouchableOpacity style={styles.avatarWrapper} onPress={handlePickAvatar} disabled={uploadingAvatar}>
             {uploadingAvatar ? (
-              <View style={styles.avatarCircle}>
-                <ActivityIndicator color="#FFFFFF" />
-              </View>
+              <View style={styles.avatarCircle}><ActivityIndicator color="#FFFFFF" /></View>
             ) : avatarUrl ? (
               <Image source={{ uri: avatarUrl }} style={styles.avatarImage} />
             ) : (
-              <View style={styles.avatarCircle}>
-                <Text style={styles.avatarInitials}>{initials}</Text>
-              </View>
+              <View style={styles.avatarCircle}><Text style={styles.avatarInitials}>{initials}</Text></View>
             )}
-            <View style={styles.cameraBtn}>
-              <Text style={styles.cameraIcon}>📷</Text>
-            </View>
+            <View style={styles.cameraBtn}><Text style={styles.cameraIcon}>📷</Text></View>
           </TouchableOpacity>
-
           <Text style={styles.name}>{profile?.full_name}</Text>
           <Text style={styles.role}>{profile?.role?.charAt(0).toUpperCase()}{profile?.role?.slice(1)}</Text>
           {profile?.division && (
@@ -229,7 +201,7 @@ export default function ProfileScreen() {
           )}
         </View>
 
-        {/* Profile fields */}
+        {/* Personal Details */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Personal Details</Text>
           <View style={styles.card}>
@@ -237,10 +209,8 @@ export default function ProfileScreen() {
               onChangeText={(v) => setForm({ ...form, full_name: v })} placeholder="Your full name" />
             <View style={styles.divider} />
             <Field label="Phone" value={form.phone} editing={editing}
-              onChangeText={(v) => setForm({ ...form, phone: v })} placeholder="+44 7700 000000"
-              keyboardType="phone-pad" />
+              onChangeText={(v) => setForm({ ...form, phone: v })} placeholder="+44 7700 000000" keyboardType="phone-pad" />
             <View style={styles.divider} />
-            {/* Date of Birth — calendar picker */}
             <View style={styles.dobRow}>
               <Text style={styles.dobLabel}>Date of Birth</Text>
               {editing ? (
@@ -268,23 +238,15 @@ export default function ProfileScreen() {
               return (
                 <TouchableOpacity
                   key={div}
-                  style={[
-                    styles.skillChip,
-                    selected && { backgroundColor: color, borderColor: color },
-                    !editing && { opacity: 0.7 },
-                  ]}
+                  style={[styles.skillChip, selected && { backgroundColor: color, borderColor: color }, !editing && { opacity: 0.7 }]}
                   onPress={() => editing && setForm({ ...form, division: div })}
                   disabled={!editing}
                 >
-                  <Text style={[styles.skillChipText, selected && styles.skillChipTextActive]}>
-                    {DIVISION_LABELS[div]}
-                  </Text>
+                  <Text style={[styles.skillChipText, selected && styles.skillChipTextActive]}>{DIVISION_LABELS[div]}</Text>
                 </TouchableOpacity>
               );
             })}
           </View>
-
-          {/* Sub-level — only for Amateur */}
           {form.division === 'amateur' && (
             <>
               <Text style={[styles.sectionTitle, { marginTop: 16 }]}>Amateur Level</Text>
@@ -292,11 +254,7 @@ export default function ProfileScreen() {
                 {SKILL_LEVELS.map((level) => (
                   <TouchableOpacity
                     key={level}
-                    style={[
-                      styles.skillChip,
-                      form.skill_level === level && { backgroundColor: SKILL_COLORS[level], borderColor: SKILL_COLORS[level] },
-                      !editing && { opacity: 0.7 },
-                    ]}
+                    style={[styles.skillChip, form.skill_level === level && { backgroundColor: SKILL_COLORS[level], borderColor: SKILL_COLORS[level] }, !editing && { opacity: 0.7 }]}
                     onPress={() => editing && setForm({ ...form, skill_level: level })}
                     disabled={!editing}
                   >
@@ -310,6 +268,37 @@ export default function ProfileScreen() {
           )}
         </View>
 
+        {/* Admin Tools — coaches, admins and super admins */}
+        {isStaffOrAdmin && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Admin Tools</Text>
+            <View style={styles.card}>
+              <TouchableOpacity style={styles.row} onPress={() => navigation?.navigate('Manage')}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.rowLabel}>📋 Attendance</Text>
+                  <Text style={styles.rowHint}>Programs → Roster → Take Attendance</Text>
+                </View>
+                <Text style={styles.chevron}>›</Text>
+              </TouchableOpacity>
+              <View style={styles.divider} />
+              <TouchableOpacity style={styles.row} onPress={() => navigation?.navigate('Students')}>
+                <Text style={styles.rowLabel}>👥 Manage Students</Text>
+                <Text style={styles.chevron}>›</Text>
+              </TouchableOpacity>
+              <View style={styles.divider} />
+              <TouchableOpacity style={styles.row} onPress={() => navigation?.navigate('DivisionDashboard')}>
+                <Text style={styles.rowLabel}>🏅 Divisions</Text>
+                <Text style={styles.chevron}>›</Text>
+              </TouchableOpacity>
+              <View style={styles.divider} />
+              <TouchableOpacity style={styles.row} onPress={() => navigation?.navigate('ManageVideos')}>
+                <Text style={styles.rowLabel}>🎬 Manage Videos</Text>
+                <Text style={styles.chevron}>›</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+
         {/* Security */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Security</Text>
@@ -321,7 +310,7 @@ export default function ProfileScreen() {
           </View>
         </View>
 
-        {/* Developer (admin only) */}
+        {/* Developer (admin/coach only) */}
         {isActualAdmin && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Developer</Text>
@@ -371,7 +360,7 @@ export default function ProfileScreen() {
         </View>
       </ScrollView>
 
-      {/* Date picker — renders inline on iOS as a spinner */}
+      {/* Date picker */}
       {showDatePicker && (
         <Modal animationType="slide" transparent presentationStyle="overFullScreen">
           <View style={styles.dateModalOverlay}>
@@ -407,31 +396,16 @@ export default function ProfileScreen() {
             </TouchableOpacity>
             <Text style={styles.modalTitle}>Change Password</Text>
             <TouchableOpacity onPress={handleChangePassword} disabled={changingPassword}>
-              {changingPassword
-                ? <ActivityIndicator color="#16A34A" />
-                : <Text style={styles.modalSave}>Save</Text>
-              }
+              {changingPassword ? <ActivityIndicator color="#16A34A" /> : <Text style={styles.modalSave}>Save</Text>}
             </TouchableOpacity>
           </View>
           <View style={styles.modalBody}>
             <Text style={styles.fieldLabel}>New Password</Text>
-            <TextInput
-              style={styles.input}
-              value={newPassword}
-              onChangeText={setNewPassword}
-              placeholder="At least 6 characters"
-              placeholderTextColor="#9CA3AF"
-              secureTextEntry
-            />
+            <TextInput style={styles.input} value={newPassword} onChangeText={setNewPassword}
+              placeholder="At least 6 characters" placeholderTextColor="#9CA3AF" secureTextEntry />
             <Text style={styles.fieldLabel}>Confirm Password</Text>
-            <TextInput
-              style={styles.input}
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-              placeholder="Repeat new password"
-              placeholderTextColor="#9CA3AF"
-              secureTextEntry
-            />
+            <TextInput style={styles.input} value={confirmPassword} onChangeText={setConfirmPassword}
+              placeholder="Repeat new password" placeholderTextColor="#9CA3AF" secureTextEntry />
           </View>
         </View>
       </Modal>
@@ -439,7 +413,6 @@ export default function ProfileScreen() {
   );
 }
 
-// Reusable field component
 function Field({ label, value, editing, onChangeText, placeholder, keyboardType }: {
   label: string; value: string; editing: boolean;
   onChangeText: (v: string) => void; placeholder?: string; keyboardType?: any;
@@ -448,14 +421,8 @@ function Field({ label, value, editing, onChangeText, placeholder, keyboardType 
     <View style={fieldStyles.row}>
       <Text style={fieldStyles.label}>{label}</Text>
       {editing ? (
-        <TextInput
-          style={fieldStyles.input}
-          value={value}
-          onChangeText={onChangeText}
-          placeholder={placeholder}
-          placeholderTextColor="#9CA3AF"
-          keyboardType={keyboardType ?? 'default'}
-        />
+        <TextInput style={fieldStyles.input} value={value} onChangeText={onChangeText}
+          placeholder={placeholder} placeholderTextColor="#9CA3AF" keyboardType={keyboardType ?? 'default'} />
       ) : (
         <Text style={fieldStyles.value}>{value || '—'}</Text>
       )}
@@ -472,8 +439,6 @@ const fieldStyles = StyleSheet.create({
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F9FAFB' },
-
-  // Header
   header: { backgroundColor: '#FFFFFF', alignItems: 'center', paddingBottom: 24, borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
   avatarWrapper: { position: 'relative', marginBottom: 14 },
   avatarCircle: { width: 90, height: 90, borderRadius: 45, backgroundColor: '#16A34A', alignItems: 'center', justifyContent: 'center' },
@@ -485,8 +450,6 @@ const styles = StyleSheet.create({
   role: { fontSize: 14, color: '#6B7280', marginTop: 4, textTransform: 'capitalize' },
   skillBadge: { marginTop: 8, paddingHorizontal: 14, paddingVertical: 5, borderRadius: 14 },
   skillBadgeText: { fontSize: 13, fontWeight: '600' },
-
-  // Edit toggle
   editToggleRow: { flexDirection: 'row', gap: 10, padding: 16 },
   editBtn: { flex: 1, backgroundColor: '#FFFFFF', borderRadius: 10, padding: 14, alignItems: 'center', borderWidth: 1, borderColor: '#E5E7EB' },
   editBtnText: { fontSize: 15, fontWeight: '600', color: '#374151' },
@@ -494,8 +457,6 @@ const styles = StyleSheet.create({
   cancelEditText: { fontSize: 15, fontWeight: '600', color: '#6B7280' },
   saveEditBtn: { flex: 2, backgroundColor: '#16A34A', borderRadius: 10, padding: 14, alignItems: 'center' },
   saveEditText: { fontSize: 15, fontWeight: '700', color: '#FFFFFF' },
-
-  // Sections
   section: { padding: 16 },
   sectionTitle: { fontSize: 13, fontWeight: '700', color: '#6B7280', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 },
   card: { backgroundColor: '#FFFFFF', borderRadius: 14, borderWidth: 1, borderColor: '#E5E7EB', overflow: 'hidden' },
@@ -504,19 +465,13 @@ const styles = StyleSheet.create({
   rowHint: { fontSize: 12, color: '#9CA3AF', marginTop: 2 },
   chevron: { fontSize: 20, color: '#D1D5DB' },
   divider: { height: 1, backgroundColor: '#F3F4F6', marginHorizontal: 16 },
-
-  // Skill level
   skillGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   skillChip: { borderWidth: 1.5, borderColor: '#E5E7EB', borderRadius: 20, paddingHorizontal: 18, paddingVertical: 9, backgroundColor: '#FFFFFF' },
   skillChipText: { fontSize: 14, color: '#374151', fontWeight: '500' },
   skillChipTextActive: { color: '#FFFFFF', fontWeight: '700' },
-
-  // Bottom
   signOutBtn: { backgroundColor: '#FEE2E2', borderRadius: 12, padding: 16, alignItems: 'center', marginBottom: 10 },
   signOutText: { color: '#DC2626', fontWeight: '700', fontSize: 15 },
   version: { textAlign: 'center', color: '#9CA3AF', fontSize: 12, marginBottom: 32 },
-
-  // Password modal
   modal: { flex: 1, backgroundColor: '#FFFFFF' },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
   modalTitle: { fontSize: 17, fontWeight: '700', color: '#111827' },
@@ -525,16 +480,12 @@ const styles = StyleSheet.create({
   modalBody: { padding: 24 },
   fieldLabel: { fontSize: 14, fontWeight: '600', color: '#374151', marginBottom: 8 },
   input: { borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 10, padding: 14, fontSize: 16, color: '#111827', marginBottom: 20, backgroundColor: '#F9FAFB' },
-
-  // DOB row
   dobRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, minHeight: 54 },
   dobLabel: { fontSize: 15, color: '#374151', flex: 1 },
   dobValue: { fontSize: 15, color: '#6B7280' },
   dobPickerBtn: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   dobPickerText: { fontSize: 15, color: '#16A34A', fontWeight: '500' },
   dobCalIcon: { fontSize: 16 },
-
-  // Date picker modal
   dateModalOverlay: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.4)' },
   dateModalSheet: { backgroundColor: '#FFFFFF', borderTopLeftRadius: 20, borderTopRightRadius: 20, paddingBottom: 40, overflow: 'hidden' },
   dateModalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 18, borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },

@@ -143,14 +143,12 @@ function CoachHomeStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Dashboard"         component={CoachDashboardScreen} />
-      {/* Programs flow — accessible from dashboard quick actions */}
       <Stack.Screen name="Manage"            component={ManageProgramsScreen} />
       <Stack.Screen name="ProgramRoster"     component={ProgramRosterScreen} />
       <Stack.Screen name="ProgramModules"    component={ProgramModulesScreen} />
       <Stack.Screen name="ManageVideos"      component={ManageVideosScreen} />
       <Stack.Screen name="UploadVideo"       component={UploadVideoScreen} />
       <Stack.Screen name="VideoPlayer"       component={VideoPlayerScreen} />
-      {/* Other dashboard actions */}
       <Stack.Screen name="DivisionDashboard" component={DivisionDashboardScreen} />
       <Stack.Screen name="TournamentManage"  component={TournamentManageScreen} />
       <Stack.Screen name="TournamentDetail"  component={TournamentDetailScreen} />
@@ -188,10 +186,18 @@ function CoachMessagesStack() {
     </Stack.Navigator>
   );
 }
+// Coach profile stack includes admin tool screens
 function CoachProfileStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="Profile" component={ProfileScreen} />
+      <Stack.Screen name="Profile"           component={ProfileScreen} />
+      <Stack.Screen name="Manage"            component={ManageProgramsScreen} />
+      <Stack.Screen name="ProgramRoster"     component={ProgramRosterScreen} />
+      <Stack.Screen name="ManageVideos"      component={ManageVideosScreen} />
+      <Stack.Screen name="Students"          component={ManageStudentsScreen} />
+      <Stack.Screen name="StudentDetail"     component={StudentDetailScreen} />
+      <Stack.Screen name="DivisionDashboard" component={DivisionDashboardScreen} />
+      <Stack.Screen name="Attendance"        component={AttendanceScreen} />
     </Stack.Navigator>
   );
 }
@@ -330,10 +336,18 @@ function SuperAdminMessagesStack() {
     </Stack.Navigator>
   );
 }
+// Super Admin profile stack — includes admin tool screens for quick access
 function SuperAdminProfileStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="Profile" component={ProfileScreen} />
+      <Stack.Screen name="Profile"           component={ProfileScreen} />
+      <Stack.Screen name="Manage"            component={ManageProgramsScreen} />
+      <Stack.Screen name="ProgramRoster"     component={ProgramRosterScreen} />
+      <Stack.Screen name="ManageVideos"      component={ManageVideosScreen} />
+      <Stack.Screen name="Students"          component={ManageStudentsScreen} />
+      <Stack.Screen name="StudentDetail"     component={StudentDetailScreen} />
+      <Stack.Screen name="DivisionDashboard" component={DivisionDashboardScreen} />
+      <Stack.Screen name="Attendance"        component={AttendanceScreen} />
     </Stack.Navigator>
   );
 }
