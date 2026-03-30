@@ -9,9 +9,10 @@ module.exports = {
       autorestart: true,
       watch: false,
       max_memory_restart: '1G',
-      restart_delay: 8000,  // wait 8s before restarting — gives ngrok time to recover
+      restart_delay: 8000,
       env: {
         NODE_ENV: 'development',
+        EXPO_TUNNEL_SUBDOMAIN: 'bpt-academy',
       },
     },
   ],
