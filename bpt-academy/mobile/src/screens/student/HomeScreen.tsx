@@ -20,16 +20,23 @@ interface EnrollmentWithProgress extends Enrollment {
   totalModules: number;
 }
 
-// Build 15-day window: 7 past + today + 7 future
+// ── Local date string (no UTC offset bug) ────────────────────────────────
+function localDateStr(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${dd}`;
+}
+
+// Build 15-day window: 7 past + today + 7 future — using LOCAL dates
 function buildDays() {
   const days = [];
   const now = new Date();
   for (let i = -7; i <= 7; i++) {
-    const d = new Date(now);
-    d.setDate(now.getDate() + i);
+    const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() + i);
     days.push({
       date: d,
-      dateStr: d.toISOString().split('T')[0],
+      dateStr: localDateStr(d),
       events: [] as any[],
     });
   }
@@ -44,10 +51,9 @@ export default function HomeScreen({ navigation }: any) {
   const [refreshing, setRefreshing] = useState(false);
   const [days, setDays] = useState(buildDays);
   const calendarRef = useRef<ScrollView>(null);
-
   const dismissedRef = useRef<Set<string>>(new Set());
 
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = localDateStr(new Date());
 
   const fetchData = async () => {
     if (!profile) return;
@@ -98,23 +104,37 @@ export default function HomeScreen({ navigation }: any) {
       setNotifications(notifRes.data.filter((n: Notification) => !dismissedRef.current.has(n.id)));
     }
 
-    // Fetch program sessions for calendar events
+    // Fetch program sessions and map to CalendarEvent shape
     if (programIds.length > 0) {
       const now = new Date();
-      const from = new Date(now); from.setDate(now.getDate() - 7);
-      const to   = new Date(now); to.setDate(now.getDate() + 7);
+      const from = localDateStr(new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7));
+      const to   = localDateStr(new Date(now.getFullYear(), now.getMonth(), now.getDate() + 7));
 
       const { data: sessions } = await supabase
         .from('program_sessions')
         .select('id, session_date, title, start_time, program_id, program:programs(title)')
         .in('program_id', programIds)
-        .gte('session_date', from.toISOString().split('T')[0])
-        .lte('session_date', to.toISOString().split('T')[0]);
+        .gte('session_date', from)
+        .lte('session_date', to);
 
       if (sessions) {
+        // Map to CalendarEvent shape expected by CalendarDayScreen
+        const mapped = sessions.map((s: any) => ({
+          id: s.id,
+          title: s.title ?? (s.program as any)?.title ?? 'Training Session',
+          type: 'session' as const,
+          time: s.start_time
+            ? s.start_time.substring(0, 5) // HH:MM
+            : undefined,
+          description: (s.program as any)?.title
+            ? `Program: ${(s.program as any).title}`
+            : undefined,
+          _dateStr: s.session_date, // local YYYY-MM-DD from DB
+        }));
+
         setDays(prev => prev.map(day => ({
           ...day,
-          events: sessions.filter((s: any) => s.session_date === day.dateStr),
+          events: mapped.filter((e: any) => e._dateStr === day.dateStr),
         })));
       }
     }
@@ -124,11 +144,11 @@ export default function HomeScreen({ navigation }: any) {
   useEffect(() => { fetchData(); }, [profile]);
   useFocusEffect(useCallback(() => { fetchData(); }, [profile]));
 
-  // Scroll calendar to today (index 7 = centre) once mounted
+  // Scroll calendar to today on mount
   useEffect(() => {
     setTimeout(() => {
       calendarRef.current?.scrollTo({ x: 7 * 64, animated: false });
-    }, 100);
+    }, 150);
   }, []);
 
   const dismissNotification = async (id: string) => {
@@ -196,7 +216,6 @@ export default function HomeScreen({ navigation }: any) {
           horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.calendarList}
-          scrollEnabled
           nestedScrollEnabled
         >
           {days.map((day) => {
@@ -315,82 +334,34 @@ const styles = StyleSheet.create({
   badge: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20 },
   badgeText: { color: '#FFFFFF', fontSize: 12, fontWeight: '600' },
 
-  // ── Calendar ──
   calendarSection: {
-    backgroundColor: '#FFFFFF',
-    paddingTop: 14,
-    paddingBottom: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    backgroundColor: '#FFFFFF', paddingTop: 14, paddingBottom: 14,
+    borderBottomWidth: 1, borderBottomColor: '#F3F4F6',
   },
   calendarHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    marginBottom: 12,
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    paddingHorizontal: 16, marginBottom: 12,
   },
-  calendarTitle: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#111827',
-  },
-  calendarMonth: {
-    fontSize: 13,
-    color: '#6B7280',
-    fontWeight: '500',
-  },
-  calendarList: {
-    paddingHorizontal: 10,
-  },
+  calendarTitle: { fontSize: 15, fontWeight: '700', color: '#111827' },
+  calendarMonth: { fontSize: 13, color: '#6B7280', fontWeight: '500' },
+  calendarList: { paddingHorizontal: 10 },
   dayCell: {
-    width: 56,
-    height: 72,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginHorizontal: 4,
-    borderRadius: 14,
-    backgroundColor: '#F9FAFB',
+    width: 56, height: 72, alignItems: 'center', justifyContent: 'center',
+    marginHorizontal: 4, borderRadius: 14, backgroundColor: '#F9FAFB',
   },
-  dayCellToday: {
-    backgroundColor: '#16A34A',
-  },
-  dayName: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#9CA3AF',
-    marginBottom: 4,
-    textTransform: 'uppercase',
-  },
+  dayCellToday: { backgroundColor: '#16A34A' },
+  dayName: { fontSize: 11, fontWeight: '600', color: '#9CA3AF', marginBottom: 4, textTransform: 'uppercase' },
   dayNameToday: { color: '#D1FAE5' },
-  dayNum: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#111827',
-  },
+  dayNum: { fontSize: 20, fontWeight: '700', color: '#111827' },
   dayNumToday: { color: '#FFFFFF' },
-  eventDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#EF4444',
-    marginTop: 4,
-  },
-  eventDotEmpty: {
-    width: 6,
-    height: 6,
-    marginTop: 4,
-  },
+  eventDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#EF4444', marginTop: 4 },
+  eventDotEmpty: { width: 6, height: 6, marginTop: 4 },
 
-  // ── Rest ──
   section: { padding: 20 },
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
   sectionTitle: { fontSize: 17, fontWeight: '700', color: '#111827', marginBottom: 12 },
   seeAll: { color: '#16A34A', fontSize: 14, fontWeight: '600' },
-  notifCard: {
-    backgroundColor: '#ECFDF5', borderRadius: 10, padding: 14,
-    marginBottom: 8, borderLeftWidth: 3, borderLeftColor: '#16A34A',
-  },
+  notifCard: { backgroundColor: '#ECFDF5', borderRadius: 10, padding: 14, marginBottom: 8, borderLeftWidth: 3, borderLeftColor: '#16A34A' },
   notifRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   notifTitle: { fontSize: 14, fontWeight: '600', color: '#111827', flex: 1 },
   notifDismiss: { fontSize: 14, color: '#9CA3AF', paddingLeft: 8 },
