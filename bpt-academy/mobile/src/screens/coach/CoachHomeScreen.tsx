@@ -30,7 +30,6 @@ export default function CoachHomeScreen({ navigation }: any) {
   const onRefresh = async () => { setRefreshing(true); await fetchStats(); setRefreshing(false); };
   useEffect(() => { fetchStats(); }, []);
 
-  // Students navigation — super admin navigates within same stack, others cross-tab
   const goToStudents = () => {
     if (isSuperAdmin) {
       navigation.navigate('Students');
@@ -39,7 +38,6 @@ export default function CoachHomeScreen({ navigation }: any) {
     }
   };
 
-  // Programs navigation — super admin navigates within same stack (no ProgramsTab), others cross-tab
   const goToPrograms = () => {
     if (isSuperAdmin) {
       navigation.navigate('Manage');
@@ -57,6 +55,7 @@ export default function CoachHomeScreen({ navigation }: any) {
     { icon: '📣', label: 'Bulk Msg',     onPress: () => navigation.navigate('BulkMsg') },
     { icon: '🎬', label: 'Upload Video', onPress: () => navigation.navigate('UploadVideo') },
     { icon: '🔔', label: 'Announce',     onPress: () => navigation.navigate('Announce') },
+    { icon: '📊', label: 'Reports',      onPress: () => navigation.navigate('Reports') },
     { icon: '⚙️', label: 'Settings',     onPress: () => navigation.navigate('AcademySettings') },
     { icon: '💰', label: 'Billing',      onPress: () => navigation.navigate('BillingSettings') },
   ];
@@ -101,11 +100,7 @@ export default function CoachHomeScreen({ navigation }: any) {
         <Text style={styles.sectionTitle}>Manage</Text>
         <View style={styles.actionGrid}>
           {gridItems.map((item) => (
-            <TouchableOpacity
-              key={item.label}
-              style={styles.actionCard}
-              onPress={item.onPress}
-            >
+            <TouchableOpacity key={item.label} style={styles.actionCard} onPress={item.onPress}>
               <Text style={styles.actionIcon}>{item.icon}</Text>
               <Text style={styles.actionLabel}>{item.label}</Text>
             </TouchableOpacity>
@@ -118,28 +113,19 @@ export default function CoachHomeScreen({ navigation }: any) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F9FAFB' },
-  header: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    padding: 24, backgroundColor: '#111827',
-  },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 24, backgroundColor: '#111827' },
   greeting: { fontSize: 14, color: '#9CA3AF' },
   name: { fontSize: 22, fontWeight: '700', color: '#FFFFFF' },
   adminBadge: { backgroundColor: '#16A34A', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20 },
   adminBadgeText: { color: '#FFFFFF', fontSize: 12, fontWeight: '700' },
   statsRow: { flexDirection: 'row', padding: 16, gap: 12 },
-  statCard: {
-    flex: 1, backgroundColor: '#FFFFFF', borderRadius: 14, padding: 16,
-    alignItems: 'center', borderWidth: 1, borderColor: '#E5E7EB',
-  },
+  statCard: { flex: 1, backgroundColor: '#FFFFFF', borderRadius: 14, padding: 16, alignItems: 'center', borderWidth: 1, borderColor: '#E5E7EB' },
   statNumber: { fontSize: 28, fontWeight: '700', color: '#111827' },
   statLabel: { fontSize: 13, color: '#6B7280', marginTop: 2 },
   section: { padding: 16 },
   sectionTitle: { fontSize: 17, fontWeight: '700', color: '#111827', marginBottom: 12 },
   actionGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
-  actionCard: {
-    width: CARD_WIDTH, backgroundColor: '#FFFFFF', borderRadius: 14, padding: 20,
-    alignItems: 'center', borderWidth: 1, borderColor: '#E5E7EB',
-  },
+  actionCard: { width: CARD_WIDTH, backgroundColor: '#FFFFFF', borderRadius: 14, padding: 20, alignItems: 'center', borderWidth: 1, borderColor: '#E5E7EB' },
   actionIcon: { fontSize: 32, marginBottom: 8 },
   actionLabel: { fontSize: 14, fontWeight: '600', color: '#374151' },
 });

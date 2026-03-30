@@ -24,6 +24,7 @@ import TournamentDetailScreen from '../screens/student/TournamentDetailScreen';
 import PaymentScreen from '../screens/student/PaymentScreen';
 import LeaderboardScreen from '../screens/student/LeaderboardScreen';
 import MyCoachNotesScreen from '../screens/student/MyCoachNotesScreen';
+import CalendarDayScreen from '../screens/student/CalendarDayScreen';
 
 // Shared coach/admin screens
 import ManageProgramsScreen from '../screens/coach/ManageProgramsScreen';
@@ -53,6 +54,7 @@ import CoachDashboardScreen from '../screens/coach/CoachDashboardScreen';
 // Super Admin
 import SuperAdminHomeScreen from '../screens/superadmin/SuperAdminHomeScreen';
 import SuperAdminMessagesScreen from '../screens/superadmin/SuperAdminMessagesScreen';
+import ReportsScreen from '../screens/superadmin/ReportsScreen';
 
 // Messaging
 import NewConversationScreen from '../screens/messaging/NewConversationScreen';
@@ -85,6 +87,7 @@ function StudentHomeStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Home"             component={HomeScreen} />
+      <Stack.Screen name="CalendarDay"      component={CalendarDayScreen} />
       <Stack.Screen name="ProgramDetail"    component={ProgramDetailScreen} />
       <Stack.Screen name="VideoPlayer"      component={VideoPlayerScreen} />
       <Stack.Screen name="TournamentDetail" component={TournamentDetailScreen} />
@@ -186,7 +189,6 @@ function CoachMessagesStack() {
     </Stack.Navigator>
   );
 }
-// Coach profile stack includes admin tool screens
 function CoachProfileStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
@@ -201,7 +203,6 @@ function CoachProfileStack() {
     </Stack.Navigator>
   );
 }
-// Coach tabs: Home / Students / Messages / Profile
 function CoachTabs() {
   return (
     <Tab.Navigator screenOptions={tabBarScreenOptions}>
@@ -293,6 +294,7 @@ function SuperAdminDashboardStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Dashboard"         component={CoachHomeScreen} />
+      <Stack.Screen name="Reports"           component={ReportsScreen} />
       <Stack.Screen name="Manage"            component={ManageProgramsScreen} />
       <Stack.Screen name="ProgramRoster"     component={ProgramRosterScreen} />
       <Stack.Screen name="ProgramModules"    component={ProgramModulesScreen} />
@@ -336,7 +338,6 @@ function SuperAdminMessagesStack() {
     </Stack.Navigator>
   );
 }
-// Super Admin profile stack — includes admin tool screens for quick access
 function SuperAdminProfileStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>

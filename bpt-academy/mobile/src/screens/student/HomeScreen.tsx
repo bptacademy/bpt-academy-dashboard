@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import {
-  View, Text, ScrollView, StyleSheet,
+  View, Text, ScrollView, StyleSheet, FlatList,
   TouchableOpacity, RefreshControl, Dimensions,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -12,10 +12,18 @@ import ScreenHeader from '../../components/common/ScreenHeader';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = (SCREEN_WIDTH - 20 * 2 - 12) / 2;
+const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 interface EnrollmentWithProgress extends Enrollment {
   completedModules: number;
   totalModules: number;
+}
+
+interface CalendarDay {
+  date: Date;
+  dateStr: string; // YYYY-MM-DD
+  hasEvents: boolean;
+  events: any[];
 }
 
 export default function HomeScreen({ navigation }: any) {
@@ -24,8 +32,26 @@ export default function HomeScreen({ navigation }: any) {
   const [enrollments, setEnrollments] = useState<EnrollmentWithProgress[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [refreshing, setRefreshing] = useState(false);
+  const [calendarDays, setCalendarDays] = useState<CalendarDay[]>([]);
 
   const dismissedRef = useRef<Set<string>>(new Set());
+
+  // Build 14-day window centred on today
+  const buildCalendarDays = (sessions: any[]): CalendarDay[] => {
+    const days: CalendarDay[] = [];
+    const now = new Date();
+    for (let i = -7; i <= 7; i++) {
+      const d = new Date(now);
+      d.setDate(now.getDate() + i);
+      const dateStr = d.toISOString().split('T')[0];
+      const dayEvents = sessions.filter(s => {
+        const sd = new Date(s.session_date || s.start_time || s.date);
+        return sd.toISOString().split('T')[0] === dateStr;
+      });
+      days.push({ date: d, dateStr, hasEvents: dayEvents.length > 0, events: dayEvents });
+    }
+    return days;
+  };
 
   const fetchData = async () => {
     if (!profile) return;
@@ -46,6 +72,7 @@ export default function HomeScreen({ navigation }: any) {
         .limit(5),
     ]);
 
+    let programIds: string[] = [];
     if (enrollRes.data) {
       const withProgress = await Promise.all(
         enrollRes.data.map(async (e) => {
@@ -53,10 +80,8 @@ export default function HomeScreen({ navigation }: any) {
             .from('modules')
             .select('id')
             .eq('program_id', e.program_id);
-
           const moduleIds = (modules ?? []).map((m: { id: string }) => m.id);
           let completedModules = 0;
-
           if (moduleIds.length > 0) {
             const { count } = await supabase
               .from('student_progress')
@@ -66,17 +91,35 @@ export default function HomeScreen({ navigation }: any) {
               .in('module_id', moduleIds);
             completedModules = count ?? 0;
           }
-
           return { ...e, completedModules, totalModules: moduleIds.length };
         })
       );
       setEnrollments(withProgress);
+      programIds = enrollRes.data.map((e: any) => e.program_id);
     }
 
     if (notifRes.data) {
       setNotifications(
         notifRes.data.filter((n: Notification) => !dismissedRef.current.has(n.id))
       );
+    }
+
+    // Fetch program sessions for calendar
+    if (programIds.length > 0) {
+      const now = new Date();
+      const from = new Date(now); from.setDate(now.getDate() - 7);
+      const to = new Date(now); to.setDate(now.getDate() + 7);
+
+      const { data: sessions } = await supabase
+        .from('program_sessions')
+        .select('id, session_date, title, start_time, program_id, program:programs(title)')
+        .in('program_id', programIds)
+        .gte('session_date', from.toISOString().split('T')[0])
+        .lte('session_date', to.toISOString().split('T')[0]);
+
+      setCalendarDays(buildCalendarDays(sessions ?? []));
+    } else {
+      setCalendarDays(buildCalendarDays([]));
     }
   };
 
@@ -94,9 +137,7 @@ export default function HomeScreen({ navigation }: any) {
   const goToMessages = () => navigation.getParent()?.navigate('MessagesTab');
 
   const skillBadgeColor: Record<string, string> = {
-    beginner:     '#3B82F6',
-    intermediate: '#F59E0B',
-    advanced:     '#EF4444',
+    beginner: '#3B82F6', intermediate: '#F59E0B', advanced: '#EF4444',
   };
 
   const greeting = (() => {
@@ -114,6 +155,30 @@ export default function HomeScreen({ navigation }: any) {
     { icon: '🎾', label: 'Tournaments',      onPress: () => navigation.navigate('Tournaments') },
     { icon: '💬', label: 'Messages',         onPress: goToMessages },
   ];
+
+  const todayStr = new Date().toISOString().split('T')[0];
+
+  const renderCalendarDay = ({ item }: { item: CalendarDay }) => {
+    const isToday = item.dateStr === todayStr;
+    return (
+      <TouchableOpacity
+        style={[styles.dayCell, isToday && styles.dayCellToday]}
+        onPress={() => navigation.navigate('CalendarDay', { date: item.dateStr, events: item.events })}
+        activeOpacity={0.7}
+      >
+        <Text style={[styles.dayName, isToday && styles.dayNameToday]}>
+          {DAY_NAMES[item.date.getDay()]}
+        </Text>
+        <Text style={[styles.dayNum, isToday && styles.dayNumToday]}>
+          {item.date.getDate()}
+        </Text>
+        {item.hasEvents
+          ? <View style={styles.eventDot} />
+          : <View style={styles.eventDotEmpty} />
+        }
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <ScrollView
@@ -136,6 +201,21 @@ export default function HomeScreen({ navigation }: any) {
             </Text>
           </View>
         )}
+      </View>
+
+      {/* ── Calendar Strip ── */}
+      <View style={styles.calendarSection}>
+        <Text style={styles.calendarTitle}>📅 Schedule</Text>
+        <FlatList
+          horizontal
+          data={calendarDays}
+          keyExtractor={item => item.dateStr}
+          renderItem={renderCalendarDay}
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.calendarList}
+          initialScrollIndex={7}
+          getItemLayout={(_, index) => ({ length: 58, offset: 58 * index, index })}
+        />
       </View>
 
       {/* Notifications */}
@@ -176,9 +256,7 @@ export default function HomeScreen({ navigation }: any) {
           </View>
         ) : (
           enrollments.map((e) => {
-            const pct = e.totalModules > 0
-              ? Math.round((e.completedModules / e.totalModules) * 100)
-              : 0;
+            const pct = e.totalModules > 0 ? Math.round((e.completedModules / e.totalModules) * 100) : 0;
             return (
               <TouchableOpacity
                 key={e.id}
@@ -191,7 +269,7 @@ export default function HomeScreen({ navigation }: any) {
                   {(e.program as any)?.sessions_per_week ? ` · ${(e.program as any).sessions_per_week}x/week` : ''}
                 </Text>
                 <View style={styles.progressBar}>
-                  <View style={[styles.progressFill, { width: `${pct}%` }]} />
+                  <View style={[styles.progressFill, { width: `${pct}%` as any }]} />
                 </View>
                 <Text style={styles.progressLabel}>
                   {e.completedModules}/{e.totalModules} sessions complete · {pct}%
@@ -207,11 +285,7 @@ export default function HomeScreen({ navigation }: any) {
         <Text style={styles.sectionTitle}>⚡ Quick Actions</Text>
         <View style={styles.quickGrid}>
           {quickActions.map((item) => (
-            <TouchableOpacity
-              key={item.label}
-              style={styles.actionCard}
-              onPress={item.onPress}
-            >
+            <TouchableOpacity key={item.label} style={styles.actionCard} onPress={item.onPress}>
               <Text style={styles.actionIcon}>{item.icon}</Text>
               <Text style={styles.actionLabel}>{item.label}</Text>
             </TouchableOpacity>
@@ -233,6 +307,20 @@ const styles = StyleSheet.create({
   name: { fontSize: 22, fontWeight: '700', color: '#111827' },
   badge: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20 },
   badgeText: { color: '#FFFFFF', fontSize: 12, fontWeight: '600' },
+
+  // Calendar strip
+  calendarSection: { backgroundColor: '#FFFFFF', paddingTop: 12, paddingBottom: 8, borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
+  calendarTitle: { fontSize: 13, fontWeight: '700', color: '#6B7280', paddingHorizontal: 20, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 },
+  calendarList: { paddingHorizontal: 12 },
+  dayCell: { width: 50, alignItems: 'center', paddingVertical: 8, marginHorizontal: 4, borderRadius: 12 },
+  dayCellToday: { backgroundColor: '#16A34A' },
+  dayName: { fontSize: 11, fontWeight: '600', color: '#9CA3AF', marginBottom: 4 },
+  dayNameToday: { color: '#D1FAE5' },
+  dayNum: { fontSize: 18, fontWeight: '700', color: '#111827' },
+  dayNumToday: { color: '#FFFFFF' },
+  eventDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#EF4444', marginTop: 4 },
+  eventDotEmpty: { width: 6, height: 6, marginTop: 4 },
+
   section: { padding: 20 },
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
   sectionTitle: { fontSize: 17, fontWeight: '700', color: '#111827', marginBottom: 12 },
@@ -245,26 +333,17 @@ const styles = StyleSheet.create({
   notifTitle: { fontSize: 14, fontWeight: '600', color: '#111827', flex: 1 },
   notifDismiss: { fontSize: 14, color: '#9CA3AF', paddingLeft: 8 },
   notifBody: { fontSize: 13, color: '#6B7280', marginTop: 4, lineHeight: 18 },
-  emptyCard: {
-    backgroundColor: '#FFFFFF', borderRadius: 12, padding: 20,
-    alignItems: 'center', borderWidth: 1, borderColor: '#E5E7EB',
-  },
+  emptyCard: { backgroundColor: '#FFFFFF', borderRadius: 12, padding: 20, alignItems: 'center', borderWidth: 1, borderColor: '#E5E7EB' },
   emptyText: { color: '#6B7280', fontSize: 14, marginBottom: 8 },
   emptyLink: { color: '#16A34A', fontWeight: '600', fontSize: 14 },
-  programCard: {
-    backgroundColor: '#FFFFFF', borderRadius: 12, padding: 16,
-    marginBottom: 12, borderWidth: 1, borderColor: '#E5E7EB',
-  },
+  programCard: { backgroundColor: '#FFFFFF', borderRadius: 12, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: '#E5E7EB' },
   programTitle: { fontSize: 16, fontWeight: '700', color: '#111827' },
   programMeta: { fontSize: 13, color: '#6B7280', marginTop: 4 },
   progressBar: { height: 6, backgroundColor: '#E5E7EB', borderRadius: 3, marginTop: 12 },
   progressFill: { height: '100%', backgroundColor: '#16A34A', borderRadius: 3 },
   progressLabel: { fontSize: 12, color: '#6B7280', marginTop: 4 },
   quickGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
-  actionCard: {
-    width: CARD_WIDTH, backgroundColor: '#FFFFFF', borderRadius: 12, padding: 16,
-    alignItems: 'center', borderWidth: 1, borderColor: '#E5E7EB',
-  },
+  actionCard: { width: CARD_WIDTH, backgroundColor: '#FFFFFF', borderRadius: 12, padding: 16, alignItems: 'center', borderWidth: 1, borderColor: '#E5E7EB' },
   actionIcon: { fontSize: 28, marginBottom: 8 },
   actionLabel: { fontSize: 12, fontWeight: '600', color: '#374151', textAlign: 'center' },
 });
