@@ -13,43 +13,50 @@ const { width } = Dimensions.get('window');
 
 export default function VideoPlayerScreen({ route, navigation }: any) {
   const video = route.params?.video as VideoType;
-  const { profile } = useAuth();
+  const { profile, isCoach, isAdmin, isSuperAdmin } = useAuth();
   const [comments, setComments] = useState<any[]>([]);
   const [newComment, setNewComment] = useState('');
   const [bookmarked, setBookmarked] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  // Build the playback URL — mux_playback_id stores the Storage file path (e.g. videos/xxx.mp4)
-  const getVideoUrl = () => {
-    if (!video.mux_playback_id) return '';
-    const path = video.mux_playback_id;
-    // Try training-videos bucket first (where UploadVideoScreen saves)
-    return supabase.storage.from('training-videos').getPublicUrl(path).data.publicUrl;
+  const isStaff = isCoach || isAdmin || isSuperAdmin;
+
+  // Build the playback URL from mux_playback_id (Storage path)
+  const getVideoUrl = (): string => {
+    if (!video?.mux_playback_id) return '';
+    return supabase.storage
+      .from('training-videos')
+      .getPublicUrl(video.mux_playback_id).data.publicUrl;
   };
 
   const playbackUrl = getVideoUrl();
 
-  const player = useVideoPlayer(playbackUrl || 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4', (p) => {
-    p.loop = false;
-    p.pause();
-  });
+  const player = useVideoPlayer(
+    playbackUrl || 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+    (p) => {
+      p.loop = false;
+      // Don't autoplay — let user press play
+    }
+  );
 
   const fetchComments = async () => {
+    if (!video?.id) return;
     const { data } = await supabase
       .from('video_comments')
-      .select('id, content, created_at, author_id')
+      .select('id, content, created_at, author_id, author:author_id(full_name)')
       .eq('video_id', video.id)
       .order('created_at', { ascending: true });
     if (data) setComments(data);
   };
 
   const checkBookmark = async () => {
+    if (!profile?.id || !video?.id || isStaff) return;
     const { data } = await supabase
       .from('video_bookmarks')
       .select('video_id')
-      .eq('student_id', profile!.id)
+      .eq('student_id', profile.id)
       .eq('video_id', video.id)
-      .single();
+      .maybeSingle();
     setBookmarked(!!data);
   };
 
@@ -59,22 +66,26 @@ export default function VideoPlayerScreen({ route, navigation }: any) {
   }, []);
 
   const toggleBookmark = async () => {
+    if (!profile?.id || isStaff) return;
     if (bookmarked) {
       await supabase.from('video_bookmarks').delete()
-        .eq('student_id', profile!.id).eq('video_id', video.id);
+        .eq('student_id', profile.id).eq('video_id', video.id);
       setBookmarked(false);
     } else {
-      await supabase.from('video_bookmarks').insert({ student_id: profile!.id, video_id: video.id });
+      await supabase.from('video_bookmarks').insert({
+        student_id: profile.id,
+        video_id: video.id,
+      });
       setBookmarked(true);
     }
   };
 
   const submitComment = async () => {
-    if (!newComment.trim()) return;
+    if (!newComment.trim() || !profile?.id) return;
     setSubmitting(true);
     const { error } = await supabase.from('video_comments').insert({
       video_id: video.id,
-      author_id: profile!.id,
+      author_id: profile.id,
       content: newComment.trim(),
     });
     setSubmitting(false);
@@ -84,46 +95,56 @@ export default function VideoPlayerScreen({ route, navigation }: any) {
   };
 
   return (
-    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
       <BackHeader title={video?.title ?? 'Video'} />
       <ScrollView>
         {/* Video Player */}
         <View style={styles.playerContainer}>
-          <VideoView
+          {playbackUrl ? (
+            <VideoView
               style={styles.video}
               player={player}
               allowsFullscreen
               allowsPictureInPicture
               nativeControls
             />
+          ) : (
+            <View style={styles.noVideo}>
+              <Text style={styles.noVideoText}>Video unavailable</Text>
+            </View>
+          )}
         </View>
 
         {/* Video info */}
         <View style={styles.info}>
           <View style={styles.titleRow}>
-            <Text style={styles.videoTitle}>
-              {video.title}
-            </Text>
-            <TouchableOpacity onPress={toggleBookmark} style={styles.bookmarkBtn}>
-              <Text style={styles.bookmarkIcon}>{bookmarked ? '🔖' : '🏷️'}</Text>
-            </TouchableOpacity>
+            <Text style={styles.videoTitle}>{video?.title}</Text>
+            {/* Bookmark only for students */}
+            {!isStaff && (
+              <TouchableOpacity onPress={toggleBookmark} style={styles.bookmarkBtn}>
+                <Text style={styles.bookmarkIcon}>{bookmarked ? '🔖' : '🏷️'}</Text>
+              </TouchableOpacity>
+            )}
           </View>
 
           {/* Tags */}
           <View style={styles.tags}>
-            {video.drill_type && (
+            {video?.drill_type && (
               <View style={styles.tag}>
                 <Text style={styles.tagText}>🏓 {video.drill_type}</Text>
               </View>
             )}
-            {video.skill_focus && (
+            {video?.skill_focus && (
               <View style={[styles.tag, styles.tagGreen]}>
                 <Text style={[styles.tagText, styles.tagTextGreen]}>🎯 {video.skill_focus}</Text>
               </View>
             )}
           </View>
 
-          {video.description ? (
+          {video?.description ? (
             <Text style={styles.description}>{video.description}</Text>
           ) : null}
         </View>
@@ -131,26 +152,26 @@ export default function VideoPlayerScreen({ route, navigation }: any) {
         {/* Comments */}
         <View style={styles.commentsSection}>
           <Text style={styles.commentsTitle}>💬 Comments ({comments.length})</Text>
-
           {comments.map((c) => (
             <View key={c.id} style={styles.commentCard}>
               <View style={styles.commentAvatar}>
                 <Text style={styles.commentAvatarText}>
-                  {c.author_id === profile?.id ? (profile?.full_name?.charAt(0) ?? '?') : '?'}
+                  {((c.author as any)?.full_name ?? '?').charAt(0).toUpperCase()}
                 </Text>
               </View>
               <View style={styles.commentBody}>
                 <Text style={styles.commentAuthor}>
-                  {c.author_id === profile?.id ? 'You' : 'Student'}
+                  {c.author_id === profile?.id ? 'You' : ((c.author as any)?.full_name ?? 'User')}
                 </Text>
                 <Text style={styles.commentText}>{c.content}</Text>
                 <Text style={styles.commentTime}>
-                  {new Date(c.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                  {new Date(c.created_at).toLocaleDateString('en-GB', {
+                    day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',
+                  })}
                 </Text>
               </View>
             </View>
           ))}
-
           {comments.length === 0 && (
             <Text style={styles.noComments}>No comments yet. Be the first!</Text>
           )}
@@ -181,7 +202,7 @@ export default function VideoPlayerScreen({ route, navigation }: any) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F9FAFB' },
-  playerContainer: { backgroundColor: '#000', width, height: width * 0.5625 }, // 16:9
+  playerContainer: { backgroundColor: '#000', width, height: width * 0.5625 },
   video: { width: '100%', height: '100%' },
   noVideo: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   noVideoText: { color: '#6B7280', fontSize: 15 },
@@ -199,9 +220,15 @@ const styles = StyleSheet.create({
   commentsSection: { padding: 16 },
   commentsTitle: { fontSize: 16, fontWeight: '700', color: '#111827', marginBottom: 14 },
   commentCard: { flexDirection: 'row', marginBottom: 14, gap: 10 },
-  commentAvatar: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#16A34A', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+  commentAvatar: {
+    width: 36, height: 36, borderRadius: 18, backgroundColor: '#16A34A',
+    alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+  },
   commentAvatarText: { color: '#FFF', fontWeight: '700', fontSize: 14 },
-  commentBody: { flex: 1, backgroundColor: '#FFFFFF', borderRadius: 12, padding: 12, borderWidth: 1, borderColor: '#E5E7EB' },
+  commentBody: {
+    flex: 1, backgroundColor: '#FFFFFF', borderRadius: 12,
+    padding: 12, borderWidth: 1, borderColor: '#E5E7EB',
+  },
   commentAuthor: { fontSize: 13, fontWeight: '700', color: '#111827', marginBottom: 3 },
   commentText: { fontSize: 14, color: '#374151', lineHeight: 20 },
   commentTime: { fontSize: 11, color: '#9CA3AF', marginTop: 4 },

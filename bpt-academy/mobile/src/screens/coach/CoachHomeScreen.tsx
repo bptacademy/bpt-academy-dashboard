@@ -30,8 +30,7 @@ export default function CoachHomeScreen({ navigation }: any) {
   const onRefresh = async () => { setRefreshing(true); await fetchStats(); setRefreshing(false); };
   useEffect(() => { fetchStats(); }, []);
 
-  // For super admins: Students is in DashboardTab (same stack), no cross-tab needed
-  // For admins: Students is in StudentsTab
+  // Students navigation — super admin navigates within same stack, others cross-tab
   const goToStudents = () => {
     if (isSuperAdmin) {
       navigation.navigate('Students');
@@ -40,8 +39,13 @@ export default function CoachHomeScreen({ navigation }: any) {
     }
   };
 
+  // Programs navigation — super admin navigates within same stack (no ProgramsTab), others cross-tab
   const goToPrograms = () => {
-    navigation.getParent()?.navigate('ProgramsTab', { screen: 'Manage' });
+    if (isSuperAdmin) {
+      navigation.navigate('Manage');
+    } else {
+      navigation.getParent()?.navigate('ProgramsTab', { screen: 'Manage' });
+    }
   };
 
   const gridItems = [
