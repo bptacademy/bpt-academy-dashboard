@@ -13,16 +13,25 @@ export default function ScreenHeader({ title, dark = false }: Props) {
   const insets = useSafeAreaInsets();
 
   const handleLogoPress = () => {
-    // Only pop if we're deeper than root in this stack — avoids POP_TO_TOP error
     const state = navigation.getState();
     if (state && state.index > 0) {
+      // Deep in a stack — pop back to root of this stack
       navigation.popToTop();
+    } else {
+      // Already at root of this stack — jump to HomeTab / DashboardTab
+      const parent = navigation.getParent();
+      if (parent) {
+        const parentState = parent.getState();
+        const firstTab = parentState?.routeNames?.[0];
+        if (firstTab) {
+          parent.navigate(firstTab);
+        }
+      }
     }
   };
 
   return (
     <View style={[styles.header, dark && styles.headerDark, { paddingTop: insets.top + 10 }]}>
-      {/* Logo — taps to root of current stack */}
       <TouchableOpacity onPress={handleLogoPress} style={styles.logoBtn}>
         <Image
           source={require('../../../assets/logo.png')}
@@ -30,11 +39,7 @@ export default function ScreenHeader({ title, dark = false }: Props) {
           resizeMode="contain"
         />
       </TouchableOpacity>
-
-      {/* Page title — centred */}
       <Text style={[styles.title, dark && styles.titleDark]} numberOfLines={1}>{title}</Text>
-
-      {/* Empty view for balance */}
       <View style={styles.rightPlaceholder} />
     </View>
   );

@@ -188,6 +188,17 @@ function CoachStudentsStack() {
   );
 }
 
+function CoachMessagesStack() {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="Messages"        component={MessagesScreen} />
+      <Stack.Screen name="Chat"            component={ChatScreen} />
+      <Stack.Screen name="NewConversation" component={NewConversationScreen} />
+      <Stack.Screen name="Announce"        component={SendAnnouncementScreen} />
+    </Stack.Navigator>
+  );
+}
+
 function CoachProgramsStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
@@ -210,13 +221,13 @@ function CoachProfileStack() {
   );
 }
 
-// ─── Coach tabs ──────────────────────────────────────────────────────────
+// ─── Coach tabs: Home / Students / Messages / Profile ────────────────────
 function CoachTabs() {
   return (
     <Tab.Navigator screenOptions={tabBarScreenOptions}>
       <Tab.Screen name="HomeTab"     component={CoachHomeStack}     options={{ title: 'Home',     tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>🏠</Text> }} />
       <Tab.Screen name="StudentsTab" component={CoachStudentsStack} options={{ title: 'Students', tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>👥</Text> }} />
-      <Tab.Screen name="ProgramsTab" component={CoachProgramsStack} options={{ title: 'Programs', tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>📋</Text> }} />
+      <Tab.Screen name="MessagesTab" component={CoachMessagesStack} options={{ title: 'Messages', tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>💬</Text> }} />
       <Tab.Screen name="ProfileTab"  component={CoachProfileStack}  options={{ title: 'Profile',  tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>👤</Text> }} />
     </Tab.Navigator>
   );
@@ -309,32 +320,25 @@ function SuperAdminDashboardStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Dashboard"         component={CoachHomeScreen} />
-      {/* Programs — navigated to from dashboard quick actions */}
       <Stack.Screen name="Manage"            component={ManageProgramsScreen} />
       <Stack.Screen name="ProgramRoster"     component={ProgramRosterScreen} />
       <Stack.Screen name="ProgramModules"    component={ProgramModulesScreen} />
       <Stack.Screen name="VideoPlayer"       component={VideoPlayerScreen} />
-      {/* Students */}
       <Stack.Screen name="Students"          component={ManageStudentsScreen} />
       <Stack.Screen name="StudentDetail"     component={StudentDetailScreen} />
       <Stack.Screen name="Attendance"        component={AttendanceScreen} />
       <Stack.Screen name="CoachNotes"        component={CoachNotesScreen} />
       <Stack.Screen name="PromotionManage"   component={PromotionManageScreen} />
-      {/* Videos */}
       <Stack.Screen name="ManageVideos"      component={ManageVideosScreen} />
       <Stack.Screen name="UploadVideo"       component={UploadVideoScreen} />
-      {/* Finance & comms */}
       <Stack.Screen name="Payments"          component={PaymentReconciliationScreen} />
       <Stack.Screen name="BulkMsg"           component={BulkMessageScreen} />
       <Stack.Screen name="Announce"          component={SendAnnouncementScreen} />
-      {/* Settings */}
       <Stack.Screen name="AcademySettings"   component={AcademySettingsScreen} />
       <Stack.Screen name="BillingSettings"   component={BillingSettingsScreen} />
-      {/* Divisions & tournaments */}
       <Stack.Screen name="DivisionDashboard" component={DivisionDashboardScreen} />
       <Stack.Screen name="TournamentManage"  component={TournamentManageScreen} />
       <Stack.Screen name="TournamentDetail"  component={TournamentDetailScreen} />
-      {/* Messaging */}
       <Stack.Screen name="Chat"              component={ChatScreen} />
       <Stack.Screen name="NewConversation"   component={NewConversationScreen} />
     </Stack.Navigator>

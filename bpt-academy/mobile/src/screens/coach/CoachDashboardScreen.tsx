@@ -1,22 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, RefreshControl } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, RefreshControl, Dimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
 import ScreenHeader from '../../components/common/ScreenHeader';
 
-// Coach gets a focused set of actions — no billing, no academy settings,
-// no payment reconciliation. Those are admin/super_admin only.
-// tab: the tab name to cross-navigate to (undefined = same CoachHomeStack)
-const COACH_ACTIONS = [
-  { icon: '👥', label: 'My Students',   screen: 'Students',          tab: 'StudentsTab' as string | undefined },
-  { icon: '📋', label: 'Programs',      screen: 'Manage',            tab: 'ProgramsTab' as string | undefined },
-  { icon: '🎬', label: 'Upload Video',  screen: 'UploadVideo',       tab: 'ProgramsTab' as string | undefined },
-  { icon: '📋', label: 'Attendance',    screen: 'Attendance',        tab: 'StudentsTab' as string | undefined },
-  { icon: '🔔', label: 'Announce',      screen: 'Announce',          tab: undefined },
-  { icon: '🏅', label: 'Divisions',     screen: 'DivisionDashboard', tab: undefined },
-  { icon: '🎾', label: 'Tournaments',   screen: 'TournamentManage',  tab: undefined },
-];
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const CARD_WIDTH = (SCREEN_WIDTH - 16 * 2 - 12) / 2;
 
 export default function CoachDashboardScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
@@ -43,10 +33,7 @@ export default function CoachDashboardScreen({ navigation }: any) {
             .in('program_id', programIds)
             .eq('status', 'active')
         : Promise.resolve({ count: 0 }),
-      supabase
-        .from('program_coaches')
-        .select('program_id', { count: 'exact', head: true })
-        .eq('coach_id', profile.id),
+      Promise.resolve({ count: programIds.length }),
       supabase
         .from('videos')
         .select('id', { count: 'exact', head: true })
@@ -73,9 +60,20 @@ export default function CoachDashboardScreen({ navigation }: any) {
     }
   };
 
+  const gridItems = [
+    { icon: '👥', label: 'My Students',   onPress: () => navigateTo('Students', 'StudentsTab') },
+    { icon: '📋', label: 'Programs',      onPress: () => navigateTo('Manage', 'ProgramsTab') },
+    { icon: '💬', label: 'Messages',      onPress: () => navigateTo('Messages', 'MessagesTab') },
+    { icon: '🎬', label: 'Upload Video',  onPress: () => navigateTo('UploadVideo', 'ProgramsTab') },
+    { icon: '📋', label: 'Attendance',    onPress: () => navigateTo('Attendance', 'StudentsTab') },
+    { icon: '🔔', label: 'Announce',      onPress: () => navigation.navigate('Announce') },
+    { icon: '🏅', label: 'Divisions',     onPress: () => navigation.navigate('DivisionDashboard') },
+    { icon: '🎾', label: 'Tournaments',   onPress: () => navigation.navigate('TournamentManage') },
+  ];
+
   return (
     <ScrollView
-      contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
+      contentContainerStyle={{ paddingBottom: Math.max(insets.bottom + 80, 104) }}
       style={styles.container}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
     >
@@ -108,15 +106,15 @@ export default function CoachDashboardScreen({ navigation }: any) {
         </TouchableOpacity>
       </View>
 
-      {/* Quick actions */}
+      {/* Quick actions grid */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Quick Actions</Text>
         <View style={styles.actionGrid}>
-          {COACH_ACTIONS.map((item) => (
+          {gridItems.map((item) => (
             <TouchableOpacity
-              key={item.screen + item.label}
+              key={item.label}
               style={styles.actionCard}
-              onPress={() => navigateTo(item.screen, item.tab)}
+              onPress={item.onPress}
             >
               <Text style={styles.actionIcon}>{item.icon}</Text>
               <Text style={styles.actionLabel}>{item.label}</Text>
@@ -158,7 +156,7 @@ const styles = StyleSheet.create({
   sectionTitle: { fontSize: 17, fontWeight: '700', color: '#111827', marginBottom: 12 },
   actionGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
   actionCard: {
-    width: '47%', backgroundColor: '#FFFFFF', borderRadius: 14, padding: 20,
+    width: CARD_WIDTH, backgroundColor: '#FFFFFF', borderRadius: 14, padding: 20,
     alignItems: 'center', borderWidth: 1, borderColor: '#E5E7EB',
   },
   actionIcon: { fontSize: 30, marginBottom: 8 },
