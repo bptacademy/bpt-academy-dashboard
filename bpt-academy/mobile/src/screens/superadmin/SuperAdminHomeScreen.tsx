@@ -1,13 +1,16 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
-  RefreshControl, Alert, Modal, ActivityIndicator, TextInput,
+  RefreshControl, Alert, Modal, ActivityIndicator, TextInput, Dimensions,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
 import { Profile, UserRole } from '../../types';
 import ScreenHeader from '../../components/common/ScreenHeader';
 import { useAuth } from '../../context/AuthContext';
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const CARD_WIDTH = (SCREEN_WIDTH - 16 * 2 - 12) / 2;
 
 // ─── Helpers ────────────────────────────────────────────────────────────
 const ROLES: { key: UserRole; label: string; emoji: string; color: string; bg: string }[] = [
@@ -28,22 +31,16 @@ export default function SuperAdminHomeScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
   const { profile: me } = useAuth();
 
-  // Stats
   const [stats, setStats] = useState({ total: 0, students: 0, coaches: 0, admins: 0, superAdmins: 0 });
-
-  // User list
   const [users, setUsers]       = useState<Profile[]>([]);
   const [filtered, setFiltered] = useState<Profile[]>([]);
   const [search, setSearch]     = useState('');
   const [roleFilter, setRoleFilter] = useState<UserRole | 'all'>('all');
   const [refreshing, setRefreshing] = useState(false);
-
-  // Role change modal
   const [modalUser, setModalUser]   = useState<Profile | null>(null);
   const [selectedRole, setSelectedRole] = useState<UserRole>('student');
   const [saving, setSaving]         = useState(false);
 
-  // ── Fetch ──────────────────────────────────────────────────
   const fetchUsers = useCallback(async () => {
     const { data } = await supabase
       .from('profiles')
@@ -51,7 +48,6 @@ export default function SuperAdminHomeScreen({ navigation }: any) {
       .order('full_name');
     if (!data) return;
     setUsers(data);
-
     setStats({
       total:       data.length,
       students:    data.filter((u) => u.role === 'student').length,
@@ -64,7 +60,6 @@ export default function SuperAdminHomeScreen({ navigation }: any) {
   const onRefresh = async () => { setRefreshing(true); await fetchUsers(); setRefreshing(false); };
   useEffect(() => { fetchUsers(); }, []);
 
-  // ── Filter ─────────────────────────────────────────────────
   useEffect(() => {
     let result = users;
     if (roleFilter !== 'all') result = result.filter((u) => u.role === roleFilter);
@@ -75,7 +70,6 @@ export default function SuperAdminHomeScreen({ navigation }: any) {
     setFiltered(result);
   }, [users, search, roleFilter]);
 
-  // ── Role change ────────────────────────────────────────────
   const openRoleModal = (user: Profile) => {
     if (user.id === me?.id) {
       Alert.alert('Cannot edit yourself', 'Use another Super Admin account to change your own role.');
@@ -89,7 +83,6 @@ export default function SuperAdminHomeScreen({ navigation }: any) {
     if (!modalUser) return;
     if (selectedRole === modalUser.role) { setModalUser(null); return; }
 
-    // Guard: confirm promotion to super_admin
     if (selectedRole === 'super_admin') {
       Alert.alert(
         '👑 Promote to Super Admin?',
@@ -102,7 +95,6 @@ export default function SuperAdminHomeScreen({ navigation }: any) {
       return;
     }
 
-    // Guard: confirm demotion from super_admin
     if (modalUser.role === 'super_admin') {
       Alert.alert(
         '⚠️ Remove Super Admin?',
@@ -135,13 +127,20 @@ export default function SuperAdminHomeScreen({ navigation }: any) {
     fetchUsers();
   };
 
-  // ─── Render ────────────────────────────────────────────────
+  const STAT_ITEMS = [
+    { label: 'Total',       value: stats.total,       color: '#374151', filter: 'all' as const },
+    { label: 'Students',    value: stats.students,    color: '#2563EB', filter: 'student' as const },
+    { label: 'Coaches',     value: stats.coaches,     color: '#EA580C', filter: 'coach' as const },
+    { label: 'Admins',      value: stats.admins,      color: '#16A34A', filter: 'admin' as const },
+    { label: 'Super Admin', value: stats.superAdmins, color: '#7C3AED', filter: 'super_admin' as const },
+  ];
+
   return (
     <View style={styles.root}>
-      <ScreenHeader title="Super Admin" dark />
+      <ScreenHeader title="Users 👑" dark />
 
       <ScrollView
-        contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
+        contentContainerStyle={{ paddingBottom: Math.max(insets.bottom + 80, 104) }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         stickyHeaderIndices={[1]}
       >
@@ -154,31 +153,27 @@ export default function SuperAdminHomeScreen({ navigation }: any) {
           </View>
         </View>
 
-        {/* Sticky stats bar */}
+        {/* Sticky stats bar — horizontal scroll so labels never get squeezed */}
         <View style={styles.statsBar}>
-          {[
-            { label: 'Total',    value: stats.total,       color: '#374151' },
-            { label: 'Students', value: stats.students,    color: '#2563EB' },
-            { label: 'Coaches',  value: stats.coaches,     color: '#EA580C' },
-            { label: 'Admins',   value: stats.admins,      color: '#16A34A' },
-            { label: '👑',       value: stats.superAdmins, color: '#7C3AED' },
-          ].map((s) => (
-            <TouchableOpacity
-              key={s.label}
-              style={styles.statCell}
-              onPress={() => setRoleFilter(
-                s.label === 'Total' ? 'all' :
-                s.label === '👑'    ? 'super_admin' :
-                s.label.toLowerCase() as UserRole
-              )}
-            >
-              <Text style={[styles.statNum, { color: s.color }]}>{s.value}</Text>
-              <Text style={styles.statLabel}>{s.label}</Text>
-            </TouchableOpacity>
-          ))}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.statsScroll}
+          >
+            {STAT_ITEMS.map((s) => (
+              <TouchableOpacity
+                key={s.label}
+                style={[styles.statCell, roleFilter === s.filter && { borderBottomWidth: 2, borderBottomColor: s.color }]}
+                onPress={() => setRoleFilter(s.filter)}
+              >
+                <Text style={[styles.statNum, { color: s.color }]}>{s.value}</Text>
+                <Text style={styles.statLabel}>{s.label}</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
         </View>
 
-        {/* Search + role filter */}
+        {/* Search + role filter chips */}
         <View style={styles.filterBar}>
           <TextInput
             style={styles.searchInput}
@@ -223,12 +218,9 @@ export default function SuperAdminHomeScreen({ navigation }: any) {
                 onPress={() => openRoleModal(user)}
                 activeOpacity={0.75}
               >
-                {/* Avatar */}
                 <View style={[styles.avatar, { backgroundColor: ri.color }]}>
                   <Text style={styles.avatarText}>{initials(user.full_name)}</Text>
                 </View>
-
-                {/* Info */}
                 <View style={styles.cardInfo}>
                   <View style={styles.cardNameRow}>
                     <Text style={styles.cardName}>{user.full_name}</Text>
@@ -241,38 +233,10 @@ export default function SuperAdminHomeScreen({ navigation }: any) {
                   </View>
                   {user.phone && <Text style={styles.phone}>{user.phone}</Text>}
                 </View>
-
-                {/* Action hint */}
                 {!isMe && <Text style={styles.chevron}>›</Text>}
               </TouchableOpacity>
             );
           })}
-        </View>
-
-        {/* Quick nav to admin sections */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Platform Management</Text>
-          <View style={styles.actionGrid}>
-            {[
-              { icon: '📊', label: 'Dashboard',   screen: 'Dashboard' },
-              { icon: '👥', label: 'Students',    screen: 'Students' },
-              { icon: '📋', label: 'Programs',    screen: 'Manage' },
-              { icon: '🎾', label: 'Tournaments', screen: 'Tournaments' },
-              { icon: '💳', label: 'Payments',    screen: 'Payments' },
-              { icon: '⚙️', label: 'Settings',    screen: 'AcademySettings' },
-              { icon: '💰', label: 'Billing',     screen: 'BillingSettings' },
-              { icon: '🏅', label: 'Divisions',   screen: 'Divisions' },
-            ].map((item) => (
-              <TouchableOpacity
-                key={item.screen}
-                style={styles.actionCard}
-                onPress={() => navigation.navigate(item.screen)}
-              >
-                <Text style={styles.actionIcon}>{item.icon}</Text>
-                <Text style={styles.actionLabel}>{item.label}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
         </View>
       </ScrollView>
 
@@ -299,7 +263,6 @@ export default function SuperAdminHomeScreen({ navigation }: any) {
             </View>
 
             <ScrollView style={styles.modalBody}>
-              {/* User summary */}
               <View style={styles.modalUser}>
                 <View style={[styles.modalAvatar, { backgroundColor: roleInfo(modalUser.role).color }]}>
                   <Text style={styles.modalAvatarText}>{initials(modalUser.full_name)}</Text>
@@ -328,8 +291,7 @@ export default function SuperAdminHomeScreen({ navigation }: any) {
                       <Text style={styles.roleOptionEmoji}>{r.emoji}</Text>
                       <View>
                         <Text style={[styles.roleOptionLabel, selected && { color: r.color, fontWeight: '700' }]}>
-                          {r.label}
-                          {isCurrent ? ' (current)' : ''}
+                          {r.label}{isCurrent ? ' (current)' : ''}
                         </Text>
                         <Text style={styles.roleOptionDesc}>
                           {r.key === 'super_admin' && 'Full platform control · manage all users & settings'}
@@ -360,33 +322,27 @@ export default function SuperAdminHomeScreen({ navigation }: any) {
   );
 }
 
-// ─── Styles ─────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#F9FAFB' },
-
-  // Hero
   hero: {
     backgroundColor: '#111827', paddingHorizontal: 24,
     paddingTop: 24, paddingBottom: 28, alignItems: 'flex-start',
   },
   heroGreeting: { fontSize: 13, color: '#9CA3AF', marginBottom: 4 },
   heroName: { fontSize: 22, fontWeight: '700', color: '#FFFFFF', marginBottom: 10 },
-  superBadge: {
-    backgroundColor: '#7C3AED', paddingHorizontal: 12,
-    paddingVertical: 5, borderRadius: 20,
-  },
+  superBadge: { backgroundColor: '#7C3AED', paddingHorizontal: 12, paddingVertical: 5, borderRadius: 20 },
   superBadgeText: { color: '#FFFFFF', fontSize: 11, fontWeight: '800', letterSpacing: 1 },
 
-  // Stats bar
-  statsBar: {
-    flexDirection: 'row', backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1, borderBottomColor: '#E5E7EB',
+  // Stats bar — horizontal scroll
+  statsBar: { backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#E5E7EB' },
+  statsScroll: { flexDirection: 'row', paddingHorizontal: 8 },
+  statCell: {
+    alignItems: 'center', paddingVertical: 14, paddingHorizontal: 20,
+    minWidth: 80, borderBottomWidth: 2, borderBottomColor: 'transparent',
   },
-  statCell: { flex: 1, alignItems: 'center', paddingVertical: 12 },
-  statNum: { fontSize: 20, fontWeight: '700' },
-  statLabel: { fontSize: 10, color: '#9CA3AF', marginTop: 2, fontWeight: '500' },
+  statNum: { fontSize: 22, fontWeight: '700' },
+  statLabel: { fontSize: 11, color: '#6B7280', marginTop: 3, fontWeight: '500' },
 
-  // Filter bar
   filterBar: { backgroundColor: '#FFFFFF', paddingHorizontal: 16, paddingVertical: 12, gap: 10 },
   searchInput: {
     backgroundColor: '#F3F4F6', borderRadius: 10,
@@ -399,13 +355,10 @@ const styles = StyleSheet.create({
   },
   chipText: { fontSize: 13, color: '#374151', fontWeight: '500' },
   chipTextActive: { color: '#FFFFFF', fontWeight: '700' },
-
-  // User list
   list: { padding: 16, gap: 10 },
   card: {
     backgroundColor: '#FFFFFF', borderRadius: 14, padding: 14,
-    flexDirection: 'row', alignItems: 'center',
-    borderWidth: 1, borderColor: '#E5E7EB',
+    flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: '#E5E7EB',
   },
   avatar: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center', marginRight: 14 },
   avatarText: { color: '#FFFFFF', fontWeight: '700', fontSize: 17 },
@@ -414,8 +367,7 @@ const styles = StyleSheet.create({
   cardName: { fontSize: 15, fontWeight: '600', color: '#111827' },
   meBadge: {
     fontSize: 10, fontWeight: '800', color: '#7C3AED',
-    backgroundColor: '#F5F3FF', paddingHorizontal: 7,
-    paddingVertical: 2, borderRadius: 8, letterSpacing: 0.5,
+    backgroundColor: '#F5F3FF', paddingHorizontal: 7, paddingVertical: 2, borderRadius: 8, letterSpacing: 0.5,
   },
   roleBadge: { alignSelf: 'flex-start', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
   roleBadgeText: { fontSize: 12, fontWeight: '700' },
@@ -423,19 +375,15 @@ const styles = StyleSheet.create({
   chevron: { fontSize: 22, color: '#D1D5DB', marginLeft: 8 },
   empty: { backgroundColor: '#FFFFFF', borderRadius: 14, padding: 32, alignItems: 'center', borderWidth: 1, borderColor: '#E5E7EB' },
   emptyText: { color: '#9CA3AF', fontSize: 14 },
-
-  // Platform nav section
   section: { padding: 16, paddingTop: 8 },
   sectionTitle: { fontSize: 13, fontWeight: '700', color: '#6B7280', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 12 },
   actionGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
   actionCard: {
-    width: '47%', backgroundColor: '#FFFFFF', borderRadius: 14, padding: 18,
+    width: CARD_WIDTH, backgroundColor: '#FFFFFF', borderRadius: 14, padding: 18,
     alignItems: 'center', borderWidth: 1, borderColor: '#E5E7EB',
   },
   actionIcon: { fontSize: 30, marginBottom: 8 },
   actionLabel: { fontSize: 13, fontWeight: '600', color: '#374151' },
-
-  // Modal
   modal: { flex: 1, backgroundColor: '#FFFFFF' },
   modalHeader: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
@@ -461,9 +409,6 @@ const styles = StyleSheet.create({
   roleOptionLabel: { fontSize: 15, fontWeight: '600', color: '#111827', marginBottom: 2 },
   roleOptionDesc: { fontSize: 12, color: '#9CA3AF', lineHeight: 17 },
   roleOptionCheck: { fontSize: 20, fontWeight: '700' },
-  warningBox: {
-    backgroundColor: '#F5F3FF', borderRadius: 12, padding: 16,
-    borderWidth: 1, borderColor: '#DDD6FE', marginTop: 8,
-  },
+  warningBox: { backgroundColor: '#F5F3FF', borderRadius: 12, padding: 16, borderWidth: 1, borderColor: '#DDD6FE', marginTop: 8 },
   warningText: { fontSize: 13, color: '#5B21B6', lineHeight: 20 },
 });

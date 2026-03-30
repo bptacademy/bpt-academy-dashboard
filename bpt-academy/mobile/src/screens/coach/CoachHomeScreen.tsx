@@ -1,23 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, RefreshControl } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, RefreshControl, Dimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
 import ScreenHeader from '../../components/common/ScreenHeader';
 
-const MENU = [
-  { icon: '📊', label: 'Dashboard', screen: 'Dashboard' },
-  { icon: '📋', label: 'Programs',  screen: 'Manage' },
-  { icon: '🎬', label: 'Videos',    screen: 'Videos' },
-  { icon: '👥', label: 'Students',  screen: 'Students' },
-  { icon: '💬', label: 'Messages',  screen: 'Messages' },
-  { icon: '🔔', label: 'Announce',  screen: 'Announce' },
-  { icon: '👤', label: 'Profile',   screen: 'Profile' },
-];
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const CARD_WIDTH = (SCREEN_WIDTH - 16 * 2 - 12) / 2;
 
 export default function CoachHomeScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
-  const { profile } = useAuth();
+  const { profile, isSuperAdmin, isAdmin } = useAuth();
   const [stats, setStats] = useState({ students: 0, programs: 0, videos: 0 });
   const [refreshing, setRefreshing] = useState(false);
 
@@ -37,9 +30,36 @@ export default function CoachHomeScreen({ navigation }: any) {
   const onRefresh = async () => { setRefreshing(true); await fetchStats(); setRefreshing(false); };
   useEffect(() => { fetchStats(); }, []);
 
+  // For super admins: Students is in DashboardTab (same stack), no cross-tab needed
+  // For admins: Students is in StudentsTab
+  const goToStudents = () => {
+    if (isSuperAdmin) {
+      navigation.navigate('Students');
+    } else {
+      navigation.getParent()?.navigate('StudentsTab', { screen: 'Students' });
+    }
+  };
+
+  const goToPrograms = () => {
+    navigation.getParent()?.navigate('ProgramsTab', { screen: 'Manage' });
+  };
+
+  const gridItems = [
+    { icon: '📋', label: 'Programs',     onPress: goToPrograms },
+    { icon: '👥', label: 'Students',     onPress: goToStudents },
+    { icon: '🏅', label: 'Divisions',    onPress: () => navigation.navigate('DivisionDashboard') },
+    { icon: '🎾', label: 'Tournaments',  onPress: () => navigation.navigate('TournamentManage') },
+    { icon: '💳', label: 'Payments',     onPress: () => navigation.navigate('Payments') },
+    { icon: '📣', label: 'Bulk Msg',     onPress: () => navigation.navigate('BulkMsg') },
+    { icon: '🎬', label: 'Upload Video', onPress: () => navigation.navigate('UploadVideo') },
+    { icon: '🔔', label: 'Announce',     onPress: () => navigation.navigate('Announce') },
+    { icon: '⚙️', label: 'Settings',     onPress: () => navigation.navigate('AcademySettings') },
+    { icon: '💰', label: 'Billing',      onPress: () => navigation.navigate('BillingSettings') },
+  ];
+
   return (
     <ScrollView
-      contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
+      contentContainerStyle={{ paddingBottom: Math.max(insets.bottom + 80, 104) }}
       style={styles.container}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
     >
@@ -49,49 +69,38 @@ export default function CoachHomeScreen({ navigation }: any) {
           <Text style={styles.greeting}>Admin Dashboard 👋</Text>
           <Text style={styles.name}>{profile?.full_name}</Text>
         </View>
-        <View style={[styles.adminBadge, profile?.role === 'super_admin' && { backgroundColor: '#7C3AED' }]}>
+        <View style={[styles.adminBadge, isSuperAdmin && { backgroundColor: '#7C3AED' }]}>
           <Text style={styles.adminBadgeText}>
-            {profile?.role === 'super_admin' ? '👑 Super Admin' : 'Admin'}
+            {isSuperAdmin ? '👑 Super Admin' : 'Admin'}
           </Text>
         </View>
       </View>
 
-      {/* Stats — tappable */}
+      {/* Stats */}
       <View style={styles.statsRow}>
-        <TouchableOpacity style={styles.statCard} onPress={() => navigation.navigate('Students')}>
+        <TouchableOpacity style={styles.statCard} onPress={goToStudents}>
           <Text style={styles.statNumber}>{stats.students}</Text>
           <Text style={styles.statLabel}>Students</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.statCard} onPress={() => navigation.navigate('Manage')}>
+        <TouchableOpacity style={styles.statCard} onPress={goToPrograms}>
           <Text style={styles.statNumber}>{stats.programs}</Text>
           <Text style={styles.statLabel}>Programs</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.statCard} onPress={() => navigation.navigate('Videos')}>
+        <TouchableOpacity style={styles.statCard} onPress={() => navigation.navigate('ManageVideos')}>
           <Text style={styles.statNumber}>{stats.videos}</Text>
           <Text style={styles.statLabel}>Videos</Text>
         </TouchableOpacity>
       </View>
 
-      {/* Quick actions */}
+      {/* Quick actions grid */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Manage</Text>
         <View style={styles.actionGrid}>
-          {[
-            { icon: '📋', label: 'Programs',    screen: 'Manage' },
-            { icon: '👥', label: 'Students',    screen: 'Students' },
-            { icon: '🏅', label: 'Divisions',   screen: 'Divisions' },
-            { icon: '🎾', label: 'Tournaments', screen: 'Tournaments' },
-            { icon: '💳', label: 'Payments',    screen: 'Payments' },
-            { icon: '📣', label: 'Bulk Msg',    screen: 'BulkMsg' },
-            { icon: '🎬', label: 'Upload Video',screen: 'UploadVideo' },
-            { icon: '🔔', label: 'Announce',    screen: 'Announce' },
-            { icon: '⚙️', label: 'Settings',    screen: 'AcademySettings' },
-            { icon: '💳', label: 'Billing',     screen: 'BillingSettings' },
-          ].map((item) => (
+          {gridItems.map((item) => (
             <TouchableOpacity
-              key={item.screen}
+              key={item.label}
               style={styles.actionCard}
-              onPress={() => navigation.navigate(item.screen)}
+              onPress={item.onPress}
             >
               <Text style={styles.actionIcon}>{item.icon}</Text>
               <Text style={styles.actionLabel}>{item.label}</Text>
@@ -124,7 +133,7 @@ const styles = StyleSheet.create({
   sectionTitle: { fontSize: 17, fontWeight: '700', color: '#111827', marginBottom: 12 },
   actionGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
   actionCard: {
-    width: '47%', backgroundColor: '#FFFFFF', borderRadius: 14, padding: 20,
+    width: CARD_WIDTH, backgroundColor: '#FFFFFF', borderRadius: 14, padding: 20,
     alignItems: 'center', borderWidth: 1, borderColor: '#E5E7EB',
   },
   actionIcon: { fontSize: 32, marginBottom: 8 },

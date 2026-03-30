@@ -7,15 +7,15 @@ import ScreenHeader from '../../components/common/ScreenHeader';
 
 // Coach gets a focused set of actions — no billing, no academy settings,
 // no payment reconciliation. Those are admin/super_admin only.
+// tab: the tab name to cross-navigate to (undefined = same CoachHomeStack)
 const COACH_ACTIONS = [
-  { icon: '👥', label: 'My Students',   screen: 'Students' },
-  { icon: '📋', label: 'Programs',      screen: 'Manage' },
-  { icon: '🎬', label: 'Upload Video',  screen: 'UploadVideo' },
-  { icon: '📋', label: 'Attendance',    screen: 'Attendance' },
-  { icon: '🔔', label: 'Announce',      screen: 'Announce' },
-  { icon: '💬', label: 'Messages',      screen: 'Messages' },
-  { icon: '🏅', label: 'Divisions',     screen: 'Divisions' },
-  { icon: '🎾', label: 'Tournaments',   screen: 'Tournaments' },
+  { icon: '👥', label: 'My Students',   screen: 'Students',          tab: 'StudentsTab' as string | undefined },
+  { icon: '📋', label: 'Programs',      screen: 'Manage',            tab: 'ProgramsTab' as string | undefined },
+  { icon: '🎬', label: 'Upload Video',  screen: 'UploadVideo',       tab: 'ProgramsTab' as string | undefined },
+  { icon: '📋', label: 'Attendance',    screen: 'Attendance',        tab: 'StudentsTab' as string | undefined },
+  { icon: '🔔', label: 'Announce',      screen: 'Announce',          tab: undefined },
+  { icon: '🏅', label: 'Divisions',     screen: 'DivisionDashboard', tab: undefined },
+  { icon: '🎾', label: 'Tournaments',   screen: 'TournamentManage',  tab: undefined },
 ];
 
 export default function CoachDashboardScreen({ navigation }: any) {
@@ -64,6 +64,15 @@ export default function CoachDashboardScreen({ navigation }: any) {
   const onRefresh = async () => { setRefreshing(true); await fetchStats(); setRefreshing(false); };
   useEffect(() => { fetchStats(); }, [profile]);
 
+  // Navigate cross-tab or within same stack
+  const navigateTo = (screen: string, tab?: string) => {
+    if (tab) {
+      navigation.getParent()?.navigate(tab, { screen });
+    } else {
+      navigation.navigate(screen);
+    }
+  };
+
   return (
     <ScrollView
       contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
@@ -85,15 +94,15 @@ export default function CoachDashboardScreen({ navigation }: any) {
 
       {/* Stats */}
       <View style={styles.statsRow}>
-        <TouchableOpacity style={styles.statCard} onPress={() => navigation.navigate('Students')}>
+        <TouchableOpacity style={styles.statCard} onPress={() => navigateTo('Students', 'StudentsTab')}>
           <Text style={styles.statNumber}>{stats.myStudents}</Text>
           <Text style={styles.statLabel}>My Students</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.statCard} onPress={() => navigation.navigate('Manage')}>
+        <TouchableOpacity style={styles.statCard} onPress={() => navigateTo('Manage', 'ProgramsTab')}>
           <Text style={styles.statNumber}>{stats.myPrograms}</Text>
           <Text style={styles.statLabel}>Programs</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.statCard} onPress={() => navigation.navigate('Videos')}>
+        <TouchableOpacity style={styles.statCard} onPress={() => navigateTo('ManageVideos', 'ProgramsTab')}>
           <Text style={styles.statNumber}>{stats.videos}</Text>
           <Text style={styles.statLabel}>Videos</Text>
         </TouchableOpacity>
@@ -107,7 +116,7 @@ export default function CoachDashboardScreen({ navigation }: any) {
             <TouchableOpacity
               key={item.screen + item.label}
               style={styles.actionCard}
-              onPress={() => navigation.navigate(item.screen)}
+              onPress={() => navigateTo(item.screen, item.tab)}
             >
               <Text style={styles.actionIcon}>{item.icon}</Text>
               <Text style={styles.actionLabel}>{item.label}</Text>

@@ -17,20 +17,44 @@ interface ConvRow {
   lastMessage?: string;
   lastAt?: string;
   otherName?: string;
-  unread?: boolean;
 }
 
 export default function MessagesScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
   const { profile } = useAuth();
-  const [direct, setDirect]             = useState<ConvRow[]>([]);
-  const [groups, setGroups]             = useState<ConvRow[]>([]);
+  const [direct, setDirect]               = useState<ConvRow[]>([]);
+  const [groups, setGroups]               = useState<ConvRow[]>([]);
   const [divisionGroup, setDivisionGroup] = useState<ConvRow[]>([]);
-  const [refreshing, setRefreshing]     = useState(false);
+  const [noteCount, setNoteCount]         = useState(0);
+  const [latestNote, setLatestNote]       = useState<{ note: string; coach_name: string; created_at: string } | null>(null);
+  const [refreshing, setRefreshing]       = useState(false);
 
-  const fetchConversations = useCallback(async () => {
+  const fetchAll = useCallback(async () => {
     if (!profile) return;
 
+    // Coach notes — just fetch count + latest preview
+    const { data: notesData } = await supabase
+      .from('coach_notes')
+      .select('note, created_at, coach:coach_id(full_name)')
+      .eq('student_id', profile.id)
+      .eq('is_private', false)
+      .order('created_at', { ascending: false });
+
+    if (notesData) {
+      setNoteCount(notesData.length);
+      if (notesData.length > 0) {
+        const n = notesData[0] as any;
+        setLatestNote({
+          note: n.note,
+          coach_name: n.coach?.full_name ?? 'Coach',
+          created_at: n.created_at,
+        });
+      } else {
+        setLatestNote(null);
+      }
+    }
+
+    // Conversations
     const { data: memberOf } = await supabase
       .from('conversation_members')
       .select('conversation_id')
@@ -92,20 +116,14 @@ export default function MessagesScreen({ navigation }: any) {
       })
     );
 
-    // Split into three buckets by conversation_type
     setDirect(enriched.filter((c) => c.conversation_type === 'direct'));
     setGroups(enriched.filter((c) => c.conversation_type === 'program_group'));
     setDivisionGroup(enriched.filter((c) => c.conversation_type === 'division_group'));
   }, [profile?.id]);
 
-  const onRefresh = async () => {
-    setRefreshing(true);
-    await fetchConversations();
-    setRefreshing(false);
-  };
-
-  useEffect(() => { fetchConversations(); }, [fetchConversations]);
-  useFocusEffect(useCallback(() => { fetchConversations(); }, [fetchConversations]));
+  const onRefresh = async () => { setRefreshing(true); await fetchAll(); setRefreshing(false); };
+  useEffect(() => { fetchAll(); }, [fetchAll]);
+  useFocusEffect(useCallback(() => { fetchAll(); }, [fetchAll]));
 
   const formatTime = (iso?: string) => {
     if (!iso) return '';
@@ -120,13 +138,11 @@ export default function MessagesScreen({ navigation }: any) {
     <TouchableOpacity
       key={conv.id}
       style={styles.card}
-      onPress={() =>
-        navigation.navigate('Chat', {
-          conversationId: conv.id,
-          title: conv.otherName,
-          conversationType: conv.conversation_type,
-        })
-      }
+      onPress={() => navigation.navigate('Chat', {
+        conversationId: conv.id,
+        title: conv.otherName,
+        conversationType: conv.conversation_type,
+      })}
     >
       <View style={[styles.avatar, conv.is_group && styles.avatarGroup]}>
         <Text style={styles.avatarIcon}>{conv.is_group ? '👥' : '👤'}</Text>
@@ -141,21 +157,19 @@ export default function MessagesScreen({ navigation }: any) {
           : <Text style={styles.lastMsgEmpty}>No messages yet</Text>
         }
       </View>
+      <Text style={styles.chevron}>›</Text>
     </TouchableOpacity>
   );
 
-  /** Renders the single division group card with a gold avatar */
   const renderDivisionConv = (conv: ConvRow) => (
     <TouchableOpacity
       key={conv.id}
       style={styles.card}
-      onPress={() =>
-        navigation.navigate('Chat', {
-          conversationId: conv.id,
-          title: conv.otherName,
-          conversationType: conv.conversation_type,
-        })
-      }
+      onPress={() => navigation.navigate('Chat', {
+        conversationId: conv.id,
+        title: conv.otherName,
+        conversationType: conv.conversation_type,
+      })}
     >
       <View style={styles.avatarDivision}>
         <Text style={styles.avatarIcon}>🏆</Text>
@@ -170,6 +184,7 @@ export default function MessagesScreen({ navigation }: any) {
           : <Text style={styles.lastMsgEmpty}>No messages yet</Text>
         }
       </View>
+      <Text style={styles.chevron}>›</Text>
     </TouchableOpacity>
   );
 
@@ -181,18 +196,46 @@ export default function MessagesScreen({ navigation }: any) {
   return (
     <View style={styles.wrapper}>
       <ScrollView
-        contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
+        contentContainerStyle={{ paddingBottom: Math.max(insets.bottom + 80, 104) }}
         style={styles.container}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
         <ScreenHeader title="Messages" />
 
+        {/* ── Coach Notes — single folder card ── */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>📝 Coach Notes</Text>
+          <TouchableOpacity
+            style={styles.folderCard}
+            onPress={() => navigation.navigate('MyCoachNotes')}
+            activeOpacity={0.75}
+          >
+            <View style={styles.folderAvatar}>
+              <Text style={styles.folderAvatarIcon}>📝</Text>
+            </View>
+            <View style={styles.info}>
+              <View style={styles.nameRow}>
+                <Text style={styles.convName}>Coach Notes</Text>
+                <View style={noteCount > 0 ? styles.badge : styles.badgeEmpty}>
+                  <Text style={styles.badgeText}>{noteCount}</Text>
+                </View>
+              </View>
+              {latestNote ? (
+                <Text style={styles.lastMsg} numberOfLines={1}>
+                  {latestNote.coach_name}: {latestNote.note}
+                </Text>
+              ) : (
+                <Text style={styles.lastMsgEmpty}>No notes yet</Text>
+              )}
+            </View>
+            <Text style={styles.chevron}>›</Text>
+          </TouchableOpacity>
+        </View>
+
         {/* ── Direct Messages ── */}
         <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>🔒 Direct Messages</Text>
-            <Text style={styles.sectionHint}>Private — only you and your coach</Text>
-          </View>
+          <Text style={styles.sectionTitle}>🔒 Direct Messages</Text>
+          <Text style={styles.sectionHint}>Private — only you and your coach</Text>
           {direct.length > 0
             ? direct.map(renderConv)
             : (
@@ -207,17 +250,13 @@ export default function MessagesScreen({ navigation }: any) {
 
         {/* ── Division Channel ── */}
         <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>🏆 Division Channel</Text>
-            <Text style={styles.sectionHint}>Everyone in your division</Text>
-          </View>
+          <Text style={styles.sectionTitle}>🏆 Division Channel</Text>
+          <Text style={styles.sectionHint}>Everyone in your division</Text>
           {divisionGroup.length > 0
             ? divisionGroup.map(renderDivisionConv)
             : (
               <View style={styles.emptySection}>
-                <Text style={styles.emptySectionText}>
-                  You haven't been assigned to a division yet.
-                </Text>
+                <Text style={styles.emptySectionText}>You haven't been assigned to a division yet.</Text>
               </View>
             )
           }
@@ -225,24 +264,19 @@ export default function MessagesScreen({ navigation }: any) {
 
         {/* ── Program Group Channels ── */}
         <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>👥 Program Channels</Text>
-            <Text style={styles.sectionHint}>All students + coaches in your program</Text>
-          </View>
+          <Text style={styles.sectionTitle}>👥 Program Channels</Text>
+          <Text style={styles.sectionHint}>All students + coaches in your program</Text>
           {groups.length > 0
             ? groups.map(renderConv)
             : (
               <View style={styles.emptySection}>
-                <Text style={styles.emptySectionText}>
-                  Enroll in a program to join its group channel.
-                </Text>
+                <Text style={styles.emptySectionText}>Enroll in a program to join its group channel.</Text>
               </View>
             )
           }
         </View>
       </ScrollView>
 
-      {/* FAB — coaches/admins can initiate DMs; students cannot */}
       {isCoachOrAdmin && (
         <TouchableOpacity
           style={styles.fab}
@@ -258,21 +292,45 @@ export default function MessagesScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   wrapper: { flex: 1, backgroundColor: '#F9FAFB' },
   container: { flex: 1 },
-  section: { padding: 16, paddingBottom: 4 },
-  sectionHeader: { marginBottom: 10 },
-  sectionTitle: { fontSize: 15, fontWeight: '700', color: '#111827' },
-  sectionHint: { fontSize: 12, color: '#9CA3AF', marginTop: 2 },
+  section: { padding: 16, paddingBottom: 8 },
+  sectionTitle: { fontSize: 15, fontWeight: '700', color: '#111827', marginBottom: 4 },
+  sectionHint: { fontSize: 12, color: '#9CA3AF', marginBottom: 10 },
+
+  // Shared card
   card: {
     flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF',
     borderRadius: 14, padding: 14, marginBottom: 10,
     borderWidth: 1, borderColor: '#E5E7EB', gap: 12,
   },
+
+  // Coach Notes folder card
+  folderCard: {
+    flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF',
+    borderRadius: 14, padding: 14, marginTop: 8,
+    borderWidth: 1, borderColor: '#D1FAE5', gap: 12,
+    shadowColor: '#16A34A', shadowOpacity: 0.06, shadowRadius: 4,
+    shadowOffset: { width: 0, height: 1 }, elevation: 1,
+  },
+  folderAvatar: {
+    width: 48, height: 48, borderRadius: 14, backgroundColor: '#ECFDF5',
+    alignItems: 'center', justifyContent: 'center',
+  },
+  folderAvatarIcon: { fontSize: 24 },
+  badge: {
+    backgroundColor: '#16A34A', borderRadius: 10,
+    paddingHorizontal: 8, paddingVertical: 2, minWidth: 22, alignItems: 'center',
+  },
+  badgeEmpty: {
+    backgroundColor: '#E5E7EB', borderRadius: 10,
+    paddingHorizontal: 8, paddingVertical: 2, minWidth: 22, alignItems: 'center',
+  },
+  badgeText: { fontSize: 12, fontWeight: '700', color: '#FFFFFF' },
+
   avatar: {
     width: 48, height: 48, borderRadius: 24,
     backgroundColor: '#F3F4F6', alignItems: 'center', justifyContent: 'center',
   },
   avatarGroup: { backgroundColor: '#ECFDF5' },
-  /** Gold/trophy background for division group cards */
   avatarDivision: {
     width: 48, height: 48, borderRadius: 24,
     backgroundColor: '#FEF3C7', alignItems: 'center', justifyContent: 'center',
@@ -284,6 +342,7 @@ const styles = StyleSheet.create({
   time: { fontSize: 12, color: '#9CA3AF', marginLeft: 8 },
   lastMsg: { fontSize: 13, color: '#6B7280', marginTop: 3 },
   lastMsgEmpty: { fontSize: 13, color: '#D1D5DB', marginTop: 3, fontStyle: 'italic' },
+  chevron: { fontSize: 20, color: '#D1D5DB', marginLeft: 4 },
   emptySection: {
     backgroundColor: '#FFFFFF', borderRadius: 12, padding: 16,
     borderWidth: 1, borderColor: '#F3F4F6', marginBottom: 10,

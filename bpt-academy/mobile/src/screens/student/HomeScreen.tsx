@@ -2,13 +2,16 @@ import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import {
   View, Text, ScrollView, StyleSheet,
-  TouchableOpacity, RefreshControl,
+  TouchableOpacity, RefreshControl, Dimensions,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { Enrollment, Notification } from '../../types';
 import ScreenHeader from '../../components/common/ScreenHeader';
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const CARD_WIDTH = (SCREEN_WIDTH - 20 * 2 - 12) / 2;
 
 interface EnrollmentWithProgress extends Enrollment {
   completedModules: number;
@@ -22,7 +25,6 @@ export default function HomeScreen({ navigation }: any) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [refreshing, setRefreshing] = useState(false);
 
-  // Keep dismissed IDs in a ref so they survive re-renders and re-fetches
   const dismissedRef = useRef<Set<string>>(new Set());
 
   const fetchData = async () => {
@@ -44,7 +46,6 @@ export default function HomeScreen({ navigation }: any) {
         .limit(5),
     ]);
 
-    // Wire real progress for each enrollment
     if (enrollRes.data) {
       const withProgress = await Promise.all(
         enrollRes.data.map(async (e) => {
@@ -66,17 +67,12 @@ export default function HomeScreen({ navigation }: any) {
             completedModules = count ?? 0;
           }
 
-          return {
-            ...e,
-            completedModules,
-            totalModules: moduleIds.length,
-          };
+          return { ...e, completedModules, totalModules: moduleIds.length };
         })
       );
       setEnrollments(withProgress);
     }
 
-    // Filter out already-dismissed notifications using the ref
     if (notifRes.data) {
       setNotifications(
         notifRes.data.filter((n: Notification) => !dismissedRef.current.has(n.id))
@@ -84,24 +80,18 @@ export default function HomeScreen({ navigation }: any) {
     }
   };
 
-  const onRefresh = async () => {
-    setRefreshing(true);
-    await fetchData();
-    setRefreshing(false);
-  };
-
+  const onRefresh = async () => { setRefreshing(true); await fetchData(); setRefreshing(false); };
   useEffect(() => { fetchData(); }, [profile]);
-
-  // Re-fetch whenever screen comes into focus (e.g. after enrolling in a program)
   useFocusEffect(useCallback(() => { fetchData(); }, [profile]));
 
   const dismissNotification = async (id: string) => {
-    // Remove from UI immediately — do this first so it's instant
     dismissedRef.current.add(id);
     setNotifications(prev => prev.filter(n => n.id !== id));
-    // Best-effort mark as read in DB (may silently fail due to RLS for admin accounts)
     await supabase.from('notifications').update({ read: true }).eq('id', id);
   };
+
+  const goToPrograms = () => navigation.getParent()?.navigate('ProgramsTab');
+  const goToMessages = () => navigation.getParent()?.navigate('MessagesTab');
 
   const skillBadgeColor: Record<string, string> = {
     beginner:     '#3B82F6',
@@ -117,10 +107,18 @@ export default function HomeScreen({ navigation }: any) {
     return 'Good night 🌙';
   })();
 
+  const quickActions = [
+    { icon: '🎬', label: 'Training Videos', onPress: () => navigation.navigate('Videos') },
+    { icon: '📈', label: 'My Progress',      onPress: () => navigation.navigate('Progress') },
+    { icon: '🏆', label: 'Leaderboard',      onPress: () => navigation.navigate('Leaderboard') },
+    { icon: '🎾', label: 'Tournaments',      onPress: () => navigation.navigate('Tournaments') },
+    { icon: '💬', label: 'Messages',         onPress: goToMessages },
+  ];
+
   return (
     <ScrollView
       style={styles.container}
-      contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
+      contentContainerStyle={{ paddingBottom: Math.max(insets.bottom + 80, 104) }}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
     >
       <ScreenHeader title="BPT Academy 🎾" />
@@ -165,14 +163,14 @@ export default function HomeScreen({ navigation }: any) {
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>📚 My Programs</Text>
-          <TouchableOpacity onPress={() => navigation.navigate('Programs')}>
+          <TouchableOpacity onPress={goToPrograms}>
             <Text style={styles.seeAll}>See all</Text>
           </TouchableOpacity>
         </View>
         {enrollments.length === 0 ? (
           <View style={styles.emptyCard}>
             <Text style={styles.emptyText}>You're not enrolled in any programs yet.</Text>
-            <TouchableOpacity onPress={() => navigation.navigate('Programs')}>
+            <TouchableOpacity onPress={goToPrograms}>
               <Text style={styles.emptyLink}>Browse programs →</Text>
             </TouchableOpacity>
           </View>
@@ -208,18 +206,11 @@ export default function HomeScreen({ navigation }: any) {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>⚡ Quick Actions</Text>
         <View style={styles.quickGrid}>
-          {[
-            { icon: '🎬', label: 'Training Videos', screen: 'Videos' },
-            { icon: '📈', label: 'My Progress',      screen: 'Progress' },
-            { icon: '🏆', label: 'Leaderboard',      screen: 'Leaderboard' },
-            { icon: '🎾', label: 'Tournaments',      screen: 'Tournaments' },
-            { icon: '💬', label: 'Messages',         screen: 'Messages' },
-            { icon: '📝', label: 'Coach Notes',      screen: 'MyCoachNotes' },
-          ].map((item) => (
+          {quickActions.map((item) => (
             <TouchableOpacity
-              key={item.screen}
+              key={item.label}
               style={styles.actionCard}
-              onPress={() => navigation.navigate(item.screen)}
+              onPress={item.onPress}
             >
               <Text style={styles.actionIcon}>{item.icon}</Text>
               <Text style={styles.actionLabel}>{item.label}</Text>
@@ -271,7 +262,7 @@ const styles = StyleSheet.create({
   progressLabel: { fontSize: 12, color: '#6B7280', marginTop: 4 },
   quickGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
   actionCard: {
-    width: '47%', backgroundColor: '#FFFFFF', borderRadius: 12, padding: 16,
+    width: CARD_WIDTH, backgroundColor: '#FFFFFF', borderRadius: 12, padding: 16,
     alignItems: 'center', borderWidth: 1, borderColor: '#E5E7EB',
   },
   actionIcon: { fontSize: 28, marginBottom: 8 },

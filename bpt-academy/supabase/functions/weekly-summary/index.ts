@@ -6,7 +6,7 @@ const supabase = createClient(
 );
 
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')!;
-const FROM_EMAIL = 'office@bptacademy.uk';
+const FROM_EMAIL = 'hello@bptacademy.uk';
 
 Deno.serve(async () => {
   try {
