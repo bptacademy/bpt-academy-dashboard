@@ -3,6 +3,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Text, Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useAuth } from '../context/AuthContext';
 
@@ -61,13 +62,26 @@ import NewConversationScreen from '../screens/messaging/NewConversationScreen';
 import ChatScreen from '../screens/messaging/ChatScreen';
 
 // ─── Tab bar shared options ──────────────────────────────────────────────
-const tabBarScreenOptions = {
-  headerShown: false,
-  tabBarStyle: { backgroundColor: '#FFFFFF', borderTopColor: '#E5E7EB', borderTopWidth: 1, paddingTop: 6 },
-  tabBarActiveTintColor: '#16A34A',
-  tabBarInactiveTintColor: '#9CA3AF',
-  tabBarLabelStyle: { fontSize: 11, fontWeight: '600' as const, marginBottom: Platform.OS === 'android' ? 4 : 0 },
-};
+// Hook so we can read safe area insets reactively (fixes Android system nav overlay)
+function useTabBarScreenOptions() {
+  const insets = useSafeAreaInsets();
+  const bottomPad = Platform.OS === 'android' ? Math.max(insets.bottom, 8) : insets.bottom;
+  return {
+    headerShown: false,
+    tabBarStyle: {
+      backgroundColor: '#FFFFFF',
+      borderTopColor: '#E5E7EB',
+      borderTopWidth: 1,
+      paddingTop: 6,
+      paddingBottom: bottomPad,
+      height: 56 + bottomPad,
+    },
+    tabBarActiveTintColor: '#16A34A',
+    tabBarInactiveTintColor: '#9CA3AF',
+    tabBarLabelStyle: { fontSize: 10, fontWeight: '600' as const },
+    tabBarLabelPosition: 'below-icon' as const,
+  };
+}
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -131,6 +145,7 @@ function StudentProfileStack() {
   );
 }
 function StudentTabs() {
+  const tabBarScreenOptions = useTabBarScreenOptions();
   return (
     <Tab.Navigator screenOptions={tabBarScreenOptions}>
       <Tab.Screen name="HomeTab"     component={StudentHomeStack}     options={{ title: 'Home',     tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>🏠</Text> }} />
@@ -204,6 +219,7 @@ function CoachProfileStack() {
   );
 }
 function CoachTabs() {
+  const tabBarScreenOptions = useTabBarScreenOptions();
   return (
     <Tab.Navigator screenOptions={tabBarScreenOptions}>
       <Tab.Screen name="HomeTab"     component={CoachHomeStack}     options={{ title: 'Home',     tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>🏠</Text> }} />
@@ -279,6 +295,7 @@ function AdminMessagesStack() {
   );
 }
 function AdminTabs() {
+  const tabBarScreenOptions = useTabBarScreenOptions();
   return (
     <Tab.Navigator screenOptions={tabBarScreenOptions}>
       <Tab.Screen name="DashboardTab" component={AdminDashboardStack} options={{ title: 'Dashboard', tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>📊</Text> }} />
@@ -353,6 +370,7 @@ function SuperAdminProfileStack() {
   );
 }
 function SuperAdminTabs() {
+  const tabBarScreenOptions = useTabBarScreenOptions();
   return (
     <Tab.Navigator screenOptions={tabBarScreenOptions}>
       <Tab.Screen name="DashboardTab" component={SuperAdminDashboardStack} options={{ title: 'Dashboard', tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>📊</Text> }} />

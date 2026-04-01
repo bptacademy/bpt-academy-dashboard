@@ -6,7 +6,8 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
-import XLSX from 'xlsx';
+// NOTE: xlsx is required lazily inside handleExport() to avoid a React Native
+// startup crash caused by xlsx's Node.js built-in dependencies (stream, crypto, zlib).
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
 import BackHeader from '../../components/common/BackHeader';
@@ -135,6 +136,9 @@ export default function ReportsScreen({ navigation }: any) {
   const handleExport = async () => {
     setExporting(true);
     try {
+      // Lazy require to avoid startup crash (xlsx uses Node.js built-ins)
+      const XLSX = require('xlsx');
+
       const modeLabel = mode === 'weekly' ? 'Weekly' : 'Monthly';
       const now = new Date();
       const periodLabel = mode === 'weekly'

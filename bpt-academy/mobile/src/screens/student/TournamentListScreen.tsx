@@ -11,6 +11,18 @@ import BackHeader from '../../components/common/BackHeader';
 
 const ALL_DIVISIONS: Division[] = ['amateur', 'semi_pro', 'pro', 'junior_9_11', 'junior_12_15', 'junior_15_18'];
 
+const LTA_CALENDAR_URL =
+  'https://competitions.lta.org.uk/find?DateFilterType=0&StartDate=2026-01-01&EndDate=2026-12-31&LocationFilterType=0&page=1' +
+  '&TournamentCategoryIDList%5B0%5D=false&TournamentCategoryIDList%5B1%5D=false' +
+  '&TournamentCategoryIDList%5B2%5D=false&TournamentCategoryIDList%5B3%5D=false' +
+  '&TournamentCategoryIDList%5B4%5D=false&TournamentCategoryIDList%5B5%5D=false' +
+  '&TournamentCategoryIDList%5B6%5D=false&TournamentCategoryIDList%5B7%5D=false' +
+  '&TournamentCategoryIDList%5B8%5D=22&TournamentCategoryIDList%5B9%5D=false' +
+  '&TournamentCategoryIDList%5B10%5D=false&TournamentCategoryIDList%5B11%5D=false' +
+  '&GradingIDList%5B0%5D=1&GradingIDList%5B1%5D=2&GradingIDList%5B2%5D=false' +
+  '&GradingIDList%5B3%5D=false&GradingIDList%5B4%5D=false&GradingIDList%5B5%5D=false' +
+  '&GradingIDList%5B6%5D=false&GradingIDList%5B7%5D=false';
+
 // ─── LTA National Padel Tour 2026 ────────────────────────────────────────
 interface LTAEvent {
   grade: 'G1' | 'G2';
@@ -177,7 +189,7 @@ export default function TournamentListScreen({ navigation }: { navigation: any }
 
           <TouchableOpacity
             style={styles.ltaLink}
-            onPress={() => Linking.openURL('https://competitions.lta.org.uk')}
+            onPress={() => Linking.openURL(LTA_CALENDAR_URL)}
           >
             <Text style={styles.ltaLinkText}>View Full LTA Calendar →</Text>
           </TouchableOpacity>

@@ -9,11 +9,14 @@ const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')!;
 const FROM_EMAIL = 'hello@bptacademy.uk';
 const EXPO_PUSH_URL = 'https://exp.host/--/api/v2/push/send';
 
-// Notification types that should also trigger an email
+// Notification types that should also trigger an email to the RECIPIENT
 const EMAIL_TYPES = new Set([
   'enrollment_confirmed',
   'payment_receipt',
   'promotion_result',
+  'welcome',           // sent to new student on registration
+  'coach_note',
+  'session_reminder',
 ]);
 
 // Notification types that should trigger a push notification
@@ -28,6 +31,7 @@ const PUSH_TYPES = new Set([
   'session_reminder',
   'announcement',
   'promotion_result',
+  'welcome',
 ]);
 
 Deno.serve(async () => {
@@ -35,7 +39,7 @@ Deno.serve(async () => {
     // Fetch up to 50 unprocessed notifications (push_sent = false)
     const { data: pending, error } = await supabase
       .from('notifications')
-      .select('*, profiles!recipient_id(full_name, email_notifications_enabled)')
+      .select('*')
       .eq('push_sent', false)
       .order('created_at', { ascending: true })
       .limit(50);
@@ -50,7 +54,15 @@ Deno.serve(async () => {
     let emailErrors = 0;
 
     for (const notif of pending) {
-      const profile = notif.profiles as { full_name: string; email_notifications_enabled: boolean } | null;
+      // Fetch profile separately so we always get fresh data
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('full_name, email_notifications_enabled')
+        .eq('id', notif.recipient_id)
+        .single();
+
+      // email_notifications_enabled defaults to TRUE; treat NULL as TRUE for safety
+      const emailEnabled = profile?.email_notifications_enabled !== false;
 
       // --- Push notification ---
       if (PUSH_TYPES.has(notif.type)) {
@@ -85,13 +97,13 @@ Deno.serve(async () => {
       }
 
       // --- Email notification ---
-      if (EMAIL_TYPES.has(notif.type) && profile?.email_notifications_enabled) {
+      if (EMAIL_TYPES.has(notif.type) && emailEnabled) {
         try {
           const { data: authUser } = await supabase.auth.admin.getUserById(notif.recipient_id);
           const email = authUser?.user?.email;
 
           if (email) {
-            const html = buildEmailHtml(notif.title, notif.body);
+            const html = buildEmailHtml(notif.title, notif.body, notif.type);
             const emailRes = await fetch('https://api.resend.com/emails', {
               method: 'POST',
               headers: {
@@ -112,7 +124,8 @@ Deno.serve(async () => {
                 .update({ email_sent: true })
                 .eq('id', notif.id);
             } else {
-              console.error(`Resend error for notif ${notif.id}:`, await emailRes.text());
+              const errText = await emailRes.text();
+              console.error(`Resend error for notif ${notif.id}:`, errText);
               emailErrors++;
             }
           }
@@ -122,7 +135,7 @@ Deno.serve(async () => {
         }
       }
 
-      // Mark push_sent = true regardless (so we don't reprocess)
+      // Mark push_sent = true (prevents reprocessing)
       await supabase
         .from('notifications')
         .update({ push_sent: true })
@@ -140,7 +153,14 @@ Deno.serve(async () => {
   }
 });
 
-function buildEmailHtml(title: string, body: string): string {
+function buildEmailHtml(title: string, body: string, type?: string): string {
+  const isWelcome = type === 'welcome' || type === 'enrollment_confirmed';
+  const ctaHtml = isWelcome
+    ? `<div style="text-align:center;margin-top:24px;">
+        <a href="https://bptacademy.uk" style="background:#16A34A;color:#fff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:700;font-size:15px;">Open BPT Academy</a>
+       </div>`
+    : '';
+
   return `<!DOCTYPE html>
 <html>
 <head>
@@ -167,6 +187,7 @@ function buildEmailHtml(title: string, body: string): string {
     <div class="content">
       <h2>${title}</h2>
       <p>${body}</p>
+      ${ctaHtml}
     </div>
     <div class="footer">
       BPT Academy &middot; bptacademy.uk<br>
