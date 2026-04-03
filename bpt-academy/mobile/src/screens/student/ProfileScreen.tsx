@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, ScrollView,
   Alert, Switch, TextInput, Image, ActivityIndicator,
@@ -53,6 +53,19 @@ export default function ProfileScreen({ navigation }: any) {
     skill_level: (profile?.skill_level ?? 'beginner') as SkillLevel,
     division: (profile?.division ?? 'amateur') as Division,
   });
+
+  // Sync form state when profile loads (handles case where profile was null on first render)
+  useEffect(() => {
+    if (!profile) return;
+    setDobDate(parseDob(profile.date_of_birth));
+    setForm({
+      full_name: profile.full_name ?? '',
+      phone: profile.phone ?? '',
+      emergency_contact: profile.emergency_contact ?? '',
+      skill_level: (profile.skill_level ?? 'beginner') as SkillLevel,
+      division: (profile.division ?? 'amateur') as Division,
+    });
+  }, [profile?.id]);
 
   const formatDobDisplay = (date: Date) =>
     date.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
