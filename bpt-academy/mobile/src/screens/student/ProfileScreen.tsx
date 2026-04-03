@@ -387,10 +387,10 @@ export default function ProfileScreen({ navigation }: any) {
               <DateTimePicker
                 value={dobDate}
                 mode="date"
-                display="spinner"
+                display={Platform.OS==='ios'?'spinner':'default'}
                 maximumDate={new Date()}
                 minimumDate={new Date(1920, 0, 1)}
-                onChange={(_event, date) => { if (date) setDobDate(date); }}
+                onChange={(_event, date) => { if(Platform.OS==='android')setShowDatePicker(false); if(date)setDobDate(date); }}
                 themeVariant="light"
                 textColor="#111827"
                 style={{ width: '100%', height: 200, backgroundColor: '#FFFFFF' }}
