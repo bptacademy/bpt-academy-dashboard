@@ -139,6 +139,21 @@ export default function RegisterScreen({ navigation }: Props) {
               Already have an account? <Text style={styles.linkBold}>Sign in</Text>
             </Text>
           </TouchableOpacity>
+
+          {/* Parent account section */}
+          <View style={styles.divider}>
+            <View style={styles.dividerLine} />
+          </View>
+
+          <View style={styles.parentSection}>
+            <Text style={styles.parentSectionLabel}>Registering a junior player?</Text>
+            <TouchableOpacity
+              style={styles.parentBtn}
+              onPress={() => navigation.navigate('ParentRegister')}
+            >
+              <Text style={styles.parentBtnText}>Create Parent Account →</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -167,7 +182,21 @@ const styles = StyleSheet.create({
   button: { backgroundColor: '#16A34A', borderRadius: 10, padding: 16, alignItems: 'center', marginTop: 12 },
   buttonDisabled: { opacity: 0.6 },
   buttonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
-  linkButton: { alignItems: 'center', marginTop: 20, marginBottom: 32 },
+  linkButton: { alignItems: 'center', marginTop: 20 },
   linkText: { color: '#6B7280', fontSize: 14 },
   linkBold: { color: '#16A34A', fontWeight: '700' },
+
+  divider: { alignItems: 'center', marginVertical: 24 },
+  dividerLine: { width: '100%', height: 1, backgroundColor: '#E5E7EB' },
+
+  parentSection: { alignItems: 'center', marginBottom: 32 },
+  parentSectionLabel: { fontSize: 14, color: '#6B7280', marginBottom: 10, fontWeight: '500' },
+  parentBtn: {
+    borderWidth: 2,
+    borderColor: '#16A34A',
+    borderRadius: 10,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+  },
+  parentBtnText: { color: '#16A34A', fontSize: 15, fontWeight: '700' },
 });

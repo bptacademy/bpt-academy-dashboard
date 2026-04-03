@@ -14,6 +14,8 @@ interface AuthContextType {
   isSuperAdmin: boolean;
   isAdmin: boolean;
   isCoach: boolean;
+  isParent: boolean;
+  isJunior: boolean;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
@@ -29,9 +31,24 @@ const AuthContext = createContext<AuthContextType>({
   isSuperAdmin: false,
   isAdmin: false,
   isCoach: false,
+  isParent: false,
+  isJunior: false,
   signOut: async () => {},
   refreshProfile: async () => {},
 });
+
+// ── Helpers ──────────────────────────────────────────────────────────────
+
+function calcAge(dob: string): number {
+  const today = new Date();
+  const birth = new Date(dob);
+  let age = today.getFullYear() - birth.getFullYear();
+  const m = today.getMonth() - birth.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+  return age;
+}
+
+// ── Provider ─────────────────────────────────────────────────────────────
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
@@ -41,29 +58,56 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const effectiveRole = previewRole ?? profile?.role ?? 'student';
   const isSuperAdmin = effectiveRole === 'super_admin';
-  const isAdmin = effectiveRole === 'admin' || effectiveRole === 'super_admin';
-  const isCoach = effectiveRole === 'coach' || effectiveRole === 'admin' || effectiveRole === 'super_admin';
+  const isAdmin      = effectiveRole === 'admin' || effectiveRole === 'super_admin';
+  const isCoach      = effectiveRole === 'coach' || effectiveRole === 'admin' || effectiveRole === 'super_admin';
+  const isParent     = effectiveRole === 'parent';
+  // Junior: is_junior flag AND role is still student
+  const isJunior     = !!(profile?.is_junior) && profile?.role === 'student';
 
-  const fetchProfile = async (userId: string) => {
+  // Silently check and run graduation for junior students who have turned 16
+  const checkAndGraduate = useCallback(async (p: Profile) => {
+    if (!p.is_junior || !p.date_of_birth || p.role !== 'student') return;
+    const age = calcAge(p.date_of_birth);
+    if (age >= 16) {
+      try {
+        await supabase.rpc('graduate_junior_to_student', { p_student_id: p.id });
+        // Refresh profile to pick up the new role
+        const { data } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', p.id)
+          .single();
+        if (data) {
+          setProfile((prev) => {
+            if (JSON.stringify(prev) === JSON.stringify(data)) return prev;
+            return data;
+          });
+        }
+      } catch {
+        // Silent fail — will retry next login
+      }
+    }
+  }, []);
+
+  const fetchProfile = useCallback(async (userId: string) => {
     const { data } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', userId)
       .single();
     if (data) {
-      // Only update state if something actually changed — prevents
-      // infinite re-render loops in screens that depend on [profile]
       setProfile((prev) => {
         if (JSON.stringify(prev) === JSON.stringify(data)) return prev;
         return data;
       });
+      // Run graduation check silently after fetching
+      checkAndGraduate(data);
     }
-  };
+  }, [checkAndGraduate]);
 
   const refreshProfile = useCallback(async () => {
     if (session?.user) await fetchProfile(session.user.id);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session?.user?.id]);
+  }, [session?.user?.id, fetchProfile]);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -102,6 +146,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       isSuperAdmin,
       isAdmin,
       isCoach,
+      isParent,
+      isJunior,
       signOut,
       refreshProfile,
     }}>

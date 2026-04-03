@@ -142,8 +142,22 @@ export interface Profile {
   ranking_points?: number;
   date_of_birth?: string;
   emergency_contact?: string;
+  // Parent / Junior system fields
+  parent_name?: string;
+  parent_email?: string;
+  child_email?: string;
+  child_auth_id?: string;
+  is_junior?: boolean;
+  graduated_at?: string;
   created_at: string;
   updated_at: string;
+}
+
+export interface ParentAccess {
+  id: string;
+  parent_id: string;
+  student_id: string;
+  created_at: string;
 }
 
 export interface Program {

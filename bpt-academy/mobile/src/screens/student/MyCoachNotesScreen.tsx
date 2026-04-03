@@ -51,10 +51,9 @@ export default function MyCoachNotesScreen() {
     <View style={styles.container}>
       <ScreenHeader title="Coach Notes" />
       <ScrollView
-        contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
+        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 24 }]}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.content}
       >
         {loading ? (
           <ActivityIndicator size="large" color="#16A34A" style={styles.loader} />

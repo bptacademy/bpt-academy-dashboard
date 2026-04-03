@@ -10,6 +10,12 @@ import { useAuth } from '../context/AuthContext';
 // Auth
 import LoginScreen from '../screens/auth/LoginScreen';
 import RegisterScreen from '../screens/auth/RegisterScreen';
+import ParentRegisterScreen from '../screens/auth/ParentRegisterScreen';
+
+// Parent screens
+import ParentDashboardScreen from '../screens/parent/ParentDashboardScreen';
+import ParentChildDetailScreen from '../screens/parent/ParentChildDetailScreen';
+import AddChildScreen from '../screens/parent/AddChildScreen';
 
 // Student screens
 import HomeScreen from '../screens/student/HomeScreen';
@@ -61,7 +67,7 @@ import ReportsScreen from '../screens/superadmin/ReportsScreen';
 import NewConversationScreen from '../screens/messaging/NewConversationScreen';
 import ChatScreen from '../screens/messaging/ChatScreen';
 
-// ─── Tab bar shared options ──────────────────────────────────────────────
+// Tab bar shared options
 // Hook so we can read safe area insets reactively (fixes Android system nav overlay)
 function useTabBarScreenOptions() {
   const insets = useSafeAreaInsets();
@@ -86,17 +92,31 @@ function useTabBarScreenOptions() {
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
-// ─── Auth ────────────────────────────────────────────────────────────────
+// Auth
 function AuthStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="Login"    component={LoginScreen} />
-      <Stack.Screen name="Register" component={RegisterScreen} />
+      <Stack.Screen name="Login"          component={LoginScreen} />
+      <Stack.Screen name="Register"       component={RegisterScreen} />
+      <Stack.Screen name="ParentRegister" component={ParentRegisterScreen} />
     </Stack.Navigator>
   );
 }
 
-// ─── Student ─────────────────────────────────────────────────────────────
+// Parent Stack
+function ParentStack() {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="ParentDashboard"   component={ParentDashboardScreen} />
+      <Stack.Screen name="ParentChildDetail" component={ParentChildDetailScreen} />
+      <Stack.Screen name="AddChild"          component={AddChildScreen} />
+      <Stack.Screen name="Payment"           component={PaymentScreen} />
+      <Stack.Screen name="Profile"           component={ProfileScreen} />
+    </Stack.Navigator>
+  );
+}
+
+// Student
 function StudentHomeStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
@@ -156,7 +176,7 @@ function StudentTabs() {
   );
 }
 
-// ─── Coach ────────────────────────────────────────────────────────────────
+// Coach
 function CoachHomeStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
@@ -230,7 +250,7 @@ function CoachTabs() {
   );
 }
 
-// ─── Admin ────────────────────────────────────────────────────────────────
+// Admin
 function AdminDashboardStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
@@ -306,7 +326,7 @@ function AdminTabs() {
   );
 }
 
-// ─── Super Admin ──────────────────────────────────────────────────────────
+// Super Admin
 function SuperAdminDashboardStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
@@ -381,15 +401,16 @@ function SuperAdminTabs() {
   );
 }
 
-// ─── Root ─────────────────────────────────────────────────────────────────
+// Root
 export default function RootNavigator() {
-  const { session, loading, isSuperAdmin, isAdmin, isCoach } = useAuth();
+  const { session, loading, isSuperAdmin, isAdmin, isCoach, profile } = useAuth();
   if (loading) return null;
   const renderStack = () => {
-    if (!session)     return <AuthStack />;
-    if (isSuperAdmin) return <SuperAdminTabs />;
-    if (isAdmin)      return <AdminTabs />;
-    if (isCoach)      return <CoachTabs />;
+    if (!session)                   return <AuthStack />;
+    if (isSuperAdmin)               return <SuperAdminTabs />;
+    if (isAdmin)                    return <AdminTabs />;
+    if (isCoach)                    return <CoachTabs />;
+    if (profile?.role === 'parent') return <ParentStack />;
     return <StudentTabs />;
   };
   return <NavigationContainer>{renderStack()}</NavigationContainer>;

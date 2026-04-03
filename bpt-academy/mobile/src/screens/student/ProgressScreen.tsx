@@ -156,7 +156,6 @@ export default function ProgressScreen() {
     if (!profile) { setCycleLoading(false); return; }
     setCycleLoading(true);
 
-    // Get active cycle
     const { data: cycleData } = await supabase
       .from('promotion_cycles')
       .select('*')
@@ -175,7 +174,6 @@ export default function ProgressScreen() {
 
     setCycle(cycleData as PromotionCycle);
 
-    // Get enrolled program(s)
     const { data: enrollments } = await supabase
       .from('enrollments')
       .select('program_id')
@@ -190,7 +188,6 @@ export default function ProgressScreen() {
       return;
     }
 
-    // Total sessions in cycle window
     const { count: totalCount } = await supabase
       .from('program_sessions')
       .select('*', { count: 'exact', head: true })
@@ -198,7 +195,6 @@ export default function ProgressScreen() {
       .gte('scheduled_at', cycleData.cycle_start_date)
       .lte('scheduled_at', cycleData.cycle_end_date);
 
-    // Attended sessions in cycle window
     const { data: sessionIds } = await supabase
       .from('program_sessions')
       .select('id')
@@ -230,14 +226,12 @@ export default function ProgressScreen() {
     if (!profile) return;
     setBadgesLoading(true);
 
-    // Check total sessions attended
     const { count: totalAttended } = await supabase
       .from('session_attendance')
       .select('*', { count: 'exact', head: true })
       .eq('student_id', profile.id)
       .eq('attended', true);
 
-    // Check if has tournament ranking event
     const { data: tournamentEvents } = await supabase
       .from('ranking_events')
       .select('id')
@@ -245,12 +239,10 @@ export default function ProgressScreen() {
       .ilike('reason', '%tournament%')
       .limit(1);
 
-    // Days since joined
     const joinedAt = new Date(profile.created_at);
     const now = new Date();
     const daysSinceJoin = Math.floor((now.getTime() - joinedAt.getTime()) / (1000 * 60 * 60 * 24));
 
-    // Check 80% cycle achievement
     const { data: promotedCycles } = await supabase
       .from('promotion_cycles')
       .select('id')
@@ -331,10 +323,6 @@ export default function ProgressScreen() {
   useEffect(() => { if (tab === 'badges') fetchBadges(); }, [tab, fetchBadges]);
   useEffect(() => { if (tab === 'goals') fetchGoals(); }, [tab, fetchGoals]);
 
-  // On focus: refresh profile from DB — fetchOverview/fetchCycle will
-  // re-run automatically via their [profile] dependency when profile state updates.
-  // Do NOT manually call fetchAll() here — profile hasn't re-rendered yet
-  // so fetchAll would run with stale profile data.
   useFocusEffect(
     useCallback(() => {
       refreshProfile();
@@ -357,12 +345,10 @@ export default function ProgressScreen() {
   const currentLevelKey = getCurrentLevelKey(profile?.division, profile?.skill_level);
   const divColor = profile?.division ? DIVISION_COLORS[profile.division] : '#3B82F6';
 
-  // Days remaining in cycle
   const daysLeft = cycle
     ? Math.max(0, Math.ceil((new Date(cycle.cycle_end_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
     : 0;
 
-  // Sessions needed to hit 80%
   const sessionsNeeded = cycle
     ? Math.max(0, Math.ceil((cycle.required_attendance_pct / 100) * attendanceStat.total) - attendanceStat.attended)
     : 0;
@@ -391,11 +377,10 @@ export default function ProgressScreen() {
       </View>
 
       <ScrollView
-        contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
         style={styles.scroll}
+        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 24 }]}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.content}
       >
 
         {/* ── OVERVIEW TAB ─────────────────────────────────── */}
@@ -470,7 +455,6 @@ export default function ProgressScreen() {
                       <View style={[styles.miniBarFill, { width: `${pct}%`, backgroundColor: divColor }]} />
                     </View>
                     <Text style={styles.miniCount}>{p.completedCount}/{p.totalCount} modules</Text>
-                    {/* Module list */}
                     <View style={styles.moduleList}>
                       {p.modules.map((mod, idx) => {
                         const done = !!mod.progress?.completed;
@@ -533,7 +517,6 @@ export default function ProgressScreen() {
               </View>
             ) : (
               <>
-                {/* ── Status banner ── */}
                 {cycle.status === 'eligible' && (
                   <View style={styles.promoAlertEligible}>
                     <Text style={styles.promoAlertIcon}>⭐</Text>
@@ -570,7 +553,6 @@ export default function ProgressScreen() {
                   </View>
                 )}
 
-                {/* ── Journey card ── */}
                 <View style={[styles.cycleCard, { borderColor: divColor }]}>
                   <View style={styles.cycleHeader}>
                     <View style={styles.cycleLevels}>
@@ -598,12 +580,10 @@ export default function ProgressScreen() {
                   )}
                 </View>
 
-                {/* ── Three criteria ── */}
                 <View style={styles.sectionCard}>
                   <Text style={styles.sectionTitle}>Promotion Criteria</Text>
                   <Text style={styles.criteriaSubtitle}>All three must reach 100% to become eligible</Text>
 
-                  {/* 1 — Active weeks */}
                   {(() => {
                     const val = cycle.active_weeks_so_far ?? 0;
                     const target = cycle.min_active_weeks ?? 8;
@@ -629,17 +609,13 @@ export default function ProgressScreen() {
                           </View>
                         </View>
                         <View style={styles.criterionBarBg}>
-                          <View style={[styles.criterionBarFill, {
-                            width: `${pct}%`,
-                            backgroundColor: met ? '#16A34A' : divColor,
-                          }]} />
+                          <View style={[styles.criterionBarFill, { width: `${pct}%`, backgroundColor: met ? '#16A34A' : divColor }]} />
                           <View style={styles.criterionMarker} />
                         </View>
                       </View>
                     );
                   })()}
 
-                  {/* 2 — Attendance % */}
                   {(() => {
                     const val = cycle.attendance_pct ?? 0;
                     const met = val >= 80;
@@ -663,17 +639,13 @@ export default function ProgressScreen() {
                           </View>
                         </View>
                         <View style={styles.criterionBarBg}>
-                          <View style={[styles.criterionBarFill, {
-                            width: `${Math.min(100, val)}%`,
-                            backgroundColor: met ? '#16A34A' : divColor,
-                          }]} />
+                          <View style={[styles.criterionBarFill, { width: `${Math.min(100, val)}%`, backgroundColor: met ? '#16A34A' : divColor }]} />
                           <View style={styles.criterionMarker} />
                         </View>
                       </View>
                     );
                   })()}
 
-                  {/* 3 — Performance % */}
                   {(() => {
                     const val = cycle.performance_pct ?? 0;
                     const met = val >= 80;
@@ -697,17 +669,13 @@ export default function ProgressScreen() {
                           </View>
                         </View>
                         <View style={styles.criterionBarBg}>
-                          <View style={[styles.criterionBarFill, {
-                            width: `${Math.min(100, val)}%`,
-                            backgroundColor: met ? '#16A34A' : divColor,
-                          }]} />
+                          <View style={[styles.criterionBarFill, { width: `${Math.min(100, val)}%`, backgroundColor: met ? '#16A34A' : divColor }]} />
                           <View style={styles.criterionMarker} />
                         </View>
                       </View>
                     );
                   })()}
 
-                  {/* Last updated */}
                   {cycle.last_evaluated_at && (
                     <Text style={styles.lastUpdated}>
                       Last updated {new Date(cycle.last_evaluated_at).toLocaleDateString('en-GB', {
@@ -717,7 +685,6 @@ export default function ProgressScreen() {
                   )}
                 </View>
 
-                {/* ── What happens next ── */}
                 <View style={styles.sectionCard}>
                   <Text style={styles.sectionTitle}>What Happens Next?</Text>
                   {[
@@ -768,7 +735,6 @@ export default function ProgressScreen() {
               </View>
             ) : (
               <>
-                {/* Achieved count banner */}
                 {goals.filter((g) => g.status === 'achieved').length > 0 && (
                   <View style={[styles.goalsBanner, { backgroundColor: divColor }]}>
                     <Text style={styles.goalsBannerNum}>
@@ -931,22 +897,17 @@ const styles = StyleSheet.create({
   content: { padding: 16, paddingBottom: 40 },
   loader: { marginTop: 60 },
 
-  // Level card
-  levelCard: {
-    borderRadius: 16, padding: 24, marginBottom: 14, alignItems: 'center',
-  },
+  levelCard: { borderRadius: 16, padding: 24, marginBottom: 14, alignItems: 'center' },
   levelLabel: { color: 'rgba(255,255,255,0.8)', fontSize: 13, fontWeight: '600' },
   levelValue: { color: '#FFFFFF', fontSize: 26, fontWeight: '800', marginTop: 6, textAlign: 'center' },
   levelPoints: { color: 'rgba(255,255,255,0.75)', fontSize: 13, marginTop: 4 },
 
-  // Section card
   sectionCard: {
     backgroundColor: '#FFFFFF', borderRadius: 14, padding: 16,
     marginBottom: 14, borderWidth: 1, borderColor: '#E5E7EB',
   },
   sectionTitle: { fontSize: 15, fontWeight: '700', color: '#111827', marginBottom: 14 },
 
-  // Journey
   journeyPath: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', flexWrap: 'nowrap' },
   journeyStep: { alignItems: 'center', width: 56 },
   journeyDot: {
@@ -959,7 +920,6 @@ const styles = StyleSheet.create({
   journeyLine: { flex: 1, height: 2, backgroundColor: '#E5E7EB', marginBottom: 20 },
   journeyLabel: { fontSize: 10, fontWeight: '600', color: '#9CA3AF', textAlign: 'center' },
 
-  // Overview
   overallRow: { flexDirection: 'row', alignItems: 'baseline', gap: 8, marginBottom: 8 },
   overallPct: { fontSize: 36, fontWeight: '800', color: '#111827' },
   overallSub: { fontSize: 14, color: '#6B7280' },
@@ -974,7 +934,6 @@ const styles = StyleSheet.create({
   miniCount: { fontSize: 11, color: '#9CA3AF' },
   emptyNote: { color: '#9CA3AF', fontSize: 13, textAlign: 'center', paddingVertical: 20 },
 
-  // Cycle
   cycleCard: {
     backgroundColor: '#FFFFFF', borderRadius: 14, padding: 16,
     marginBottom: 14, borderWidth: 2,
@@ -988,7 +947,6 @@ const styles = StyleSheet.create({
   cycleDaysLabel: { fontSize: 11, color: '#9CA3AF' },
   cycleDates: { fontSize: 12, color: '#9CA3AF' },
 
-  // Attendance
   attRow: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 10 },
   attPct: { fontSize: 42, fontWeight: '800' },
   attTarget: { fontSize: 13, color: '#6B7280' },
@@ -1000,7 +958,6 @@ const styles = StyleSheet.create({
   attStatNum: { fontSize: 22, fontWeight: '800', color: '#111827' },
   attStatLabel: { fontSize: 11, color: '#9CA3AF', marginTop: 2 },
 
-  // Status banner
   statusBanner: {
     borderRadius: 12, padding: 14, marginBottom: 14,
     flexDirection: 'row', alignItems: 'center', gap: 10,
@@ -1008,7 +965,6 @@ const styles = StyleSheet.create({
   statusBannerIcon: { fontSize: 24 },
   statusBannerText: { flex: 1, fontSize: 14, fontWeight: '600', color: '#374151' },
 
-  // Empty
   emptyCard: {
     backgroundColor: '#FFFFFF', borderRadius: 14, padding: 40,
     alignItems: 'center', borderWidth: 1, borderColor: '#E5E7EB', marginTop: 20,
@@ -1016,7 +972,6 @@ const styles = StyleSheet.create({
   emptyIcon: { fontSize: 48, marginBottom: 12 },
   emptyTitle: { fontSize: 17, fontWeight: '700', color: '#111827', marginBottom: 6 },
 
-  // Goals tab
   goalsBanner: {
     borderRadius: 14, padding: 16, marginBottom: 14,
     flexDirection: 'row', alignItems: 'center', gap: 10,
@@ -1041,7 +996,6 @@ const styles = StyleSheet.create({
   goalRowBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 10, flexShrink: 0 },
   goalRowBadgeText: { fontSize: 11, fontWeight: '700' },
 
-  // Module rows in program card
   moduleList: { marginTop: 10, gap: 6 },
   moduleRow: {
     flexDirection: 'row', alignItems: 'center', gap: 10,
@@ -1060,7 +1014,6 @@ const styles = StyleSheet.create({
   moduleRowTitle: { flex: 1, fontSize: 13, fontWeight: '600', color: '#374151' },
   moduleInfoIcon: { fontSize: 14 },
 
-  // Module detail modal
   modModal: { flex: 1, backgroundColor: '#FFFFFF', borderTopLeftRadius: 20, borderTopRightRadius: 20 },
   modModalHeader: { alignItems: 'center', paddingTop: 12, paddingBottom: 4 },
   modModalHandle: { width: 40, height: 4, backgroundColor: '#E5E7EB', borderRadius: 2 },
@@ -1082,12 +1035,9 @@ const styles = StyleSheet.create({
     padding: 14, borderWidth: 1, borderColor: '#BBF7D0',
   },
   modCompletedAtText: { fontSize: 13, color: '#16A34A', fontWeight: '600' },
-  modCloseBtn: {
-    margin: 20, borderRadius: 14, padding: 16, alignItems: 'center',
-  },
+  modCloseBtn: { margin: 20, borderRadius: 14, padding: 16, alignItems: 'center' },
   modCloseBtnText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
 
-  // Badges
   badgesGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
   badgeCard: {
     width: '47%', backgroundColor: '#FFFFFF', borderRadius: 14,
@@ -1105,9 +1055,6 @@ const styles = StyleSheet.create({
     width: 8, height: 8, borderRadius: 4,
   },
 
-  // ── Promotion tab ──────────────────────────────────────────
-
-  // Status banners
   promoAlertEligible: {
     flexDirection: 'row', alignItems: 'flex-start', gap: 12,
     backgroundColor: '#FEF9C3', borderRadius: 14, padding: 14,
@@ -1128,17 +1075,12 @@ const styles = StyleSheet.create({
   promoAlertTitle: { fontSize: 15, fontWeight: '700', color: '#111827', marginBottom: 2 },
   promoAlertSub: { fontSize: 13, color: '#6B7280', lineHeight: 18 },
 
-  // Cycle card
   cycleFromLabel: { fontSize: 10, color: '#9CA3AF', fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
   cycleToLabel:   { fontSize: 10, color: '#9CA3AF', fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 6 },
   cycleLevels: { flex: 1 },
-  approvalNote: {
-    marginTop: 10, backgroundColor: '#FEF9C3',
-    borderRadius: 8, padding: 8,
-  },
+  approvalNote: { marginTop: 10, backgroundColor: '#FEF9C3', borderRadius: 8, padding: 8 },
   approvalNoteText: { fontSize: 12, color: '#92400E', fontWeight: '600' },
 
-  // Criteria block
   criteriaSubtitle: { fontSize: 12, color: '#9CA3AF', marginBottom: 16, marginTop: -8 },
   criterionBlock: { marginBottom: 18 },
   criterionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
@@ -1164,11 +1106,7 @@ const styles = StyleSheet.create({
   },
   lastUpdated: { fontSize: 11, color: '#9CA3AF', textAlign: 'right', marginTop: 4 },
 
-  // What happens next
-  nextStep: {
-    flexDirection: 'row', alignItems: 'flex-start',
-    gap: 12, marginBottom: 14,
-  },
+  nextStep: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, marginBottom: 14 },
   nextStepDot: {
     width: 28, height: 28, borderRadius: 14,
     backgroundColor: '#E5E7EB', alignItems: 'center',

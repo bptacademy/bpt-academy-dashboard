@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
 import { Tournament, TournamentStatus, Division, DIVISION_LABELS } from '../../types';
 import ScreenHeader from '../../components/common/ScreenHeader';
+import LTASection from '../../components/common/LTASection';
 
 const ALL_DIVISIONS: Division[] = ['amateur', 'semi_pro', 'pro', 'junior_9_11', 'junior_12_15', 'junior_15_18'];
 
@@ -34,7 +35,6 @@ export default function TournamentManageScreen({ navigation }: any) {
   const fetch = async () => {
     const { data } = await supabase.from('tournaments').select('*').order('start_date');
     if (data) setTournaments(data as Tournament[]);
-    // Count registrations
     const counts: Record<string, number> = {};
     await Promise.all((data ?? []).map(async (t: any) => {
       const { count } = await supabase
@@ -93,17 +93,27 @@ export default function TournamentManageScreen({ navigation }: any) {
 
   return (
     <View style={{ flex: 1 }}>
-      <ScrollView style={styles.container} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
+      <ScrollView
+        style={styles.container}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        showsVerticalScrollIndicator={false}
+      >
         <ScreenHeader title="Tournaments" />
-        <View style={styles.addRow}>
+
+        {/* LTA British Tour 2026 */}
+        <LTASection />
+
+        {/* Academy Tournaments */}
+        <View style={styles.academyHeader}>
+          <Text style={styles.academyTitle}>🎾 BPT Academy Tournaments</Text>
           <TouchableOpacity style={styles.addBtn} onPress={() => setModalVisible(true)}>
-            <Text style={styles.addBtnText}>+ New Tournament</Text>
+            <Text style={styles.addBtnText}>+ New</Text>
           </TouchableOpacity>
         </View>
 
         <View style={styles.list}>
           {tournaments.length === 0 && (
-            <View style={styles.empty}><Text style={styles.emptyText}>No tournaments yet.</Text></View>
+            <View style={styles.empty}><Text style={styles.emptyText}>No academy tournaments yet.</Text></View>
           )}
           {tournaments.map(t => {
             const sc = STATUS_COLORS[t.status];
@@ -193,7 +203,8 @@ export default function TournamentManageScreen({ navigation }: any) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F9FAFB' },
-  addRow: { flexDirection: 'row', justifyContent: 'flex-end', padding: 12, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
+  academyHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, paddingBottom: 4 },
+  academyTitle: { fontSize: 16, fontWeight: '700', color: '#111827' },
   addBtn: { backgroundColor: '#16A34A', borderRadius: 20, paddingHorizontal: 16, paddingVertical: 8 },
   addBtnText: { color: '#FFFFFF', fontWeight: '700', fontSize: 14 },
   list: { padding: 16, gap: 12 },

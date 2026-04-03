@@ -29,7 +29,7 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
     const [progRes, modulesRes, sessionsRes, enrollRes, activeEnrollRes, coachRes] = await Promise.all([
       supabase.from('programs').select('*').eq('id', programId).single(),
       supabase.from('modules').select('*').eq('program_id', programId).order('order_index'),
-      supabase.from('program_sessions').select('*').eq('program_id', programId).order('scheduled_at'),
+      supabase.from('program_sessions').select('*').eq('program_id', programId).gte('scheduled_at', new Date().toISOString()).order('scheduled_at'),
       supabase.from('enrollments').select('id').eq('student_id', profile!.id).eq('program_id', programId).eq('status', 'active').maybeSingle(),
       supabase.from('enrollments').select('id').eq('student_id', profile!.id).eq('status', 'active'),
       supabase.from('program_coaches').select('coach:profiles!coach_id(id, full_name, avatar_url)').eq('program_id', programId),

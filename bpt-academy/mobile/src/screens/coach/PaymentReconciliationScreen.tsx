@@ -18,21 +18,20 @@ interface PaymentRow extends Payment {
 export default function PaymentReconciliationScreen() {
   const insets = useSafeAreaInsets();
   const { profile } = useAuth();
-  const [payments, setPayments] = useState<PaymentRow[]>([]);
+  // allPayments holds the full unfiltered list for summary stats
+  const [allPayments, setAllPayments] = useState<PaymentRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [processing, setProcessing] = useState<string | null>(null);
   const [filter, setFilter] = useState<'pending' | 'confirmed' | 'all'>('pending');
 
   const fetchPayments = async () => {
-    const query = supabase
+    // Always fetch ALL payments — summary stats must never depend on the tab filter
+    const { data } = await supabase
       .from('payments')
       .select('*')
       .order('created_at', { ascending: false });
 
-    if (filter !== 'all') query.eq('status', filter);
-
-    const { data } = await query;
     if (!data) return;
 
     const enriched: PaymentRow[] = await Promise.all(
@@ -52,12 +51,23 @@ export default function PaymentReconciliationScreen() {
         return { ...p, studentName: student?.full_name ?? 'Unknown', programTitle, tournamentTitle };
       })
     );
-    setPayments(enriched);
+    setAllPayments(enriched);
   };
 
   const load = async () => { setLoading(true); await fetchPayments(); setLoading(false); };
   const onRefresh = async () => { setRefreshing(true); await fetchPayments(); setRefreshing(false); };
-  useEffect(() => { load(); }, [filter]);
+  useEffect(() => { load(); }, []);
+
+  // Summary stats always computed from full list
+  const pendingCount = allPayments.filter(p => p.status === 'pending').length;
+  const confirmedRevenue = allPayments
+    .filter(p => p.status === 'confirmed')
+    .reduce((s, p) => s + p.amount_gbp, 0);
+
+  // Displayed list filtered by tab
+  const displayedPayments = filter === 'all'
+    ? allPayments
+    : allPayments.filter(p => p.status === filter);
 
   const updateStatus = async (payment: PaymentRow, newStatus: 'confirmed' | 'failed') => {
     Alert.alert(
@@ -76,14 +86,12 @@ export default function PaymentReconciliationScreen() {
               confirmed_at: new Date().toISOString(),
             }).eq('id', payment.id);
 
-            // Update enrollment payment_status
             if (payment.enrollment_id) {
               await supabase.from('enrollments')
                 .update({ payment_status: newStatus })
                 .eq('id', payment.enrollment_id);
             }
 
-            // Update tournament registration status
             if (payment.tournament_id && newStatus === 'confirmed') {
               await supabase.from('tournament_registrations')
                 .update({ status: 'confirmed' })
@@ -92,7 +100,6 @@ export default function PaymentReconciliationScreen() {
                 .eq('status', 'pending');
             }
 
-            // Notify student
             await supabase.from('notifications').insert({
               recipient_id: payment.student_id,
               title: newStatus === 'confirmed' ? '✅ Payment Confirmed' : '❌ Payment Issue',
@@ -113,8 +120,6 @@ export default function PaymentReconciliationScreen() {
   const formatDate = (iso: string) =>
     new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 
-  const pendingCount = payments.filter(p => p.status === 'pending').length;
-
   return (
     <ScrollView
       contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
@@ -123,21 +128,19 @@ export default function PaymentReconciliationScreen() {
     >
       <ScreenHeader title="Payments" />
 
-      {/* Summary */}
+      {/* Summary — always shows totals across ALL payments */}
       <View style={styles.summary}>
         <View style={styles.summaryItem}>
           <Text style={styles.summaryNum}>{pendingCount}</Text>
           <Text style={styles.summaryLabel}>Pending</Text>
         </View>
         <View style={styles.summaryItem}>
-          <Text style={styles.summaryNum}>
-            £{payments.filter(p => p.status === 'confirmed').reduce((s, p) => s + p.amount_gbp, 0).toFixed(0)}
-          </Text>
+          <Text style={styles.summaryNum}>£{confirmedRevenue.toFixed(0)}</Text>
           <Text style={styles.summaryLabel}>Confirmed</Text>
         </View>
       </View>
 
-      {/* Filter tabs */}
+      {/* Filter tabs — only affects the transaction list below */}
       <View style={styles.filters}>
         {(['pending', 'confirmed', 'all'] as const).map(f => (
           <TouchableOpacity
@@ -156,13 +159,13 @@ export default function PaymentReconciliationScreen() {
         <ActivityIndicator size="large" color="#16A34A" style={{ marginTop: 40 }} />
       ) : (
         <View style={styles.list}>
-          {payments.length === 0 && (
+          {displayedPayments.length === 0 && (
             <View style={styles.empty}>
               <Text style={styles.emptyIcon}>💳</Text>
               <Text style={styles.emptyText}>No {filter === 'all' ? '' : filter} payments.</Text>
             </View>
           )}
-          {payments.map(p => (
+          {displayedPayments.map(p => (
             <View key={p.id} style={styles.card}>
               <View style={styles.cardHeader}>
                 <Text style={styles.studentName}>{p.studentName}</Text>
@@ -183,7 +186,6 @@ export default function PaymentReconciliationScreen() {
                   <Text style={styles.refValue}>{p.bank_reference}</Text>
                 </View>
               )}
-
               {p.status === 'pending' && (
                 <View style={styles.actions}>
                   {processing === p.id ? (

@@ -4,7 +4,7 @@ import {
   ActivityIndicator, RefreshControl, Alert,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 // NOTE: xlsx is required lazily inside handleExport() to avoid a React Native
 // startup crash caused by xlsx's Node.js built-in dependencies (stream, crypto, zlib).
@@ -47,6 +47,23 @@ function formatDivisionLabel(division: string): string {
     junior_9_11: 'Junior 9–11', junior_12_15: 'Junior 12–15', junior_15_18: 'Junior 15–18',
   };
   return labels[division] ?? division;
+}
+
+// Convert a Uint8Array to base64 string (works in React Native without btoa limits)
+function uint8ToBase64(bytes: Uint8Array): string {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+  let result = '';
+  const len = bytes.length;
+  for (let i = 0; i < len; i += 3) {
+    const b0 = bytes[i];
+    const b1 = i + 1 < len ? bytes[i + 1] : 0;
+    const b2 = i + 2 < len ? bytes[i + 2] : 0;
+    result += chars[b0 >> 2];
+    result += chars[((b0 & 3) << 4) | (b1 >> 4)];
+    result += i + 1 < len ? chars[((b1 & 15) << 2) | (b2 >> 6)] : '=';
+    result += i + 2 < len ? chars[b2 & 63] : '=';
+  }
+  return result;
 }
 
 export default function ReportsScreen({ navigation }: any) {
@@ -92,13 +109,15 @@ export default function ReportsScreen({ navigation }: any) {
       .eq('status', 'present').gte('created_at', start).lte('created_at', end);
     setAttendanceRate(totalAtt && totalAtt > 0 ? Math.round(((presentAtt ?? 0) / totalAtt) * 100) : null);
 
+    // Revenue by division — join programs directly via program_id (simpler + reliable)
     const { data: paymentData } = await supabase
       .from('payments')
-      .select('amount_gbp, enrollment:enrollments(program:programs(division))')
+      .select('amount_gbp, program:programs(division), student:profiles(division)')
       .eq('status', 'confirmed').gte('created_at', start).lte('created_at', end);
     const revByDiv: Record<string, { revenue: number; count: number }> = {};
     (paymentData ?? []).forEach((p: any) => {
-      const div = p.enrollment?.program?.division ?? 'unknown';
+      // Use program division first, fall back to student's division
+      const div = p.program?.division ?? p.student?.division ?? 'other';
       if (!revByDiv[div]) revByDiv[div] = { revenue: 0, count: 0 };
       revByDiv[div].revenue += p.amount_gbp ?? 0;
       revByDiv[div].count += 1;
@@ -111,7 +130,7 @@ export default function ReportsScreen({ navigation }: any) {
     const { data: studentsByDiv } = await supabase
       .from('profiles').select('division').eq('role', 'student');
     const actByDiv: Record<string, number> = {};
-    (studentsByDiv ?? []).forEach((s: any) => { const d = s.division ?? 'unknown'; actByDiv[d] = (actByDiv[d] ?? 0) + 1; });
+    (studentsByDiv ?? []).forEach((s: any) => { const d = s.division ?? 'other'; actByDiv[d] = (actByDiv[d] ?? 0) + 1; });
     setDivisionActivity(
       Object.entries(actByDiv).map(([division, studentCount]) => ({ division, studentCount }))
         .sort((a, b) => b.studentCount - a.studentCount)
@@ -136,8 +155,9 @@ export default function ReportsScreen({ navigation }: any) {
   const handleExport = async () => {
     setExporting(true);
     try {
-      // Lazy require to avoid startup crash (xlsx uses Node.js built-ins)
-      const XLSX = require('xlsx');
+      // Lazy require — handles both CommonJS and ES module shapes
+      const xlsxModule = require('xlsx');
+      const XLSX = xlsxModule.default ?? xlsxModule;
 
       const modeLabel = mode === 'weekly' ? 'Weekly' : 'Monthly';
       const now = new Date();
@@ -212,12 +232,16 @@ export default function ReportsScreen({ navigation }: any) {
       XLSX.utils.book_append_sheet(wb, wsTop, 'Top Students');
 
       // ── Write & Share ─────────────────────────────────────────────────
-      const wbout = XLSX.write(wb, { type: 'base64', bookType: 'xlsx' });
+      // XLSX.write with type:'array' returns an ArrayBuffer in React Native.
+      // Wrap in Uint8Array before passing to our base64 encoder.
+      const wbout: ArrayBuffer = XLSX.write(wb, { type: 'array', bookType: 'xlsx' });
+      const base64 = uint8ToBase64(new Uint8Array(wbout));
+
       const filename = `BPT_Report_${modeLabel}_${localDateStr(now)}.xlsx`;
       const fileUri = FileSystem.documentDirectory + filename;
 
-      await FileSystem.writeAsStringAsync(fileUri, wbout, {
-        encoding: FileSystem.EncodingType.Base64,
+      await FileSystem.writeAsStringAsync(fileUri, base64, {
+        encoding: 'base64',
       });
 
       const canShare = await Sharing.isAvailableAsync();

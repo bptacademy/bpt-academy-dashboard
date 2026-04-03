@@ -35,16 +35,13 @@ export default function ChatScreen({ route, navigation }: any) {
   // ── Fetch member count for division channels ───────────────────────────────
   useEffect(() => {
     if (!isDivisionGroup) return;
-
     const fetchMemberCount = async () => {
       const { count } = await supabase
         .from('conversation_members')
         .select('profile_id', { count: 'exact', head: true })
         .eq('conversation_id', conversationId);
-
       if (count !== null) setMemberCount(count);
     };
-
     fetchMemberCount();
   }, [conversationId, isDivisionGroup]);
 
@@ -62,7 +59,6 @@ export default function ChatScreen({ route, navigation }: any) {
 
   // ── Real-time subscription ─────────────────────────────────────────────────
   const subscribeRealtime = useCallback(() => {
-    // Clean up any existing channel first
     if (channelRef.current) {
       channelRef.current.unsubscribe();
       channelRef.current = null;
@@ -81,9 +77,7 @@ export default function ChatScreen({ route, navigation }: any) {
         (payload) => {
           const newMsg = payload.new as Message;
           setMessages((prev) => {
-            // Avoid exact duplicate by real id
             if (prev.some((m) => m.id === newMsg.id)) return prev;
-            // Replace optimistic message from same sender with same content
             const optimisticIdx = prev.findIndex(
               (m) =>
                 m.id.startsWith('optimistic_') &&
@@ -101,7 +95,6 @@ export default function ChatScreen({ route, navigation }: any) {
         }
       )
       .subscribe((status) => {
-        // If subscription fails, fall back to polling
         if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
           fetchMessages();
         }
@@ -122,16 +115,12 @@ export default function ChatScreen({ route, navigation }: any) {
     };
   }, [conversationId]);
 
-  // ── Re-subscribe when screen comes back into focus ─────────────────────────
-  // Handles the case where the WS connection dropped while the screen was
-  // in the background
+  // ── Re-subscribe on focus ──────────────────────────────────────────────────
   useFocusEffect(
     useCallback(() => {
       fetchMessages();
       subscribeRealtime();
-      return () => {
-        // Don't unsubscribe on blur — keep listening in background
-      };
+      return () => {};
     }, [fetchMessages, subscribeRealtime])
   );
 
@@ -140,9 +129,8 @@ export default function ChatScreen({ route, navigation }: any) {
     if (!text.trim() || sending) return;
     setSending(true);
     const content = text.trim();
-    setText(''); // clear immediately for UX
+    setText('');
 
-    // Optimistic update — add message locally before DB confirms
     const optimisticMsg: Message = {
       id: `optimistic_${Date.now()}`,
       sender_id: profile!.id,
@@ -152,20 +140,14 @@ export default function ChatScreen({ route, navigation }: any) {
     setMessages((prev) => [...prev, optimisticMsg]);
     setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
 
-    // Insert only — no .select() to avoid PostgREST SELECT-after-INSERT
-    // RLS race condition. The realtime subscription brings in the confirmed
-    // message and the optimistic update is replaced by the dedup check.
     const { error } = await supabase
       .from('messages')
       .insert({ conversation_id: conversationId, sender_id: profile!.id, content });
 
     if (error) {
-      // Remove optimistic message on failure and restore text
       setMessages((prev) => prev.filter((m) => m.id !== optimisticMsg.id));
       setText(content);
     }
-    // On success: realtime subscription delivers the confirmed message,
-    // dedup logic (id check) prevents duplicates with the optimistic one.
 
     setSending(false);
   };
@@ -216,22 +198,10 @@ export default function ChatScreen({ route, navigation }: any) {
     </View>
   );
 
-  // On iOS: KeyboardAvoidingView needs the exact height of everything
-  // above the keyboard — that's the header (insets.top + 10 + 72 padding/logo)
-  // Using a fixed offset causes the blank gap seen on iPhone.
-  // Solution: use 'padding' on iOS with offset = 0 and let the
-  // inputRow sit naturally; dismiss keyboard on tap outside.
-  const headerHeight = insets.top + 62; // status bar + header content
-
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={headerHeight}
-    >
+    <View style={styles.container}>
       <BackHeader title={title ?? 'Chat'} />
 
-      {/* ── Division Channel info banner ── */}
       {isDivisionGroup && (
         <View style={styles.divisionBanner}>
           <Text style={styles.divisionBannerText}>
@@ -240,53 +210,60 @@ export default function ChatScreen({ route, navigation }: any) {
         </View>
       )}
 
-      <FlatList
-        ref={flatListRef}
-        data={messages}
-        renderItem={renderMessage}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.messageList}
-        onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: false })}
-        maintainVisibleContentPosition={{ minIndexForVisible: 0 }}
-        keyboardDismissMode="interactive"
-        keyboardShouldPersistTaps="handled"
-        ListEmptyComponent={
-          <View style={styles.empty}>
-            <Text style={styles.emptyIcon}>💬</Text>
-            <Text style={styles.emptyText}>No messages yet. Say hello!</Text>
-          </View>
-        }
-      />
-      <View style={[styles.inputRow, { paddingBottom: Math.max(insets.bottom, 8) }]}>
-        <TextInput
-          style={styles.input}
-          value={text}
-          onChangeText={setText}
-          placeholder="Type a message..."
-          placeholderTextColor="#9CA3AF"
-          multiline
-          maxLength={1000}
-          returnKeyType="send"
-          blurOnSubmit={false}
-          onSubmitEditing={sendMessage}
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={0}
+      >
+        <FlatList
+          ref={flatListRef}
+          data={messages}
+          renderItem={renderMessage}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.messageList}
+          onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: false })}
+          maintainVisibleContentPosition={{ minIndexForVisible: 0 }}
+          keyboardDismissMode="interactive"
+          keyboardShouldPersistTaps="handled"
+          ListEmptyComponent={
+            <View style={styles.empty}>
+              <Text style={styles.emptyIcon}>💬</Text>
+              <Text style={styles.emptyText}>No messages yet. Say hello!</Text>
+            </View>
+          }
         />
-        <TouchableOpacity
-          style={[styles.sendBtn, (!text.trim() || sending) && styles.sendBtnDisabled]}
-          onPress={sendMessage}
-          disabled={!text.trim() || sending}
-        >
-          <Text style={styles.sendIcon}>➤</Text>
-        </TouchableOpacity>
-      </View>
-    </KeyboardAvoidingView>
+
+        <View style={[styles.inputRow, { paddingBottom: Math.max(insets.bottom, 8) }]}>
+          <TextInput
+            style={styles.input}
+            value={text}
+            onChangeText={setText}
+            placeholder="Type a message..."
+            placeholderTextColor="#9CA3AF"
+            multiline
+            maxLength={1000}
+            returnKeyType="send"
+            blurOnSubmit={false}
+            onSubmitEditing={sendMessage}
+          />
+          <TouchableOpacity
+            style={[styles.sendBtn, (!text.trim() || sending) && styles.sendBtnDisabled]}
+            onPress={sendMessage}
+            disabled={!text.trim() || sending}
+          >
+            <Text style={styles.sendIcon}>➤</Text>
+          </TouchableOpacity>
+        </View>
+      </KeyboardAvoidingView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F9FAFB' },
+  flex: { flex: 1 },
   loading: { flex: 1, alignItems: 'center', justifyContent: 'center' },
 
-  /** Subtle gold banner shown only for division_group conversations */
   divisionBanner: {
     backgroundColor: '#FFFBEB',
     borderBottomWidth: 1,

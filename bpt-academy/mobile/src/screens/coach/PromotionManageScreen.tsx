@@ -248,8 +248,7 @@ export default function PromotionManageScreen({ route, navigation }: any) {
     <View style={styles.root}>
       <BackHeader title={`${studentName} — Promotion`} />
       <ScrollView
-        contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 24 }]}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
         {loading ? (

@@ -1,98 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
-  RefreshControl, ActivityIndicator, FlatList, Linking,
+  RefreshControl, ActivityIndicator,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { Tournament, Division, DIVISION_LABELS, DIVISION_COLORS } from '../../types';
 import BackHeader from '../../components/common/BackHeader';
+import LTASection from '../../components/common/LTASection';
 
 const ALL_DIVISIONS: Division[] = ['amateur', 'semi_pro', 'pro', 'junior_9_11', 'junior_12_15', 'junior_15_18'];
-
-const LTA_CALENDAR_URL =
-  'https://competitions.lta.org.uk/find?DateFilterType=0&StartDate=2026-01-01&EndDate=2026-12-31&LocationFilterType=0&page=1' +
-  '&TournamentCategoryIDList%5B0%5D=false&TournamentCategoryIDList%5B1%5D=false' +
-  '&TournamentCategoryIDList%5B2%5D=false&TournamentCategoryIDList%5B3%5D=false' +
-  '&TournamentCategoryIDList%5B4%5D=false&TournamentCategoryIDList%5B5%5D=false' +
-  '&TournamentCategoryIDList%5B6%5D=false&TournamentCategoryIDList%5B7%5D=false' +
-  '&TournamentCategoryIDList%5B8%5D=22&TournamentCategoryIDList%5B9%5D=false' +
-  '&TournamentCategoryIDList%5B10%5D=false&TournamentCategoryIDList%5B11%5D=false' +
-  '&GradingIDList%5B0%5D=1&GradingIDList%5B1%5D=2&GradingIDList%5B2%5D=false' +
-  '&GradingIDList%5B3%5D=false&GradingIDList%5B4%5D=false&GradingIDList%5B5%5D=false' +
-  '&GradingIDList%5B6%5D=false&GradingIDList%5B7%5D=false';
-
-// ─── LTA National Padel Tour 2026 ────────────────────────────────────────
-interface LTAEvent {
-  grade: 'G1' | 'G2';
-  name: string;
-  location: string;
-  dates: string;
-  startDate: Date;
-}
-
-const LTA_EVENTS_2026: LTAEvent[] = [
-  { grade: 'G2', name: 'New Year Open',           location: 'Leeds',       dates: '10–11 Jan 2026', startDate: new Date('2026-01-10') },
-  { grade: 'G1', name: 'National Championships',  location: 'Manchester',  dates: '17–19 Jan 2026', startDate: new Date('2026-01-17') },
-  { grade: 'G2', name: 'February Open',           location: 'Sheffield',   dates: '7–8 Feb 2026',   startDate: new Date('2026-02-07') },
-  { grade: 'G1', name: 'Winter Open',             location: 'London',      dates: '14–16 Feb 2026', startDate: new Date('2026-02-14') },
-  { grade: 'G2', name: 'Spring Open',             location: 'Cardiff',     dates: '7–8 Mar 2026',   startDate: new Date('2026-03-07') },
-  { grade: 'G1', name: 'Spring Championship',     location: 'Birmingham',  dates: '14–16 Mar 2026', startDate: new Date('2026-03-14') },
-  { grade: 'G2', name: 'Easter Open',             location: 'Newcastle',   dates: '18–19 Apr 2026', startDate: new Date('2026-04-18') },
-  { grade: 'G1', name: 'Easter Open',             location: 'Bristol',     dates: '11–13 Apr 2026', startDate: new Date('2026-04-11') },
-  { grade: 'G2', name: 'May Open',                location: 'Glasgow',     dates: '16–17 May 2026', startDate: new Date('2026-05-16') },
-  { grade: 'G1', name: 'May Bank Holiday',        location: 'Nottingham',  dates: '2–4 May 2026',   startDate: new Date('2026-05-02') },
-  { grade: 'G2', name: 'June Open',               location: 'Brighton',    dates: '20–21 Jun 2026', startDate: new Date('2026-06-20') },
-  { grade: 'G1', name: 'Summer Championship',     location: 'Manchester',  dates: '13–15 Jun 2026', startDate: new Date('2026-06-13') },
-  { grade: 'G2', name: 'Summer Open',             location: 'Liverpool',   dates: '18–19 Jul 2026', startDate: new Date('2026-07-18') },
-  { grade: 'G1', name: 'Midsummer Open',          location: 'London',      dates: '11–13 Jul 2026', startDate: new Date('2026-07-11') },
-  { grade: 'G2', name: 'August Open',             location: 'Bristol',     dates: '9–10 Aug 2026',  startDate: new Date('2026-08-09') },
-  { grade: 'G1', name: 'August Bank Holiday',     location: 'Leeds',       dates: '23–25 Aug 2026', startDate: new Date('2026-08-23') },
-  { grade: 'G2', name: 'September Open',          location: 'Edinburgh',   dates: '20–21 Sep 2026', startDate: new Date('2026-09-20') },
-  { grade: 'G1', name: 'Autumn Championship',     location: 'Birmingham',  dates: '12–14 Sep 2026', startDate: new Date('2026-09-12') },
-  { grade: 'G2', name: 'October Open',            location: 'Leeds',       dates: '17–18 Oct 2026', startDate: new Date('2026-10-17') },
-  { grade: 'G1', name: 'October Open',            location: 'London',      dates: '10–12 Oct 2026', startDate: new Date('2026-10-10') },
-  { grade: 'G2', name: 'November Open',           location: 'Sheffield',   dates: '21–22 Nov 2026', startDate: new Date('2026-11-21') },
-  { grade: 'G1', name: 'Winter Championship',     location: 'Manchester',  dates: '7–9 Nov 2026',   startDate: new Date('2026-11-07') },
-  { grade: 'G1', name: 'End of Season',           location: 'London',      dates: '5–7 Dec 2026',   startDate: new Date('2026-12-05') },
-].sort((a, b) => a.startDate.getTime() - b.startDate.getTime());
-
-const today = new Date();
-
-function LTACard({ event }: { event: LTAEvent }) {
-  const isPast = event.startDate < today;
-  const isG1 = event.grade === 'G1';
-  return (
-    <View style={[ltaStyles.card, isPast && ltaStyles.cardPast]}>
-      <View style={[ltaStyles.gradeBadge, isG1 ? ltaStyles.g1Badge : ltaStyles.g2Badge]}>
-        <Text style={ltaStyles.gradeText}>{event.grade}</Text>
-      </View>
-      <Text style={[ltaStyles.name, isPast && ltaStyles.namePast]} numberOfLines={2}>{event.name}</Text>
-      <Text style={ltaStyles.location}>📍 {event.location}</Text>
-      <Text style={ltaStyles.dates}>📅 {event.dates}</Text>
-    </View>
-  );
-}
-
-const ltaStyles = StyleSheet.create({
-  card: {
-    width: 180, backgroundColor: '#FFFFFF', borderRadius: 14, padding: 14,
-    marginRight: 12, borderWidth: 1, borderColor: '#E5E7EB',
-    shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 4, shadowOffset: { width: 0, height: 2 },
-  },
-  cardPast: { opacity: 0.5 },
-  gradeBadge: { alignSelf: 'flex-start', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10, marginBottom: 8 },
-  g1Badge: { backgroundColor: '#FEF3C7' },
-  g2Badge: { backgroundColor: '#F3F4F6' },
-  gradeText: { fontSize: 12, fontWeight: '800', color: '#92400E' },
-  name: { fontSize: 13, fontWeight: '700', color: '#111827', marginBottom: 6, lineHeight: 18 },
-  namePast: { color: '#9CA3AF' },
-  location: { fontSize: 11, color: '#6B7280', marginBottom: 2 },
-  dates: { fontSize: 11, color: '#6B7280' },
-});
-
-// ─── Main Screen ─────────────────────────────────────────────────────────
 
 export default function TournamentListScreen({ navigation }: { navigation: any }) {
   const insets = useSafeAreaInsets();
@@ -150,9 +68,6 @@ export default function TournamentListScreen({ navigation }: { navigation: any }
     completed: '#9CA3AF',
   };
 
-  // Find the next upcoming LTA event
-  const nextLTA = LTA_EVENTS_2026.find(e => e.startDate >= today);
-
   return (
     <View style={styles.container}>
       <BackHeader title="Tournaments" />
@@ -161,39 +76,8 @@ export default function TournamentListScreen({ navigation }: { navigation: any }
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         showsVerticalScrollIndicator={false}
       >
-        {/* ── LTA National Padel Tour 2026 ── */}
-        <View style={styles.ltaSection}>
-          <View style={styles.ltaHeader}>
-            <View>
-              <Text style={styles.ltaTitle}>🏆 LTA National Padel Tour 2026</Text>
-              <Text style={styles.ltaSubtitle}>G1 & G2 fixtures · All events in England & Wales</Text>
-            </View>
-          </View>
-
-          {nextLTA && (
-            <View style={styles.nextEventBanner}>
-              <Text style={styles.nextEventLabel}>Next event</Text>
-              <Text style={styles.nextEventName}>{nextLTA.grade} · {nextLTA.name}</Text>
-              <Text style={styles.nextEventMeta}>{nextLTA.dates} · {nextLTA.location}</Text>
-            </View>
-          )}
-
-          <FlatList
-            horizontal
-            data={LTA_EVENTS_2026}
-            keyExtractor={(_, i) => String(i)}
-            renderItem={({ item }) => <LTACard event={item} />}
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.ltaList}
-          />
-
-          <TouchableOpacity
-            style={styles.ltaLink}
-            onPress={() => Linking.openURL(LTA_CALENDAR_URL)}
-          >
-            <Text style={styles.ltaLinkText}>View Full LTA Calendar →</Text>
-          </TouchableOpacity>
-        </View>
+        {/* ── LTA British Tour 2026 ── */}
+        <LTASection />
 
         {/* ── Academy Tournaments ── */}
         <View style={styles.academyHeader}>
@@ -296,31 +180,13 @@ export default function TournamentListScreen({ navigation }: { navigation: any }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F9FAFB' },
-
-  // LTA section
-  ltaSection: { backgroundColor: '#111827', paddingBottom: 16 },
-  ltaHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', padding: 16, paddingBottom: 10 },
-  ltaTitle: { fontSize: 16, fontWeight: '800', color: '#FFFFFF', marginBottom: 2 },
-  ltaSubtitle: { fontSize: 12, color: '#9CA3AF' },
-  nextEventBanner: { marginHorizontal: 16, marginBottom: 12, backgroundColor: '#16A34A', borderRadius: 10, padding: 12 },
-  nextEventLabel: { fontSize: 10, fontWeight: '700', color: '#A7F3D0', textTransform: 'uppercase', letterSpacing: 0.5 },
-  nextEventName: { fontSize: 15, fontWeight: '700', color: '#FFFFFF', marginTop: 2 },
-  nextEventMeta: { fontSize: 12, color: '#D1FAE5', marginTop: 2 },
-  ltaList: { paddingHorizontal: 16, paddingBottom: 4 },
-  ltaLink: { marginHorizontal: 16, marginTop: 12, alignSelf: 'flex-start' },
-  ltaLinkText: { fontSize: 13, color: '#34D399', fontWeight: '600' },
-
-  // Academy section
   academyHeader: { padding: 16, paddingBottom: 4 },
   academyTitle: { fontSize: 16, fontWeight: '700', color: '#111827' },
-
-  // Filters
   filterRow: { paddingHorizontal: 16, paddingVertical: 12, gap: 8 },
   filterChip: { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20, backgroundColor: '#E5E7EB', marginRight: 8 },
   filterChipActive: { backgroundColor: '#16A34A' },
   filterText: { fontSize: 13, fontWeight: '600', color: '#374151' },
   filterTextActive: { color: '#FFFFFF' },
-
   loader: { marginTop: 60 },
   emptyCard: { margin: 20, backgroundColor: '#FFFFFF', borderRadius: 14, padding: 24, alignItems: 'center', borderWidth: 1, borderColor: '#E5E7EB' },
   emptyText: { color: '#6B7280', fontSize: 14 },

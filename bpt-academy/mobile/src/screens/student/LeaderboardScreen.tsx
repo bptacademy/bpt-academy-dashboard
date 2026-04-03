@@ -104,7 +104,6 @@ export default function LeaderboardScreen() {
   const fetchBPT = useCallback(async () => {
     setBptLoading(true);
 
-    // Get all tournament-related ranking events
     const { data: tournamentEvents } = await supabase
       .from('ranking_events')
       .select('student_id, division, points, reason, profiles:student_id(full_name, avatar_url)')
@@ -117,7 +116,6 @@ export default function LeaderboardScreen() {
       return;
     }
 
-    // Aggregate per student: sum tournament points, track best result
     const map: Record<string, {
       full_name: string;
       avatar_url: string | null;
@@ -138,7 +136,6 @@ export default function LeaderboardScreen() {
         };
       }
       map[row.student_id].points += row.points;
-      // Keep the "best" reason (wins > runner-up > podium)
       const cur = map[row.student_id].best_reason;
       if (row.reason.includes('win') || row.reason.includes('first')) {
         map[row.student_id].best_reason = row.reason;
@@ -155,7 +152,6 @@ export default function LeaderboardScreen() {
         division: v.division as Division,
         tournament_points: v.points,
         top_result: v.best_reason,
-        // Qualified = placed top 3 (has a tournament event with win/runner/third/podium)
         qualified: v.best_reason.includes('win') || v.best_reason.includes('first') ||
                    v.best_reason.includes('runner') || v.best_reason.includes('second') ||
                    v.best_reason.includes('third') || v.best_reason.includes('podium'),
@@ -215,10 +211,9 @@ export default function LeaderboardScreen() {
         <>
           {/* Division filter */}
           <ScrollView
-            contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.divTabs}
+            contentContainerStyle={[styles.divTabs, { paddingBottom: insets.bottom > 0 ? 0 : undefined }]}
             style={styles.divTabsContainer}
           >
             {DIVISIONS.map(div => (
@@ -237,7 +232,7 @@ export default function LeaderboardScreen() {
           <ScrollView
             refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.content}
+            contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 24 }]}
           >
             {loading ? (
               <ActivityIndicator size="large" color={divColor} style={styles.loader} />
@@ -329,18 +324,16 @@ export default function LeaderboardScreen() {
         <ScrollView
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.content}
+          contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 24 }]}
         >
-          {/* What is BPT Pathway banner */}
           <View style={styles.bptBanner}>
             <Text style={styles.bptBannerTitle}>🎾 Britain Padel Tour Pathway</Text>
             <Text style={styles.bptBannerText}>
-              Finish in the top 3 at a BPT Academy tournament to qualify for a BPT tour event. 
+              Finish in the top 3 at a BPT Academy tournament to qualify for a BPT tour event.
               Players below represent the academy's strongest competitors.
             </Text>
           </View>
 
-          {/* How to qualify card */}
           <View style={styles.qualifyCard}>
             <Text style={styles.qualifyTitle}>How to Qualify</Text>
             <View style={styles.qualifyStep}>
@@ -369,7 +362,6 @@ export default function LeaderboardScreen() {
             </View>
           ) : (
             <>
-              {/* Qualified players */}
               {qualifiedList.length > 0 && (
                 <>
                   <View style={styles.sectionHeader}>
@@ -381,7 +373,7 @@ export default function LeaderboardScreen() {
                   <View style={styles.listCard}>
                     {qualifiedList.map((q, idx) => {
                       const isMe = q.student_id === profile?.id;
-                      const divColor = DIVISION_COLORS[q.division] ?? '#16A34A';
+                      const dColor = DIVISION_COLORS[q.division] ?? '#16A34A';
                       return (
                         <View
                           key={q.student_id}
@@ -391,12 +383,12 @@ export default function LeaderboardScreen() {
                             idx === qualifiedList.length - 1 && styles.rowLast,
                           ]}
                         >
-                          <View style={[styles.avatar, { backgroundColor: divColor + '33' }]}>
+                          <View style={[styles.avatar, { backgroundColor: dColor + '33' }]}>
                             <Text style={styles.avatarText}>{q.full_name.charAt(0)}</Text>
                           </View>
                           <View style={styles.rowInfo}>
                             <Text style={styles.rowName}>{q.full_name}{isMe ? ' (You)' : ''}</Text>
-                            <Text style={[styles.rowSub, { color: divColor }]}>
+                            <Text style={[styles.rowSub, { color: dColor }]}>
                               {DIVISION_LABELS[q.division]}
                             </Text>
                           </View>
@@ -410,7 +402,6 @@ export default function LeaderboardScreen() {
                 </>
               )}
 
-              {/* Tournament participants (not podium) */}
               {participantList.length > 0 && (
                 <>
                   <View style={[styles.sectionHeader, { marginTop: 16 }]}>
@@ -422,7 +413,7 @@ export default function LeaderboardScreen() {
                   <View style={styles.listCard}>
                     {participantList.map((q, idx) => {
                       const isMe = q.student_id === profile?.id;
-                      const divColor = DIVISION_COLORS[q.division] ?? '#6B7280';
+                      const dColor = DIVISION_COLORS[q.division] ?? '#6B7280';
                       return (
                         <View
                           key={q.student_id}
@@ -432,12 +423,12 @@ export default function LeaderboardScreen() {
                             idx === participantList.length - 1 && styles.rowLast,
                           ]}
                         >
-                          <View style={[styles.avatar, { backgroundColor: divColor + '22' }]}>
+                          <View style={[styles.avatar, { backgroundColor: dColor + '22' }]}>
                             <Text style={styles.avatarText}>{q.full_name.charAt(0)}</Text>
                           </View>
                           <View style={styles.rowInfo}>
                             <Text style={styles.rowName}>{q.full_name}{isMe ? ' (You)' : ''}</Text>
-                            <Text style={[styles.rowSub, { color: divColor }]}>
+                            <Text style={[styles.rowSub, { color: dColor }]}>
                               {DIVISION_LABELS[q.division]}
                             </Text>
                           </View>
@@ -461,7 +452,6 @@ export default function LeaderboardScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F9FAFB' },
 
-  // Main tabs (Rankings / BPT)
   mainTabs: {
     flexDirection: 'row', backgroundColor: '#FFFFFF',
     borderBottomWidth: 1, borderBottomColor: '#E5E7EB',
@@ -475,7 +465,6 @@ const styles = StyleSheet.create({
   mainTabText: { fontSize: 14, fontWeight: '600', color: '#6B7280' },
   mainTabTextActive: { color: '#111827' },
 
-  // Division filter tabs
   divTabsContainer: { flexGrow: 0, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
   divTabs: { paddingHorizontal: 16, paddingVertical: 10, gap: 8 },
   divTab: { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20, backgroundColor: '#F3F4F6', marginRight: 8 },
@@ -485,7 +474,6 @@ const styles = StyleSheet.create({
   content: { padding: 16, paddingBottom: 40 },
   loader: { marginTop: 60 },
 
-  // Empty
   emptyCard: {
     backgroundColor: '#FFFFFF', borderRadius: 14, padding: 40,
     alignItems: 'center', borderWidth: 1, borderColor: '#E5E7EB', marginTop: 8,
@@ -494,7 +482,6 @@ const styles = StyleSheet.create({
   emptyTitle: { fontSize: 17, fontWeight: '700', color: '#111827', marginBottom: 6 },
   emptyText: { color: '#6B7280', fontSize: 14, textAlign: 'center', lineHeight: 20 },
 
-  // Podium
   podium: {
     flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'center',
     marginBottom: 20, paddingVertical: 10, gap: 8,
@@ -506,7 +493,6 @@ const styles = StyleSheet.create({
   podiumBlock: { width: '80%', borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
   podiumRank: { fontSize: 18, fontWeight: '800', color: '#FFFFFF' },
 
-  // List
   listCard: { backgroundColor: '#FFFFFF', borderRadius: 14, borderWidth: 1, borderColor: '#E5E7EB', overflow: 'hidden', marginBottom: 14 },
   row: {
     flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 14,
@@ -523,7 +509,6 @@ const styles = StyleSheet.create({
   rowPoints: { fontSize: 18, fontWeight: '800', color: '#16A34A' },
   rowPtsLabel: { fontSize: 11, color: '#9CA3AF' },
 
-  // BPT rows
   bptRow: {
     flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 14,
     borderBottomWidth: 1, borderBottomColor: '#F3F4F6', gap: 12,
@@ -531,7 +516,6 @@ const styles = StyleSheet.create({
   bptResultBadge: { backgroundColor: '#DCFCE7', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10 },
   bptResultText: { fontSize: 12, fontWeight: '700', color: '#15803D' },
 
-  // Points key
   pointsKey: {
     backgroundColor: '#FFFFFF', borderRadius: 14, padding: 16,
     borderWidth: 1, borderColor: '#E5E7EB', marginBottom: 14,
@@ -540,14 +524,12 @@ const styles = StyleSheet.create({
   pointsKeyRow: { flexDirection: 'row', gap: 12, marginBottom: 6 },
   pointsKeyItem: { flex: 1, fontSize: 13, color: '#374151' },
 
-  // BPT banner
   bptBanner: {
     backgroundColor: '#111827', borderRadius: 14, padding: 18, marginBottom: 14,
   },
   bptBannerTitle: { fontSize: 17, fontWeight: '800', color: '#FFFFFF', marginBottom: 8 },
   bptBannerText: { fontSize: 13, color: '#9CA3AF', lineHeight: 20 },
 
-  // How to qualify
   qualifyCard: {
     backgroundColor: '#FFFFFF', borderRadius: 14, padding: 16,
     borderWidth: 1, borderColor: '#E5E7EB', marginBottom: 14,
@@ -561,7 +543,6 @@ const styles = StyleSheet.create({
   qualifyStepText: { flex: 1, fontSize: 14, color: '#374151', lineHeight: 20 },
   bold: { fontWeight: '700', color: '#111827' },
 
-  // Section headers
   sectionHeader: {
     flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8,
   },
