@@ -1,1 +1,37 @@
 [20260403_200624] Starting nightly backup...
+[main f843203] chore: nightly auto-backup 2026-04-03
+ Committer: Fabian David <iamfabiandavid@mac.home>
+Your name and email address were configured automatically based
+on your username and hostname. Please check that they are accurate.
+You can suppress this message by setting them explicitly. Run the
+following command and follow the instructions in your editor to edit
+your configuration file:
+
+    git config --global --edit
+
+After doing this, you may fix the identity used for this commit with:
+
+    git commit --amend --reset-author
+
+ 36 files changed, 7717 insertions(+), 377 deletions(-)
+ create mode 100644 bpt-academy/.DS_Store
+ create mode 100644 bpt-academy/backups/backup-2026-04-03.log
+ create mode 100644 bpt-academy/backups/credentials_20260401_200013.md
+ create mode 100644 bpt-academy/backups/migrations_20260401_200013.sql
+ create mode 100644 bpt-academy/mobile/src/components/common/LTASection.tsx
+ create mode 100644 bpt-academy/mobile/src/screens/auth/ParentRegisterScreen.tsx
+ create mode 100644 bpt-academy/mobile/src/screens/parent/AddChildScreen.tsx
+ create mode 100644 bpt-academy/mobile/src/screens/parent/ParentChildDetailScreen.tsx
+ create mode 100644 bpt-academy/mobile/src/screens/parent/ParentDashboardScreen.tsx
+ create mode 100644 bpt-academy/programs/.DS_Store
+ create mode 100644 bpt-academy/programs/april-2026-amateur-printable-v2.html
+ create mode 100644 bpt-academy/supabase/migrations/20260402000001_fix_video_upload_and_sessions.sql
+ create mode 100644 bpt-academy/supabase/migrations/20260403000001_parent_junior_system.sql
+ create mode 100644 bpt-academy/supabase/migrations/20260403000002_fix_parent_access_rls_recursion.sql
+ create mode 100644 bpt-academy/supabase/migrations/20260403000003_fix_profiles_rls_recursion.sql
+ create mode 100644 bpt-academy/supabase/migrations/20260403000004_fix_get_my_role_recursion.sql
+ create mode 100644 bpt-academy/supabase/migrations/20260403000005_fix_get_my_role_bypass_rls.sql
+ create mode 100644 bpt-academy/supabase/migrations/20260403000006_definitive_rls_fix.sql
+ create mode 100644 memory/2026-04-01.md
+ create mode 100644 memory/2026-04-03.md
+[OK] Git: committed workspace changes
