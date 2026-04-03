@@ -22,6 +22,7 @@ const AMATEUR_LEVELS: { label: string; value: SkillLevel }[] = [
 ];
 
 export default function RegisterScreen({ navigation }: Props) {
+  const [accountType, setAccountType] = useState<'student' | 'parent' | null>(null);
   const [fullName, setFullName]   = useState('');
   const [email, setEmail]         = useState('');
   const [phone, setPhone]         = useState('');
@@ -67,94 +68,106 @@ export default function RegisterScreen({ navigation }: Props) {
           <Text style={styles.subtitle}>Create your account</Text>
         </View>
 
-        <View style={styles.form}>
-          <Text style={styles.label}>Full Name *</Text>
-          <TextInput style={styles.input} placeholder="Your full name" placeholderTextColor="#9CA3AF"
-            value={fullName} onChangeText={setFullName} />
-
-          <Text style={styles.label}>Email *</Text>
-          <TextInput style={styles.input} placeholder="you@example.com" placeholderTextColor="#9CA3AF"
-            value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" />
-
-          <Text style={styles.label}>Phone</Text>
-          <TextInput style={styles.input} placeholder="+44 7700 000000" placeholderTextColor="#9CA3AF"
-            value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
-
-          <Text style={styles.label}>Password *</Text>
-          <TextInput style={styles.input} placeholder="Min. 6 characters" placeholderTextColor="#9CA3AF"
-            value={password} onChangeText={setPassword} secureTextEntry />
-
-          {/* Division */}
-          <Text style={styles.label}>Division *</Text>
-          <View style={styles.chipRow}>
-            {DIVISIONS.map((div) => {
-              const color = DIVISION_COLORS[div];
-              const selected = division === div;
-              return (
-                <TouchableOpacity
-                  key={div}
-                  style={[styles.chip, selected && { backgroundColor: color, borderColor: color }]}
-                  onPress={() => setDivision(div)}
-                >
-                  <Text style={[styles.chipText, selected && styles.chipTextActive]}>
-                    {DIVISION_LABELS[div]}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-
-          {/* Skill level — only for Amateur */}
-          {division === 'amateur' && (
-            <>
-              <Text style={styles.label}>Amateur Level *</Text>
-              <View style={styles.chipRow}>
-                {AMATEUR_LEVELS.map((s) => (
-                  <TouchableOpacity
-                    key={s.value}
-                    style={[styles.chip, skillLevel === s.value && styles.chipActive]}
-                    onPress={() => setSkillLevel(s.value)}
-                  >
-                    <Text style={[styles.chipText, skillLevel === s.value && styles.chipTextActive]}>
-                      {s.label}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </>
-          )}
+        {/* Account type selector */}
+        <Text style={styles.accountTypeLabel}>I am registering as a...</Text>
+        <View style={styles.accountTypeRow}>
+          <TouchableOpacity
+            style={[styles.accountTypeCard, accountType === 'student' && styles.accountTypeCardActive]}
+            onPress={() => setAccountType('student')}
+          >
+            <Text style={styles.accountTypeIcon}>🎾</Text>
+            <Text style={[styles.accountTypeTitle, accountType === 'student' && styles.accountTypeTitleActive]}>Player</Text>
+            <Text style={[styles.accountTypeHint, accountType === 'student' && styles.accountTypeHintActive]}>I play padel at BPT Academy</Text>
+          </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.button, loading && styles.buttonDisabled]}
-            onPress={handleRegister}
-            disabled={loading}
+            style={[styles.accountTypeCard, accountType === 'parent' && styles.accountTypeCardActive]}
+            onPress={() => {
+              setAccountType('parent');
+              navigation.navigate('ParentRegister');
+            }}
           >
-            <Text style={styles.buttonText}>
-              {loading ? 'Creating account...' : 'Create Account'}
-            </Text>
+            <Text style={styles.accountTypeIcon}>👨‍👩‍👧‍👦</Text>
+            <Text style={[styles.accountTypeTitle, accountType === 'parent' && styles.accountTypeTitleActive]}>Parent / Guardian</Text>
+            <Text style={[styles.accountTypeHint, accountType === 'parent' && styles.accountTypeHintActive]}>I'm registering my child</Text>
           </TouchableOpacity>
+        </View>
 
-          <TouchableOpacity style={styles.linkButton} onPress={() => navigation.navigate('Login')}>
-            <Text style={styles.linkText}>
-              Already have an account? <Text style={styles.linkBold}>Sign in</Text>
-            </Text>
-          </TouchableOpacity>
+        {/* Student form — only shown once Player is selected */}
+        {accountType === 'student' && (
+          <View style={styles.form}>
+            <Text style={styles.label}>Full Name *</Text>
+            <TextInput style={styles.input} placeholder="Your full name" placeholderTextColor="#9CA3AF"
+              value={fullName} onChangeText={setFullName} />
 
-          {/* Parent account section */}
-          <View style={styles.divider}>
-            <View style={styles.dividerLine} />
-          </View>
+            <Text style={styles.label}>Email *</Text>
+            <TextInput style={styles.input} placeholder="you@example.com" placeholderTextColor="#9CA3AF"
+              value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" />
 
-          <View style={styles.parentSection}>
-            <Text style={styles.parentSectionLabel}>Registering a junior player?</Text>
+            <Text style={styles.label}>Phone</Text>
+            <TextInput style={styles.input} placeholder="+44 7700 000000" placeholderTextColor="#9CA3AF"
+              value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
+
+            <Text style={styles.label}>Password *</Text>
+            <TextInput style={styles.input} placeholder="Min. 6 characters" placeholderTextColor="#9CA3AF"
+              value={password} onChangeText={setPassword} secureTextEntry />
+
+            <Text style={styles.label}>Division *</Text>
+            <View style={styles.chipRow}>
+              {DIVISIONS.map((div) => {
+                const color = DIVISION_COLORS[div];
+                const selected = division === div;
+                return (
+                  <TouchableOpacity
+                    key={div}
+                    style={[styles.chip, selected && { backgroundColor: color, borderColor: color }]}
+                    onPress={() => setDivision(div)}
+                  >
+                    <Text style={[styles.chipText, selected && styles.chipTextActive]}>
+                      {DIVISION_LABELS[div]}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
+            {division === 'amateur' && (
+              <>
+                <Text style={styles.label}>Amateur Level *</Text>
+                <View style={styles.chipRow}>
+                  {AMATEUR_LEVELS.map((s) => (
+                    <TouchableOpacity
+                      key={s.value}
+                      style={[styles.chip, skillLevel === s.value && styles.chipActive]}
+                      onPress={() => setSkillLevel(s.value)}
+                    >
+                      <Text style={[styles.chipText, skillLevel === s.value && styles.chipTextActive]}>
+                        {s.label}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </>
+            )}
+
             <TouchableOpacity
-              style={styles.parentBtn}
-              onPress={() => navigation.navigate('ParentRegister')}
+              style={[styles.button, loading && styles.buttonDisabled]}
+              onPress={handleRegister}
+              disabled={loading}
             >
-              <Text style={styles.parentBtnText}>Create Parent Account →</Text>
+              <Text style={styles.buttonText}>
+                {loading ? 'Creating account...' : 'Create Account'}
+              </Text>
             </TouchableOpacity>
           </View>
-        </View>
+        )}
+
+        <TouchableOpacity style={styles.linkButton} onPress={() => navigation.navigate('Login')}>
+          <Text style={styles.linkText}>
+            Already have an account? <Text style={styles.linkBold}>Sign in</Text>
+          </Text>
+        </TouchableOpacity>
+
       </ScrollView>
     </KeyboardAvoidingView>
     </SafeAreaView>
@@ -165,10 +178,24 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#FFFFFF' },
   flex: { flex: 1 },
   inner: { flexGrow: 1, padding: 24 },
-  header: { alignItems: 'center', marginBottom: 32, marginTop: 20 },
+  header: { alignItems: 'center', marginBottom: 24, marginTop: 20 },
   logo: { marginBottom: 8 },
   subtitle: { fontSize: 15, color: '#6B7280', marginTop: 4 },
-  form: {},
+
+  accountTypeLabel: { fontSize: 15, fontWeight: '700', color: '#1a2744', marginBottom: 12, textAlign: 'center' },
+  accountTypeRow: { flexDirection: 'row', gap: 12, marginBottom: 24 },
+  accountTypeCard: {
+    flex: 1, borderWidth: 2, borderColor: '#E5E7EB', borderRadius: 14,
+    padding: 16, alignItems: 'center', backgroundColor: '#F9FAFB',
+  },
+  accountTypeCardActive: { borderColor: '#16A34A', backgroundColor: '#F0FDF4' },
+  accountTypeIcon: { fontSize: 28, marginBottom: 8 },
+  accountTypeTitle: { fontSize: 14, fontWeight: '700', color: '#374151', textAlign: 'center', marginBottom: 4 },
+  accountTypeTitleActive: { color: '#16A34A' },
+  accountTypeHint: { fontSize: 11, color: '#9CA3AF', textAlign: 'center', lineHeight: 15 },
+  accountTypeHintActive: { color: '#16A34A' },
+
+  form: { marginBottom: 8 },
   label: { fontSize: 14, fontWeight: '600', color: '#374151', marginBottom: 6, marginTop: 4 },
   input: {
     borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 10,
@@ -179,24 +206,10 @@ const styles = StyleSheet.create({
   chipActive: { backgroundColor: '#16A34A', borderColor: '#16A34A' },
   chipText: { fontSize: 14, color: '#374151', fontWeight: '500' },
   chipTextActive: { color: '#FFFFFF', fontWeight: '700' },
-  button: { backgroundColor: '#16A34A', borderRadius: 10, padding: 16, alignItems: 'center', marginTop: 12 },
+  button: { backgroundColor: '#16A34A', borderRadius: 10, padding: 16, alignItems: 'center', marginTop: 12, marginBottom: 20 },
   buttonDisabled: { opacity: 0.6 },
   buttonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
-  linkButton: { alignItems: 'center', marginTop: 20 },
+  linkButton: { alignItems: 'center', marginTop: 12, marginBottom: 32 },
   linkText: { color: '#6B7280', fontSize: 14 },
   linkBold: { color: '#16A34A', fontWeight: '700' },
-
-  divider: { alignItems: 'center', marginVertical: 24 },
-  dividerLine: { width: '100%', height: 1, backgroundColor: '#E5E7EB' },
-
-  parentSection: { alignItems: 'center', marginBottom: 32 },
-  parentSectionLabel: { fontSize: 14, color: '#6B7280', marginBottom: 10, fontWeight: '500' },
-  parentBtn: {
-    borderWidth: 2,
-    borderColor: '#16A34A',
-    borderRadius: 10,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-  },
-  parentBtnText: { color: '#16A34A', fontSize: 15, fontWeight: '700' },
 });
