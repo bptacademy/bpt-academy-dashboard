@@ -13,6 +13,7 @@ import {
   MessageSquare,
   Video,
   Settings,
+  Trophy,
   X,
 } from 'lucide-react'
 
@@ -22,6 +23,7 @@ const navItems = [
   { href: '/programs', icon: BookOpen, label: 'Programs' },
   { href: '/attendance', icon: ClipboardList, label: 'Attendance' },
   { href: '/reports', icon: BarChart2, label: 'Reports' },
+  { href: '/tournaments', icon: Trophy, label: 'Tournaments' },
   { href: '/payments', icon: CreditCard, label: 'Payments' },
   { href: '/messaging', icon: MessageSquare, label: 'Messaging' },
   { href: '/videos', icon: Video, label: 'Videos' },

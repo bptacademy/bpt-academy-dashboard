@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { formatCurrency, formatDate, getStatusBadgeColor } from '@/lib/utils'
 import { DollarSign } from 'lucide-react'
@@ -10,6 +10,8 @@ interface Payment {
   amount: number
   status: string
   stripe_payment_id: string | null
+  method: string | null
+  bank_reference: string | null
   created_at: string
   student_name: string
   program_title: string
@@ -23,63 +25,91 @@ export default function PaymentsPage() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
   const [totalRevenue, setTotalRevenue] = useState(0)
   const [totalPending, setTotalPending] = useState(0)
+  const [totalFailed, setTotalFailed] = useState(0)
+  const [updatingId, setUpdatingId] = useState<string | null>(null)
 
-  useEffect(() => {
-    async function fetchPayments() {
-      setLoading(true)
-      const supabase = createClient()
+  const fetchPayments = useCallback(async () => {
+    setLoading(true)
+    const supabase = createClient()
 
-      let query = supabase
-        .from('payments')
-        .select(`
-          id,
-          amount,
-          status,
-          stripe_payment_id,
-          created_at,
-          profiles!payments_student_id_fkey(full_name),
-          programs!payments_program_id_fkey(title)
-        `)
-        .order('created_at', { ascending: false })
+    let query = supabase
+      .from('payments')
+      .select(`
+        id,
+        amount,
+        status,
+        stripe_payment_id,
+        method,
+        bank_reference,
+        created_at,
+        profiles!payments_student_id_fkey(full_name),
+        programs!payments_program_id_fkey(title)
+      `)
+      .order('created_at', { ascending: false })
 
-      if (statusFilter !== 'all') {
-        query = query.eq('status', statusFilter)
-      }
-
-      const { data } = await query
-
-      if (data) {
-        const parsed = data.map((p: Record<string, unknown>) => {
-          const profile = p.profiles as { full_name?: string } | null
-          const program = p.programs as { title?: string } | null
-          return {
-            id: String(p.id),
-            amount: Number(p.amount) || 0,
-            status: String(p.status),
-            stripe_payment_id: p.stripe_payment_id ? String(p.stripe_payment_id) : null,
-            created_at: String(p.created_at),
-            student_name: profile?.full_name || 'Unknown',
-            program_title: program?.title || 'Unknown',
-          }
-        })
-        setPayments(parsed)
-
-        const revenue = parsed
-          .filter((p) => p.status === 'paid')
-          .reduce((sum, p) => sum + p.amount, 0)
-        setTotalRevenue(revenue)
-
-        const pending = parsed
-          .filter((p) => p.status === 'pending')
-          .reduce((sum, p) => sum + p.amount, 0)
-        setTotalPending(pending)
-      }
-
-      setLoading(false)
+    if (statusFilter !== 'all') {
+      query = query.eq('status', statusFilter)
     }
 
-    fetchPayments()
+    const { data } = await query
+
+    if (data) {
+      const parsed = data.map((p: Record<string, unknown>) => {
+        const profile = p.profiles as { full_name?: string } | null
+        const program = p.programs as { title?: string } | null
+        return {
+          id: String(p.id),
+          amount: Number(p.amount) || 0,
+          status: String(p.status),
+          stripe_payment_id: p.stripe_payment_id ? String(p.stripe_payment_id) : null,
+          method: p.method ? String(p.method) : null,
+          bank_reference: p.bank_reference ? String(p.bank_reference) : null,
+          created_at: String(p.created_at),
+          student_name: profile?.full_name || 'Unknown',
+          program_title: program?.title || 'Unknown',
+        }
+      })
+      setPayments(parsed)
+
+      // Compute totals from all payments (not filtered) for summary cards
+      // Re-fetch all for summary — or compute from whatever we have
+      const revenue = parsed
+        .filter((p) => p.status === 'paid')
+        .reduce((sum, p) => sum + p.amount, 0)
+      setTotalRevenue(revenue)
+
+      const pending = parsed
+        .filter((p) => p.status === 'pending')
+        .reduce((sum, p) => sum + p.amount, 0)
+      setTotalPending(pending)
+
+      const failed = parsed
+        .filter((p) => p.status === 'failed')
+        .reduce((sum, p) => sum + p.amount, 0)
+      setTotalFailed(failed)
+    }
+
+    setLoading(false)
   }, [statusFilter])
+
+  useEffect(() => {
+    fetchPayments()
+  }, [fetchPayments])
+
+  async function updatePaymentStatus(id: string, newStatus: 'paid' | 'failed') {
+    setUpdatingId(id)
+    const supabase = createClient()
+    await supabase.from('payments').update({ status: newStatus }).eq('id', id)
+    setUpdatingId(null)
+    fetchPayments()
+  }
+
+  function formatMethod(method: string | null): string {
+    if (!method) return '—'
+    if (method === 'card') return '💳 Card'
+    if (method === 'bank_transfer') return '🏦 Bank Transfer'
+    return method
+  }
 
   const filters: { label: string; value: StatusFilter }[] = [
     { label: 'All', value: 'all' },
@@ -98,7 +128,7 @@ export default function PaymentsPage() {
       </div>
 
       {/* Summary cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white rounded-xl border border-gray-200 p-5 flex items-start gap-4">
           <div className="w-10 h-10 bg-green-50 rounded-lg flex items-center justify-center">
             <DollarSign size={18} className="text-green-600" />
@@ -132,10 +162,21 @@ export default function PaymentsPage() {
             </p>
           </div>
         </div>
+        <div className="bg-white rounded-xl border border-gray-200 p-5 flex items-start gap-4">
+          <div className="w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center">
+            <DollarSign size={18} className="text-red-600" />
+          </div>
+          <div>
+            <p className="text-sm text-gray-500">Failed</p>
+            <p className="text-xl font-bold text-gray-900 mt-0.5">
+              {loading ? '...' : formatCurrency(totalFailed)}
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Filters */}
-      <div className="flex gap-2">
+      <div className="flex gap-2 flex-wrap">
         {filters.map((f) => (
           <button
             key={f.value}
@@ -170,23 +211,32 @@ export default function PaymentsPage() {
                   Status
                 </th>
                 <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  Method
+                </th>
+                <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  Bank Ref
+                </th>
+                <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
                   Date
                 </th>
                 <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
                   Reference
+                </th>
+                <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  Actions
                 </th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="py-8 text-center text-gray-400">
+                  <td colSpan={9} className="py-8 text-center text-gray-400">
                     Loading...
                   </td>
                 </tr>
               ) : payments.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-8 text-center text-gray-400">
+                  <td colSpan={9} className="py-8 text-center text-gray-400">
                     No payments found
                   </td>
                 </tr>
@@ -214,6 +264,12 @@ export default function PaymentsPage() {
                         {payment.status}
                       </span>
                     </td>
+                    <td className="py-3 px-4 text-gray-600 text-xs whitespace-nowrap">
+                      {formatMethod(payment.method)}
+                    </td>
+                    <td className="py-3 px-4 text-gray-500 font-mono text-xs">
+                      {payment.bank_reference || '—'}
+                    </td>
                     <td className="py-3 px-4 text-gray-500">
                       {formatDate(payment.created_at)}
                     </td>
@@ -221,6 +277,28 @@ export default function PaymentsPage() {
                       {payment.stripe_payment_id
                         ? payment.stripe_payment_id.slice(0, 16) + '...'
                         : '—'}
+                    </td>
+                    <td className="py-3 px-4">
+                      {payment.status === 'pending' && (
+                        <div className="flex gap-1">
+                          <button
+                            onClick={() => updatePaymentStatus(payment.id, 'paid')}
+                            disabled={updatingId === payment.id}
+                            className="px-2 py-1 bg-green-100 hover:bg-green-200 text-green-700 rounded text-xs font-medium disabled:opacity-50 whitespace-nowrap"
+                            title="Mark as Paid"
+                          >
+                            ✓ Mark Paid
+                          </button>
+                          <button
+                            onClick={() => updatePaymentStatus(payment.id, 'failed')}
+                            disabled={updatingId === payment.id}
+                            className="px-2 py-1 bg-red-100 hover:bg-red-200 text-red-700 rounded text-xs font-medium disabled:opacity-50 whitespace-nowrap"
+                            title="Mark as Failed"
+                          >
+                            ✗ Fail
+                          </button>
+                        </div>
+                      )}
                     </td>
                   </tr>
                 ))

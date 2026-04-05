@@ -40,7 +40,7 @@ Create `.env.local` (already present in repo — do not commit to public repos):
 ```env
 NEXT_PUBLIC_SUPABASE_URL=https://nobxhhnhakawhbimrate.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_vnFb-ACqDwBiYt4PcKXC5Q_Ty8LRYoR
-SUPABASE_SERVICE_ROLE_KEY=sb_secret_Ti470YHzM_Hxvxz8GTfSzw_SfQKW5qC
+SUPABASE_SERVICE_ROLE_KEY=YOUR_SUPABASE_SERVICE_ROLE_KEY
 ```
 
 ### 3. Run dev server
