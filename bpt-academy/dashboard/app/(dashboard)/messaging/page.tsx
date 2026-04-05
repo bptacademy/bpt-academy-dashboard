@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import { formatDateTime } from '@/lib/utils'
 import { Send, Plus, X, Users } from 'lucide-react'
 import type { RealtimeChannel } from '@supabase/supabase-js'
+import { DIVISIONS, DIVISION_LABELS } from '@/lib/constants'
 
 interface Conversation {
   id: string
@@ -26,16 +27,6 @@ interface Profile {
   full_name: string
   email: string
   role: string
-}
-
-const DIVISIONS = ['amateur', 'semi_pro', 'pro', 'junior_9_11', 'junior_12_15', 'junior_15_18']
-const DIVISION_LABELS: Record<string, string> = {
-  amateur: 'Amateur',
-  semi_pro: 'Semi-Pro',
-  pro: 'Pro',
-  junior_9_11: 'Juniors 9-11',
-  junior_12_15: 'Juniors 12-15',
-  junior_15_18: 'Juniors 15-18',
 }
 
 export default function MessagingPage() {

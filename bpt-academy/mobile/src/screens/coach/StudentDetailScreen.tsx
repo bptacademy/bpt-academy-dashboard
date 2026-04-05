@@ -5,7 +5,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
-import { Profile, UserRole, SkillLevel, EnrollmentStatus } from '../../types';
+import { Profile, UserRole, SkillLevel, EnrollmentStatus, Division, DIVISION_LABELS } from '../../types';
 import BackHeader from '../../components/common/BackHeader';
 import { useAuth } from '../../context/AuthContext';
 
@@ -92,6 +92,11 @@ export default function StudentDetailScreen({ route, navigation }: any) {
   });
   const [goalSaving, setGoalSaving] = useState(false);
 
+  // Manual division override state
+  const [selectedDivision, setSelectedDivision] = useState<string>('');
+  const [selectedSkillLevel, setSelectedSkillLevel] = useState<string>('');
+  const [savingOverride, setSavingOverride] = useState(false);
+
   const fetchData = async () => {
     // Fetch profile
     const { data: profileData } = await supabase
@@ -102,6 +107,9 @@ export default function StudentDetailScreen({ route, navigation }: any) {
     if (profileData) {
       setStudent(profileData);
       setEditForm({ skill_level: profileData.skill_level ?? 'beginner', role: profileData.role });
+      // Initialise division override selectors from current student data
+      setSelectedDivision(profileData.division ?? '');
+      setSelectedSkillLevel(profileData.skill_level ?? '');
     }
 
     // Fetch enrollments with program info
@@ -279,6 +287,36 @@ export default function StudentDetailScreen({ route, navigation }: any) {
             fetchData();
           },
         },
+      ]
+    );
+  };
+
+  const handleManualOverride = () => {
+    if (!selectedDivision) return;
+    if (selectedDivision === 'amateur' && !selectedSkillLevel) {
+      Alert.alert('Select skill level', 'Please select Beginner, Intermediate or Advanced for Amateur division.');
+      return;
+    }
+    Alert.alert(
+      'Change Division',
+      `Move ${student?.full_name} to ${DIVISION_LABELS[selectedDivision as Division]}${selectedSkillLevel && selectedDivision === 'amateur' ? ` · ${selectedSkillLevel}` : ''}? This overrides the automatic promotion system.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Confirm', onPress: async () => {
+          setSavingOverride(true);
+          const update: Record<string, string | null> = { division: selectedDivision };
+          update.skill_level = selectedDivision === 'amateur' ? selectedSkillLevel : null;
+          await supabase.from('profiles').update(update).eq('id', student!.id);
+          await supabase.from('notifications').insert({
+            recipient_id: student!.id,
+            title: '📋 Division updated',
+            body: `Your division has been updated to ${DIVISION_LABELS[selectedDivision as Division]}${selectedSkillLevel && selectedDivision === 'amateur' ? ` · ${selectedSkillLevel}` : ''} by your coach.`,
+            type: 'promotion_result',
+          });
+          setSavingOverride(false);
+          Alert.alert('✅ Done', 'Division updated successfully.');
+          fetchData();
+        }},
       ]
     );
   };
@@ -488,6 +526,56 @@ export default function StudentDetailScreen({ route, navigation }: any) {
           >
             <Text style={styles.promoBtnText}>🎯 Manage Promotion Cycle</Text>
             <Text style={styles.promoBtnChevron}>›</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Manual Division Override */}
+        <View style={styles.overrideSection}>
+          <Text style={styles.overrideTitle}>⚙️ Manual Division Override</Text>
+          <Text style={styles.overrideSubtitle}>Override automatic promotion — use with caution</Text>
+
+          <Text style={styles.overrideLabel}>Division</Text>
+          <View style={styles.divisionGrid}>
+            {(['amateur', 'semi_pro', 'pro'] as const).map(div => (
+              <TouchableOpacity
+                key={div}
+                style={[styles.divChip, selectedDivision === div && styles.divChipActive]}
+                onPress={() => { setSelectedDivision(div); setSelectedSkillLevel(''); }}
+              >
+                <Text style={[styles.divChipText, selectedDivision === div && styles.divChipTextActive]}>
+                  {DIVISION_LABELS[div]}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          {selectedDivision === 'amateur' && (
+            <>
+              <Text style={styles.overrideLabel}>Skill Level</Text>
+              <View style={styles.divisionGrid}>
+                {(['beginner', 'intermediate', 'advanced'] as const).map(lvl => (
+                  <TouchableOpacity
+                    key={lvl}
+                    style={[styles.divChip, selectedSkillLevel === lvl && styles.divChipActive]}
+                    onPress={() => setSelectedSkillLevel(lvl)}
+                  >
+                    <Text style={[styles.divChipText, selectedSkillLevel === lvl && styles.divChipTextActive]}>
+                      {lvl.charAt(0).toUpperCase() + lvl.slice(1)}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </>
+          )}
+
+          <TouchableOpacity
+            style={[styles.overrideBtn, (!selectedDivision || savingOverride) && styles.overrideBtnDisabled]}
+            onPress={handleManualOverride}
+            disabled={!selectedDivision || savingOverride}
+          >
+            <Text style={styles.overrideBtnText}>
+              {savingOverride ? 'Saving...' : 'Apply Division Change'}
+            </Text>
           </TouchableOpacity>
         </View>
 
@@ -785,4 +873,18 @@ const styles = StyleSheet.create({
   },
   promoBtnText: { fontSize: 15, fontWeight: '600', color: '#16A34A' },
   promoBtnChevron: { fontSize: 22, color: '#D1D5DB' },
+
+  // Manual Division Override
+  overrideSection: { backgroundColor: '#FFFBEB', borderRadius: 14, padding: 16, margin: 16, marginTop: 0, borderWidth: 1, borderColor: '#FDE68A' },
+  overrideTitle: { fontSize: 15, fontWeight: '700', color: '#92400E', marginBottom: 2 },
+  overrideSubtitle: { fontSize: 12, color: '#B45309', marginBottom: 14 },
+  overrideLabel: { fontSize: 13, fontWeight: '600', color: '#374151', marginBottom: 8 },
+  divisionGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 14 },
+  divChip: { borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8, backgroundColor: '#F9FAFB' },
+  divChipActive: { backgroundColor: '#16A34A', borderColor: '#16A34A' },
+  divChipText: { fontSize: 13, color: '#374151' },
+  divChipTextActive: { color: '#FFFFFF', fontWeight: '600' },
+  overrideBtn: { backgroundColor: '#D97706', borderRadius: 10, paddingVertical: 14, alignItems: 'center', marginTop: 4 },
+  overrideBtnDisabled: { opacity: 0.5 },
+  overrideBtnText: { color: '#FFFFFF', fontSize: 15, fontWeight: '700' },
 });

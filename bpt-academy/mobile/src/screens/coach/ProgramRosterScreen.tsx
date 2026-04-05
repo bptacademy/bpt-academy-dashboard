@@ -33,6 +33,10 @@ export default function ProgramRosterScreen({ route, navigation }: any) {
   const [program, setProgram] = useState<Program | null>(null);
   const [enrollments, setEnrollments] = useState<EnrollmentRow[]>([]);
   const [refreshing, setRefreshing] = useState(false);
+  const [showEnroll, setShowEnroll] = useState(false);
+  const [availableStudents, setAvailableStudents] = useState<{id: string, full_name: string}[]>([]);
+  const [selectedStudentId, setSelectedStudentId] = useState('');
+  const [enrolling, setEnrolling] = useState(false);
 
   const fetchData = async () => {
     const [progRes, enrollRes] = await Promise.all([
@@ -49,6 +53,35 @@ export default function ProgramRosterScreen({ route, navigation }: any) {
 
   const onRefresh = async () => { setRefreshing(true); await fetchData(); setRefreshing(false); };
   useEffect(() => { fetchData(); }, [programId]);
+
+  const loadAvailableStudents = async () => {
+    const enrolledIds = enrollments.map(e => e.student.id);
+    const { data } = await supabase
+      .from('profiles')
+      .select('id, full_name')
+      .eq('role', 'student')
+      .order('full_name');
+    if (data) {
+      setAvailableStudents(data.filter(s => !enrolledIds.includes(s.id)));
+    }
+  };
+
+  const handleEnroll = async () => {
+    if (!selectedStudentId) return;
+    setEnrolling(true);
+    const { error } = await supabase.from('enrollments').upsert({
+      student_id: selectedStudentId,
+      program_id: programId,
+      status: 'active',
+    }, { onConflict: 'student_id,program_id' });
+    if (error) { Alert.alert('Error', error.message); }
+    else {
+      setSelectedStudentId('');
+      setShowEnroll(false);
+      fetchData();
+    }
+    setEnrolling(false);
+  };
 
   const updateStatus = (enrollment: EnrollmentRow, newStatus: EnrollmentStatus) => {
     Alert.alert(
@@ -155,6 +188,43 @@ export default function ProgramRosterScreen({ route, navigation }: any) {
       >
         <Text style={styles.attendanceBtnText}>📋 Take Attendance — Today</Text>
       </TouchableOpacity>
+
+      {/* Enroll student */}
+      <TouchableOpacity style={styles.enrollToggleBtn} onPress={() => { loadAvailableStudents(); setShowEnroll(v => !v); }}>
+        <Text style={styles.enrollToggleBtnText}>+ Enroll a Student</Text>
+      </TouchableOpacity>
+
+      {showEnroll && (
+        <View style={styles.enrollCard}>
+          <Text style={styles.enrollLabel}>Select Student</Text>
+          {availableStudents.length === 0 ? (
+            <Text style={styles.enrollEmpty}>All students are already enrolled.</Text>
+          ) : (
+            <>
+              <ScrollView style={styles.studentPicker} nestedScrollEnabled>
+                {availableStudents.map(s => (
+                  <TouchableOpacity
+                    key={s.id}
+                    style={[styles.studentOption, selectedStudentId === s.id && styles.studentOptionSelected]}
+                    onPress={() => setSelectedStudentId(s.id)}
+                  >
+                    <Text style={[styles.studentOptionText, selectedStudentId === s.id && styles.studentOptionTextSelected]}>
+                      {s.full_name}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+              <TouchableOpacity
+                style={[styles.enrollBtn, (!selectedStudentId || enrolling) && styles.enrollBtnDisabled]}
+                onPress={handleEnroll}
+                disabled={!selectedStudentId || enrolling}
+              >
+                <Text style={styles.enrollBtnText}>{enrolling ? 'Enrolling...' : 'Enroll Student'}</Text>
+              </TouchableOpacity>
+            </>
+          )}
+        </View>
+      )}
 
       {/* Stats row */}
       <View style={styles.statsRow}>
@@ -274,4 +344,17 @@ const styles = StyleSheet.create({
   actionChipText: { fontSize: 12, fontWeight: '600' },
   removeChip: { borderWidth: 1, borderColor: '#FCA5A5', borderRadius: 16, paddingHorizontal: 12, paddingVertical: 6 },
   removeChipText: { fontSize: 12, fontWeight: '600', color: '#DC2626' },
+  enrollToggleBtn: { backgroundColor: '#ECFDF5', margin: 16, marginBottom: 8, borderRadius: 10, paddingVertical: 12, alignItems: 'center', borderWidth: 1, borderColor: '#BBF7D0' },
+  enrollToggleBtnText: { color: '#16A34A', fontSize: 14, fontWeight: '700' },
+  enrollCard: { backgroundColor: '#FFFFFF', margin: 16, marginTop: 0, borderRadius: 12, padding: 14, borderWidth: 1, borderColor: '#E5E7EB' },
+  enrollLabel: { fontSize: 13, fontWeight: '600', color: '#374151', marginBottom: 8 },
+  enrollEmpty: { fontSize: 13, color: '#9CA3AF', textAlign: 'center', paddingVertical: 12 },
+  studentPicker: { maxHeight: 200, borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 8, marginBottom: 10 },
+  studentOption: { paddingHorizontal: 14, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
+  studentOptionSelected: { backgroundColor: '#ECFDF5' },
+  studentOptionText: { fontSize: 14, color: '#374151' },
+  studentOptionTextSelected: { color: '#16A34A', fontWeight: '700' },
+  enrollBtn: { backgroundColor: '#16A34A', borderRadius: 10, paddingVertical: 12, alignItems: 'center' },
+  enrollBtnDisabled: { opacity: 0.5 },
+  enrollBtnText: { color: '#FFFFFF', fontSize: 14, fontWeight: '700' },
 });

@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { formatDate, formatCurrency, getStatusBadgeColor } from '@/lib/utils'
 import { Plus, X, Users, Calendar } from 'lucide-react'
+import { DIVISIONS, DIVISION_LABELS } from '@/lib/constants'
 
 interface Program {
   id: string
@@ -33,7 +34,6 @@ interface Coach {
   full_name: string
 }
 
-const DIVISIONS = ['Beginner', 'Intermediate', 'Advanced', 'Elite', 'Pro']
 const STATUSES = ['active', 'inactive', 'completed']
 
 const emptyForm = {
@@ -58,7 +58,10 @@ export default function ProgramsPage() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [viewRoster, setViewRoster] = useState<Program | null>(null)
-  const [roster, setRoster] = useState<{ full_name: string; email: string; status: string }[]>([])
+  const [roster, setRoster] = useState<{ student_id: string; full_name: string; email: string; status: string }[]>([])
+  const [allStudents, setAllStudents] = useState<{id: string, full_name: string, email: string}[]>([])
+  const [enrollStudentId, setEnrollStudentId] = useState('')
+  const [enrolling, setEnrolling] = useState(false)
   const [viewSessions, setViewSessions] = useState<Program | null>(null)
   const [sessions, setSessions] = useState<Session[]>([])
   const [newSession, setNewSession] = useState({ scheduled_at: '', duration_minutes: '60', location: '' })
@@ -153,6 +156,7 @@ export default function ProgramsPage() {
     const { data } = await supabase
       .from('enrollments')
       .select(`
+        student_id,
         status,
         profiles!enrollments_student_id_fkey(full_name, email)
       `)
@@ -163,6 +167,7 @@ export default function ProgramsPage() {
         data.map((e: Record<string, unknown>) => {
           const p = e.profiles as { full_name?: string; email?: string } | null
           return {
+            student_id: String(e.student_id),
             full_name: p?.full_name || 'Unknown',
             email: p?.email || '',
             status: String(e.status),
@@ -170,6 +175,39 @@ export default function ProgramsPage() {
         })
       )
     }
+
+    const { data: students } = await supabase
+      .from('profiles')
+      .select('id, full_name, email')
+      .eq('role', 'student')
+      .order('full_name', { ascending: true })
+    setAllStudents(students || [])
+  }
+
+  async function enrollStudent() {
+    if (!viewRoster || !enrollStudentId) return
+    setEnrolling(true)
+    const supabase = createClient()
+    await supabase.from('enrollments').upsert({
+      student_id: enrollStudentId,
+      program_id: viewRoster.id,
+      status: 'active',
+    }, { onConflict: 'student_id,program_id' })
+    setEnrollStudentId('')
+    setEnrolling(false)
+    loadRoster(viewRoster)
+    fetchPrograms()
+  }
+
+  async function removeEnrollment(studentId: string) {
+    if (!viewRoster) return
+    const supabase = createClient()
+    await supabase.from('enrollments')
+      .update({ status: 'cancelled' })
+      .eq('student_id', studentId)
+      .eq('program_id', viewRoster.id)
+    loadRoster(viewRoster)
+    fetchPrograms()
   }
 
   async function loadSessions(program: Program) {
@@ -273,7 +311,7 @@ export default function ProgramsPage() {
                 {program.division && (
                   <p>
                     <span className="font-medium">Division:</span>{' '}
-                    {program.division}
+                    {DIVISION_LABELS[program.division as keyof typeof DIVISION_LABELS] ?? program.division}
                   </p>
                 )}
                 <p>
@@ -393,7 +431,7 @@ export default function ProgramsPage() {
                     <option value="">Select division</option>
                     {DIVISIONS.map((d) => (
                       <option key={d} value={d}>
-                        {d}
+                        {DIVISION_LABELS[d]}
                       </option>
                     ))}
                   </select>
@@ -533,7 +571,31 @@ export default function ProgramsPage() {
                 <X size={20} />
               </button>
             </div>
-            <div className="space-y-2 max-h-96 overflow-y-auto">
+            <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+              <p className="text-sm font-medium text-gray-700 mb-2">Enroll a Student</p>
+              <div className="flex gap-2">
+                <select
+                  value={enrollStudentId}
+                  onChange={(e) => setEnrollStudentId(e.target.value)}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 bg-white"
+                >
+                  <option value="">Select student...</option>
+                  {allStudents
+                    .filter(s => !roster.some(r => r.student_id === s.id && r.status === 'active'))
+                    .map(s => (
+                      <option key={s.id} value={s.id}>{s.full_name} ({s.email})</option>
+                    ))}
+                </select>
+                <button
+                  onClick={enrollStudent}
+                  disabled={!enrollStudentId || enrolling}
+                  className="px-3 py-2 bg-green-500 hover:bg-green-600 disabled:bg-green-300 text-white rounded-lg text-sm font-medium"
+                >
+                  {enrolling ? '...' : 'Enroll'}
+                </button>
+              </div>
+            </div>
+            <div className="space-y-2 max-h-72 overflow-y-auto">
               {roster.length === 0 ? (
                 <p className="text-gray-400 text-sm text-center py-4">
                   No enrolled students
@@ -550,11 +612,21 @@ export default function ProgramsPage() {
                       </p>
                       <p className="text-xs text-gray-500">{s.email}</p>
                     </div>
-                    <span
-                      className={`text-xs px-2 py-0.5 rounded-full capitalize ${getStatusBadgeColor(s.status)}`}
-                    >
-                      {s.status}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`text-xs px-2 py-0.5 rounded-full capitalize ${getStatusBadgeColor(s.status)}`}
+                      >
+                        {s.status}
+                      </span>
+                      {s.status === 'active' && (
+                        <button
+                          onClick={() => removeEnrollment(s.student_id)}
+                          className="text-red-400 hover:text-red-600 text-xs font-medium"
+                        >
+                          Remove
+                        </button>
+                      )}
+                    </div>
                   </div>
                 ))
               )}

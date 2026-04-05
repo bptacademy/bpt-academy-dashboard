@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { formatDate, getInitials, getRoleBadgeColor } from '@/lib/utils'
 import { Search, X } from 'lucide-react'
+import { DIVISIONS, DIVISION_LABELS, SKILL_LEVELS, SKILL_LEVEL_LABELS, getLevelLabel } from '@/lib/constants'
 
 type UserRole = 'student' | 'coach' | 'admin' | 'super_admin'
 
@@ -19,7 +20,6 @@ interface Profile {
   created_at: string
 }
 
-const DIVISIONS = ['Beginner', 'Intermediate', 'Advanced', 'Elite', 'Pro']
 const ROLES: UserRole[] = ['student', 'coach', 'admin', 'super_admin']
 
 export default function UsersPage() {
@@ -147,7 +147,7 @@ export default function UsersPage() {
           <option value="">All Divisions</option>
           {DIVISIONS.map((d) => (
             <option key={d} value={d}>
-              {d}
+              {DIVISION_LABELS[d]}
             </option>
           ))}
         </select>
@@ -233,7 +233,7 @@ export default function UsersPage() {
                       </span>
                     </td>
                     <td className="py-3 px-4 text-gray-500">
-                      {user.division || '—'}
+                      {getLevelLabel(user.division, user.skill_level)}
                     </td>
                     <td className="py-3 px-4 text-gray-500">
                       {user.ranking_points ?? '—'}
@@ -332,33 +332,53 @@ export default function UsersPage() {
                 <select
                   value={editData.division || ''}
                   onChange={(e) =>
-                    setEditData({ ...editData, division: e.target.value })
+                    setEditData({
+                      ...editData,
+                      division: e.target.value,
+                      skill_level: e.target.value !== 'amateur' ? null : editData.skill_level,
+                    })
                   }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
                 >
                   <option value="">No Division</option>
                   {DIVISIONS.map((d) => (
                     <option key={d} value={d}>
-                      {d}
+                      {DIVISION_LABELS[d]}
                     </option>
                   ))}
                 </select>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Skill Level
-                </label>
-                <input
-                  type="text"
-                  value={editData.skill_level || ''}
-                  onChange={(e) =>
-                    setEditData({ ...editData, skill_level: e.target.value })
-                  }
-                  placeholder="e.g. Beginner, Intermediate"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-                />
-              </div>
+              {editData.division === 'amateur' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Skill Level
+                  </label>
+                  <select
+                    value={editData.skill_level || ''}
+                    onChange={(e) =>
+                      setEditData({ ...editData, skill_level: e.target.value })
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                  >
+                    <option value="">No Skill Level</option>
+                    {SKILL_LEVELS.map((s) => (
+                      <option key={s} value={s}>
+                        {SKILL_LEVEL_LABELS[s]}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {editData.role === 'student' && (
+                <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                  <p className="text-xs font-medium text-amber-800 mb-1">⚠️ Manual Division Change</p>
+                  <p className="text-xs text-amber-700">
+                    Changing division here overrides the automatic promotion system. Use this to manually promote or demote a student.
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Role quick actions */}

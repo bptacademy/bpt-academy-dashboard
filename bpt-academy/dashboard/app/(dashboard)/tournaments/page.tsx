@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { formatDate, formatCurrency } from '@/lib/utils'
 import { Plus, X, Users, Trophy, ChevronDown, ChevronUp } from 'lucide-react'
+import { DIVISIONS, DIVISION_LABELS } from '@/lib/constants'
 
 interface Tournament {
   id: string
@@ -46,19 +47,6 @@ const STATUS_LABEL: Record<TournamentStatus, string> = {
   completed: 'Completed',
 }
 
-const DIVISIONS: { value: string; label: string }[] = [
-  { value: 'amateur', label: 'Amateur' },
-  { value: 'semi_pro', label: 'Semi-Pro' },
-  { value: 'pro', label: 'Pro' },
-  { value: 'junior_9_11', label: 'Juniors 9-11' },
-  { value: 'junior_12_15', label: 'Juniors 12-15' },
-  { value: 'junior_15_18', label: 'Juniors 15-18' },
-]
-
-const DIVISION_LABEL: Record<string, string> = Object.fromEntries(
-  DIVISIONS.map((d) => [d.value, d.label])
-)
-
 const REG_STATUS_ORDER: Registration['status'][] = ['pending', 'confirmed', 'cancelled']
 
 const REG_STATUS_BADGE: Record<Registration['status'], string> = {
@@ -91,6 +79,9 @@ export default function TournamentsPage() {
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [registrations, setRegistrations] = useState<Registration[]>([])
   const [regLoading, setRegLoading] = useState(false)
+  const [editingTournament, setEditingTournament] = useState<Tournament | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<Tournament | null>(null)
+  const [deleting, setDeleting] = useState(false)
 
   // Confirm status change dialog
   const [pendingStatusChange, setPendingStatusChange] = useState<{
@@ -220,6 +211,32 @@ export default function TournamentsPage() {
     }
   }
 
+  function openEdit(tournament: Tournament) {
+    setEditingTournament(tournament)
+    setForm({
+      title: tournament.title,
+      description: tournament.description || '',
+      start_date: tournament.start_date?.split('T')[0] || '',
+      end_date: tournament.end_date?.split('T')[0] || '',
+      registration_deadline: tournament.registration_deadline?.split('T')[0] || '',
+      location: tournament.location || '',
+      entry_fee_gbp: tournament.entry_fee_gbp != null ? String(tournament.entry_fee_gbp) : '',
+      max_participants: tournament.max_participants != null ? String(tournament.max_participants) : '',
+      eligible_divisions: tournament.eligible_divisions || [],
+    })
+    setShowForm(true)
+  }
+
+  async function handleDelete() {
+    if (!deleteTarget) return
+    setDeleting(true)
+    const supabase = createClient()
+    await supabase.from('tournaments').delete().eq('id', deleteTarget.id)
+    setDeleting(false)
+    setDeleteTarget(null)
+    fetchTournaments()
+  }
+
   async function handleSave() {
     setSaving(true)
     setError('')
@@ -228,7 +245,6 @@ export default function TournamentsPage() {
     const payload = {
       title: form.title,
       description: form.description || null,
-      status: 'upcoming' as TournamentStatus,
       start_date: form.start_date,
       end_date: form.end_date || null,
       registration_deadline: form.registration_deadline || null,
@@ -238,16 +254,18 @@ export default function TournamentsPage() {
       eligible_divisions: form.eligible_divisions.length > 0 ? form.eligible_divisions : null,
     }
 
-    const { error: err } = await supabase.from('tournaments').insert(payload)
-    if (err) {
-      setError(err.message)
-      setSaving(false)
-      return
+    if (editingTournament) {
+      const { error: err } = await supabase.from('tournaments').update(payload).eq('id', editingTournament.id)
+      if (err) { setError(err.message); setSaving(false); return }
+    } else {
+      const { error: err } = await supabase.from('tournaments').insert({ ...payload, status: 'upcoming' as TournamentStatus })
+      if (err) { setError(err.message); setSaving(false); return }
     }
 
     setSaving(false)
     setShowForm(false)
     setForm(emptyForm)
+    setEditingTournament(null)
     fetchTournaments()
   }
 
@@ -270,6 +288,7 @@ export default function TournamentsPage() {
         </div>
         <button
           onClick={() => {
+            setEditingTournament(null)
             setForm(emptyForm)
             setShowForm(true)
           }}
@@ -396,7 +415,7 @@ export default function TournamentsPage() {
                             key={d}
                             className="inline-flex px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full text-xs"
                           >
-                            {DIVISION_LABEL[d] ?? d}
+                            {DIVISION_LABELS[d as keyof typeof DIVISION_LABELS] ?? d}
                           </span>
                         ))}
                       </div>
@@ -405,7 +424,15 @@ export default function TournamentsPage() {
                 </div>
 
                 {/* View Registrations button */}
-                <div className="mt-4 pt-3 border-t border-gray-100 flex justify-end">
+                <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between">
+                  <div className="flex gap-3">
+                    <button onClick={() => openEdit(tournament)} className="text-sm text-blue-600 hover:text-blue-800 font-medium">
+                      Edit
+                    </button>
+                    <button onClick={() => setDeleteTarget(tournament)} className="text-sm text-red-500 hover:text-red-700 font-medium">
+                      Delete
+                    </button>
+                  </div>
                   <button
                     onClick={() => loadRegistrations(tournament.id)}
                     className="flex items-center gap-1.5 text-sm text-green-600 hover:text-green-800 font-medium"
@@ -464,12 +491,12 @@ export default function TournamentsPage() {
         </div>
       )}
 
-      {/* New Tournament Modal */}
+      {/* New / Edit Tournament Modal */}
       {showForm && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 overflow-y-auto">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 my-4">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-semibold text-gray-900">New Tournament</h2>
+              <h2 className="text-lg font-semibold text-gray-900">{editingTournament ? 'Edit Tournament' : 'New Tournament'}</h2>
               <button
                 onClick={() => setShowForm(false)}
                 className="text-gray-400 hover:text-gray-600"
@@ -601,16 +628,16 @@ export default function TournamentsPage() {
                 <div className="grid grid-cols-2 gap-2">
                   {DIVISIONS.map((d) => (
                     <label
-                      key={d.value}
+                      key={d}
                       className="flex items-center gap-2 cursor-pointer text-sm text-gray-700"
                     >
                       <input
                         type="checkbox"
-                        checked={form.eligible_divisions.includes(d.value)}
-                        onChange={() => toggleDivision(d.value)}
+                        checked={form.eligible_divisions.includes(d)}
+                        onChange={() => toggleDivision(d)}
                         className="w-4 h-4 text-green-500 rounded border-gray-300 focus:ring-green-500"
                       />
-                      {d.label}
+                      {DIVISION_LABELS[d]}
                     </label>
                   ))}
                 </div>
@@ -629,7 +656,26 @@ export default function TournamentsPage() {
                 disabled={saving || !form.title || !form.start_date}
                 className="flex-1 px-4 py-2 bg-green-500 hover:bg-green-600 disabled:bg-green-300 text-white rounded-lg text-sm font-medium"
               >
-                {saving ? 'Saving...' : 'Create Tournament'}
+                {saving ? 'Saving...' : editingTournament ? 'Save Changes' : 'Create Tournament'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {deleteTarget && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-2">Delete Tournament</h2>
+            <p className="text-sm text-gray-500 mb-6">
+              Are you sure you want to delete <span className="font-medium text-gray-900">{deleteTarget.title}</span>? This cannot be undone.
+            </p>
+            <div className="flex gap-3">
+              <button onClick={() => setDeleteTarget(null)} className="flex-1 px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">
+                Cancel
+              </button>
+              <button onClick={handleDelete} disabled={deleting} className="flex-1 px-4 py-2 bg-red-500 hover:bg-red-600 disabled:bg-red-300 text-white rounded-lg text-sm font-medium">
+                {deleting ? 'Deleting...' : 'Delete'}
               </button>
             </div>
           </div>
