@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import {
   View, Text, FlatList, StyleSheet, TextInput,
   TouchableOpacity, KeyboardAvoidingView, Platform, ActivityIndicator,
-  Keyboard,
+  Alert,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
@@ -31,18 +31,16 @@ export default function ChatScreen({ route, navigation }: any) {
   const channelRef                    = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
   const isDivisionGroup = conversationType === 'division_group';
+  const isAdmin = profile?.role === 'admin' || profile?.role === 'super_admin' || profile?.role === 'coach';
 
   // ── Fetch member count for division channels ───────────────────────────────
   useEffect(() => {
     if (!isDivisionGroup) return;
-    const fetchMemberCount = async () => {
-      const { count } = await supabase
-        .from('conversation_members')
-        .select('profile_id', { count: 'exact', head: true })
-        .eq('conversation_id', conversationId);
-      if (count !== null) setMemberCount(count);
-    };
-    fetchMemberCount();
+    supabase
+      .from('conversation_members')
+      .select('profile_id', { count: 'exact', head: true })
+      .eq('conversation_id', conversationId)
+      .then(({ count }) => { if (count !== null) setMemberCount(count); });
   }, [conversationId, isDivisionGroup]);
 
   // ── Fetch all messages ─────────────────────────────────────────────────────
@@ -59,30 +57,17 @@ export default function ChatScreen({ route, navigation }: any) {
 
   // ── Real-time subscription ─────────────────────────────────────────────────
   const subscribeRealtime = useCallback(() => {
-    if (channelRef.current) {
-      channelRef.current.unsubscribe();
-      channelRef.current = null;
-    }
+    if (channelRef.current) { channelRef.current.unsubscribe(); channelRef.current = null; }
 
     const channel = supabase
       .channel(`chat_${conversationId}_${Date.now()}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'messages',
-          filter: `conversation_id=eq.${conversationId}`,
-        },
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${conversationId}` },
         (payload) => {
           const newMsg = payload.new as Message;
           setMessages((prev) => {
             if (prev.some((m) => m.id === newMsg.id)) return prev;
             const optimisticIdx = prev.findIndex(
-              (m) =>
-                m.id.startsWith('optimistic_') &&
-                m.sender_id === newMsg.sender_id &&
-                m.content === newMsg.content
+              (m) => m.id.startsWith('optimistic_') && m.sender_id === newMsg.sender_id && m.content === newMsg.content
             );
             if (optimisticIdx !== -1) {
               const next = [...prev];
@@ -94,35 +79,30 @@ export default function ChatScreen({ route, navigation }: any) {
           setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
         }
       )
-      .subscribe((status) => {
-        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-          fetchMessages();
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'messages', filter: `conversation_id=eq.${conversationId}` },
+        (payload) => {
+          const deleted = payload.old as { id: string };
+          setMessages((prev) => prev.filter((m) => m.id !== deleted.id));
         }
+      )
+      .subscribe((status) => {
+        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') fetchMessages();
       });
 
     channelRef.current = channel;
   }, [conversationId, fetchMessages]);
 
-  // ── Mount / unmount ────────────────────────────────────────────────────────
   useEffect(() => {
     fetchMessages();
     subscribeRealtime();
-    return () => {
-      if (channelRef.current) {
-        channelRef.current.unsubscribe();
-        channelRef.current = null;
-      }
-    };
+    return () => { if (channelRef.current) { channelRef.current.unsubscribe(); channelRef.current = null; } };
   }, [conversationId]);
 
-  // ── Re-subscribe on focus ──────────────────────────────────────────────────
-  useFocusEffect(
-    useCallback(() => {
-      fetchMessages();
-      subscribeRealtime();
-      return () => {};
-    }, [fetchMessages, subscribeRealtime])
-  );
+  useFocusEffect(useCallback(() => {
+    fetchMessages();
+    subscribeRealtime();
+    return () => {};
+  }, [fetchMessages, subscribeRealtime]));
 
   // ── Send message ───────────────────────────────────────────────────────────
   const sendMessage = async () => {
@@ -144,12 +124,30 @@ export default function ChatScreen({ route, navigation }: any) {
       .from('messages')
       .insert({ conversation_id: conversationId, sender_id: profile!.id, content });
 
-    if (error) {
-      setMessages((prev) => prev.filter((m) => m.id !== optimisticMsg.id));
-      setText(content);
-    }
-
+    if (error) { setMessages((prev) => prev.filter((m) => m.id !== optimisticMsg.id)); setText(content); }
     setSending(false);
+  };
+
+  // ── Delete message (long-press) ────────────────────────────────────────────
+  const handleLongPress = (item: Message) => {
+    const isOwn = item.sender_id === profile?.id;
+    if (!isOwn && !isAdmin) return; // only own messages or admin
+
+    Alert.alert(
+      'Delete Message',
+      'Are you sure you want to delete this message?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            await supabase.from('messages').delete().eq('id', item.id);
+            setMessages((prev) => prev.filter((m) => m.id !== item.id));
+          },
+        },
+      ]
+    );
   };
 
   // ── Render helpers ─────────────────────────────────────────────────────────
@@ -167,35 +165,37 @@ export default function ChatScreen({ route, navigation }: any) {
         {showDate && (
           <View style={styles.dateSeparator}>
             <Text style={styles.dateSeparatorText}>
-              {new Date(item.created_at).toLocaleDateString('en-GB', {
-                weekday: 'long', day: 'numeric', month: 'long',
-              })}
+              {new Date(item.created_at).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}
             </Text>
           </View>
         )}
-        <View style={[styles.msgRow, isMe && styles.msgRowMe]}>
-          {!isMe && (
-            <View style={styles.msgAvatar}>
-              <Text style={styles.msgAvatarText}>
-                {(item.sender?.full_name ?? title ?? 'U').charAt(0).toUpperCase()}
+        <TouchableOpacity
+          onLongPress={() => handleLongPress(item)}
+          delayLongPress={500}
+          activeOpacity={0.85}
+        >
+          <View style={[styles.msgRow, isMe && styles.msgRowMe]}>
+            {!isMe && (
+              <View style={styles.msgAvatar}>
+                <Text style={styles.msgAvatarText}>
+                  {(item.sender?.full_name ?? title ?? 'U').charAt(0).toUpperCase()}
+                </Text>
+              </View>
+            )}
+            <View style={[styles.bubble, isMe ? styles.bubbleMe : styles.bubbleThem]}>
+              <Text style={[styles.bubbleText, isMe && styles.bubbleTextMe]}>{item.content}</Text>
+              <Text style={[styles.bubbleTime, isMe && styles.bubbleTimeMe]}>
+                {formatTime(item.created_at)}
               </Text>
             </View>
-          )}
-          <View style={[styles.bubble, isMe ? styles.bubbleMe : styles.bubbleThem]}>
-            <Text style={[styles.bubbleText, isMe && styles.bubbleTextMe]}>{item.content}</Text>
-            <Text style={[styles.bubbleTime, isMe && styles.bubbleTimeMe]}>
-              {formatTime(item.created_at)}
-            </Text>
           </View>
-        </View>
+        </TouchableOpacity>
       </>
     );
   };
 
   if (loading) return (
-    <View style={styles.loading}>
-      <ActivityIndicator size="large" color="#16A34A" />
-    </View>
+    <View style={styles.loading}><ActivityIndicator size="large" color="#16A34A" /></View>
   );
 
   return (
@@ -210,11 +210,7 @@ export default function ChatScreen({ route, navigation }: any) {
         </View>
       )}
 
-      <KeyboardAvoidingView
-        style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={0}
-      >
+      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'} keyboardVerticalOffset={0}>
         <FlatList
           ref={flatListRef}
           data={messages}
@@ -263,40 +259,18 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F9FAFB' },
   flex: { flex: 1 },
   loading: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-
-  divisionBanner: {
-    backgroundColor: '#FFFBEB',
-    borderBottomWidth: 1,
-    borderBottomColor: '#FDE68A',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    alignItems: 'center',
-  },
-  divisionBannerText: {
-    fontSize: 13,
-    color: '#92400E',
-    fontWeight: '500',
-  },
-
+  divisionBanner: { backgroundColor: '#FFFBEB', borderBottomWidth: 1, borderBottomColor: '#FDE68A', paddingVertical: 8, paddingHorizontal: 16, alignItems: 'center' },
+  divisionBannerText: { fontSize: 13, color: '#92400E', fontWeight: '500' },
   messageList: { padding: 16, paddingBottom: 8 },
   dateSeparator: { alignItems: 'center', marginVertical: 16 },
-  dateSeparatorText: {
-    fontSize: 12, color: '#9CA3AF', backgroundColor: '#F3F4F6',
-    paddingHorizontal: 12, paddingVertical: 4, borderRadius: 12,
-  },
+  dateSeparatorText: { fontSize: 12, color: '#9CA3AF', backgroundColor: '#F3F4F6', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 12 },
   msgRow: { flexDirection: 'row', alignItems: 'flex-end', marginBottom: 8, gap: 8 },
   msgRowMe: { flexDirection: 'row-reverse' },
-  msgAvatar: {
-    width: 30, height: 30, borderRadius: 15, backgroundColor: '#6B7280',
-    alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-  },
+  msgAvatar: { width: 30, height: 30, borderRadius: 15, backgroundColor: '#6B7280', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
   msgAvatarText: { color: '#FFF', fontSize: 12, fontWeight: '700' },
   bubble: { maxWidth: '75%', borderRadius: 18, paddingHorizontal: 14, paddingVertical: 10 },
   bubbleMe: { backgroundColor: '#16A34A', borderBottomRightRadius: 4 },
-  bubbleThem: {
-    backgroundColor: '#FFFFFF', borderBottomLeftRadius: 4,
-    borderWidth: 1, borderColor: '#E5E7EB',
-  },
+  bubbleThem: { backgroundColor: '#FFFFFF', borderBottomLeftRadius: 4, borderWidth: 1, borderColor: '#E5E7EB' },
   bubbleText: { fontSize: 15, color: '#111827', lineHeight: 20 },
   bubbleTextMe: { color: '#FFFFFF' },
   bubbleTime: { fontSize: 11, color: '#9CA3AF', marginTop: 4, textAlign: 'right' },
@@ -304,20 +278,9 @@ const styles = StyleSheet.create({
   empty: { alignItems: 'center', paddingTop: 60 },
   emptyIcon: { fontSize: 48, marginBottom: 12 },
   emptyText: { color: '#9CA3AF', fontSize: 15 },
-  inputRow: {
-    flexDirection: 'row', alignItems: 'flex-end', paddingHorizontal: 12,
-    paddingTop: 10, gap: 10, backgroundColor: '#FFFFFF',
-    borderTopWidth: 1, borderTopColor: '#E5E7EB',
-  },
-  input: {
-    flex: 1, borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 22,
-    paddingHorizontal: 16, paddingVertical: 10, fontSize: 15,
-    color: '#111827', maxHeight: 120, backgroundColor: '#F9FAFB',
-  },
-  sendBtn: {
-    width: 44, height: 44, borderRadius: 22, backgroundColor: '#16A34A',
-    alignItems: 'center', justifyContent: 'center',
-  },
+  inputRow: { flexDirection: 'row', alignItems: 'flex-end', paddingHorizontal: 12, paddingTop: 10, gap: 10, backgroundColor: '#FFFFFF', borderTopWidth: 1, borderTopColor: '#E5E7EB' },
+  input: { flex: 1, borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 22, paddingHorizontal: 16, paddingVertical: 10, fontSize: 15, color: '#111827', maxHeight: 120, backgroundColor: '#F9FAFB' },
+  sendBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#16A34A', alignItems: 'center', justifyContent: 'center' },
   sendBtnDisabled: { opacity: 0.4 },
   sendIcon: { color: '#FFFFFF', fontSize: 16 },
 });

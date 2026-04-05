@@ -42,25 +42,25 @@ export default function DashboardPage() {
         .select('*', { count: 'exact', head: true })
         .eq('role', 'student')
 
-      // Active programs
+      // Active programs — use is_active (boolean), not status
       const { count: activeProgramCount } = await supabase
         .from('programs')
         .select('*', { count: 'exact', head: true })
-        .eq('status', 'active')
+        .eq('is_active', true)
 
-      // Revenue this month
+      // Revenue this month — column is amount_gbp
       const startOfMonth = new Date()
       startOfMonth.setDate(1)
       startOfMonth.setHours(0, 0, 0, 0)
 
       const { data: monthPayments } = await supabase
         .from('payments')
-        .select('amount')
+        .select('amount_gbp')
         .eq('status', 'paid')
         .gte('created_at', startOfMonth.toISOString())
 
       const revenueThisMonth =
-        (monthPayments ?? []).reduce((sum: number, p: { amount: number }) => sum + (p.amount || 0), 0)
+        (monthPayments ?? []).reduce((sum: number, p: { amount_gbp: number }) => sum + (p.amount_gbp || 0), 0)
 
       // Upcoming sessions
       const { count: upcomingCount } = await supabase
@@ -90,7 +90,6 @@ export default function DashboardPage() {
 
       if (enrollments) {
         setRecentEnrollments(
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (enrollments as any[]).map((e) => ({
             id: String(e.id),
             student_name: e.profiles?.full_name || 'Unknown',
@@ -101,7 +100,7 @@ export default function DashboardPage() {
         )
       }
 
-      // Revenue last 6 months
+      // Revenue last 6 months — column is amount_gbp
       const months: RevenueMonth[] = []
       for (let i = 5; i >= 0; i--) {
         const d = new Date()
@@ -111,19 +110,18 @@ export default function DashboardPage() {
 
         const { data: payments } = await supabase
           .from('payments')
-          .select('amount')
+          .select('amount_gbp')
           .eq('status', 'paid')
           .gte('created_at', start.toISOString())
           .lte('created_at', end.toISOString())
 
-        const revenue = (payments ?? []).reduce((sum: number, p: { amount: number }) => sum + (p.amount || 0), 0)
+        const revenue = (payments ?? []).reduce((sum: number, p: { amount_gbp: number }) => sum + (p.amount_gbp || 0), 0)
         months.push({
           month: d.toLocaleString('default', { month: 'short' }),
           revenue,
         })
       }
       setRevenueData(months)
-
       setLoading(false)
     }
 
@@ -141,86 +139,45 @@ export default function DashboardPage() {
 
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        <StatsCard
-          title="Total Students"
-          value={loading ? '...' : stats.totalStudents}
-          icon={Users}
-          description="Registered students"
-        />
-        <StatsCard
-          title="Active Programs"
-          value={loading ? '...' : stats.activePrograms}
-          icon={BookOpen}
-          description="Currently running"
-        />
-        <StatsCard
-          title="Revenue This Month"
-          value={loading ? '...' : formatCurrency(stats.revenueThisMonth)}
-          icon={DollarSign}
-          description="Paid payments"
-        />
-        <StatsCard
-          title="Upcoming Sessions"
-          value={loading ? '...' : stats.upcomingSessions}
-          icon={Calendar}
-          description="Scheduled sessions"
-        />
+        <StatsCard title="Total Students" value={loading ? '...' : stats.totalStudents} icon={Users} description="Registered students" />
+        <StatsCard title="Active Programs" value={loading ? '...' : stats.activePrograms} icon={BookOpen} description="Currently running" />
+        <StatsCard title="Revenue This Month" value={loading ? '...' : formatCurrency(stats.revenueThisMonth)} icon={DollarSign} description="Paid payments" />
+        <StatsCard title="Upcoming Sessions" value={loading ? '...' : stats.upcomingSessions} icon={Calendar} description="Scheduled sessions" />
       </div>
 
       {/* Quick Actions */}
       <div className="flex flex-wrap gap-3">
-        <Link
-          href="/users"
-          className="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-        >
-          <Plus size={16} />
-          Add Student
+        <Link href="/users?add=student"
+          className="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+          <Plus size={16} />Add Student
         </Link>
-        <Link
-          href="/programs"
-          className="flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-        >
-          <BookOpen size={16} />
-          New Program
+        <Link href="/programs"
+          className="flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+          <BookOpen size={16} />New Program
         </Link>
-        <Link
-          href="/messaging"
-          className="flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-        >
-          <Megaphone size={16} />
-          Send Announcement
+        <Link href="/messaging"
+          className="flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+          <Megaphone size={16} />Send Announcement
         </Link>
       </div>
 
       {/* Charts & Table */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        {/* Revenue Chart */}
         <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <h2 className="font-semibold text-gray-900 mb-4">
-            Revenue — Last 6 Months
-          </h2>
+          <h2 className="font-semibold text-gray-900 mb-4">Revenue — Last 6 Months</h2>
           {loading ? (
-            <div className="h-[300px] flex items-center justify-center text-gray-400">
-              Loading chart...
-            </div>
+            <div className="h-[300px] flex items-center justify-center text-gray-400">Loading chart...</div>
           ) : (
             <RevenueChart data={revenueData} />
           )}
         </div>
 
-        {/* Recent Enrollments */}
         <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <h2 className="font-semibold text-gray-900 mb-4">
-            Recent Enrollments
-          </h2>
+          <h2 className="font-semibold text-gray-900 mb-4">Recent Enrollments</h2>
           {loading ? (
-            <div className="py-8 text-center text-gray-400 text-sm">
-              Loading...
-            </div>
+            <div className="py-8 text-center text-gray-400 text-sm">Loading...</div>
           ) : recentEnrollments.length === 0 ? (
-            <div className="py-8 text-center text-gray-400 text-sm">
-              No enrollments yet
-            </div>
+            <div className="py-8 text-center text-gray-400 text-sm">No enrollments yet</div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
@@ -241,9 +198,7 @@ export default function DashboardPage() {
                       <td className="py-2 px-3">
                         <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium capitalize ${
                           e.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
-                        }`}>
-                          {e.status}
-                        </span>
+                        }`}>{e.status}</span>
                       </td>
                     </tr>
                   ))}

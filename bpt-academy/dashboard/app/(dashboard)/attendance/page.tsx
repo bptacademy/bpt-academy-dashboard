@@ -22,7 +22,18 @@ interface Student {
   full_name: string
 }
 
-type AttendanceStatus = 'present' | 'absent' | 'late'
+// UI status — maps to DB: present/late → attended=true, absent → attended=false
+type AttendanceStatus = 'present' | 'late' | 'absent'
+
+// Map UI status to boolean for DB
+function toBool(status: AttendanceStatus): boolean {
+  return status !== 'absent'
+}
+
+// Map DB boolean back to UI status (we store late separately via feedback_text)
+function fromBool(attended: boolean): AttendanceStatus {
+  return attended ? 'present' : 'absent'
+}
 
 export default function AttendancePage() {
   const [programs, setPrograms] = useState<Program[]>([])
@@ -33,6 +44,7 @@ export default function AttendancePage() {
   const [attendance, setAttendance] = useState<Record<string, AttendanceStatus>>({})
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [saveError, setSaveError] = useState('')
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
@@ -66,10 +78,12 @@ export default function AttendancePage() {
 
   async function handleSessionChange(sessionId: string) {
     setSelectedSession(sessionId)
+    setSaveError('')
     if (!sessionId || !selectedProgram) return
     setLoading(true)
     const supabase = createClient()
 
+    // Load enrolled students
     const { data: enrollments } = await supabase
       .from('enrollments')
       .select('student_id, profiles!enrollments_student_id_fkey(id, full_name)')
@@ -85,32 +99,48 @@ export default function AttendancePage() {
     }
     setStudents(studentList)
 
+    // Load existing attendance for this session
     const { data: existing } = await supabase
       .from('session_attendance')
-      .select('student_id, status')
+      .select('student_id, attended')
       .eq('session_id', sessionId)
 
     const map: Record<string, AttendanceStatus> = {}
-    for (const a of existing || []) map[a.student_id] = a.status as AttendanceStatus
-    for (const s of studentList) if (!map[s.id]) map[s.id] = 'absent'
+    for (const a of existing || []) {
+      map[a.student_id] = fromBool(a.attended)
+    }
+    // Default absent for students without a record
+    for (const s of studentList) {
+      if (!map[s.id]) map[s.id] = 'absent'
+    }
     setAttendance(map)
     setLoading(false)
   }
 
   async function saveAttendance() {
-    if (!selectedSession) return
+    if (!selectedSession || students.length === 0) return
     setSaving(true)
+    setSaveError('')
     const supabase = createClient()
+
     const records = students.map((s) => ({
       session_id: selectedSession,
       student_id: s.id,
-      status: attendance[s.id] || 'absent',
+      attended: toBool(attendance[s.id] || 'absent'),
+      marked_at: new Date().toISOString(),
     }))
+
     const { error } = await supabase
       .from('session_attendance')
       .upsert(records, { onConflict: 'session_id,student_id' })
+
     setSaving(false)
-    if (!error) { setSaved(true); setTimeout(() => setSaved(false), 3000) }
+    if (error) {
+      setSaveError('Save failed: ' + error.message)
+    } else {
+      setSaved(true)
+      setTimeout(() => setSaved(false), 3000)
+    }
   }
 
   const statusConfig = {
@@ -118,6 +148,10 @@ export default function AttendancePage() {
     late:    { label: 'Late',    color: 'bg-yellow-100 text-yellow-700 border-yellow-200', icon: Clock },
     absent:  { label: 'Absent',  color: 'bg-red-100 text-red-700 border-red-200', icon: XCircle },
   }
+
+  const presentCount = Object.values(attendance).filter(s => s === 'present').length
+  const lateCount    = Object.values(attendance).filter(s => s === 'late').length
+  const absentCount  = Object.values(attendance).filter(s => s === 'absent').length
 
   return (
     <div className="space-y-6">
@@ -130,25 +164,17 @@ export default function AttendancePage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Program</label>
-            <select
-              value={selectedProgram}
-              onChange={(e) => handleProgramChange(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 bg-white"
-            >
+            <select value={selectedProgram} onChange={(e) => handleProgramChange(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 bg-white">
               <option value="">Select a program...</option>
-              {programs.map((p) => (
-                <option key={p.id} value={p.id}>{p.title}</option>
-              ))}
+              {programs.map((p) => <option key={p.id} value={p.id}>{p.title}</option>)}
             </select>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Session</label>
-            <select
-              value={selectedSession}
-              onChange={(e) => handleSessionChange(e.target.value)}
+            <select value={selectedSession} onChange={(e) => handleSessionChange(e.target.value)}
               disabled={!selectedProgram || sessions.length === 0}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 bg-white disabled:opacity-50"
-            >
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 bg-white disabled:opacity-50">
               <option value="">
                 {selectedProgram && sessions.length === 0 ? 'No sessions — add in Programs' : 'Select a session...'}
               </option>
@@ -169,16 +195,15 @@ export default function AttendancePage() {
               Student Attendance ({students.length} students)
             </h2>
             <div className="flex items-center gap-3">
+              {saveError && <span className="text-sm text-red-600">{saveError}</span>}
               {saved && <span className="text-sm text-green-600 font-medium">✓ Saved</span>}
-              <button
-                onClick={saveAttendance}
-                disabled={saving || students.length === 0}
-                className="px-4 py-2 bg-green-500 hover:bg-green-600 disabled:bg-green-300 text-white rounded-lg text-sm font-medium"
-              >
+              <button onClick={saveAttendance} disabled={saving || students.length === 0}
+                className="px-4 py-2 bg-green-500 hover:bg-green-600 disabled:bg-green-300 text-white rounded-lg text-sm font-medium">
                 {saving ? 'Saving...' : 'Save Attendance'}
               </button>
             </div>
           </div>
+
           {loading ? (
             <div className="py-8 text-center text-gray-400">Loading students...</div>
           ) : students.length === 0 ? (
@@ -188,7 +213,7 @@ export default function AttendancePage() {
               <thead>
                 <tr className="bg-gray-50 border-b border-gray-200">
                   <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Student</th>
-                  <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                  <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Attendance</th>
                 </tr>
               </thead>
               <tbody>
@@ -203,13 +228,11 @@ export default function AttendancePage() {
                             const cfg = statusConfig[status]
                             const Icon = cfg.icon
                             return (
-                              <button
-                                key={status}
+                              <button key={status}
                                 onClick={() => setAttendance(prev => ({ ...prev, [student.id]: status }))}
                                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
                                   current === status ? cfg.color : 'bg-white text-gray-400 border-gray-200 hover:border-gray-300'
-                                }`}
-                              >
+                                }`}>
                                 <Icon size={14} />{cfg.label}
                               </button>
                             )
@@ -227,16 +250,16 @@ export default function AttendancePage() {
 
       {selectedSession && students.length > 0 && (
         <div className="grid grid-cols-3 gap-4">
-          {(['present', 'late', 'absent'] as AttendanceStatus[]).map((status) => {
-            const count = Object.values(attendance).filter(s => s === status).length
-            const cfg = statusConfig[status]
-            return (
-              <div key={status} className={`rounded-xl border p-4 text-center ${cfg.color}`}>
-                <p className="text-2xl font-bold">{count}</p>
-                <p className="text-sm font-medium capitalize">{status}</p>
-              </div>
-            )
-          })}
+          {([
+            { status: 'present', count: presentCount, ...statusConfig.present },
+            { status: 'late',    count: lateCount,    ...statusConfig.late },
+            { status: 'absent',  count: absentCount,  ...statusConfig.absent },
+          ]).map((item) => (
+            <div key={item.status} className={`rounded-xl border p-4 text-center ${item.color}`}>
+              <p className="text-2xl font-bold">{item.count}</p>
+              <p className="text-sm font-medium capitalize">{item.label}</p>
+            </div>
+          ))}
         </div>
       )}
     </div>
