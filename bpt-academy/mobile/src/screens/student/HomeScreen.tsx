@@ -104,33 +104,37 @@ export default function HomeScreen({ navigation }: any) {
       setNotifications(notifRes.data.filter((n: Notification) => !dismissedRef.current.has(n.id)));
     }
 
-    // Fetch program sessions and map to CalendarEvent shape
+    // Fetch program sessions using scheduled_at (the actual DB column)
     if (programIds.length > 0) {
       const now = new Date();
-      const from = localDateStr(new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7));
-      const to   = localDateStr(new Date(now.getFullYear(), now.getMonth(), now.getDate() + 7));
+      // 7 days back and 7 days forward as ISO timestamps
+      const fromDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7);
+      const toDate   = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 8); // +8 to include end of day +7
 
       const { data: sessions } = await supabase
         .from('program_sessions')
-        .select('id, session_date, title, start_time, program_id, program:programs(title)')
+        .select('id, scheduled_at, title, duration_minutes, location, program_id, program:programs(title)')
         .in('program_id', programIds)
-        .gte('session_date', from)
-        .lte('session_date', to);
+        .gte('scheduled_at', fromDate.toISOString())
+        .lte('scheduled_at', toDate.toISOString())
+        .order('scheduled_at', { ascending: true });
 
       if (sessions) {
-        // Map to CalendarEvent shape expected by CalendarDayScreen
-        const mapped = sessions.map((s: any) => ({
-          id: s.id,
-          title: s.title ?? (s.program as any)?.title ?? 'Training Session',
-          type: 'session' as const,
-          time: s.start_time
-            ? s.start_time.substring(0, 5) // HH:MM
-            : undefined,
-          description: (s.program as any)?.title
-            ? `Program: ${(s.program as any).title}`
-            : undefined,
-          _dateStr: s.session_date, // local YYYY-MM-DD from DB
-        }));
+        const mapped = sessions.map((s: any) => {
+          const dt = new Date(s.scheduled_at);
+          return {
+            id: s.id,
+            title: s.title ?? (s.program as any)?.title ?? 'Training Session',
+            type: 'session' as const,
+            time: `${String(dt.getHours()).padStart(2, '0')}:${String(dt.getMinutes()).padStart(2, '0')}`,
+            description: (s.program as any)?.title
+              ? `Program: ${(s.program as any).title}`
+              : undefined,
+            location: s.location,
+            duration_minutes: s.duration_minutes,
+            _dateStr: localDateStr(dt), // derive local date from scheduled_at
+          };
+        });
 
         setDays(prev => prev.map(day => ({
           ...day,
