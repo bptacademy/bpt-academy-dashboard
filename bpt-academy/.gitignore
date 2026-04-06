@@ -32,3 +32,9 @@ mobile/web-build/
 
 # Misc
 *.tsbuildinfo
+
+# Sensitive files — never commit to this repo
+MEMORY.md
+mobile/.env
+mobile/.env.*
+backups/
