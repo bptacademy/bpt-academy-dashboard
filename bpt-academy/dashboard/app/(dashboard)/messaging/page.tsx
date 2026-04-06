@@ -51,6 +51,8 @@ export default function MessagingPage() {
   const [announcing, setAnnouncing] = useState(false)
   const [hoveredMsgId, setHoveredMsgId] = useState<string | null>(null)
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
+  // Maps conversation_id → other participant's display name (for DMs with no title)
+  const [dmNames, setDmNames] = useState<Record<string, string>>({})
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const msgChannelRef = useRef<RealtimeChannel | null>(null)
@@ -121,6 +123,38 @@ export default function MessagingPage() {
       convData = (data as Conversation[]) || []
     }
     setConversations(convData)
+
+    // For direct conversations with no title, resolve the other participant's name
+    const directConvs = convData.filter((c) => c.conversation_type === 'direct' && !c.title)
+    if (directConvs.length > 0 && userId) {
+      const directIds = directConvs.map((c) => c.id)
+      const { data: members } = await supabase
+        .from('conversation_members')
+        .select('conversation_id, profile_id')
+        .in('conversation_id', directIds)
+        .neq('profile_id', userId)
+      if (members) {
+        const otherIds = (members as { conversation_id: string; profile_id: string }[])
+          .map((m) => m.profile_id)
+          .filter((id, i, arr) => arr.indexOf(id) === i)
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('id, full_name')
+          .in('id', otherIds)
+        const profileMap: Record<string, string> = {}
+        if (profiles) {
+          for (const p of profiles as { id: string; full_name: string }[]) {
+            profileMap[p.id] = p.full_name || 'Unknown'
+          }
+        }
+        const newDmNames: Record<string, string> = {}
+        for (const m of members as { conversation_id: string; profile_id: string }[]) {
+          newDmNames[m.conversation_id] = profileMap[m.profile_id] || 'Unknown'
+        }
+        setDmNames((prev) => ({ ...prev, ...newDmNames }))
+      }
+    }
+
     return convData
   }, [])
 
@@ -270,8 +304,12 @@ export default function MessagingPage() {
     await selectConversation(conv as Conversation)
   }
 
-  const convLabel = (conv: Conversation) =>
-    conv.title || (conv.conversation_type ? `${conv.conversation_type} conversation` : 'conversation')
+  const convLabel = (conv: Conversation) => {
+    if (conv.title) return conv.title
+    if (conv.conversation_type === 'direct') return dmNames[conv.id] || 'Direct Message'
+    if (conv.conversation_type) return conv.conversation_type.charAt(0).toUpperCase() + conv.conversation_type.slice(1)
+    return 'Conversation'
+  }
 
   return (
     <div className="space-y-6">
