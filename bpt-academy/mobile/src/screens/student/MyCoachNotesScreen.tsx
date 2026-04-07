@@ -19,8 +19,11 @@ export default function MyCoachNotesScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
+  // Only students have coach notes
+  const isStudent = profile?.role === 'student';
+
   const fetchNotes = async () => {
-    if (!profile) return;
+    if (!profile || !isStudent) return;
     const { data } = await supabase
       .from('coach_notes')
       .select('*, coach:coach_id(full_name)')
@@ -46,6 +49,20 @@ export default function MyCoachNotesScreen() {
 
   const formatDate = (iso: string) =>
     new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+
+  // Non-students shouldn't see this screen
+  if (!isStudent) {
+    return (
+      <View style={styles.container}>
+        <ScreenHeader title="Coach Notes" />
+        <View style={styles.emptyCard}>
+          <Text style={styles.emptyIcon}>🎾</Text>
+          <Text style={styles.emptyTitle}>Not available</Text>
+          <Text style={styles.emptyText}>Coach notes are only visible to students.</Text>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -98,7 +115,7 @@ const styles = StyleSheet.create({
   loader: { marginTop: 60 },
   emptyCard: {
     backgroundColor: '#FFFFFF', borderRadius: 14, padding: 40,
-    alignItems: 'center', borderWidth: 1, borderColor: '#E5E7EB', marginTop: 20,
+    alignItems: 'center', borderWidth: 1, borderColor: '#E5E7EB', margin: 20,
   },
   emptyIcon: { fontSize: 48, marginBottom: 12 },
   emptyTitle: { fontSize: 17, fontWeight: '700', color: '#111827', marginBottom: 6 },

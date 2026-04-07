@@ -29,28 +29,36 @@ export default function MessagesScreen({ navigation }: any) {
   const [latestNote, setLatestNote]       = useState<{ note: string; coach_name: string; created_at: string } | null>(null);
   const [refreshing, setRefreshing]       = useState(false);
 
+  const isStudent = profile?.role === 'student';
+  const isCoachOrAdmin =
+    profile?.role === 'coach' ||
+    profile?.role === 'admin' ||
+    profile?.role === 'super_admin';
+
   const fetchAll = useCallback(async () => {
     if (!profile) return;
 
-    // Coach notes — just fetch count + latest preview
-    const { data: notesData } = await supabase
-      .from('coach_notes')
-      .select('note, created_at, coach:coach_id(full_name)')
-      .eq('student_id', profile.id)
-      .eq('is_private', false)
-      .order('created_at', { ascending: false });
+    // Coach notes — only relevant for students
+    if (isStudent) {
+      const { data: notesData } = await supabase
+        .from('coach_notes')
+        .select('note, created_at, coach:coach_id(full_name)')
+        .eq('student_id', profile.id)
+        .eq('is_private', false)
+        .order('created_at', { ascending: false });
 
-    if (notesData) {
-      setNoteCount(notesData.length);
-      if (notesData.length > 0) {
-        const n = notesData[0] as any;
-        setLatestNote({
-          note: n.note,
-          coach_name: n.coach?.full_name ?? 'Coach',
-          created_at: n.created_at,
-        });
-      } else {
-        setLatestNote(null);
+      if (notesData) {
+        setNoteCount(notesData.length);
+        if (notesData.length > 0) {
+          const n = notesData[0] as any;
+          setLatestNote({
+            note: n.note,
+            coach_name: n.coach?.full_name ?? 'Coach',
+            created_at: n.created_at,
+          });
+        } else {
+          setLatestNote(null);
+        }
       }
     }
 
@@ -188,11 +196,6 @@ export default function MessagesScreen({ navigation }: any) {
     </TouchableOpacity>
   );
 
-  const isCoachOrAdmin =
-    profile?.role === 'coach' ||
-    profile?.role === 'admin' ||
-    profile?.role === 'super_admin';
-
   return (
     <View style={styles.wrapper}>
       <ScrollView
@@ -202,35 +205,37 @@ export default function MessagesScreen({ navigation }: any) {
       >
         <ScreenHeader title="Messages" />
 
-        {/* ── Coach Notes — single folder card ── */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>📝 Coach Notes</Text>
-          <TouchableOpacity
-            style={styles.folderCard}
-            onPress={() => navigation.navigate('MyCoachNotes')}
-            activeOpacity={0.75}
-          >
-            <View style={styles.folderAvatar}>
-              <Text style={styles.folderAvatarIcon}>📝</Text>
-            </View>
-            <View style={styles.info}>
-              <View style={styles.nameRow}>
-                <Text style={styles.convName}>Coach Notes</Text>
-                <View style={noteCount > 0 ? styles.badge : styles.badgeEmpty}>
-                  <Text style={styles.badgeText}>{noteCount}</Text>
-                </View>
+        {/* ── Coach Notes — students only ── */}
+        {isStudent && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>📝 Coach Notes</Text>
+            <TouchableOpacity
+              style={styles.folderCard}
+              onPress={() => navigation.navigate('MyCoachNotes')}
+              activeOpacity={0.75}
+            >
+              <View style={styles.folderAvatar}>
+                <Text style={styles.folderAvatarIcon}>📝</Text>
               </View>
-              {latestNote ? (
-                <Text style={styles.lastMsg} numberOfLines={1}>
-                  {latestNote.coach_name}: {latestNote.note}
-                </Text>
-              ) : (
-                <Text style={styles.lastMsgEmpty}>No notes yet</Text>
-              )}
-            </View>
-            <Text style={styles.chevron}>›</Text>
-          </TouchableOpacity>
-        </View>
+              <View style={styles.info}>
+                <View style={styles.nameRow}>
+                  <Text style={styles.convName}>Coach Notes</Text>
+                  <View style={noteCount > 0 ? styles.badge : styles.badgeEmpty}>
+                    <Text style={styles.badgeText}>{noteCount}</Text>
+                  </View>
+                </View>
+                {latestNote ? (
+                  <Text style={styles.lastMsg} numberOfLines={1}>
+                    {latestNote.coach_name}: {latestNote.note}
+                  </Text>
+                ) : (
+                  <Text style={styles.lastMsgEmpty}>No notes yet</Text>
+                )}
+              </View>
+              <Text style={styles.chevron}>›</Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
         {/* ── Direct Messages ── */}
         <View style={styles.section}>
@@ -296,14 +301,12 @@ const styles = StyleSheet.create({
   sectionTitle: { fontSize: 15, fontWeight: '700', color: '#111827', marginBottom: 4 },
   sectionHint: { fontSize: 12, color: '#9CA3AF', marginBottom: 10 },
 
-  // Shared card
   card: {
     flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF',
     borderRadius: 14, padding: 14, marginBottom: 10,
     borderWidth: 1, borderColor: '#E5E7EB', gap: 12,
   },
 
-  // Coach Notes folder card
   folderCard: {
     flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF',
     borderRadius: 14, padding: 14, marginTop: 8,
