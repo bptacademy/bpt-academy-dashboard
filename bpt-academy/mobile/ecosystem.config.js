@@ -12,7 +12,6 @@ module.exports = {
       restart_delay: 8000,
       env: {
         NODE_ENV: 'development',
-        EXPO_TUNNEL_SUBDOMAIN: 'bpt-academy',
       },
     },
   ],

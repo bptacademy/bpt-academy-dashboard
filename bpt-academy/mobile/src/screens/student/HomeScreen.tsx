@@ -15,6 +15,15 @@ const CARD_WIDTH = (SCREEN_WIDTH - 20 * 2 - 12) / 2;
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
+// Calendar cell geometry
+const DAY_CELL_WIDTH = 56;
+const DAY_CELL_MARGIN = 4; // each side → total 8px per cell
+const DAY_CELL_TOTAL = DAY_CELL_WIDTH + DAY_CELL_MARGIN * 2; // 64px
+const CALENDAR_PADDING = 10; // paddingHorizontal on the ScrollView content
+const PAST_DAYS = 14;  // days before today
+const FUTURE_DAYS = 14; // days after today
+const TODAY_INDEX = PAST_DAYS; // index of today in the array
+
 interface EnrollmentWithProgress extends Enrollment {
   completedModules: number;
   totalModules: number;
@@ -28,11 +37,11 @@ function localDateStr(d: Date): string {
   return `${y}-${m}-${dd}`;
 }
 
-// Build 15-day window: 7 past + today + 7 future — using LOCAL dates
+// Build window: PAST_DAYS past + today + FUTURE_DAYS future — using LOCAL dates
 function buildDays() {
   const days = [];
   const now = new Date();
-  for (let i = -7; i <= 7; i++) {
+  for (let i = -PAST_DAYS; i <= FUTURE_DAYS; i++) {
     const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() + i);
     days.push({
       date: d,
@@ -41,6 +50,13 @@ function buildDays() {
     });
   }
   return days;
+}
+
+// Calculate scroll offset so today sits centred on screen
+function todayScrollOffset(): number {
+  const todayLeft = CALENDAR_PADDING + TODAY_INDEX * DAY_CELL_TOTAL;
+  const centreOffset = todayLeft - (SCREEN_WIDTH / 2) + (DAY_CELL_WIDTH / 2);
+  return Math.max(0, centreOffset);
 }
 
 export default function HomeScreen({ navigation }: any) {
@@ -104,12 +120,11 @@ export default function HomeScreen({ navigation }: any) {
       setNotifications(notifRes.data.filter((n: Notification) => !dismissedRef.current.has(n.id)));
     }
 
-    // Fetch program sessions using scheduled_at (the actual DB column)
+    // Fetch program sessions
     if (programIds.length > 0) {
       const now = new Date();
-      // 7 days back and 7 days forward as ISO timestamps
-      const fromDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7);
-      const toDate   = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 8); // +8 to include end of day +7
+      const fromDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - PAST_DAYS);
+      const toDate   = new Date(now.getFullYear(), now.getMonth(), now.getDate() + FUTURE_DAYS + 1);
 
       const { data: sessions } = await supabase
         .from('program_sessions')
@@ -132,7 +147,7 @@ export default function HomeScreen({ navigation }: any) {
               : undefined,
             location: s.location,
             duration_minutes: s.duration_minutes,
-            _dateStr: localDateStr(dt), // derive local date from scheduled_at
+            _dateStr: localDateStr(dt),
           };
         });
 
@@ -148,10 +163,10 @@ export default function HomeScreen({ navigation }: any) {
   useEffect(() => { fetchData(); }, [profile]);
   useFocusEffect(useCallback(() => { fetchData(); }, [profile]));
 
-  // Scroll calendar to today on mount
+  // Scroll calendar so today is centred on screen
   useEffect(() => {
     setTimeout(() => {
-      calendarRef.current?.scrollTo({ x: 7 * 64, animated: false });
+      calendarRef.current?.scrollTo({ x: todayScrollOffset(), animated: false });
     }, 150);
   }, []);
 
@@ -184,6 +199,10 @@ export default function HomeScreen({ navigation }: any) {
     { icon: '💬', label: 'Messages',         onPress: goToMessages },
   ];
 
+  // Month label: show month of today
+  const now = new Date();
+  const monthLabel = `${MONTH_NAMES[now.getMonth()]} ${now.getFullYear()}`;
+
   return (
     <ScrollView
       style={styles.container}
@@ -211,9 +230,7 @@ export default function HomeScreen({ navigation }: any) {
       <View style={styles.calendarSection}>
         <View style={styles.calendarHeader}>
           <Text style={styles.calendarTitle}>📅 Schedule</Text>
-          <Text style={styles.calendarMonth}>
-            {MONTH_NAMES[new Date().getMonth()]} {new Date().getFullYear()}
-          </Text>
+          <Text style={styles.calendarMonth}>{monthLabel}</Text>
         </View>
         <ScrollView
           ref={calendarRef}
@@ -224,24 +241,37 @@ export default function HomeScreen({ navigation }: any) {
         >
           {days.map((day) => {
             const isToday = day.dateStr === todayStr;
+            const isPast  = day.dateStr < todayStr;
             const hasEvents = day.events.length > 0;
             return (
               <TouchableOpacity
                 key={day.dateStr}
-                style={[styles.dayCell, isToday && styles.dayCellToday]}
+                style={[
+                  styles.dayCell,
+                  isToday && styles.dayCellToday,
+                  isPast && !isToday && styles.dayCellPast,
+                ]}
                 onPress={() => navigation.navigate('CalendarDay', {
                   date: day.dateStr,
                   events: day.events,
                 })}
                 activeOpacity={0.7}
               >
-                <Text style={[styles.dayName, isToday && styles.dayNameToday]}>
+                <Text style={[
+                  styles.dayName,
+                  isToday && styles.dayNameToday,
+                  isPast && !isToday && styles.dayNamePast,
+                ]}>
                   {DAY_NAMES[day.date.getDay()]}
                 </Text>
-                <Text style={[styles.dayNum, isToday && styles.dayNumToday]}>
+                <Text style={[
+                  styles.dayNum,
+                  isToday && styles.dayNumToday,
+                  isPast && !isToday && styles.dayNumPast,
+                ]}>
                   {day.date.getDate()}
                 </Text>
-                <View style={hasEvents ? styles.eventDot : styles.eventDotEmpty} />
+                <View style={hasEvents ? (isPast && !isToday ? styles.eventDotPast : styles.eventDot) : styles.eventDotEmpty} />
               </TouchableOpacity>
             );
           })}
@@ -348,17 +378,32 @@ const styles = StyleSheet.create({
   },
   calendarTitle: { fontSize: 15, fontWeight: '700', color: '#111827' },
   calendarMonth: { fontSize: 13, color: '#6B7280', fontWeight: '500' },
-  calendarList: { paddingHorizontal: 10 },
+  calendarList: { paddingHorizontal: CALENDAR_PADDING },
+
+  // Today — green highlight
   dayCell: {
-    width: 56, height: 72, alignItems: 'center', justifyContent: 'center',
-    marginHorizontal: 4, borderRadius: 14, backgroundColor: '#F9FAFB',
+    width: DAY_CELL_WIDTH,
+    height: 72,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginHorizontal: DAY_CELL_MARGIN,
+    borderRadius: 14,
+    backgroundColor: '#F9FAFB',
   },
   dayCellToday: { backgroundColor: '#16A34A' },
+  // Past days — slightly muted background
+  dayCellPast: { backgroundColor: '#F3F4F6', opacity: 0.75 },
+
   dayName: { fontSize: 11, fontWeight: '600', color: '#9CA3AF', marginBottom: 4, textTransform: 'uppercase' },
   dayNameToday: { color: '#D1FAE5' },
+  dayNamePast: { color: '#C4C9D4' },
+
   dayNum: { fontSize: 20, fontWeight: '700', color: '#111827' },
   dayNumToday: { color: '#FFFFFF' },
-  eventDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#EF4444', marginTop: 4 },
+  dayNumPast: { color: '#9CA3AF' },
+
+  eventDot:     { width: 6, height: 6, borderRadius: 3, backgroundColor: '#EF4444', marginTop: 4 },
+  eventDotPast: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#9CA3AF', marginTop: 4 },
   eventDotEmpty: { width: 6, height: 6, marginTop: 4 },
 
   section: { padding: 20 },
