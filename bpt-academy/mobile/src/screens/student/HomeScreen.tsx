@@ -17,19 +17,18 @@ const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct'
 
 // Calendar cell geometry
 const DAY_CELL_WIDTH = 56;
-const DAY_CELL_MARGIN = 4; // each side → total 8px per cell
-const DAY_CELL_TOTAL = DAY_CELL_WIDTH + DAY_CELL_MARGIN * 2; // 64px
-const CALENDAR_PADDING = 10; // paddingHorizontal on the ScrollView content
-const PAST_DAYS = 14;  // days before today
-const FUTURE_DAYS = 14; // days after today
-const TODAY_INDEX = PAST_DAYS; // index of today in the array
+const DAY_CELL_MARGIN = 4;
+const DAY_CELL_TOTAL = DAY_CELL_WIDTH + DAY_CELL_MARGIN * 2;
+const CALENDAR_PADDING = 10;
+const PAST_DAYS = 14;
+const FUTURE_DAYS = 14;
+const TODAY_INDEX = PAST_DAYS;
 
 interface EnrollmentWithProgress extends Enrollment {
   completedModules: number;
   totalModules: number;
 }
 
-// ── Local date string (no UTC offset bug) ────────────────────────────────
 function localDateStr(d: Date): string {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, '0');
@@ -37,22 +36,16 @@ function localDateStr(d: Date): string {
   return `${y}-${m}-${dd}`;
 }
 
-// Build window: PAST_DAYS past + today + FUTURE_DAYS future — using LOCAL dates
 function buildDays() {
   const days = [];
   const now = new Date();
   for (let i = -PAST_DAYS; i <= FUTURE_DAYS; i++) {
     const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() + i);
-    days.push({
-      date: d,
-      dateStr: localDateStr(d),
-      events: [] as any[],
-    });
+    days.push({ date: d, dateStr: localDateStr(d), events: [] as any[] });
   }
   return days;
 }
 
-// Calculate scroll offset so today sits centred on screen
 function todayScrollOffset(): number {
   const todayLeft = CALENDAR_PADDING + TODAY_INDEX * DAY_CELL_TOTAL;
   const centreOffset = todayLeft - (SCREEN_WIDTH / 2) + (DAY_CELL_WIDTH / 2);
@@ -120,7 +113,6 @@ export default function HomeScreen({ navigation }: any) {
       setNotifications(notifRes.data.filter((n: Notification) => !dismissedRef.current.has(n.id)));
     }
 
-    // Fetch program sessions
     if (programIds.length > 0) {
       const now = new Date();
       const fromDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - PAST_DAYS);
@@ -142,9 +134,7 @@ export default function HomeScreen({ navigation }: any) {
             title: s.title ?? (s.program as any)?.title ?? 'Training Session',
             type: 'session' as const,
             time: `${String(dt.getHours()).padStart(2, '0')}:${String(dt.getMinutes()).padStart(2, '0')}`,
-            description: (s.program as any)?.title
-              ? `Program: ${(s.program as any).title}`
-              : undefined,
+            description: (s.program as any)?.title ? `Program: ${(s.program as any).title}` : undefined,
             location: s.location,
             duration_minutes: s.duration_minutes,
             _dateStr: localDateStr(dt),
@@ -163,17 +153,29 @@ export default function HomeScreen({ navigation }: any) {
   useEffect(() => { fetchData(); }, [profile]);
   useFocusEffect(useCallback(() => { fetchData(); }, [profile]));
 
-  // Scroll calendar so today is centred on screen
   useEffect(() => {
     setTimeout(() => {
       calendarRef.current?.scrollTo({ x: todayScrollOffset(), animated: false });
     }, 150);
   }, []);
 
-  const dismissNotification = async (id: string) => {
-    dismissedRef.current.add(id);
-    setNotifications(prev => prev.filter(n => n.id !== id));
-    await supabase.from('notifications').update({ read: true }).eq('id', id);
+  // Handle notification tap — attendance confirmations navigate to confirm screen
+  const handleNotificationTap = async (n: any) => {
+    if (n.type === 'attendance_confirmation_request' && n.data?.session_id) {
+      // Mark read but don't dismiss — it's actionable
+      await supabase.from('notifications').update({ read: true }).eq('id', n.id);
+      setNotifications(prev => prev.filter(x => x.id !== n.id));
+      navigation.navigate('AttendanceConfirm', {
+        session_id:    n.data.session_id,
+        program_title: n.data.program_title ?? 'Training Session',
+        session_time:  n.data.session_time,
+        editable_until: n.data.editable_until,
+      });
+    } else {
+      dismissedRef.current.add(n.id);
+      setNotifications(prev => prev.filter(x => x.id !== n.id));
+      await supabase.from('notifications').update({ read: true }).eq('id', n.id);
+    }
   };
 
   const goToPrograms = () => navigation.getParent()?.navigate('ProgramsTab');
@@ -199,7 +201,6 @@ export default function HomeScreen({ navigation }: any) {
     { icon: '💬', label: 'Messages',         onPress: goToMessages },
   ];
 
-  // Month label: show month of today
   const now = new Date();
   const monthLabel = `${MONTH_NAMES[now.getMonth()]} ${now.getFullYear()}`;
 
@@ -251,24 +252,13 @@ export default function HomeScreen({ navigation }: any) {
                   isToday && styles.dayCellToday,
                   isPast && !isToday && styles.dayCellPast,
                 ]}
-                onPress={() => navigation.navigate('CalendarDay', {
-                  date: day.dateStr,
-                  events: day.events,
-                })}
+                onPress={() => navigation.navigate('CalendarDay', { date: day.dateStr, events: day.events })}
                 activeOpacity={0.7}
               >
-                <Text style={[
-                  styles.dayName,
-                  isToday && styles.dayNameToday,
-                  isPast && !isToday && styles.dayNamePast,
-                ]}>
+                <Text style={[styles.dayName, isToday && styles.dayNameToday, isPast && !isToday && styles.dayNamePast]}>
                   {DAY_NAMES[day.date.getDay()]}
                 </Text>
-                <Text style={[
-                  styles.dayNum,
-                  isToday && styles.dayNumToday,
-                  isPast && !isToday && styles.dayNumPast,
-                ]}>
+                <Text style={[styles.dayNum, isToday && styles.dayNumToday, isPast && !isToday && styles.dayNumPast]}>
                   {day.date.getDate()}
                 </Text>
                 <View style={hasEvents ? (isPast && !isToday ? styles.eventDotPast : styles.eventDot) : styles.eventDotEmpty} />
@@ -282,20 +272,26 @@ export default function HomeScreen({ navigation }: any) {
       {notifications.length > 0 && (
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>🔔 Notifications</Text>
-          {notifications.map((n) => (
-            <TouchableOpacity
-              key={n.id}
-              style={styles.notifCard}
-              onPress={() => dismissNotification(n.id)}
-              activeOpacity={0.7}
-            >
-              <View style={styles.notifRow}>
-                <Text style={styles.notifTitle}>{n.title}</Text>
-                <Text style={styles.notifDismiss}>✕</Text>
-              </View>
-              {n.body ? <Text style={styles.notifBody} numberOfLines={2}>{n.body}</Text> : null}
-            </TouchableOpacity>
-          ))}
+          {notifications.map((n: any) => {
+            const isConfirmRequest = n.type === 'attendance_confirmation_request';
+            return (
+              <TouchableOpacity
+                key={n.id}
+                style={[styles.notifCard, isConfirmRequest && styles.notifCardAction]}
+                onPress={() => handleNotificationTap(n)}
+                activeOpacity={0.7}
+              >
+                <View style={styles.notifRow}>
+                  <Text style={styles.notifTitle}>{n.title}</Text>
+                  {isConfirmRequest
+                    ? <Text style={styles.notifAction}>Respond →</Text>
+                    : <Text style={styles.notifDismiss}>✕</Text>
+                  }
+                </View>
+                {n.body ? <Text style={styles.notifBody} numberOfLines={2}>{n.body}</Text> : null}
+              </TouchableOpacity>
+            );
+          })}
         </View>
       )}
 
@@ -379,29 +375,18 @@ const styles = StyleSheet.create({
   calendarTitle: { fontSize: 15, fontWeight: '700', color: '#111827' },
   calendarMonth: { fontSize: 13, color: '#6B7280', fontWeight: '500' },
   calendarList: { paddingHorizontal: CALENDAR_PADDING },
-
-  // Today — green highlight
   dayCell: {
-    width: DAY_CELL_WIDTH,
-    height: 72,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginHorizontal: DAY_CELL_MARGIN,
-    borderRadius: 14,
-    backgroundColor: '#F9FAFB',
+    width: DAY_CELL_WIDTH, height: 72, alignItems: 'center', justifyContent: 'center',
+    marginHorizontal: DAY_CELL_MARGIN, borderRadius: 14, backgroundColor: '#F9FAFB',
   },
   dayCellToday: { backgroundColor: '#16A34A' },
-  // Past days — slightly muted background
   dayCellPast: { backgroundColor: '#F3F4F6', opacity: 0.75 },
-
   dayName: { fontSize: 11, fontWeight: '600', color: '#9CA3AF', marginBottom: 4, textTransform: 'uppercase' },
   dayNameToday: { color: '#D1FAE5' },
   dayNamePast: { color: '#C4C9D4' },
-
   dayNum: { fontSize: 20, fontWeight: '700', color: '#111827' },
   dayNumToday: { color: '#FFFFFF' },
   dayNumPast: { color: '#9CA3AF' },
-
   eventDot:     { width: 6, height: 6, borderRadius: 3, backgroundColor: '#EF4444', marginTop: 4 },
   eventDotPast: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#9CA3AF', marginTop: 4 },
   eventDotEmpty: { width: 6, height: 6, marginTop: 4 },
@@ -410,11 +395,20 @@ const styles = StyleSheet.create({
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
   sectionTitle: { fontSize: 17, fontWeight: '700', color: '#111827', marginBottom: 12 },
   seeAll: { color: '#16A34A', fontSize: 14, fontWeight: '600' },
-  notifCard: { backgroundColor: '#ECFDF5', borderRadius: 10, padding: 14, marginBottom: 8, borderLeftWidth: 3, borderLeftColor: '#16A34A' },
+
+  notifCard: {
+    backgroundColor: '#ECFDF5', borderRadius: 10, padding: 14, marginBottom: 8,
+    borderLeftWidth: 3, borderLeftColor: '#16A34A',
+  },
+  notifCardAction: {
+    backgroundColor: '#FFF7ED', borderLeftColor: '#F59E0B',
+  },
   notifRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   notifTitle: { fontSize: 14, fontWeight: '600', color: '#111827', flex: 1 },
   notifDismiss: { fontSize: 14, color: '#9CA3AF', paddingLeft: 8 },
+  notifAction: { fontSize: 13, color: '#D97706', fontWeight: '700', paddingLeft: 8 },
   notifBody: { fontSize: 13, color: '#6B7280', marginTop: 4, lineHeight: 18 },
+
   emptyCard: { backgroundColor: '#FFFFFF', borderRadius: 12, padding: 20, alignItems: 'center', borderWidth: 1, borderColor: '#E5E7EB' },
   emptyText: { color: '#6B7280', fontSize: 14, marginBottom: 8 },
   emptyLink: { color: '#16A34A', fontWeight: '600', fontSize: 14 },
