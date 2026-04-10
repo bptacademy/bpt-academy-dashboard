@@ -41,12 +41,18 @@ export default function VideosPage() {
   const [selectedVideo, setSelectedVideo] = useState<Video | null>(null)
   const [comments, setComments] = useState<Comment[]>([])
   const [deleting, setDeleting] = useState(false)
+  const [playing, setPlaying] = useState(false)
 
   useEffect(() => {
     fetchVideos()
     fetchPrograms()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [programFilter])
+
+  // Reset player state when modal closes
+  useEffect(() => {
+    if (!selectedVideo) setPlaying(false)
+  }, [selectedVideo])
 
   async function fetchPrograms() {
     const supabase = createClient()
@@ -72,7 +78,6 @@ export default function VideosPage() {
     if (data) {
       const enriched = await Promise.all(
         data.map(async (v: Video) => {
-          // Get program title
           let program_title = 'No Program'
           if (v.program_id) {
             const { data: prog } = await supabase
@@ -83,7 +88,6 @@ export default function VideosPage() {
             program_title = prog?.title || 'Unknown'
           }
 
-          // Uploader name
           let uploader_name = 'Unknown'
           if (v.uploaded_by) {
             const { data: uploader } = await supabase
@@ -94,7 +98,6 @@ export default function VideosPage() {
             uploader_name = uploader?.full_name || 'Unknown'
           }
 
-          // Counts
           const { count: bookmark_count } = await supabase
             .from('video_bookmarks')
             .select('*', { count: 'exact', head: true })
@@ -122,6 +125,7 @@ export default function VideosPage() {
 
   async function loadComments(video: Video) {
     setSelectedVideo(video)
+    setPlaying(false)
     const supabase = createClient()
 
     const { data } = await supabase
@@ -153,12 +157,9 @@ export default function VideosPage() {
   async function deleteVideo(videoId: string) {
     setDeleting(true)
     const supabase = createClient()
-
-    // Delete related records
     await supabase.from('video_bookmarks').delete().eq('video_id', videoId)
     await supabase.from('video_comments').delete().eq('video_id', videoId)
     await supabase.from('videos').delete().eq('id', videoId)
-
     setDeleting(false)
     setSelectedVideo(null)
     fetchVideos()
@@ -172,13 +173,16 @@ export default function VideosPage() {
     return ''
   }
 
+  // Build Mux stream URL — uses HLS .m3u8 streamed via native video tag
+  function getMuxStreamUrl(playbackId: string): string {
+    return `https://stream.mux.com/${playbackId}.m3u8`
+  }
+
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Videos</h1>
-        <p className="text-gray-500 text-sm mt-1">
-          Manage coaching video library
-        </p>
+        <p className="text-gray-500 text-sm mt-1">Manage coaching video library</p>
       </div>
 
       {/* Filter */}
@@ -190,9 +194,7 @@ export default function VideosPage() {
         >
           <option value="">All Programs</option>
           {programs.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.title}
-            </option>
+            <option key={p.id} value={p.id}>{p.title}</option>
           ))}
         </select>
       </div>
@@ -215,53 +217,35 @@ export default function VideosPage() {
                 {/* Thumbnail */}
                 <div className="aspect-video bg-gray-100 relative">
                   {thumbUrl ? (
-                    <Image
-                      src={thumbUrl}
-                      alt={video.title}
-                      fill
-                      className="object-cover"
-                    />
+                    <Image src={thumbUrl} alt={video.title} fill className="object-cover" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
                       <Play size={32} className="text-gray-300" />
                     </div>
                   )}
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
-                    <Play
-                      size={40}
-                      className="text-white opacity-0 group-hover:opacity-100 transition-opacity"
-                    />
+                    <Play size={40} className="text-white opacity-0 group-hover:opacity-100 transition-opacity" />
                   </div>
                 </div>
 
                 {/* Info */}
                 <div className="p-4">
-                  <h3 className="font-medium text-gray-900 truncate text-sm">
-                    {video.title}
-                  </h3>
+                  <h3 className="font-medium text-gray-900 truncate text-sm">{video.title}</h3>
                   {video.description && (
-                    <p className="text-xs text-gray-500 mt-1 line-clamp-2">
-                      {video.description}
-                    </p>
+                    <p className="text-xs text-gray-500 mt-1 line-clamp-2">{video.description}</p>
                   )}
                   <div className="flex items-center justify-between mt-3">
-                    <span className="text-xs text-gray-400">
-                      {video.program_title}
-                    </span>
+                    <span className="text-xs text-gray-400">{video.program_title}</span>
                     <div className="flex items-center gap-3 text-gray-400">
                       <span className="flex items-center gap-1 text-xs">
-                        <Bookmark size={12} />
-                        {video.bookmark_count}
+                        <Bookmark size={12} />{video.bookmark_count}
                       </span>
                       <span className="flex items-center gap-1 text-xs">
-                        <MessageCircle size={12} />
-                        {video.comment_count}
+                        <MessageCircle size={12} />{video.comment_count}
                       </span>
                     </div>
                   </div>
-                  <p className="text-xs text-gray-300 mt-1">
-                    {formatDate(video.created_at)}
-                  </p>
+                  <p className="text-xs text-gray-300 mt-1">{formatDate(video.created_at)}</p>
                 </div>
               </div>
             )
@@ -271,77 +255,109 @@ export default function VideosPage() {
 
       {/* Video Detail Modal */}
       {selectedVideo && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900">
-                {selectedVideo.title}
-              </h2>
-              <button
-                onClick={() => setSelectedVideo(null)}
-                className="text-gray-400 hover:text-gray-600"
-              >
+        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl flex flex-col max-h-[90vh]">
+
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-gray-100 shrink-0">
+              <div className="min-w-0">
+                <h2 className="text-lg font-semibold text-gray-900 truncate">{selectedVideo.title}</h2>
+                <p className="text-xs text-gray-400 mt-0.5">
+                  {selectedVideo.program_title} · Uploaded by {selectedVideo.uploader_name}
+                </p>
+              </div>
+              <button onClick={() => setSelectedVideo(null)} className="text-gray-400 hover:text-gray-600 ml-4 shrink-0">
                 <X size={20} />
               </button>
             </div>
 
-            {/* Thumbnail */}
-            {getThumbnailUrl(selectedVideo) && (
-              <div className="aspect-video bg-gray-100 rounded-xl overflow-hidden mb-4 relative">
-                <Image
-                  src={getThumbnailUrl(selectedVideo)}
-                  alt={selectedVideo.title}
-                  fill
-                  className="object-cover"
-                />
-              </div>
-            )}
+            {/* Scrollable body */}
+            <div className="overflow-y-auto flex-1 px-6 py-4">
 
-            {selectedVideo.description && (
-              <p className="text-sm text-gray-600 mb-4">
-                {selectedVideo.description}
-              </p>
-            )}
-
-            <div className="flex items-center gap-4 text-sm text-gray-500 mb-4">
-              <span>Program: {selectedVideo.program_title}</span>
-              <span>Uploaded by: {selectedVideo.uploader_name}</span>
-            </div>
-
-            <div className="flex items-center gap-4 mb-4">
-              <span className="flex items-center gap-1.5 text-sm text-gray-500">
-                <Bookmark size={16} />
-                {selectedVideo.bookmark_count} bookmarks
-              </span>
-              <span className="flex items-center gap-1.5 text-sm text-gray-500">
-                <MessageCircle size={16} />
-                {selectedVideo.comment_count} comments
-              </span>
-            </div>
-
-            {/* Comments */}
-            {comments.length > 0 && (
-              <div className="border-t border-gray-200 pt-4">
-                <h3 className="text-sm font-medium text-gray-700 mb-3">
-                  Comments
-                </h3>
-                <div className="space-y-3 max-h-48 overflow-y-auto">
-                  {comments.map((c) => (
-                    <div key={c.id} className="bg-gray-50 rounded-lg p-3">
-                      <p className="text-xs font-medium text-gray-700">
-                        {c.user_name}
-                      </p>
-                      <p className="text-sm text-gray-600 mt-1">{c.content}</p>
-                      <p className="text-xs text-gray-400 mt-1">
-                        {formatDate(c.created_at)}
-                      </p>
+              {/* ── Video player ── */}
+              <div className="aspect-video bg-black rounded-xl overflow-hidden mb-4 relative">
+                {selectedVideo.mux_playback_id ? (
+                  playing ? (
+                    // Native HTML5 video — works with Mux HLS on modern browsers (Chrome/Safari/Edge)
+                    <video
+                      className="w-full h-full"
+                      src={getMuxStreamUrl(selectedVideo.mux_playback_id)}
+                      controls
+                      autoPlay
+                      playsInline
+                      poster={getThumbnailUrl(selectedVideo) || undefined}
+                    />
+                  ) : (
+                    // Thumbnail + play button overlay
+                    <div
+                      className="relative w-full h-full cursor-pointer group"
+                      onClick={() => setPlaying(true)}
+                    >
+                      {getThumbnailUrl(selectedVideo) ? (
+                        <Image
+                          src={getThumbnailUrl(selectedVideo)}
+                          alt={selectedVideo.title}
+                          fill
+                          className="object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gray-900" />
+                      )}
+                      {/* Play button */}
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/40 transition-colors">
+                        <div className="w-16 h-16 rounded-full bg-white/90 flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform">
+                          <Play size={28} className="text-gray-900 ml-1" fill="currentColor" />
+                        </div>
+                      </div>
                     </div>
-                  ))}
-                </div>
+                  )
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-gray-900">
+                    <div className="text-center text-gray-400">
+                      <Play size={40} className="mx-auto mb-2 opacity-30" />
+                      <p className="text-sm">No video available</p>
+                    </div>
+                  </div>
+                )}
               </div>
-            )}
 
-            <div className="flex gap-3 mt-6">
+              {/* Description */}
+              {selectedVideo.description && (
+                <p className="text-sm text-gray-600 mb-4">{selectedVideo.description}</p>
+              )}
+
+              {/* Stats */}
+              <div className="flex items-center gap-4 mb-4">
+                <span className="flex items-center gap-1.5 text-sm text-gray-500">
+                  <Bookmark size={16} />{selectedVideo.bookmark_count} bookmarks
+                </span>
+                <span className="flex items-center gap-1.5 text-sm text-gray-500">
+                  <MessageCircle size={16} />{selectedVideo.comment_count} comments
+                </span>
+                <span className="text-sm text-gray-400 ml-auto">{formatDate(selectedVideo.created_at)}</span>
+              </div>
+
+              {/* Comments */}
+              {comments.length > 0 && (
+                <div className="border-t border-gray-100 pt-4">
+                  <h3 className="text-sm font-semibold text-gray-700 mb-3">
+                    Comments ({comments.length})
+                  </h3>
+                  <div className="space-y-3">
+                    {comments.map((c) => (
+                      <div key={c.id} className="bg-gray-50 rounded-lg p-3">
+                        <p className="text-xs font-semibold text-gray-700">{c.user_name}</p>
+                        <p className="text-sm text-gray-600 mt-1">{c.content}</p>
+                        <p className="text-xs text-gray-400 mt-1">{formatDate(c.created_at)}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="flex gap-3 px-6 py-4 border-t border-gray-100 shrink-0">
               <button
                 onClick={() => setSelectedVideo(null)}
                 className="flex-1 px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50"
@@ -350,11 +366,7 @@ export default function VideosPage() {
               </button>
               <button
                 onClick={() => {
-                  if (
-                    confirm(
-                      'Are you sure you want to delete this video? This cannot be undone.'
-                    )
-                  ) {
+                  if (confirm('Are you sure you want to delete this video? This cannot be undone.')) {
                     deleteVideo(selectedVideo.id)
                   }
                 }}
