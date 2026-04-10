@@ -249,8 +249,9 @@ export default function ProgramsPage() {
     const supabase = createClient()
     const month = schedStartDate.slice(0, 7)
     try {
-      // Delete orphan sessions
-      await supabase.from('program_sessions').delete().eq('program_id', scheduleProgram.id).is('module_id', null)
+      // Delete ALL existing sessions and modules before regenerating
+      await supabase.from('program_sessions').delete().eq('program_id', scheduleProgram.id)
+      await supabase.from('modules').delete().eq('program_id', scheduleProgram.id)
 
       // Insert modules (trigger auto-creates sessions)
       for (let i = 0; i < previewDates.length; i++) {

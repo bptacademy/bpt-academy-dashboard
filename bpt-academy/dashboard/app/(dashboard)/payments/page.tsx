@@ -36,7 +36,10 @@ export default function PaymentsPage() {
       .from('payments')
       .select(`
         id,
+        student_id,
+        program_id,
         amount,
+        amount_gbp,
         status,
         stripe_payment_id,
         method,
@@ -100,6 +103,17 @@ export default function PaymentsPage() {
     setUpdatingId(id)
     const supabase = createClient()
     await supabase.from('payments').update({ status: newStatus }).eq('id', id)
+    // When confirmed/paid — activate the student's enrollment
+    if (newStatus === 'paid') {
+      const payment = payments.find(p => p.id === id) as any
+      if (payment?.student_id && payment?.program_id) {
+        await supabase.from('enrollments')
+          .update({ status: 'active' })
+          .eq('student_id', payment.student_id)
+          .eq('program_id', payment.program_id)
+          .in('status', ['cancelled', 'waitlisted', 'pending'])
+      }
+    }
     setUpdatingId(null)
     fetchPayments()
   }
