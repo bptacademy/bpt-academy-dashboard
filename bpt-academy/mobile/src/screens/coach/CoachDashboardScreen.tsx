@@ -112,16 +112,25 @@ export default function CoachDashboardScreen({ navigation }: any) {
   const goToTab = (tab: string, screen: string) =>
     navigation.getParent()?.navigate(tab, { screen });
 
-  const gridItems = [
+  // Attendance grid item only shown when there's an active session window
+  const baseGridItems = [
     { icon: '👥', label: 'My Students',  onPress: () => goToTab('StudentsTab', 'Students') },
     { icon: '📋', label: 'Programs',     onPress: () => navigation.navigate('Manage') },
     { icon: '💬', label: 'Messages',     onPress: () => goToTab('MessagesTab', 'Messages') },
     { icon: '🎬', label: 'Upload Video', onPress: () => navigation.navigate('UploadVideo') },
-    { icon: '✅', label: 'Attendance',   onPress: () => goToTab('StudentsTab', 'Students') },
     { icon: '🔔', label: 'Announce',     onPress: () => navigation.navigate('Announce') },
     { icon: '🏅', label: 'Divisions',    onPress: () => navigation.navigate('DivisionDashboard') },
     { icon: '🎾', label: 'Tournaments',  onPress: () => navigation.navigate('TournamentManage') },
   ];
+
+  // Only show Attendance when at least one session is in the active window (session day + 24h)
+  const gridItems = attendanceDue.length > 0
+    ? [
+        ...baseGridItems.slice(0, 4),
+        { icon: '✅', label: 'Attendance', onPress: () => goToTab('StudentsTab', 'Students') },
+        ...baseGridItems.slice(4),
+      ]
+    : baseGridItems;
 
   return (
     <ScrollView
