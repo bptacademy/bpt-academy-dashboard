@@ -66,6 +66,7 @@ import SuperAdminHomeScreen from '../screens/superadmin/SuperAdminHomeScreen';
 import SuperAdminMessagesScreen from '../screens/superadmin/SuperAdminMessagesScreen';
 import ReportsScreen from '../screens/superadmin/ReportsScreen';
 
+// Notifications (shared — all roles)
 import NotificationsScreen from '../screens/NotificationsScreen';
 
 // Messaging
@@ -120,7 +121,8 @@ function ParentStack() {
   );
 }
 
-// Student
+// ─── STUDENT ────────────────────────────────────────────────────────────────
+
 function StudentHomeStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
@@ -139,11 +141,12 @@ function StudentHomeStack() {
       <Stack.Screen name="Chat"                component={ChatScreen} />
       <Stack.Screen name="NewConversation"     component={NewConversationScreen} />
       <Stack.Screen name="AttendanceConfirm"   component={AttendanceConfirmScreen} />
-      <Stack.Screen name="ReEnrollment"          component={ReEnrollmentScreen} />
-      <Stack.Screen name="Notifications"         component={NotificationsScreen} />
+      <Stack.Screen name="ReEnrollment"        component={ReEnrollmentScreen} />
+      <Stack.Screen name="Notifications"       component={NotificationsScreen} />
     </Stack.Navigator>
   );
 }
+
 function StudentProgramsStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
@@ -152,9 +155,11 @@ function StudentProgramsStack() {
       <Stack.Screen name="VideoPlayer"        component={VideoPlayerScreen} />
       <Stack.Screen name="Payment"            component={PaymentScreen} />
       <Stack.Screen name="AttendanceConfirm"  component={AttendanceConfirmScreen} />
+      <Stack.Screen name="Notifications"      component={NotificationsScreen} />
     </Stack.Navigator>
   );
 }
+
 function StudentMessagesStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
@@ -163,17 +168,21 @@ function StudentMessagesStack() {
       <Stack.Screen name="Chat"               component={ChatScreen} />
       <Stack.Screen name="NewConversation"    component={NewConversationScreen} />
       <Stack.Screen name="AttendanceConfirm"  component={AttendanceConfirmScreen} />
+      <Stack.Screen name="Notifications"      component={NotificationsScreen} />
     </Stack.Navigator>
   );
 }
+
 function StudentProfileStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Profile"            component={ProfileScreen} />
       <Stack.Screen name="AttendanceConfirm"  component={AttendanceConfirmScreen} />
+      <Stack.Screen name="Notifications"      component={NotificationsScreen} />
     </Stack.Navigator>
   );
 }
+
 function StudentTabs() {
   const tabBarScreenOptions = useTabBarScreenOptions();
   return (
@@ -186,33 +195,35 @@ function StudentTabs() {
   );
 }
 
-// Coach
+// ─── COACH ──────────────────────────────────────────────────────────────────
+
 function CoachHomeStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="Dashboard"         component={CoachDashboardScreen} />
-      <Stack.Screen name="Manage"            component={ManageProgramsScreen} />
-      <Stack.Screen name="ProgramRoster"     component={ProgramRosterScreen} />
-      <Stack.Screen name="ProgramModules"    component={ProgramModulesScreen} />
+      <Stack.Screen name="Dashboard"          component={CoachDashboardScreen} />
+      <Stack.Screen name="Manage"             component={ManageProgramsScreen} />
+      <Stack.Screen name="ProgramRoster"      component={ProgramRosterScreen} />
+      <Stack.Screen name="ProgramModules"     component={ProgramModulesScreen} />
       <Stack.Screen name="ScheduleGenerator"  component={ScheduleGeneratorScreen} />
-      <Stack.Screen name="ManageVideos"      component={ManageVideosScreen} />
-      <Stack.Screen name="UploadVideo"       component={UploadVideoScreen} />
-      <Stack.Screen name="VideoPlayer"       component={VideoPlayerScreen} />
-      <Stack.Screen name="DivisionDashboard" component={DivisionDashboardScreen} />
-      <Stack.Screen name="TournamentManage"  component={TournamentManageScreen} />
-      <Stack.Screen name="TournamentDetail"  component={TournamentDetailScreen} />
-      <Stack.Screen name="Announce"          component={SendAnnouncementScreen} />
-      <Stack.Screen name="Chat"              component={ChatScreen} />
-      <Stack.Screen name="NewConversation"   component={NewConversationScreen} />
-      <Stack.Screen name="Students"          component={ManageStudentsScreen} />
-      <Stack.Screen name="StudentDetail"     component={StudentDetailScreen} />
-      <Stack.Screen name="Attendance"        component={AttendanceScreen} />
-      <Stack.Screen name="CoachNotes"        component={CoachNotesScreen} />
-      <Stack.Screen name="PromotionManage"   component={PromotionManageScreen} />
-      <Stack.Screen name="Notifications"       component={NotificationsScreen} />
+      <Stack.Screen name="ManageVideos"       component={ManageVideosScreen} />
+      <Stack.Screen name="UploadVideo"        component={UploadVideoScreen} />
+      <Stack.Screen name="VideoPlayer"        component={VideoPlayerScreen} />
+      <Stack.Screen name="DivisionDashboard"  component={DivisionDashboardScreen} />
+      <Stack.Screen name="TournamentManage"   component={TournamentManageScreen} />
+      <Stack.Screen name="TournamentDetail"   component={TournamentDetailScreen} />
+      <Stack.Screen name="Announce"           component={SendAnnouncementScreen} />
+      <Stack.Screen name="Chat"               component={ChatScreen} />
+      <Stack.Screen name="NewConversation"    component={NewConversationScreen} />
+      <Stack.Screen name="Students"           component={ManageStudentsScreen} />
+      <Stack.Screen name="StudentDetail"      component={StudentDetailScreen} />
+      <Stack.Screen name="Attendance"         component={AttendanceScreen} />
+      <Stack.Screen name="CoachNotes"         component={CoachNotesScreen} />
+      <Stack.Screen name="PromotionManage"    component={PromotionManageScreen} />
+      <Stack.Screen name="Notifications"      component={NotificationsScreen} />
     </Stack.Navigator>
   );
 }
+
 function CoachStudentsStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
@@ -223,9 +234,11 @@ function CoachStudentsStack() {
       <Stack.Screen name="PromotionManage" component={PromotionManageScreen} />
       <Stack.Screen name="Chat"            component={ChatScreen} />
       <Stack.Screen name="NewConversation" component={NewConversationScreen} />
+      <Stack.Screen name="Notifications"   component={NotificationsScreen} />
     </Stack.Navigator>
   );
 }
+
 function CoachMessagesStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
@@ -233,9 +246,11 @@ function CoachMessagesStack() {
       <Stack.Screen name="Chat"            component={ChatScreen} />
       <Stack.Screen name="NewConversation" component={NewConversationScreen} />
       <Stack.Screen name="Announce"        component={SendAnnouncementScreen} />
+      <Stack.Screen name="Notifications"   component={NotificationsScreen} />
     </Stack.Navigator>
   );
 }
+
 function CoachProfileStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
@@ -247,9 +262,11 @@ function CoachProfileStack() {
       <Stack.Screen name="StudentDetail"     component={StudentDetailScreen} />
       <Stack.Screen name="DivisionDashboard" component={DivisionDashboardScreen} />
       <Stack.Screen name="Attendance"        component={AttendanceScreen} />
+      <Stack.Screen name="Notifications"     component={NotificationsScreen} />
     </Stack.Navigator>
   );
 }
+
 function CoachTabs() {
   const tabBarScreenOptions = useTabBarScreenOptions();
   return (
@@ -262,38 +279,40 @@ function CoachTabs() {
   );
 }
 
-// Admin
+// ─── ADMIN ───────────────────────────────────────────────────────────────────
+
 function AdminDashboardStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="Dashboard"         component={CoachHomeScreen} />
-      <Stack.Screen name="Reports"           component={ReportsScreen} />
-      <Stack.Screen name="Manage"            component={ManageProgramsScreen} />
-      <Stack.Screen name="ProgramRoster"     component={ProgramRosterScreen} />
-      <Stack.Screen name="ProgramModules"    component={ProgramModulesScreen} />
+      <Stack.Screen name="Dashboard"          component={CoachHomeScreen} />
+      <Stack.Screen name="Reports"            component={ReportsScreen} />
+      <Stack.Screen name="Manage"             component={ManageProgramsScreen} />
+      <Stack.Screen name="ProgramRoster"      component={ProgramRosterScreen} />
+      <Stack.Screen name="ProgramModules"     component={ProgramModulesScreen} />
       <Stack.Screen name="ScheduleGenerator"  component={ScheduleGeneratorScreen} />
-      <Stack.Screen name="VideoPlayer"       component={VideoPlayerScreen} />
-      <Stack.Screen name="Payments"          component={PaymentReconciliationScreen} />
-      <Stack.Screen name="BulkMsg"           component={BulkMessageScreen} />
-      <Stack.Screen name="Announce"          component={SendAnnouncementScreen} />
-      <Stack.Screen name="AcademySettings"   component={AcademySettingsScreen} />
-      <Stack.Screen name="BillingSettings"   component={BillingSettingsScreen} />
-      <Stack.Screen name="DivisionDashboard" component={DivisionDashboardScreen} />
-      <Stack.Screen name="TournamentManage"  component={TournamentManageScreen} />
-      <Stack.Screen name="TournamentDetail"  component={TournamentDetailScreen} />
-      <Stack.Screen name="ManageVideos"      component={ManageVideosScreen} />
-      <Stack.Screen name="UploadVideo"       component={UploadVideoScreen} />
-      <Stack.Screen name="Students"          component={ManageStudentsScreen} />
-      <Stack.Screen name="StudentDetail"     component={StudentDetailScreen} />
-      <Stack.Screen name="Attendance"        component={AttendanceScreen} />
-      <Stack.Screen name="CoachNotes"        component={CoachNotesScreen} />
-      <Stack.Screen name="PromotionManage"   component={PromotionManageScreen} />
-      <Stack.Screen name="Chat"              component={ChatScreen} />
-      <Stack.Screen name="NewConversation"   component={NewConversationScreen} />
-      <Stack.Screen name="Notifications"       component={NotificationsScreen} />
+      <Stack.Screen name="VideoPlayer"        component={VideoPlayerScreen} />
+      <Stack.Screen name="Payments"           component={PaymentReconciliationScreen} />
+      <Stack.Screen name="BulkMsg"            component={BulkMessageScreen} />
+      <Stack.Screen name="Announce"           component={SendAnnouncementScreen} />
+      <Stack.Screen name="AcademySettings"    component={AcademySettingsScreen} />
+      <Stack.Screen name="BillingSettings"    component={BillingSettingsScreen} />
+      <Stack.Screen name="DivisionDashboard"  component={DivisionDashboardScreen} />
+      <Stack.Screen name="TournamentManage"   component={TournamentManageScreen} />
+      <Stack.Screen name="TournamentDetail"   component={TournamentDetailScreen} />
+      <Stack.Screen name="ManageVideos"       component={ManageVideosScreen} />
+      <Stack.Screen name="UploadVideo"        component={UploadVideoScreen} />
+      <Stack.Screen name="Students"           component={ManageStudentsScreen} />
+      <Stack.Screen name="StudentDetail"      component={StudentDetailScreen} />
+      <Stack.Screen name="Attendance"         component={AttendanceScreen} />
+      <Stack.Screen name="CoachNotes"         component={CoachNotesScreen} />
+      <Stack.Screen name="PromotionManage"    component={PromotionManageScreen} />
+      <Stack.Screen name="Chat"               component={ChatScreen} />
+      <Stack.Screen name="NewConversation"    component={NewConversationScreen} />
+      <Stack.Screen name="Notifications"      component={NotificationsScreen} />
     </Stack.Navigator>
   );
 }
+
 function AdminStudentsStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
@@ -304,32 +323,38 @@ function AdminStudentsStack() {
       <Stack.Screen name="PromotionManage" component={PromotionManageScreen} />
       <Stack.Screen name="Chat"            component={ChatScreen} />
       <Stack.Screen name="NewConversation" component={NewConversationScreen} />
+      <Stack.Screen name="Notifications"   component={NotificationsScreen} />
     </Stack.Navigator>
   );
 }
+
 function AdminProgramsStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="Manage"         component={ManageProgramsScreen} />
-      <Stack.Screen name="ProgramRoster"  component={ProgramRosterScreen} />
-      <Stack.Screen name="ProgramModules" component={ProgramModulesScreen} />
+      <Stack.Screen name="Manage"            component={ManageProgramsScreen} />
+      <Stack.Screen name="ProgramRoster"     component={ProgramRosterScreen} />
+      <Stack.Screen name="ProgramModules"    component={ProgramModulesScreen} />
       <Stack.Screen name="ScheduleGenerator" component={ScheduleGeneratorScreen} />
-      <Stack.Screen name="ManageVideos"   component={ManageVideosScreen} />
-      <Stack.Screen name="UploadVideo"    component={UploadVideoScreen} />
-      <Stack.Screen name="VideoPlayer"    component={VideoPlayerScreen} />
-      <Stack.Screen name="StudentDetail"  component={StudentDetailScreen} />
+      <Stack.Screen name="ManageVideos"      component={ManageVideosScreen} />
+      <Stack.Screen name="UploadVideo"       component={UploadVideoScreen} />
+      <Stack.Screen name="VideoPlayer"       component={VideoPlayerScreen} />
+      <Stack.Screen name="StudentDetail"     component={StudentDetailScreen} />
+      <Stack.Screen name="Notifications"     component={NotificationsScreen} />
     </Stack.Navigator>
   );
 }
+
 function AdminMessagesStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Messages"        component={MessagesScreen} />
       <Stack.Screen name="Chat"            component={ChatScreen} />
       <Stack.Screen name="NewConversation" component={NewConversationScreen} />
+      <Stack.Screen name="Notifications"   component={NotificationsScreen} />
     </Stack.Navigator>
   );
 }
+
 function AdminTabs() {
   const tabBarScreenOptions = useTabBarScreenOptions();
   return (
@@ -342,46 +367,50 @@ function AdminTabs() {
   );
 }
 
-// Super Admin
+// ─── SUPER ADMIN ─────────────────────────────────────────────────────────────
+
 function SuperAdminDashboardStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="Dashboard"         component={CoachHomeScreen} />
-      <Stack.Screen name="Reports"           component={ReportsScreen} />
-      <Stack.Screen name="Manage"            component={ManageProgramsScreen} />
-      <Stack.Screen name="ProgramRoster"     component={ProgramRosterScreen} />
-      <Stack.Screen name="ProgramModules"    component={ProgramModulesScreen} />
+      <Stack.Screen name="Dashboard"          component={CoachHomeScreen} />
+      <Stack.Screen name="Reports"            component={ReportsScreen} />
+      <Stack.Screen name="Manage"             component={ManageProgramsScreen} />
+      <Stack.Screen name="ProgramRoster"      component={ProgramRosterScreen} />
+      <Stack.Screen name="ProgramModules"     component={ProgramModulesScreen} />
       <Stack.Screen name="ScheduleGenerator"  component={ScheduleGeneratorScreen} />
-      <Stack.Screen name="VideoPlayer"       component={VideoPlayerScreen} />
-      <Stack.Screen name="Students"          component={ManageStudentsScreen} />
-      <Stack.Screen name="StudentDetail"     component={StudentDetailScreen} />
-      <Stack.Screen name="Attendance"        component={AttendanceScreen} />
-      <Stack.Screen name="CoachNotes"        component={CoachNotesScreen} />
-      <Stack.Screen name="PromotionManage"   component={PromotionManageScreen} />
-      <Stack.Screen name="ManageVideos"      component={ManageVideosScreen} />
-      <Stack.Screen name="UploadVideo"       component={UploadVideoScreen} />
-      <Stack.Screen name="Payments"          component={PaymentReconciliationScreen} />
-      <Stack.Screen name="BulkMsg"           component={BulkMessageScreen} />
-      <Stack.Screen name="Announce"          component={SendAnnouncementScreen} />
-      <Stack.Screen name="AcademySettings"   component={AcademySettingsScreen} />
-      <Stack.Screen name="BillingSettings"   component={BillingSettingsScreen} />
-      <Stack.Screen name="DivisionDashboard" component={DivisionDashboardScreen} />
-      <Stack.Screen name="TournamentManage"  component={TournamentManageScreen} />
-      <Stack.Screen name="TournamentDetail"  component={TournamentDetailScreen} />
-      <Stack.Screen name="Chat"              component={ChatScreen} />
-      <Stack.Screen name="NewConversation"   component={NewConversationScreen} />
-      <Stack.Screen name="Notifications"       component={NotificationsScreen} />
+      <Stack.Screen name="VideoPlayer"        component={VideoPlayerScreen} />
+      <Stack.Screen name="Students"           component={ManageStudentsScreen} />
+      <Stack.Screen name="StudentDetail"      component={StudentDetailScreen} />
+      <Stack.Screen name="Attendance"         component={AttendanceScreen} />
+      <Stack.Screen name="CoachNotes"         component={CoachNotesScreen} />
+      <Stack.Screen name="PromotionManage"    component={PromotionManageScreen} />
+      <Stack.Screen name="ManageVideos"       component={ManageVideosScreen} />
+      <Stack.Screen name="UploadVideo"        component={UploadVideoScreen} />
+      <Stack.Screen name="Payments"           component={PaymentReconciliationScreen} />
+      <Stack.Screen name="BulkMsg"            component={BulkMessageScreen} />
+      <Stack.Screen name="Announce"           component={SendAnnouncementScreen} />
+      <Stack.Screen name="AcademySettings"    component={AcademySettingsScreen} />
+      <Stack.Screen name="BillingSettings"    component={BillingSettingsScreen} />
+      <Stack.Screen name="DivisionDashboard"  component={DivisionDashboardScreen} />
+      <Stack.Screen name="TournamentManage"   component={TournamentManageScreen} />
+      <Stack.Screen name="TournamentDetail"   component={TournamentDetailScreen} />
+      <Stack.Screen name="Chat"               component={ChatScreen} />
+      <Stack.Screen name="NewConversation"    component={NewConversationScreen} />
+      <Stack.Screen name="Notifications"      component={NotificationsScreen} />
     </Stack.Navigator>
   );
 }
+
 function SuperAdminUsersStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="SuperAdminHome" component={SuperAdminHomeScreen} />
       <Stack.Screen name="StudentDetail"  component={StudentDetailScreen} />
+      <Stack.Screen name="Notifications"  component={NotificationsScreen} />
     </Stack.Navigator>
   );
 }
+
 function SuperAdminMessagesStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
@@ -390,9 +419,11 @@ function SuperAdminMessagesStack() {
       <Stack.Screen name="NewConversation" component={NewConversationScreen} />
       <Stack.Screen name="BulkMsg"         component={BulkMessageScreen} />
       <Stack.Screen name="Announce"        component={SendAnnouncementScreen} />
+      <Stack.Screen name="Notifications"   component={NotificationsScreen} />
     </Stack.Navigator>
   );
 }
+
 function SuperAdminProfileStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
@@ -404,9 +435,11 @@ function SuperAdminProfileStack() {
       <Stack.Screen name="StudentDetail"     component={StudentDetailScreen} />
       <Stack.Screen name="DivisionDashboard" component={DivisionDashboardScreen} />
       <Stack.Screen name="Attendance"        component={AttendanceScreen} />
+      <Stack.Screen name="Notifications"     component={NotificationsScreen} />
     </Stack.Navigator>
   );
 }
+
 function SuperAdminTabs() {
   const tabBarScreenOptions = useTabBarScreenOptions();
   return (
@@ -419,7 +452,8 @@ function SuperAdminTabs() {
   );
 }
 
-// Root
+// ─── ROOT ─────────────────────────────────────────────────────────────────────
+
 export default function RootNavigator() {
   const { session, loading, isSuperAdmin, isAdmin, isCoach, profile } = useAuth();
   if (loading) return null;
