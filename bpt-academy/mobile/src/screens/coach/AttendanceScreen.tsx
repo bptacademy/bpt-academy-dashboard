@@ -25,6 +25,11 @@ export default function AttendanceScreen({ route }: any) {
   const [selectMode, setSelectMode] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
 
+  // Deadline / auto-complete state
+  const [attendanceDeadline, setAttendanceDeadline] = useState<Date | null>(null);
+  const [autoCompleted, setAutoCompleted] = useState(false);
+  const [attendanceCompleted, setAttendanceCompleted] = useState(false);
+
   const load = async () => {
     setLoading(true);
 
@@ -33,7 +38,14 @@ export default function AttendanceScreen({ route }: any) {
       .select('*')
       .eq('id', sessionId)
       .single();
-    if (sessionData) setSession(sessionData as ProgramSession);
+    if (sessionData) {
+      setSession(sessionData as ProgramSession);
+      if ((sessionData as any).attendance_deadline) {
+        setAttendanceDeadline(new Date((sessionData as any).attendance_deadline));
+      }
+      setAutoCompleted((sessionData as any).auto_completed ?? false);
+      setAttendanceCompleted((sessionData as any).attendance_completed ?? false);
+    }
 
     const { data: enrollments } = await supabase
       .from('enrollments')
@@ -175,6 +187,10 @@ export default function AttendanceScreen({ route }: any) {
             if (attended && session?.program_id) {
               await Promise.all(rows.map(r => completeNextModule(r.profile.id, session!.program_id)));
             }
+            // Mark session attendance as completed by coach
+            await supabase.from('program_sessions')
+              .update({ attendance_completed: true, auto_completed: false })
+              .eq('id', sessionId);
             await load();
             setSaving(null);
           },
@@ -189,6 +205,33 @@ export default function AttendanceScreen({ route }: any) {
   return (
     <View style={styles.container}>
       <BackHeader title={sessionTitle ?? 'Attendance'} />
+
+      {/* Deadline banner */}
+      {attendanceDeadline && !attendanceCompleted && (() => {
+        const now = new Date();
+        const hoursLeft = (attendanceDeadline.getTime() - now.getTime()) / (1000 * 60 * 60);
+        const isUrgent = hoursLeft <= 4 && hoursLeft > 0;
+        const isPast = hoursLeft <= 0;
+        if (isPast) return null;
+        return (
+          <View style={[styles.deadlineBanner, isUrgent && styles.deadlineBannerUrgent]}>
+            <Text style={styles.deadlineBannerText}>
+              {isUrgent
+                ? `🚨 Last chance — closes in ${Math.ceil(hoursLeft)}h`
+                : `⏰ Attendance closes in ${Math.ceil(hoursLeft)}h`}
+            </Text>
+          </View>
+        );
+      })()}
+
+      {/* Auto-completed banner */}
+      {autoCompleted && (
+        <View style={styles.autoCompletedBanner}>
+          <Text style={styles.autoCompletedText}>
+            🔒 Attendance was auto-completed — all students marked present
+          </Text>
+        </View>
+      )}
 
       <View style={styles.summaryBar}>
         <View style={styles.summaryItem}>
@@ -357,4 +400,15 @@ const styles = StyleSheet.create({
   rowInfo: { flex: 1 },
   rowName: { fontSize: 14, fontWeight: '600', color: '#111827' },
   rowStatus: { fontSize: 11, fontWeight: '600', marginTop: 2 },
+  deadlineBanner: {
+    backgroundColor: '#FFFBEB', borderBottomWidth: 1, borderBottomColor: '#FDE68A',
+    padding: 12, alignItems: 'center',
+  },
+  deadlineBannerUrgent: { backgroundColor: '#FEF2F2', borderBottomColor: '#FECACA' },
+  deadlineBannerText: { fontSize: 13, fontWeight: '600', color: '#92400E' },
+  autoCompletedBanner: {
+    backgroundColor: '#F3F4F6', borderBottomWidth: 1, borderBottomColor: '#E5E7EB',
+    padding: 12, alignItems: 'center',
+  },
+  autoCompletedText: { fontSize: 13, fontWeight: '600', color: '#6B7280' },
 });

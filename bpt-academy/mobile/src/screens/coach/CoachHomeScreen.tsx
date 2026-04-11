@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, RefreshControl, Dimensions } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
@@ -8,11 +9,21 @@ import ScreenHeader from '../../components/common/ScreenHeader';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = (SCREEN_WIDTH - 16 * 2 - 12) / 2;
 
+interface PenaltyAlert {
+  coachName: string;
+  programTitle: string;
+  strikeCount: number;
+  month: string;
+  coachId: string;
+  programId: string;
+}
+
 export default function CoachHomeScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
   const { profile, isSuperAdmin, isAdmin } = useAuth();
   const [stats, setStats] = useState({ students: 0, programs: 0, videos: 0 });
   const [refreshing, setRefreshing] = useState(false);
+  const [penaltyAlerts, setPenaltyAlerts] = useState<PenaltyAlert[]>([]);
 
   const fetchStats = async () => {
     const [studentsRes, programsRes, videosRes] = await Promise.all([
@@ -27,8 +38,42 @@ export default function CoachHomeScreen({ navigation }: any) {
     });
   };
 
-  const onRefresh = async () => { setRefreshing(true); await fetchStats(); setRefreshing(false); };
-  useEffect(() => { fetchStats(); }, []);
+  const fetchPenalties = async () => {
+    const currentMonth = new Date().toISOString().slice(0, 7);
+    const { data } = await supabase
+      .from('coach_penalties')
+      .select('coach_id, program_id, strike_count, month, coach:profiles!coach_id(full_name), program:programs!program_id(title)')
+      .eq('month', currentMonth)
+      .gte('strike_count', 1)
+      .order('strike_count', { ascending: false });
+
+    if (!data) return;
+
+    // Deduplicate by coach+program, keep highest strike count
+    const seen = new Map<string, PenaltyAlert>();
+    for (const row of data as any[]) {
+      const key = `${row.coach_id}:${row.program_id}`;
+      if (!seen.has(key) || row.strike_count > seen.get(key)!.strikeCount) {
+        seen.set(key, {
+          coachName: row.coach?.full_name ?? 'Unknown',
+          programTitle: row.program?.title ?? 'Unknown',
+          strikeCount: row.strike_count,
+          month: row.month,
+          coachId: row.coach_id,
+          programId: row.program_id,
+        });
+      }
+    }
+    setPenaltyAlerts([...seen.values()]);
+  };
+
+  const fetchAll = async () => {
+    await Promise.all([fetchStats(), fetchPenalties()]);
+  };
+
+  const onRefresh = async () => { setRefreshing(true); await fetchAll(); setRefreshing(false); };
+  useEffect(() => { fetchAll(); }, []);
+  useFocusEffect(useCallback(() => { fetchAll(); }, []));
 
   const goToStudents = () => {
     if (isSuperAdmin) {
@@ -95,6 +140,36 @@ export default function CoachHomeScreen({ navigation }: any) {
         </TouchableOpacity>
       </View>
 
+      {/* Coach Penalty Alerts */}
+      {penaltyAlerts.length > 0 && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>🚨 Coach Penalties This Month</Text>
+          {penaltyAlerts.map((p) => {
+            const isCritical = p.strikeCount >= 2;
+            return (
+              <View
+                key={`${p.coachId}:${p.programId}`}
+                style={[styles.penaltyCard, isCritical && styles.penaltyCardCritical]}
+              >
+                <View style={styles.penaltyLeft}>
+                  <Text style={styles.penaltyIcon}>{isCritical ? '🔴' : '🟡'}</Text>
+                </View>
+                <View style={styles.penaltyBody}>
+                  <Text style={styles.penaltyCoach}>{p.coachName}</Text>
+                  <Text style={styles.penaltyProgram}>{p.programTitle}</Text>
+                  <Text style={[styles.penaltyStrikes, isCritical && styles.penaltyStrikesCritical]}>
+                    {p.strikeCount} strike{p.strikeCount !== 1 ? 's' : ''} — {isCritical ? 'Review required' : 'Warning'}
+                  </Text>
+                </View>
+                <View style={[styles.penaltyBadge, isCritical && styles.penaltyBadgeCritical]}>
+                  <Text style={styles.penaltyBadgeText}>{p.strikeCount}</Text>
+                </View>
+              </View>
+            );
+          })}
+        </View>
+      )}
+
       {/* Quick actions grid */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Manage</Text>
@@ -122,10 +197,31 @@ const styles = StyleSheet.create({
   statCard: { flex: 1, backgroundColor: '#FFFFFF', borderRadius: 14, padding: 16, alignItems: 'center', borderWidth: 1, borderColor: '#E5E7EB' },
   statNumber: { fontSize: 28, fontWeight: '700', color: '#111827' },
   statLabel: { fontSize: 13, color: '#6B7280', marginTop: 2 },
-  section: { padding: 16 },
+  section: { padding: 16, paddingBottom: 4 },
   sectionTitle: { fontSize: 17, fontWeight: '700', color: '#111827', marginBottom: 12 },
   actionGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
   actionCard: { width: CARD_WIDTH, backgroundColor: '#FFFFFF', borderRadius: 14, padding: 20, alignItems: 'center', borderWidth: 1, borderColor: '#E5E7EB' },
   actionIcon: { fontSize: 32, marginBottom: 8 },
   actionLabel: { fontSize: 14, fontWeight: '600', color: '#374151' },
+
+  // Penalty cards
+  penaltyCard: {
+    flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFBEB',
+    borderRadius: 12, padding: 14, marginBottom: 10,
+    borderWidth: 1.5, borderColor: '#FDE68A', gap: 12,
+  },
+  penaltyCardCritical: { backgroundColor: '#FEF2F2', borderColor: '#FECACA' },
+  penaltyLeft: { width: 28, alignItems: 'center' },
+  penaltyIcon: { fontSize: 20 },
+  penaltyBody: { flex: 1 },
+  penaltyCoach: { fontSize: 14, fontWeight: '700', color: '#111827', marginBottom: 2 },
+  penaltyProgram: { fontSize: 12, color: '#6B7280', marginBottom: 3 },
+  penaltyStrikes: { fontSize: 12, fontWeight: '600', color: '#D97706' },
+  penaltyStrikesCritical: { color: '#DC2626' },
+  penaltyBadge: {
+    width: 32, height: 32, borderRadius: 16,
+    backgroundColor: '#F59E0B', alignItems: 'center', justifyContent: 'center',
+  },
+  penaltyBadgeCritical: { backgroundColor: '#EF4444' },
+  penaltyBadgeText: { fontSize: 14, fontWeight: '800', color: '#FFFFFF' },
 });
