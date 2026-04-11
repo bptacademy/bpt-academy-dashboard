@@ -6,6 +6,7 @@ import { Text, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useAuth } from '../context/AuthContext';
+import { usePushNotifications } from '../hooks/usePushNotifications';
 
 // Auth
 import LoginScreen from '../screens/auth/LoginScreen';
@@ -488,6 +489,11 @@ function SuperAdminTabs() {
 
 // ─── ROOT ─────────────────────────────────────────────────────────────────────
 
+function PushNotificationInitializer() {
+  usePushNotifications();
+  return null;
+}
+
 export default function RootNavigator() {
   const { session, loading, isSuperAdmin, isAdmin, isCoach, profile } = useAuth();
   if (loading) return null;
@@ -499,5 +505,10 @@ export default function RootNavigator() {
     if (profile?.role === 'parent') return <ParentStack />;
     return <StudentTabs />;
   };
-  return <NavigationContainer>{renderStack()}</NavigationContainer>;
+  return (
+    <NavigationContainer>
+      {session && <PushNotificationInitializer />}
+      {renderStack()}
+    </NavigationContainer>
+  );
 }
