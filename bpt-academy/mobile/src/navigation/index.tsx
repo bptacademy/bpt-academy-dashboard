@@ -2,8 +2,10 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Text, Platform } from 'react-native';
+import { Text, View, StyleSheet } from 'react-native';
+import { Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useNotifications } from '../hooks/useNotifications';
 
 import { useAuth } from '../context/AuthContext';
 import { usePushNotifications } from '../hooks/usePushNotifications';
@@ -97,8 +99,46 @@ function useTabBarScreenOptions() {
   };
 }
 
+
+// ─── Bell tab icon with unread badge ─────────────────────────────────────────
+function BellTabIcon({ color }: { color: string }) {
+  const { unreadCount } = useNotifications();
+  return (
+    <View style={bellStyles.container}>
+      <Text style={{ fontSize: 20, color }}>🔔</Text>
+      {unreadCount > 0 && (
+        <View style={bellStyles.badge}>
+          <Text style={bellStyles.badgeText}>
+            {unreadCount > 9 ? '9+' : String(unreadCount)}
+          </Text>
+        </View>
+      )}
+    </View>
+  );
+}
+
+const bellStyles = StyleSheet.create({
+  container: { width: 28, height: 28, alignItems: 'center', justifyContent: 'center' },
+  badge: {
+    position: 'absolute', top: -4, right: -8,
+    backgroundColor: '#EF4444', borderRadius: 8,
+    minWidth: 16, height: 16, alignItems: 'center', justifyContent: 'center',
+    paddingHorizontal: 3,
+  },
+  badgeText: { color: '#FFFFFF', fontSize: 9, fontWeight: '700' },
+});
+
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
+
+// Notifications tab stack (shared all roles)
+function NotificationsTabStack() {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="NotificationsList" component={NotificationsScreen} />
+    </Stack.Navigator>
+  );
+}
 
 // Auth
 function AuthStack() {
@@ -200,6 +240,7 @@ function StudentTabs() {
     <Tab.Navigator screenOptions={tabBarScreenOptions}>
       <Tab.Screen name="HomeTab"     component={StudentHomeStack}     options={{ title: 'Home',     tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>🏠</Text> }} />
       <Tab.Screen name="ProgramsTab" component={StudentProgramsStack} options={{ title: 'Programs', tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>📋</Text> }} />
+      <Tab.Screen name="NotificationsTab" component={NotificationsTabStack} options={{ title: 'Alerts', tabBarIcon: ({ color }) => <BellTabIcon color={color} /> }} />
       <Tab.Screen name="MessagesTab" component={StudentMessagesStack} options={{ title: 'Messages', tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>💬</Text> }} />
       <Tab.Screen name="ProfileTab"  component={StudentProfileStack}  options={{ title: 'Profile',  tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>👤</Text> }} />
     </Tab.Navigator>
@@ -292,6 +333,7 @@ function CoachTabs() {
     <Tab.Navigator screenOptions={tabBarScreenOptions}>
       <Tab.Screen name="HomeTab"     component={CoachHomeStack}     options={{ title: 'Home',     tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>🏠</Text> }} />
       <Tab.Screen name="StudentsTab" component={CoachStudentsStack} options={{ title: 'Students', tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>👥</Text> }} />
+      <Tab.Screen name="NotificationsTab" component={NotificationsTabStack} options={{ title: 'Alerts', tabBarIcon: ({ color }) => <BellTabIcon color={color} /> }} />
       <Tab.Screen name="MessagesTab" component={CoachMessagesStack} options={{ title: 'Messages', tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>💬</Text> }} />
       <Tab.Screen name="ProfileTab"  component={CoachProfileStack}  options={{ title: 'Profile',  tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>👤</Text> }} />
     </Tab.Navigator>
@@ -388,6 +430,7 @@ function AdminTabs() {
     <Tab.Navigator screenOptions={tabBarScreenOptions}>
       <Tab.Screen name="DashboardTab" component={AdminDashboardStack} options={{ title: 'Dashboard', tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>📊</Text> }} />
       <Tab.Screen name="StudentsTab"  component={AdminStudentsStack}  options={{ title: 'Students',  tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>👥</Text> }} />
+      <Tab.Screen name="NotificationsTab" component={NotificationsTabStack} options={{ title: 'Alerts', tabBarIcon: ({ color }) => <BellTabIcon color={color} /> }} />
       <Tab.Screen name="ProgramsTab"  component={AdminProgramsStack}  options={{ title: 'Programs',  tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>📋</Text> }} />
       <Tab.Screen name="MessagesTab"  component={AdminMessagesStack}  options={{ title: 'Messages',  tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>💬</Text> }} />
     </Tab.Navigator>
@@ -481,6 +524,7 @@ function SuperAdminTabs() {
     <Tab.Navigator screenOptions={tabBarScreenOptions}>
       <Tab.Screen name="DashboardTab" component={SuperAdminDashboardStack} options={{ title: 'Dashboard', tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>📊</Text> }} />
       <Tab.Screen name="UsersTab"     component={SuperAdminUsersStack}     options={{ title: 'Users',     tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>👑</Text> }} />
+      <Tab.Screen name="NotificationsTab" component={NotificationsTabStack} options={{ title: 'Alerts', tabBarIcon: ({ color }) => <BellTabIcon color={color} /> }} />
       <Tab.Screen name="MessagesTab"  component={SuperAdminMessagesStack}  options={{ title: 'Messages',  tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>💬</Text> }} />
       <Tab.Screen name="ProfileTab"   component={SuperAdminProfileStack}   options={{ title: 'Profile',   tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>👤</Text> }} />
     </Tab.Navigator>
