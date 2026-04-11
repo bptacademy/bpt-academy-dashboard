@@ -348,7 +348,7 @@ export default function ProfileScreen({ navigation }: any) {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>App</Text>
           <View style={styles.card}>
-            <TouchableOpacity style={styles.row}>
+            <TouchableOpacity style={styles.row} onPress={() => navigation.navigate("Notifications")}>
               <Text style={styles.rowLabel}>Notifications</Text>
               <Text style={styles.chevron}>›</Text>
             </TouchableOpacity>
