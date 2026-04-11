@@ -79,6 +79,8 @@ export default function ReportsScreen({ navigation }: any) {
   const [newEnrollments, setNewEnrollments] = useState(0);
   const [revenue, setRevenue] = useState(0);
   const [attendanceRate, setAttendanceRate] = useState<number | null>(null);
+  const [attendedCount, setAttendedCount] = useState(0);
+  const [totalSessionCount, setTotalSessionCount] = useState(0);
   const [divisionRevenue, setDivisionRevenue] = useState<DivisionRevenue[]>([]);
   const [divisionActivity, setDivisionActivity] = useState<DivisionActivity[]>([]);
   const [topStudents, setTopStudents] = useState<TopStudent[]>([]);
@@ -86,37 +88,76 @@ export default function ReportsScreen({ navigation }: any) {
   const fetchReports = useCallback(async (selectedMode: ReportMode) => {
     const { start, end } = getDateRange(selectedMode);
 
+    // ── Total students ────────────────────────────────────────────────────────
     const { count: studentCount } = await supabase
       .from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'student');
     setTotalStudents(studentCount ?? 0);
 
+    // ── New enrollments in period ─────────────────────────────────────────────
     const { count: enrollCount } = await supabase
       .from('enrollments').select('*', { count: 'exact', head: true })
       .gte('enrolled_at', start).lte('enrolled_at', end);
     setNewEnrollments(enrollCount ?? 0);
 
+    // ── Revenue in period ─────────────────────────────────────────────────────
     const { data: payments } = await supabase
       .from('payments').select('amount_gbp').eq('status', 'confirmed')
       .gte('created_at', start).lte('created_at', end);
     const totalRevenue = (payments ?? []).reduce((s: number, p: any) => s + (p.amount_gbp ?? 0), 0);
     setRevenue(totalRevenue);
 
-    const { count: totalAtt } = await supabase
-      .from('session_attendance').select('*', { count: 'exact', head: true })
-      .gte('created_at', start).lte('created_at', end);
-    const { count: presentAtt } = await supabase
-      .from('session_attendance').select('*', { count: 'exact', head: true })
-      .eq('status', 'present').gte('created_at', start).lte('created_at', end);
-    setAttendanceRate(totalAtt && totalAtt > 0 ? Math.round(((presentAtt ?? 0) / totalAtt) * 100) : null);
+    // ── Attendance rate — from session_attendance using attended boolean ───────
+    // Find sessions scheduled in the period, then count attendance records
+    const { data: sessionsInPeriod } = await supabase
+      .from('program_sessions')
+      .select('id')
+      .gte('scheduled_at', start)
+      .lte('scheduled_at', end);
 
-    // Revenue by division — join programs directly via program_id (simpler + reliable)
+    const sessionIds = (sessionsInPeriod ?? []).map((s: any) => s.id);
+
+    if (sessionIds.length > 0) {
+      const { count: totalAtt } = await supabase
+        .from('session_attendance')
+        .select('*', { count: 'exact', head: true })
+        .in('session_id', sessionIds);
+
+      const { count: presentAtt } = await supabase
+        .from('session_attendance')
+        .select('*', { count: 'exact', head: true })
+        .in('session_id', sessionIds)
+        .eq('attended', true);
+
+      const total = totalAtt ?? 0;
+      const attended = presentAtt ?? 0;
+      setTotalSessionCount(total);
+      setAttendedCount(attended);
+      setAttendanceRate(total > 0 ? Math.round((attended / total) * 100) : null);
+    } else {
+      // No sessions in period — use all-time attendance rate
+      const { count: totalAtt } = await supabase
+        .from('session_attendance')
+        .select('*', { count: 'exact', head: true });
+
+      const { count: presentAtt } = await supabase
+        .from('session_attendance')
+        .select('*', { count: 'exact', head: true })
+        .eq('attended', true);
+
+      const total = totalAtt ?? 0;
+      const attended = presentAtt ?? 0;
+      setTotalSessionCount(total);
+      setAttendedCount(attended);
+      setAttendanceRate(total > 0 ? Math.round((attended / total) * 100) : null);
+    }
+
+    // ── Revenue by division ───────────────────────────────────────────────────
     const { data: paymentData } = await supabase
       .from('payments')
       .select('amount_gbp, program:programs(division), student:profiles(division)')
       .eq('status', 'confirmed').gte('created_at', start).lte('created_at', end);
     const revByDiv: Record<string, { revenue: number; count: number }> = {};
     (paymentData ?? []).forEach((p: any) => {
-      // Use program division first, fall back to student's division
       const div = p.program?.division ?? p.student?.division ?? 'other';
       if (!revByDiv[div]) revByDiv[div] = { revenue: 0, count: 0 };
       revByDiv[div].revenue += p.amount_gbp ?? 0;
@@ -127,6 +168,7 @@ export default function ReportsScreen({ navigation }: any) {
         .sort((a, b) => b.revenue - a.revenue)
     );
 
+    // ── Students by division ──────────────────────────────────────────────────
     const { data: studentsByDiv } = await supabase
       .from('profiles').select('division').eq('role', 'student');
     const actByDiv: Record<string, number> = {};
@@ -136,6 +178,7 @@ export default function ReportsScreen({ navigation }: any) {
         .sort((a, b) => b.studentCount - a.studentCount)
     );
 
+    // ── Top students by ranking points ────────────────────────────────────────
     const { data: topData } = await supabase
       .from('profiles').select('id, full_name, ranking_points, division')
       .eq('role', 'student').order('ranking_points', { ascending: false }).limit(5);
@@ -151,11 +194,10 @@ export default function ReportsScreen({ navigation }: any) {
   const onRefresh = async () => { setRefreshing(true); await fetchReports(mode); setRefreshing(false); };
   useEffect(() => { load(mode); }, [mode]);
 
-  // ── Excel Export ─────────────────────────────────────────────────────────
+  // ── Excel Export ──────────────────────────────────────────────────────────
   const handleExport = async () => {
     setExporting(true);
     try {
-      // Lazy require — handles both CommonJS and ES module shapes
       const xlsxModule = require('xlsx');
       const XLSX = xlsxModule.default ?? xlsxModule;
 
@@ -167,7 +209,7 @@ export default function ReportsScreen({ navigation }: any) {
 
       const wb = XLSX.utils.book_new();
 
-      // ── Sheet 1: Summary ──────────────────────────────────────────────
+      // Sheet 1: Summary
       const summaryData = [
         ['BPT Academy — ' + modeLabel + ' Report'],
         ['Period:', periodLabel],
@@ -179,21 +221,18 @@ export default function ReportsScreen({ navigation }: any) {
         ['Total Students', totalStudents],
         ['New Enrollments (' + modeLabel + ')', newEnrollments],
         ['Revenue (' + modeLabel + ')', formatCurrency(revenue)],
+        ['Sessions Attended', `${attendedCount} / ${totalSessionCount}`],
         ['Attendance Rate (' + modeLabel + ')', attendanceRate !== null ? attendanceRate + '%' : 'N/A'],
       ];
       const wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
       wsSummary['!cols'] = [{ wch: 35 }, { wch: 25 }];
       XLSX.utils.book_append_sheet(wb, wsSummary, 'Summary');
 
-      // ── Sheet 2: Revenue by Division ─────────────────────────────────
+      // Sheet 2: Revenue by Division
       const revData = [
         ['REVENUE BY DIVISION — ' + modeLabel.toUpperCase()],
         ['Division', 'Revenue (£)', 'Payments'],
-        ...divisionRevenue.map(d => [
-          formatDivisionLabel(d.division),
-          d.revenue.toFixed(2),
-          d.count,
-        ]),
+        ...divisionRevenue.map(d => [formatDivisionLabel(d.division), d.revenue.toFixed(2), d.count]),
         [],
         ['TOTAL', revenue.toFixed(2), divisionRevenue.reduce((s, d) => s + d.count, 0)],
       ];
@@ -201,198 +240,169 @@ export default function ReportsScreen({ navigation }: any) {
       wsRev['!cols'] = [{ wch: 20 }, { wch: 15 }, { wch: 12 }];
       XLSX.utils.book_append_sheet(wb, wsRev, 'Revenue by Division');
 
-      // ── Sheet 3: Students by Division ────────────────────────────────
+      // Sheet 3: Students by Division
       const divData = [
         ['STUDENTS BY DIVISION'],
         ['Division', 'Student Count'],
-        ...divisionActivity.map(d => [
-          formatDivisionLabel(d.division),
-          d.studentCount,
-        ]),
+        ...divisionActivity.map(d => [formatDivisionLabel(d.division), d.studentCount]),
         [],
         ['TOTAL', totalStudents],
       ];
-      const wsDivs = XLSX.utils.aoa_to_sheet(divData);
-      wsDivs['!cols'] = [{ wch: 20 }, { wch: 15 }];
-      XLSX.utils.book_append_sheet(wb, wsDivs, 'Students by Division');
+      const wsDiv = XLSX.utils.aoa_to_sheet(divData);
+      wsDiv['!cols'] = [{ wch: 20 }, { wch: 15 }];
+      XLSX.utils.book_append_sheet(wb, wsDiv, 'Students by Division');
 
-      // ── Sheet 4: Top Students ─────────────────────────────────────────
+      // Sheet 4: Top Students
       const topData2 = [
-        ['TOP PERFORMING STUDENTS'],
-        ['Rank', 'Name', 'Division', 'Ranking Points'],
-        ...topStudents.map((s, i) => [
-          i + 1,
-          s.full_name,
-          formatDivisionLabel(s.division),
-          s.ranking_points ?? 0,
-        ]),
+        ['TOP STUDENTS BY RANKING POINTS'],
+        ['Name', 'Division', 'Ranking Points'],
+        ...topStudents.map(s => [s.full_name, formatDivisionLabel(s.division), s.ranking_points ?? 0]),
       ];
       const wsTop = XLSX.utils.aoa_to_sheet(topData2);
-      wsTop['!cols'] = [{ wch: 6 }, { wch: 25 }, { wch: 18 }, { wch: 16 }];
+      wsTop['!cols'] = [{ wch: 30 }, { wch: 15 }, { wch: 15 }];
       XLSX.utils.book_append_sheet(wb, wsTop, 'Top Students');
 
-      // ── Write & Share ─────────────────────────────────────────────────
-      // XLSX.write with type:'array' returns an ArrayBuffer in React Native.
-      // Wrap in Uint8Array before passing to our base64 encoder.
-      const wbout: ArrayBuffer = XLSX.write(wb, { type: 'array', bookType: 'xlsx' });
-      const base64 = uint8ToBase64(new Uint8Array(wbout));
-
+      const wbOut = XLSX.write(wb, { type: 'array', bookType: 'xlsx' });
+      const uint8 = new Uint8Array(wbOut);
+      const base64 = uint8ToBase64(uint8);
       const filename = `BPT_Report_${modeLabel}_${localDateStr(now)}.xlsx`;
-      const fileUri = FileSystem.documentDirectory + filename;
+      const fileUri = `${FileSystem.documentDirectory}${filename}`;
+      await FileSystem.writeAsStringAsync(fileUri, base64, { encoding: FileSystem.EncodingType.Base64 });
 
-      await FileSystem.writeAsStringAsync(fileUri, base64, {
-        encoding: 'base64',
-      });
-
-      const canShare = await Sharing.isAvailableAsync();
-      if (canShare) {
-        await Sharing.shareAsync(fileUri, {
-          mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-          dialogTitle: `BPT Academy ${modeLabel} Report`,
-          UTI: 'com.microsoft.excel.xlsx',
-        });
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(fileUri, { mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', dialogTitle: `Share ${filename}` });
       } else {
-        Alert.alert('Saved', `Report saved to:\n${fileUri}`);
+        Alert.alert('Export saved', `File saved to: ${fileUri}`);
       }
     } catch (err: any) {
-      Alert.alert('Export failed', err.message);
+      Alert.alert('Export failed', err?.message ?? 'Unknown error');
     } finally {
       setExporting(false);
     }
   };
 
-  const modeLabel = mode === 'weekly' ? 'Weekly' : 'Monthly';
-  const now = new Date();
-  const periodLabel = mode === 'weekly'
-    ? `${new Date(now.getTime() - 7 * 86400000).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} – ${now.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`
-    : now.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
+  const renderStatCard = (label: string, value: string, sub?: string, color?: string) => (
+    <View style={styles.statCard}>
+      <Text style={styles.statLabel}>{label}</Text>
+      <Text style={[styles.statValue, color ? { color } : null]}>{value}</Text>
+      {sub ? <Text style={styles.statSub}>{sub}</Text> : null}
+    </View>
+  );
+
+  if (loading) return (
+    <View style={styles.loadingContainer}>
+      <BackHeader title="Reports" />
+      <ActivityIndicator size="large" color="#16A34A" style={{ marginTop: 60 }} />
+    </View>
+  );
 
   return (
     <View style={styles.container}>
-      <BackHeader title="Academy Reports" />
+      <BackHeader title="Reports" />
       <ScrollView
-        contentContainerStyle={{ paddingBottom: insets.bottom + 32 }}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#16A34A" />}
+        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 32 }]}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         showsVerticalScrollIndicator={false}
       >
-        {/* Hero */}
-        <View style={styles.hero}>
-          <Text style={styles.heroTitle}>📊 {modeLabel} Report</Text>
-          <Text style={styles.heroPeriod}>{periodLabel}</Text>
-          <View style={styles.toggle}>
+        {/* ── Period selector ── */}
+        <View style={styles.segmentRow}>
+          {(['weekly', 'monthly'] as ReportMode[]).map((m) => (
             <TouchableOpacity
-              style={[styles.toggleBtn, mode === 'weekly' && styles.toggleBtnActive]}
-              onPress={() => setMode('weekly')}
+              key={m}
+              style={[styles.segmentBtn, mode === m && styles.segmentBtnActive]}
+              onPress={() => setMode(m)}
             >
-              <Text style={[styles.toggleText, mode === 'weekly' && styles.toggleTextActive]}>Weekly</Text>
+              <Text style={[styles.segmentBtnText, mode === m && styles.segmentBtnTextActive]}>
+                {m === 'weekly' ? '7 Days' : 'This Month'}
+              </Text>
             </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.toggleBtn, mode === 'monthly' && styles.toggleBtnActive]}
-              onPress={() => setMode('monthly')}
-            >
-              <Text style={[styles.toggleText, mode === 'monthly' && styles.toggleTextActive]}>Monthly</Text>
-            </TouchableOpacity>
-          </View>
+          ))}
         </View>
 
-        {loading ? (
-          <ActivityIndicator size="large" color="#16A34A" style={{ marginTop: 60 }} />
-        ) : (
-          <>
-            {/* Key Metrics */}
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Key Metrics</Text>
-              <View style={styles.metricsGrid}>
-                {[
-                  { icon: '🎓', label: 'Total Students',   value: totalStudents.toString(),                                    sub: 'All active students' },
-                  { icon: '📋', label: 'New Enrollments',  value: newEnrollments.toString(),                                   sub: mode === 'weekly' ? 'Last 7 days' : 'This month' },
-                  { icon: '💷', label: 'Revenue',          value: formatCurrency(revenue),                                     sub: 'Confirmed payments' },
-                  { icon: '✅', label: 'Attendance Rate',  value: attendanceRate !== null ? `${attendanceRate}%` : '—',        sub: 'Sessions attended' },
-                ].map((m) => (
-                  <View key={m.label} style={styles.metricCard}>
-                    <Text style={styles.metricIcon}>{m.icon}</Text>
-                    <Text style={styles.metricValue}>{m.value}</Text>
-                    <Text style={styles.metricLabel}>{m.label}</Text>
-                    <Text style={styles.metricSub}>{m.sub}</Text>
-                  </View>
-                ))}
+        {/* ── Key metrics ── */}
+        <View style={styles.statsGrid}>
+          {renderStatCard('👥 Total Students', `${totalStudents}`, 'All active students')}
+          {renderStatCard('📋 New Enrollments', `${newEnrollments}`, 'In selected period')}
+          {renderStatCard('💷 Revenue', formatCurrency(revenue), 'Confirmed payments')}
+          {renderStatCard(
+            '📅 Attendance Rate',
+            attendanceRate !== null ? `${attendanceRate}%` : '—',
+            attendanceRate !== null
+              ? `${attendedCount} attended / ${totalSessionCount} total`
+              : 'No sessions in period',
+            attendanceRate !== null
+              ? attendanceRate >= 75 ? '#16A34A' : attendanceRate >= 50 ? '#D97706' : '#DC2626'
+              : undefined,
+          )}
+        </View>
+
+        {/* ── Revenue by division ── */}
+        {divisionRevenue.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>💷 Revenue by Division</Text>
+            {divisionRevenue.map((d) => (
+              <View key={d.division} style={styles.rowCard}>
+                <Text style={styles.rowLabel}>{formatDivisionLabel(d.division)}</Text>
+                <View style={styles.rowRight}>
+                  <Text style={styles.rowValue}>{formatCurrency(d.revenue)}</Text>
+                  <Text style={styles.rowSub}>{d.count} payment{d.count !== 1 ? 's' : ''}</Text>
+                </View>
               </View>
-            </View>
-
-            {/* Revenue by Division */}
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>💷 Revenue by Division</Text>
-              {divisionRevenue.length === 0
-                ? <Text style={styles.emptyText}>No revenue data for this period.</Text>
-                : divisionRevenue.map((d) => (
-                  <View key={d.division} style={styles.rowCard}>
-                    <View style={styles.rowCardLeft}>
-                      <Text style={styles.rowCardTitle}>{formatDivisionLabel(d.division)}</Text>
-                      <Text style={styles.rowCardSub}>{d.count} payment{d.count !== 1 ? 's' : ''}</Text>
-                    </View>
-                    <Text style={styles.rowCardValue}>{formatCurrency(d.revenue)}</Text>
-                  </View>
-                ))
-              }
-            </View>
-
-            {/* Students by Division */}
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>👥 Students by Division</Text>
-              {divisionActivity.length === 0
-                ? <Text style={styles.emptyText}>No student data found.</Text>
-                : divisionActivity.map((d) => (
-                  <View key={d.division} style={styles.rowCard}>
-                    <Text style={styles.rowCardTitle}>{formatDivisionLabel(d.division)}</Text>
-                    <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
-                      <Text style={styles.rowCardValue}>{d.studentCount}</Text>
-                      <Text style={styles.rowCardSub}> students</Text>
-                    </View>
-                  </View>
-                ))
-              }
-            </View>
-
-            {/* Top Students */}
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>🏆 Top Performing Students</Text>
-              {topStudents.length === 0
-                ? <Text style={styles.emptyText}>No rankings available.</Text>
-                : topStudents.map((s, idx) => (
-                  <View key={s.id} style={styles.topStudentCard}>
-                    <View style={styles.rankBadge}>
-                      <Text style={styles.rankText}>#{idx + 1}</Text>
-                    </View>
-                    <View style={styles.topStudentInfo}>
-                      <Text style={styles.topStudentName}>{s.full_name}</Text>
-                      <Text style={styles.topStudentDiv}>{formatDivisionLabel(s.division)}</Text>
-                    </View>
-                    <View style={styles.pointsBadge}>
-                      <Text style={styles.pointsText}>{s.ranking_points ?? 0} pts</Text>
-                    </View>
-                  </View>
-                ))
-              }
-            </View>
-
-            {/* Export Button */}
-            <View style={styles.section}>
-              <TouchableOpacity
-                style={[styles.exportBtn, exporting && styles.exportBtnDisabled]}
-                onPress={handleExport}
-                disabled={exporting}
-              >
-                {exporting
-                  ? <ActivityIndicator color="#FFFFFF" />
-                  : <Text style={styles.exportBtnText}>⬇️  Download Excel Report (.xlsx)</Text>
-                }
-              </TouchableOpacity>
-              <Text style={styles.exportHint}>
-                Downloads a spreadsheet with 4 sheets: Summary, Revenue by Division, Students by Division, Top Students.
-              </Text>
-            </View>
-          </>
+            ))}
+          </View>
         )}
+
+        {/* ── Students by division ── */}
+        {divisionActivity.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>👥 Students by Division</Text>
+            {divisionActivity.map((d) => {
+              const pct = totalStudents > 0 ? Math.round((d.studentCount / totalStudents) * 100) : 0;
+              return (
+                <View key={d.division} style={styles.rowCard}>
+                  <View style={styles.rowLeft}>
+                    <Text style={styles.rowLabel}>{formatDivisionLabel(d.division)}</Text>
+                    <View style={styles.miniBar}>
+                      <View style={[styles.miniBarFill, { width: `${pct}%` }]} />
+                    </View>
+                  </View>
+                  <View style={styles.rowRight}>
+                    <Text style={styles.rowValue}>{d.studentCount}</Text>
+                    <Text style={styles.rowSub}>{pct}%</Text>
+                  </View>
+                </View>
+              );
+            })}
+          </View>
+        )}
+
+        {/* ── Top students ── */}
+        {topStudents.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>🏆 Top Students</Text>
+            {topStudents.map((s, i) => (
+              <View key={s.id} style={styles.rowCard}>
+                <Text style={styles.rankNum}>#{i + 1}</Text>
+                <View style={styles.rowLeft}>
+                  <Text style={styles.rowLabel}>{s.full_name}</Text>
+                  <Text style={styles.rowSub}>{formatDivisionLabel(s.division)}</Text>
+                </View>
+                <Text style={styles.rowValue}>{s.ranking_points ?? 0} pts</Text>
+              </View>
+            ))}
+          </View>
+        )}
+
+        {/* ── Export ── */}
+        <TouchableOpacity
+          style={[styles.exportBtn, exporting && styles.exportBtnDisabled]}
+          onPress={handleExport}
+          disabled={exporting}
+        >
+          <Text style={styles.exportBtnText}>
+            {exporting ? '⏳ Exporting...' : '📊 Export to Excel (.xlsx)'}
+          </Text>
+        </TouchableOpacity>
       </ScrollView>
     </View>
   );
@@ -400,54 +410,39 @@ export default function ReportsScreen({ navigation }: any) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F9FAFB' },
-  hero: { backgroundColor: '#111827', paddingHorizontal: 20, paddingTop: 24, paddingBottom: 28, alignItems: 'center' },
-  heroTitle: { fontSize: 22, fontWeight: '800', color: '#FFFFFF', marginBottom: 4 },
-  heroPeriod: { fontSize: 14, color: '#9CA3AF', marginBottom: 16 },
-  toggle: { flexDirection: 'row', backgroundColor: '#1F2937', borderRadius: 12, padding: 4 },
-  toggleBtn: { paddingHorizontal: 28, paddingVertical: 10, borderRadius: 10 },
-  toggleBtnActive: { backgroundColor: '#16A34A' },
-  toggleText: { fontSize: 14, fontWeight: '600', color: '#9CA3AF' },
-  toggleTextActive: { color: '#FFFFFF' },
-  section: { padding: 20 },
-  sectionTitle: { fontSize: 17, fontWeight: '700', color: '#111827', marginBottom: 14 },
-  metricsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
-  metricCard: {
-    backgroundColor: '#FFFFFF', borderRadius: 14, padding: 16,
-    flex: 1, minWidth: '44%', borderWidth: 1, borderColor: '#E5E7EB',
-    alignItems: 'center',
-    shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 6, shadowOffset: { width: 0, height: 2 },
+  loadingContainer: { flex: 1, backgroundColor: '#F9FAFB' },
+  content: { padding: 16 },
+
+  segmentRow: { flexDirection: 'row', backgroundColor: '#E5E7EB', borderRadius: 10, padding: 3, marginBottom: 16 },
+  segmentBtn: { flex: 1, paddingVertical: 8, borderRadius: 8, alignItems: 'center' },
+  segmentBtnActive: { backgroundColor: '#FFFFFF', shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 4, elevation: 2 },
+  segmentBtnText: { fontSize: 14, fontWeight: '600', color: '#6B7280' },
+  segmentBtnTextActive: { color: '#111827' },
+
+  statsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 16 },
+  statCard: {
+    width: '47.5%', backgroundColor: '#FFFFFF', borderRadius: 14,
+    padding: 14, borderWidth: 1, borderColor: '#E5E7EB',
   },
-  metricIcon: { fontSize: 28, marginBottom: 6 },
-  metricValue: { fontSize: 22, fontWeight: '800', color: '#111827' },
-  metricLabel: { fontSize: 13, fontWeight: '600', color: '#374151', marginTop: 2, textAlign: 'center' },
-  metricSub: { fontSize: 11, color: '#9CA3AF', marginTop: 2, textAlign: 'center' },
-  rowCard: {
-    backgroundColor: '#FFFFFF', borderRadius: 12, padding: 14, marginBottom: 8,
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    borderWidth: 1, borderColor: '#E5E7EB',
-  },
-  rowCardLeft: { flex: 1 },
-  rowCardTitle: { fontSize: 15, fontWeight: '600', color: '#111827' },
-  rowCardSub: { fontSize: 12, color: '#9CA3AF', marginTop: 2 },
-  rowCardValue: { fontSize: 16, fontWeight: '700', color: '#16A34A' },
-  topStudentCard: {
-    backgroundColor: '#FFFFFF', borderRadius: 12, padding: 14, marginBottom: 8,
-    flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: '#E5E7EB',
-  },
-  rankBadge: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#F3F4F6', alignItems: 'center', justifyContent: 'center', marginRight: 12 },
-  rankText: { fontSize: 14, fontWeight: '700', color: '#374151' },
-  topStudentInfo: { flex: 1 },
-  topStudentName: { fontSize: 15, fontWeight: '600', color: '#111827' },
-  topStudentDiv: { fontSize: 12, color: '#9CA3AF', marginTop: 2 },
-  pointsBadge: { backgroundColor: '#DCFCE7', borderRadius: 10, paddingHorizontal: 10, paddingVertical: 4 },
-  pointsText: { fontSize: 13, fontWeight: '700', color: '#16A34A' },
-  emptyText: { fontSize: 14, color: '#9CA3AF', fontStyle: 'italic' },
-  exportBtn: {
-    backgroundColor: '#16A34A', borderRadius: 14, paddingVertical: 16,
-    alignItems: 'center', marginBottom: 10,
-    shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 6, shadowOffset: { width: 0, height: 2 },
-  },
+  statLabel: { fontSize: 12, color: '#6B7280', marginBottom: 6, fontWeight: '500' },
+  statValue: { fontSize: 22, fontWeight: '800', color: '#111827', marginBottom: 2 },
+  statSub: { fontSize: 11, color: '#9CA3AF' },
+
+  section: { backgroundColor: '#FFFFFF', borderRadius: 14, padding: 16, marginBottom: 14, borderWidth: 1, borderColor: '#E5E7EB' },
+  sectionTitle: { fontSize: 15, fontWeight: '700', color: '#111827', marginBottom: 12 },
+
+  rowCard: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
+  rowLeft: { flex: 1 },
+  rowRight: { alignItems: 'flex-end' },
+  rowLabel: { fontSize: 14, fontWeight: '600', color: '#374151' },
+  rowValue: { fontSize: 15, fontWeight: '700', color: '#111827' },
+  rowSub: { fontSize: 11, color: '#9CA3AF', marginTop: 1 },
+  rankNum: { fontSize: 16, fontWeight: '800', color: '#D1D5DB', width: 28 },
+
+  miniBar: { height: 4, backgroundColor: '#E5E7EB', borderRadius: 2, marginTop: 5, width: '100%' },
+  miniBarFill: { height: '100%', backgroundColor: '#16A34A', borderRadius: 2 },
+
+  exportBtn: { backgroundColor: '#16A34A', borderRadius: 14, padding: 18, alignItems: 'center', marginTop: 8 },
   exportBtnDisabled: { opacity: 0.6 },
   exportBtnText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
-  exportHint: { fontSize: 12, color: '#9CA3AF', textAlign: 'center', lineHeight: 18 },
 });

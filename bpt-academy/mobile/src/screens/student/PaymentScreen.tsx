@@ -147,34 +147,35 @@ export default function PaymentScreen({ navigation, route }: any) {
   const handleBankTransfer = async () => {
     setLoadingBank(true);
 
+    let bankEnrollmentId: string | null = enrollmentId ?? null;
     if (programId && studentId) {
-      // Check if enrollment already exists — if so, just update status to active
+      // For bank transfer, enrollment stays 'waitlisted' until admin confirms payment
       const { data: existing } = await supabase
         .from('enrollments')
-        .select('id')
+        .select('id, status')
         .eq('student_id', studentId)
         .eq('program_id', programId)
         .maybeSingle();
 
       if (existing) {
-        await supabase.from('enrollments').update({ status: 'active' }).eq('id', existing.id);
+        // Only update if currently cancelled/waitlisted — don't downgrade an active enrollment
+        if (['cancelled', 'waitlisted'].includes(existing.status)) {
+          await supabase.from('enrollments').update({ status: 'waitlisted' }).eq('id', existing.id);
+        }
+        bankEnrollmentId = existing.id;
       } else {
-        const { error: enrollError } = await supabase.from('enrollments').insert({
+        const { data: newEnroll, error: enrollError } = await supabase.from('enrollments').insert({
           student_id: studentId,
           program_id: programId,
-          status: 'active',
-        });
+          status: 'waitlisted', // pending payment confirmation
+        }).select('id').single();
         if (enrollError) {
           setLoadingBank(false);
           Alert.alert('Error', enrollError.message);
           return;
         }
+        bankEnrollmentId = newEnroll?.id ?? null;
       }
-      // Kick off promotion cycle (explicit call in case trigger doesn't fire)
-      await supabase.rpc('start_promotion_cycle_for_student', {
-        p_student_id: studentId,
-        p_program_id: programId,
-      });
     }
 
     if (tournamentId && studentId) {
@@ -195,7 +196,7 @@ export default function PaymentScreen({ navigation, route }: any) {
       student_id: studentId ?? profile!.id,
       tournament_id: tournamentId ?? null,
       program_id: programId ?? null,
-      enrollment_id: enrollmentId ?? null,
+      enrollment_id: bankEnrollmentId,
       amount_gbp: amount,
       method: 'bank_transfer',
       status: 'pending',

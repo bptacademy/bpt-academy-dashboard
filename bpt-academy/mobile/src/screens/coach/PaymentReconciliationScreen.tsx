@@ -88,8 +88,18 @@ export default function PaymentReconciliationScreen() {
 
             if (payment.enrollment_id) {
               await supabase.from('enrollments')
-                .update({ payment_status: newStatus })
+                .update({
+                  payment_status: newStatus,
+                  status: newStatus === 'confirmed' ? 'active' : 'cancelled',
+                })
                 .eq('id', payment.enrollment_id);
+            } else if (newStatus === 'confirmed' && payment.program_id) {
+              // No enrollment_id on payment — find and activate by student + program
+              await supabase.from('enrollments')
+                .update({ status: 'active' })
+                .eq('student_id', payment.student_id)
+                .eq('program_id', payment.program_id)
+                .in('status', ['cancelled', 'waitlisted', 'pending']);
             }
 
             if (payment.tournament_id && newStatus === 'confirmed') {

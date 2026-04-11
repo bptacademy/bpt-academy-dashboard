@@ -33,6 +33,7 @@ import LeaderboardScreen from '../screens/student/LeaderboardScreen';
 import MyCoachNotesScreen from '../screens/student/MyCoachNotesScreen';
 import CalendarDayScreen from '../screens/student/CalendarDayScreen';
 import AttendanceConfirmScreen from '../screens/student/AttendanceConfirmScreen';
+import ReEnrollmentScreen from '../screens/student/ReEnrollmentScreen';
 
 // Shared coach/admin screens
 import ManageProgramsScreen from '../screens/coach/ManageProgramsScreen';
@@ -47,6 +48,7 @@ import CoachNotesScreen from '../screens/coach/CoachNotesScreen';
 import DivisionDashboardScreen from '../screens/coach/DivisionDashboardScreen';
 import TournamentManageScreen from '../screens/coach/TournamentManageScreen';
 import ProgramModulesScreen from '../screens/coach/ProgramModulesScreen';
+import ScheduleGeneratorScreen from '../screens/coach/ScheduleGeneratorScreen';
 import PromotionManageScreen from '../screens/coach/PromotionManageScreen';
 
 // Admin-only screens
@@ -63,6 +65,8 @@ import CoachDashboardScreen from '../screens/coach/CoachDashboardScreen';
 import SuperAdminHomeScreen from '../screens/superadmin/SuperAdminHomeScreen';
 import SuperAdminMessagesScreen from '../screens/superadmin/SuperAdminMessagesScreen';
 import ReportsScreen from '../screens/superadmin/ReportsScreen';
+
+import NotificationsScreen from '../screens/NotificationsScreen';
 
 // Messaging
 import NewConversationScreen from '../screens/messaging/NewConversationScreen';
@@ -135,6 +139,8 @@ function StudentHomeStack() {
       <Stack.Screen name="Chat"                component={ChatScreen} />
       <Stack.Screen name="NewConversation"     component={NewConversationScreen} />
       <Stack.Screen name="AttendanceConfirm"   component={AttendanceConfirmScreen} />
+      <Stack.Screen name="ReEnrollment"          component={ReEnrollmentScreen} />
+      <Stack.Screen name="Notifications"         component={NotificationsScreen} />
     </Stack.Navigator>
   );
 }
@@ -188,6 +194,7 @@ function CoachHomeStack() {
       <Stack.Screen name="Manage"            component={ManageProgramsScreen} />
       <Stack.Screen name="ProgramRoster"     component={ProgramRosterScreen} />
       <Stack.Screen name="ProgramModules"    component={ProgramModulesScreen} />
+      <Stack.Screen name="ScheduleGenerator"  component={ScheduleGeneratorScreen} />
       <Stack.Screen name="ManageVideos"      component={ManageVideosScreen} />
       <Stack.Screen name="UploadVideo"       component={UploadVideoScreen} />
       <Stack.Screen name="VideoPlayer"       component={VideoPlayerScreen} />
@@ -202,6 +209,7 @@ function CoachHomeStack() {
       <Stack.Screen name="Attendance"        component={AttendanceScreen} />
       <Stack.Screen name="CoachNotes"        component={CoachNotesScreen} />
       <Stack.Screen name="PromotionManage"   component={PromotionManageScreen} />
+      <Stack.Screen name="Notifications"       component={NotificationsScreen} />
     </Stack.Navigator>
   );
 }
@@ -259,9 +267,11 @@ function AdminDashboardStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Dashboard"         component={CoachHomeScreen} />
+      <Stack.Screen name="Reports"           component={ReportsScreen} />
       <Stack.Screen name="Manage"            component={ManageProgramsScreen} />
       <Stack.Screen name="ProgramRoster"     component={ProgramRosterScreen} />
       <Stack.Screen name="ProgramModules"    component={ProgramModulesScreen} />
+      <Stack.Screen name="ScheduleGenerator"  component={ScheduleGeneratorScreen} />
       <Stack.Screen name="VideoPlayer"       component={VideoPlayerScreen} />
       <Stack.Screen name="Payments"          component={PaymentReconciliationScreen} />
       <Stack.Screen name="BulkMsg"           component={BulkMessageScreen} />
@@ -280,6 +290,7 @@ function AdminDashboardStack() {
       <Stack.Screen name="PromotionManage"   component={PromotionManageScreen} />
       <Stack.Screen name="Chat"              component={ChatScreen} />
       <Stack.Screen name="NewConversation"   component={NewConversationScreen} />
+      <Stack.Screen name="Notifications"       component={NotificationsScreen} />
     </Stack.Navigator>
   );
 }
@@ -302,6 +313,7 @@ function AdminProgramsStack() {
       <Stack.Screen name="Manage"         component={ManageProgramsScreen} />
       <Stack.Screen name="ProgramRoster"  component={ProgramRosterScreen} />
       <Stack.Screen name="ProgramModules" component={ProgramModulesScreen} />
+      <Stack.Screen name="ScheduleGenerator" component={ScheduleGeneratorScreen} />
       <Stack.Screen name="ManageVideos"   component={ManageVideosScreen} />
       <Stack.Screen name="UploadVideo"    component={UploadVideoScreen} />
       <Stack.Screen name="VideoPlayer"    component={VideoPlayerScreen} />
@@ -339,6 +351,7 @@ function SuperAdminDashboardStack() {
       <Stack.Screen name="Manage"            component={ManageProgramsScreen} />
       <Stack.Screen name="ProgramRoster"     component={ProgramRosterScreen} />
       <Stack.Screen name="ProgramModules"    component={ProgramModulesScreen} />
+      <Stack.Screen name="ScheduleGenerator"  component={ScheduleGeneratorScreen} />
       <Stack.Screen name="VideoPlayer"       component={VideoPlayerScreen} />
       <Stack.Screen name="Students"          component={ManageStudentsScreen} />
       <Stack.Screen name="StudentDetail"     component={StudentDetailScreen} />
@@ -357,6 +370,7 @@ function SuperAdminDashboardStack() {
       <Stack.Screen name="TournamentDetail"  component={TournamentDetailScreen} />
       <Stack.Screen name="Chat"              component={ChatScreen} />
       <Stack.Screen name="NewConversation"   component={NewConversationScreen} />
+      <Stack.Screen name="Notifications"       component={NotificationsScreen} />
     </Stack.Navigator>
   );
 }

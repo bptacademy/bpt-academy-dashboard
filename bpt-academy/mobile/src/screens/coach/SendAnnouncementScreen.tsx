@@ -19,7 +19,7 @@ export default function SendAnnouncementScreen({ navigation }: any) {
     if (!title) { Alert.alert('Error', 'Please add a title'); return; }
     setSending(true);
 
-    // Fetch all non-admin profiles
+    // Fetch all non-admin profiles to notify
     const { data: students } = await supabase
       .from('profiles')
       .select('id')
@@ -31,25 +31,56 @@ export default function SendAnnouncementScreen({ navigation }: any) {
       return;
     }
 
-    // Create notifications for all students
+    // 1. Create a conversation so the announcement is readable/archived
+    const { data: conv, error: convErr } = await supabase
+      .from('conversations')
+      .insert({
+        title,
+        conversation_type: 'announcement',
+        is_group: true,
+        created_by: profile!.id,
+      })
+      .select()
+      .single();
+
+    if (convErr || !conv) {
+      Alert.alert('Error', convErr?.message ?? 'Failed to create announcement');
+      setSending(false);
+      return;
+    }
+
+    const convId = (conv as any).id;
+
+    // 2. Add all users as members so they can read the thread
+    const members = [
+      { conversation_id: convId, profile_id: profile!.id },
+      ...students.map((s) => ({ conversation_id: convId, profile_id: s.id })),
+    ];
+    await supabase.from('conversation_members').insert(members);
+
+    // 3. Post the announcement body as a message in the conversation
+    if (body) {
+      await supabase.from('messages').insert({
+        conversation_id: convId,
+        sender_id: profile!.id,
+        content: body,
+      });
+    }
+
+    // 4. Create notifications for all recipients (push/in-app)
     const notifications = students.map((s) => ({
       recipient_id: s.id,
       title,
       body,
       type: 'announcement',
-      data: { sender_id: profile!.id },
+      data: { sender_id: profile!.id, conversation_id: convId },
     }));
+    await supabase.from('notifications').insert(notifications);
 
-    const { error } = await supabase.from('notifications').insert(notifications);
     setSending(false);
-
-    if (error) {
-      Alert.alert('Error', error.message);
-    } else {
-      Alert.alert('Sent! 🎉', `Announcement sent to ${students.length} student${students.length !== 1 ? 's' : ''}.`, [
-        { text: 'OK', onPress: () => navigation.goBack() },
-      ]);
-    }
+    Alert.alert('Sent! 🎉', `Announcement sent to ${students.length} student${students.length !== 1 ? 's' : ''}.`, [
+      { text: 'OK', onPress: () => navigation.goBack() },
+    ]);
   };
 
   return (
@@ -100,9 +131,6 @@ export default function SendAnnouncementScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#FFFFFF' },
   inner: { padding: 24 },
-  header: { marginTop: 20, marginBottom: 28 },
-  title: { fontSize: 26, fontWeight: '700', color: '#111827' },
-  subtitle: { fontSize: 14, color: '#6B7280', marginTop: 4 },
   form: {},
   label: { fontSize: 14, fontWeight: '600', color: '#374151', marginBottom: 6 },
   input: { borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 10, padding: 14, fontSize: 16, color: '#111827', marginBottom: 20, backgroundColor: '#F9FAFB' },

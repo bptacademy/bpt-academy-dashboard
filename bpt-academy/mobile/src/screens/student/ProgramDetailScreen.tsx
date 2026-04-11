@@ -24,6 +24,9 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
   const [hasActiveEnrollment, setHasActiveEnrollment] = useState(false);
   const [loading, setLoading]                     = useState(true);
   const [refreshing, setRefreshing]               = useState(false);
+  const [waitlistPosition, setWaitlistPosition]   = useState<number | null>(null);
+  const [waitlistLoading, setWaitlistLoading]     = useState(false);
+  const [enrolledCount, setEnrolledCount]         = useState(0);
 
   const fetchData = useCallback(async () => {
     const [progRes, modulesRes, sessionsRes, enrollRes, activeEnrollRes, coachRes] = await Promise.all([
@@ -51,6 +54,26 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
       setModules(modulesRes.data.map((m) => ({ ...m, progress: progressMap.get(m.id) })));
     }
     if (sessionsRes.data) setSessions(sessionsRes.data);
+
+    // Fetch current enrollment count for this program
+    const { count: eCount } = await supabase
+      .from('enrollments')
+      .select('*', { count: 'exact', head: true })
+      .eq('program_id', programId)
+      .eq('status', 'active');
+    setEnrolledCount(eCount ?? 0);
+
+    // Fetch waiting list position for this student
+    const month = new Date().toISOString().slice(0, 7); // e.g. '2026-04'
+    const { data: wlData } = await supabase
+      .from('program_waiting_list')
+      .select('position')
+      .eq('program_id', programId)
+      .eq('student_id', profile!.id)
+      .eq('month', month)
+      .maybeSingle();
+    setWaitlistPosition(wlData?.position ?? null);
+
     setLoading(false);
   }, [programId, profile]);
 
@@ -61,6 +84,40 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
     const unsub = navigation.addListener('focus', fetchData);
     return unsub;
   }, [navigation, fetchData]);
+
+  const handleJoinWaitlist = async () => {
+    setWaitlistLoading(true);
+    const month = new Date().toISOString().slice(0, 7);
+    // Get next position
+    const { count } = await supabase
+      .from('program_waiting_list')
+      .select('*', { count: 'exact', head: true })
+      .eq('program_id', programId)
+      .eq('month', month);
+    const position = (count ?? 0) + 1;
+    const { error } = await supabase.from('program_waiting_list').insert({
+      program_id: programId,
+      student_id: profile!.id,
+      month,
+      position,
+    });
+    setWaitlistLoading(false);
+    if (error) { Alert.alert('Error', error.message); return; }
+    setWaitlistPosition(position);
+    Alert.alert('✅ Added to Waiting List', `You are #${position} on the waiting list. You will be notified when a spot opens up.`);
+  };
+
+  const handleLeaveWaitlist = async () => {
+    Alert.alert('Leave Waiting List', 'Are you sure you want to leave the waiting list?', [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Leave', style: 'destructive', onPress: async () => {
+        const month = new Date().toISOString().slice(0, 7);
+        await supabase.from('program_waiting_list').delete()
+          .eq('program_id', programId).eq('student_id', profile!.id).eq('month', month);
+        setWaitlistPosition(null);
+      }},
+    ]);
+  };
 
   const handleEnrollPress = async () => {
     if (hasActiveEnrollment && !enrolled) {
@@ -257,6 +314,37 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
         </View>
       )}
 
+      {/* Waiting List — shown when not enrolled AND program is full */}
+      {!enrolled && ((program as any)?.max_students == null || enrolledCount >= ((program as any)?.max_students ?? 0)) && (
+        <View style={styles.waitlistCard}>
+          {waitlistPosition !== null ? (
+            <>
+              <Text style={styles.waitlistTitle}>📋 You're on the Waiting List</Text>
+              <Text style={styles.waitlistPosition}>Position #{waitlistPosition}</Text>
+              <Text style={styles.waitlistSub}>You'll be notified automatically if a spot opens up.</Text>
+              <TouchableOpacity style={styles.waitlistLeaveBtn} onPress={handleLeaveWaitlist}>
+                <Text style={styles.waitlistLeaveBtnText}>Leave Waiting List</Text>
+              </TouchableOpacity>
+            </>
+          ) : (
+            <>
+              <Text style={styles.waitlistTitle}>Program Full?</Text>
+              <Text style={styles.waitlistSub}>Join the waiting list and get priority when a spot opens or a new month starts.</Text>
+              <TouchableOpacity
+                style={[styles.waitlistJoinBtn, waitlistLoading && { opacity: 0.5 }]}
+                onPress={handleJoinWaitlist}
+                disabled={waitlistLoading}
+              >
+                {waitlistLoading
+                  ? <ActivityIndicator color="#FFFFFF" />
+                  : <Text style={styles.waitlistJoinBtnText}>➕ Join Waiting List</Text>
+                }
+              </TouchableOpacity>
+            </>
+          )}
+        </View>
+      )}
+
       {/* Modules */}
       {modules.length > 0 && (
         <View style={styles.section}>
@@ -345,6 +433,22 @@ const styles = StyleSheet.create({
   priceLabel: { fontSize: 14, color: '#374151', fontWeight: '600' },
   priceValue: { fontSize: 22, fontWeight: '800', color: '#111827' },
   enrollText: { fontSize: 13, color: '#374151', marginBottom: 16, lineHeight: 20 },
+  waitlistCard: {
+    backgroundColor: '#F0F9FF', borderRadius: 14, padding: 16, margin: 16,
+    marginTop: 0, borderWidth: 1, borderColor: '#BAE6FD',
+  },
+  waitlistTitle: { fontSize: 15, fontWeight: '700', color: '#0369A1', marginBottom: 4 },
+  waitlistPosition: { fontSize: 28, fontWeight: '800', color: '#0284C7', marginBottom: 4 },
+  waitlistSub: { fontSize: 13, color: '#0369A1', lineHeight: 18, marginBottom: 12 },
+  waitlistJoinBtn: {
+    backgroundColor: '#0284C7', borderRadius: 10, padding: 14, alignItems: 'center',
+  },
+  waitlistJoinBtnText: { color: '#FFFFFF', fontSize: 14, fontWeight: '700' },
+  waitlistLeaveBtn: {
+    backgroundColor: '#FEF2F2', borderRadius: 10, padding: 12, alignItems: 'center',
+    borderWidth: 1, borderColor: '#FECACA',
+  },
+  waitlistLeaveBtnText: { color: '#DC2626', fontSize: 13, fontWeight: '600' },
   enrollBtn: { backgroundColor: '#16A34A', borderRadius: 10, paddingVertical: 14, alignItems: 'center' },
   enrollBtnText: { color: '#FFFFFF', fontWeight: '700', fontSize: 15 },
   section: { padding: 16 },

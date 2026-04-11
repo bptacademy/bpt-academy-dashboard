@@ -3,7 +3,8 @@
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { getInitials } from '@/lib/utils'
-import { Menu, LogOut, Bell } from 'lucide-react'
+import { Menu, LogOut } from 'lucide-react'
+import { NotificationsBell } from './notifications-bell'
 
 interface HeaderProps {
   user: {
@@ -37,9 +38,7 @@ export function Header({ user, onMenuClick }: HeaderProps) {
 
       {/* Right: actions + user */}
       <div className="flex items-center gap-3 ml-auto">
-        <button className="relative p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100">
-          <Bell size={18} />
-        </button>
+        <NotificationsBell />
 
         <div className="flex items-center gap-3">
           {/* Avatar */}

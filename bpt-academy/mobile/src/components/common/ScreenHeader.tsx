@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import { useNotifications } from '../../hooks/useNotifications';
 
 interface Props {
   title: string;
@@ -11,6 +12,7 @@ interface Props {
 export default function ScreenHeader({ title, dark = false }: Props) {
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
+  const { unreadCount } = useNotifications();
 
   // Show back arrow whenever we're deeper than the root of this stack
   const state = navigation.getState();
@@ -24,6 +26,8 @@ export default function ScreenHeader({ title, dark = false }: Props) {
       if (firstTab) parent.navigate(firstTab);
     }
   };
+
+  const badgeLabel = unreadCount > 9 ? '9+' : String(unreadCount);
 
   return (
     <View style={[styles.header, dark && styles.headerDark, { paddingTop: insets.top + 10 }]}>
@@ -45,8 +49,23 @@ export default function ScreenHeader({ title, dark = false }: Props) {
       {/* Title */}
       <Text style={[styles.title, dark && styles.titleDark]} numberOfLines={1}>{title}</Text>
 
-      {/* Right placeholder keeps title centred */}
-      <View style={canGoBack ? styles.rightPlaceholderSmall : styles.rightPlaceholder} />
+      {/* Right: bell at tab root, placeholder when deep */}
+      {canGoBack ? (
+        <View style={styles.rightPlaceholderSmall} />
+      ) : (
+        <TouchableOpacity
+          style={styles.bellBtn}
+          onPress={() => navigation.navigate('Notifications')}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
+          <Text style={styles.bellIcon}>🔔</Text>
+          {unreadCount > 0 && (
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>{badgeLabel}</Text>
+            </View>
+          )}
+        </TouchableOpacity>
+      )}
     </View>
   );
 }
@@ -75,6 +94,19 @@ const styles = StyleSheet.create({
   titleDark: { color: '#FFFFFF' },
 
   // Balancing placeholder — matches left element width
-  rightPlaceholder: { width: 88 },      // matches logo width
   rightPlaceholderSmall: { width: 44 }, // matches back button width
+
+  // Bell button (tab root, matches logo width for balance)
+  bellBtn: {
+    width: 88, height: 72, justifyContent: 'center', alignItems: 'center',
+  },
+  bellIcon: { fontSize: 22 },
+  badge: {
+    position: 'absolute', top: 12, right: 8,
+    minWidth: 18, height: 18, borderRadius: 9,
+    backgroundColor: '#EF4444',
+    alignItems: 'center', justifyContent: 'center',
+    paddingHorizontal: 4,
+  },
+  badgeText: { color: '#FFFFFF', fontSize: 10, fontWeight: '700' },
 });

@@ -37,6 +37,7 @@ export default function ProgramRosterScreen({ route, navigation }: any) {
   const [availableStudents, setAvailableStudents] = useState<{id: string, full_name: string}[]>([]);
   const [selectedStudentId, setSelectedStudentId] = useState('');
   const [enrolling, setEnrolling] = useState(false);
+  const [waitlist, setWaitlist] = useState<{id:string;position:number;joined_at:string;student:{id:string;full_name:string}}[]>([]);
 
   const fetchData = async () => {
     const [progRes, enrollRes] = await Promise.all([
@@ -49,6 +50,16 @@ export default function ProgramRosterScreen({ route, navigation }: any) {
     ]);
     if (progRes.data) setProgram(progRes.data);
     if (enrollRes.data) setEnrollments(enrollRes.data as any);
+
+    // Fetch waiting list for current month
+    const month = new Date().toISOString().slice(0, 7);
+    const { data: wlData } = await supabase
+      .from('program_waiting_list')
+      .select('id, position, joined_at, student:profiles!student_id(id, full_name)')
+      .eq('program_id', programId)
+      .eq('month', month)
+      .order('position', { ascending: true });
+    if (wlData) setWaitlist(wlData as any);
   };
 
   const onRefresh = async () => { setRefreshing(true); await fetchData(); setRefreshing(false); };
@@ -226,6 +237,26 @@ export default function ProgramRosterScreen({ route, navigation }: any) {
         </View>
       )}
 
+      {/* Waiting List */}
+      {waitlist.length > 0 && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>📋 Waiting List ({waitlist.length})</Text>
+          {waitlist.map((w) => (
+            <View key={w.id} style={styles.waitCard}>
+              <View style={styles.waitPos}>
+                <Text style={styles.waitPosText}>#{w.position}</Text>
+              </View>
+              <View style={styles.info}>
+                <Text style={styles.studentName}>{(w.student as any).full_name}</Text>
+                <Text style={styles.enrollDate}>
+                  Joined {new Date(w.joined_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                </Text>
+              </View>
+            </View>
+          ))}
+        </View>
+      )}
+
       {/* Stats row */}
       <View style={styles.statsRow}>
         {(Object.entries(counts) as [EnrollmentStatus, number][]).map(([status, count]) => (
@@ -313,6 +344,16 @@ export default function ProgramRosterScreen({ route, navigation }: any) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F9FAFB' },
+  waitCard: {
+    flexDirection: 'row', alignItems: 'center', backgroundColor: '#F0F9FF',
+    borderRadius: 12, padding: 12, marginBottom: 8,
+    borderWidth: 1, borderColor: '#BAE6FD', gap: 12,
+  },
+  waitPos: {
+    width: 36, height: 36, borderRadius: 18,
+    backgroundColor: '#0284C7', alignItems: 'center', justifyContent: 'center',
+  },
+  waitPosText: { fontSize: 14, fontWeight: '800', color: '#FFFFFF' },
   attendanceBtn: { backgroundColor: '#16A34A', margin: 16, marginBottom: 0, borderRadius: 12, paddingVertical: 14, alignItems: 'center' },
   attendanceBtnText: { color: '#FFFFFF', fontSize: 15, fontWeight: '700' },
   header: { backgroundColor: '#111827', padding: 24, paddingTop: 16 },

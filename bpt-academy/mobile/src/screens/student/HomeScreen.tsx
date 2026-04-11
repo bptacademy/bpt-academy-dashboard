@@ -7,7 +7,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
-import { Enrollment, Notification } from '../../types';
+import { Enrollment } from '../../types';
 import ScreenHeader from '../../components/common/ScreenHeader';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -56,31 +56,22 @@ export default function HomeScreen({ navigation }: any) {
   const { profile } = useAuth();
   const insets = useSafeAreaInsets();
   const [enrollments, setEnrollments] = useState<EnrollmentWithProgress[]>([]);
-  const [notifications, setNotifications] = useState<Notification[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [days, setDays] = useState(buildDays);
   const calendarRef = useRef<ScrollView>(null);
-  const dismissedRef = useRef<Set<string>>(new Set());
 
   const todayStr = localDateStr(new Date());
 
   const fetchData = async () => {
     if (!profile) return;
 
-    const [enrollRes, notifRes] = await Promise.all([
+    const [enrollRes] = await Promise.all([
       supabase
         .from('enrollments')
         .select('*, program:programs(*)')
         .eq('student_id', profile.id)
         .eq('status', 'active')
         .limit(3),
-      supabase
-        .from('notifications')
-        .select('*')
-        .eq('recipient_id', profile.id)
-        .eq('read', false)
-        .order('created_at', { ascending: false })
-        .limit(5),
     ]);
 
     let programIds: string[] = [];
@@ -107,10 +98,6 @@ export default function HomeScreen({ navigation }: any) {
       );
       setEnrollments(withProgress);
       programIds = enrollRes.data.map((e: any) => e.program_id);
-    }
-
-    if (notifRes.data) {
-      setNotifications(notifRes.data.filter((n: Notification) => !dismissedRef.current.has(n.id)));
     }
 
     if (programIds.length > 0) {
@@ -158,25 +145,6 @@ export default function HomeScreen({ navigation }: any) {
       calendarRef.current?.scrollTo({ x: todayScrollOffset(), animated: false });
     }, 150);
   }, []);
-
-  // Handle notification tap — attendance confirmations navigate to confirm screen
-  const handleNotificationTap = async (n: any) => {
-    if (n.type === 'attendance_confirmation_request' && n.data?.session_id) {
-      // Mark read but don't dismiss — it's actionable
-      await supabase.from('notifications').update({ read: true }).eq('id', n.id);
-      setNotifications(prev => prev.filter(x => x.id !== n.id));
-      navigation.navigate('AttendanceConfirm', {
-        session_id:    n.data.session_id,
-        program_title: n.data.program_title ?? 'Training Session',
-        session_time:  n.data.session_time,
-        editable_until: n.data.editable_until,
-      });
-    } else {
-      dismissedRef.current.add(n.id);
-      setNotifications(prev => prev.filter(x => x.id !== n.id));
-      await supabase.from('notifications').update({ read: true }).eq('id', n.id);
-    }
-  };
 
   const goToPrograms = () => navigation.getParent()?.navigate('ProgramsTab');
   const goToMessages = () => navigation.getParent()?.navigate('MessagesTab');
@@ -267,33 +235,6 @@ export default function HomeScreen({ navigation }: any) {
           })}
         </ScrollView>
       </View>
-
-      {/* Notifications */}
-      {notifications.length > 0 && (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>🔔 Notifications</Text>
-          {notifications.map((n: any) => {
-            const isConfirmRequest = n.type === 'attendance_confirmation_request';
-            return (
-              <TouchableOpacity
-                key={n.id}
-                style={[styles.notifCard, isConfirmRequest && styles.notifCardAction]}
-                onPress={() => handleNotificationTap(n)}
-                activeOpacity={0.7}
-              >
-                <View style={styles.notifRow}>
-                  <Text style={styles.notifTitle}>{n.title}</Text>
-                  {isConfirmRequest
-                    ? <Text style={styles.notifAction}>Respond →</Text>
-                    : <Text style={styles.notifDismiss}>✕</Text>
-                  }
-                </View>
-                {n.body ? <Text style={styles.notifBody} numberOfLines={2}>{n.body}</Text> : null}
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      )}
 
       {/* My Programs */}
       <View style={styles.section}>
@@ -395,19 +336,6 @@ const styles = StyleSheet.create({
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
   sectionTitle: { fontSize: 17, fontWeight: '700', color: '#111827', marginBottom: 12 },
   seeAll: { color: '#16A34A', fontSize: 14, fontWeight: '600' },
-
-  notifCard: {
-    backgroundColor: '#ECFDF5', borderRadius: 10, padding: 14, marginBottom: 8,
-    borderLeftWidth: 3, borderLeftColor: '#16A34A',
-  },
-  notifCardAction: {
-    backgroundColor: '#FFF7ED', borderLeftColor: '#F59E0B',
-  },
-  notifRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  notifTitle: { fontSize: 14, fontWeight: '600', color: '#111827', flex: 1 },
-  notifDismiss: { fontSize: 14, color: '#9CA3AF', paddingLeft: 8 },
-  notifAction: { fontSize: 13, color: '#D97706', fontWeight: '700', paddingLeft: 8 },
-  notifBody: { fontSize: 13, color: '#6B7280', marginTop: 4, lineHeight: 18 },
 
   emptyCard: { backgroundColor: '#FFFFFF', borderRadius: 12, padding: 20, alignItems: 'center', borderWidth: 1, borderColor: '#E5E7EB' },
   emptyText: { color: '#6B7280', fontSize: 14, marginBottom: 8 },

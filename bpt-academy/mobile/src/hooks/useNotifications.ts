@@ -1,6 +1,88 @@
-// Notifications are temporarily disabled pending expo-notifications native setup.
-// To re-enable: install expo-notifications, add google-services.json, and restore this hook.
+import { useEffect, useState, useCallback, useRef } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { supabase } from '../lib/supabase';
+import { Notification } from '../types';
 
-export function useNotifications(_userId: string | null) {
-  // No-op until expo-notifications is properly configured.
+export interface UseNotificationsResult {
+  notifications: Notification[];
+  unreadCount: number;
+  markRead: (id: string) => Promise<void>;
+  markAllRead: () => Promise<void>;
+  refresh: () => Promise<void>;
+}
+
+export function useNotifications(): UseNotificationsResult {
+  const { profile } = useAuth();
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+
+  const fetchUnread = useCallback(async () => {
+    if (!profile?.id) return;
+    const now = new Date().toISOString();
+    const { data } = await supabase
+      .from('notifications')
+      .select('*')
+      .eq('recipient_id', profile.id)
+      .eq('read', false)
+      .or(`expires_at.is.null,expires_at.gt.${now}`)
+      .order('created_at', { ascending: false });
+    if (data) setNotifications(data as Notification[]);
+  }, [profile?.id]);
+
+  useEffect(() => {
+    if (!profile?.id) return;
+
+    fetchUnread();
+
+    // Subscribe to realtime changes
+    const channel = supabase
+      .channel(`notifications:${profile.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'notifications',
+          filter: `recipient_id=eq.${profile.id}`,
+        },
+        () => {
+          fetchUnread();
+        }
+      )
+      .subscribe();
+
+    channelRef.current = channel;
+
+    return () => {
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
+    };
+  }, [profile?.id, fetchUnread]);
+
+  const markRead = useCallback(async (id: string) => {
+    await supabase.from('notifications').update({ read: true }).eq('id', id);
+    setNotifications(prev => prev.filter(n => n.id !== id));
+  }, []);
+
+  const markAllRead = useCallback(async () => {
+    if (!profile?.id) return;
+    const ids = notifications.map(n => n.id);
+    if (ids.length === 0) return;
+    await supabase.from('notifications').update({ read: true }).in('id', ids);
+    setNotifications([]);
+  }, [profile?.id, notifications]);
+
+  const refresh = useCallback(async () => {
+    await fetchUnread();
+  }, [fetchUnread]);
+
+  return {
+    notifications,
+    unreadCount: notifications.length,
+    markRead,
+    markAllRead,
+    refresh,
+  };
 }
