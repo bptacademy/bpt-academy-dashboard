@@ -17,7 +17,8 @@
     },
     "android": {
       "package": "com.bptacademy.app",
-      "versionCode": 3,
+      "versionCode": 4,
+      "googleServicesFile": "./google-services.json",
       "permissions": [
         "CAMERA",
         "READ_EXTERNAL_STORAGE",
