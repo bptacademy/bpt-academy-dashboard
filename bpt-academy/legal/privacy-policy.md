@@ -15,7 +15,7 @@ BPT Academy Limited ("BPT Academy", "we", "us", "our") is a private limited comp
 We are registered with the Information Commissioner's Office (ICO). Our ICO registration number will be published here upon receipt.
 
 For all data protection enquiries, please contact us at:
-**Email:** hello@bptacademy.uk
+**Email:** office@bptacademy.uk
 **Post:** 12 Lakeside Rise, Manchester, England, M9 8QD
 
 ---
@@ -169,7 +169,7 @@ We take the security of your personal data seriously. We implement appropriate t
 
 However, no method of electronic transmission or storage is 100% secure. While we strive to protect your personal data, we cannot guarantee absolute security.
 
-If you suspect any unauthorised access to your account, please contact us immediately at hello@bptacademy.uk.
+If you suspect any unauthorised access to your account, please contact us immediately at office@bptacademy.uk.
 
 ---
 
@@ -183,7 +183,7 @@ We take the privacy and safety of children very seriously.
 - We do not knowingly collect personal data directly from children under 13
 - If we discover that personal data has been collected from a child without proper parental consent, we will delete it immediately
 
-If you are a parent or guardian and have concerns about your child's data, please contact us at hello@bptacademy.uk.
+If you are a parent or guardian and have concerns about your child's data, please contact us at office@bptacademy.uk.
 
 ---
 
@@ -199,7 +199,7 @@ You have the following rights in relation to your personal data:
 - **Right to object** — object to processing based on legitimate interests or for direct marketing
 - **Rights related to automated decision-making** — we do not make solely automated decisions that significantly affect you
 
-To exercise any of these rights, please contact us at **hello@bptacademy.uk**. We will respond within **30 days**.
+To exercise any of these rights, please contact us at **office@bptacademy.uk**. We will respond within **30 days**.
 
 You also have the right to lodge a complaint with the Information Commissioner's Office (ICO) at any time:
 **Website:** ico.org.uk
@@ -226,6 +226,6 @@ Continued use of the Platform following notification of changes constitutes your
 For any questions, concerns, or requests relating to this Privacy Policy or your personal data:
 
 **BPT Academy Limited**
-Email: hello@bptacademy.uk
+Email: office@bptacademy.uk
 Post: 12 Lakeside Rise, Manchester, England, M9 8QD
 Company No. 16487239

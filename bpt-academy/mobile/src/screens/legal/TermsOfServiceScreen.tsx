@@ -13,7 +13,7 @@ interface Section {
 const SECTIONS: Section[] = [
   {
     heading: '1. Who We Are',
-    body: 'BPT Academy Limited ("BPT Academy") is registered in England and Wales (Company No. 16487239). Registered office: 12 Lakeside Rise, Manchester, England, M9 8QD.\n\nContact: hello@bptacademy.uk\n\nThese Terms govern your access to the BPT Academy Platform and all Services we provide.',
+    body: 'BPT Academy Limited ("BPT Academy") is registered in England and Wales (Company No. 16487239). Registered office: 12 Lakeside Rise, Manchester, England, M9 8QD.\n\nContact: office@bptacademy.uk\n\nThese Terms govern your access to the BPT Academy Platform and all Services we provide.',
   },
   {
     heading: '2. Acceptance of Terms',
@@ -37,7 +37,7 @@ const SECTIONS: Section[] = [
   },
   {
     heading: '7. Cancellations and Refunds',
-    body: 'PRIVATE LESSONS\nYou may cancel and receive a full refund provided you give at least 48 hours\' notice before the scheduled session. Cancellations within 48 hours are non-refundable.\n\nGROUP PROGRAMMES\nOnce a monthly group programme has commenced, no refunds will be issued for that cycle regardless of attendance.\n\nCANCELLATION BEFORE START\nCancellations before a programme commences may be eligible for a full or partial refund at our discretion.\n\nCANCELLATION BY BPT ACADEMY\nIf we cancel a session, we will notify you promptly and provide a credit or refund for undelivered sessions. We are not liable for additional costs (e.g. travel) you incur.\n\nTo request a refund, contact hello@bptacademy.uk. Eligible refunds are processed within 10 working days.',
+    body: 'PRIVATE LESSONS\nYou may cancel and receive a full refund provided you give at least 48 hours\' notice before the scheduled session. Cancellations within 48 hours are non-refundable.\n\nGROUP PROGRAMMES\nOnce a monthly group programme has commenced, no refunds will be issued for that cycle regardless of attendance.\n\nCANCELLATION BEFORE START\nCancellations before a programme commences may be eligible for a full or partial refund at our discretion.\n\nCANCELLATION BY BPT ACADEMY\nIf we cancel a session, we will notify you promptly and provide a credit or refund for undelivered sessions. We are not liable for additional costs (e.g. travel) you incur.\n\nTo request a refund, contact office@bptacademy.uk. Eligible refunds are processed within 10 working days.',
   },
   {
     heading: '8. Conduct and Acceptable Use',
@@ -57,11 +57,11 @@ const SECTIONS: Section[] = [
   },
   {
     heading: '12. Termination',
-    body: 'You may close your account at any time by contacting hello@bptacademy.uk. Closing your account does not entitle you to a refund of fees already paid.\n\nWe may suspend or terminate your account if you breach these Terms, if required by law, or if we cease to operate the Platform.',
+    body: 'You may close your account at any time by contacting office@bptacademy.uk. Closing your account does not entitle you to a refund of fees already paid.\n\nWe may suspend or terminate your account if you breach these Terms, if required by law, or if we cease to operate the Platform.',
   },
   {
     heading: '13. Governing Law',
-    body: 'These Terms are governed by the law of England and Wales. The courts of England and Wales have exclusive jurisdiction.\n\nBefore commencing legal proceedings, we encourage you to contact us at hello@bptacademy.uk to resolve any dispute informally.',
+    body: 'These Terms are governed by the law of England and Wales. The courts of England and Wales have exclusive jurisdiction.\n\nBefore commencing legal proceedings, we encourage you to contact us at office@bptacademy.uk to resolve any dispute informally.',
   },
   {
     heading: '14. Changes to These Terms',
@@ -69,7 +69,7 @@ const SECTIONS: Section[] = [
   },
   {
     heading: '15. Contact',
-    body: 'BPT Academy Limited\nEmail: hello@bptacademy.uk\n12 Lakeside Rise, Manchester, England, M9 8QD\nCompany No. 16487239',
+    body: 'BPT Academy Limited\nEmail: office@bptacademy.uk\n12 Lakeside Rise, Manchester, England, M9 8QD\nCompany No. 16487239',
   },
 ];
 

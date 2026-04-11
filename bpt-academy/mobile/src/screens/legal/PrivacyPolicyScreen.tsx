@@ -13,7 +13,7 @@ interface Section {
 const SECTIONS: Section[] = [
   {
     heading: '1. Who We Are',
-    body: 'BPT Academy Limited ("BPT Academy", "we", "us", "our") is a private limited company registered in England and Wales (Company No. 16487239). Registered office: 12 Lakeside Rise, Manchester, England, M9 8QD.\n\nFor all data protection enquiries: hello@bptacademy.uk',
+    body: 'BPT Academy Limited ("BPT Academy", "we", "us", "our") is a private limited company registered in England and Wales (Company No. 16487239). Registered office: 12 Lakeside Rise, Manchester, England, M9 8QD.\n\nFor all data protection enquiries: office@bptacademy.uk',
   },
   {
     heading: '2. Our Commitment',
@@ -41,7 +41,7 @@ const SECTIONS: Section[] = [
   },
   {
     heading: '8. Data Security',
-    body: 'We implement appropriate technical and organisational measures including:\n\n• Encryption in transit (TLS/HTTPS)\n• Encrypted data storage\n• Role-based access controls\n• Row-level database security\n• Regular security reviews\n\nIf you suspect unauthorised access to your account, contact hello@bptacademy.uk immediately.',
+    body: 'We implement appropriate technical and organisational measures including:\n\n• Encryption in transit (TLS/HTTPS)\n• Encrypted data storage\n• Role-based access controls\n• Row-level database security\n• Regular security reviews\n\nIf you suspect unauthorised access to your account, contact office@bptacademy.uk immediately.',
   },
   {
     heading: '9. Children\'s Privacy',
@@ -49,7 +49,7 @@ const SECTIONS: Section[] = [
   },
   {
     heading: '10. Your Rights Under UK GDPR',
-    body: 'You have the right to:\n\n• Access — request a copy of your personal data\n• Rectification — correct inaccurate or incomplete data\n• Erasure — request deletion in certain circumstances\n• Restrict processing — limit how we use your data\n• Data portability — receive your data in a structured format\n• Object — to processing based on legitimate interests\n\nTo exercise any right, contact hello@bptacademy.uk. We will respond within 30 days.\n\nYou may also lodge a complaint with the ICO at ico.org.uk or on 0303 123 1113.',
+    body: 'You have the right to:\n\n• Access — request a copy of your personal data\n• Rectification — correct inaccurate or incomplete data\n• Erasure — request deletion in certain circumstances\n• Restrict processing — limit how we use your data\n• Data portability — receive your data in a structured format\n• Object — to processing based on legitimate interests\n\nTo exercise any right, contact office@bptacademy.uk. We will respond within 30 days.\n\nYou may also lodge a complaint with the ICO at ico.org.uk or on 0303 123 1113.',
   },
   {
     heading: '11. Changes to This Policy',
@@ -57,7 +57,7 @@ const SECTIONS: Section[] = [
   },
   {
     heading: '12. Contact Us',
-    body: 'BPT Academy Limited\nEmail: hello@bptacademy.uk\n12 Lakeside Rise, Manchester, England, M9 8QD\nCompany No. 16487239',
+    body: 'BPT Academy Limited\nEmail: office@bptacademy.uk\n12 Lakeside Rise, Manchester, England, M9 8QD\nCompany No. 16487239',
   },
 ];
 

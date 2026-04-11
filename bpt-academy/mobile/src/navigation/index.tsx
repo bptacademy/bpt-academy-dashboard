@@ -145,8 +145,8 @@ function StudentHomeStack() {
       <Stack.Screen name="AttendanceConfirm"   component={AttendanceConfirmScreen} />
       <Stack.Screen name="ReEnrollment"        component={ReEnrollmentScreen} />
       <Stack.Screen name="Notifications"       component={NotificationsScreen} />
-      <Stack.Screen name=\"PrivacyPolicy\"   component={PrivacyPolicyScreen} />
-      <Stack.Screen name=\"TermsOfService\"  component={TermsOfServiceScreen} />
+      <Stack.Screen name="PrivacyPolicy"   component={PrivacyPolicyScreen} />
+      <Stack.Screen name="TermsOfService"  component={TermsOfServiceScreen} />
     </Stack.Navigator>
   );
 }
@@ -160,8 +160,8 @@ function StudentProgramsStack() {
       <Stack.Screen name="Payment"            component={PaymentScreen} />
       <Stack.Screen name="AttendanceConfirm"  component={AttendanceConfirmScreen} />
       <Stack.Screen name="Notifications"      component={NotificationsScreen} />
-      <Stack.Screen name=\"PrivacyPolicy\"   component={PrivacyPolicyScreen} />
-      <Stack.Screen name=\"TermsOfService\"  component={TermsOfServiceScreen} />
+      <Stack.Screen name="PrivacyPolicy"   component={PrivacyPolicyScreen} />
+      <Stack.Screen name="TermsOfService"  component={TermsOfServiceScreen} />
     </Stack.Navigator>
   );
 }
@@ -175,8 +175,8 @@ function StudentMessagesStack() {
       <Stack.Screen name="NewConversation"    component={NewConversationScreen} />
       <Stack.Screen name="AttendanceConfirm"  component={AttendanceConfirmScreen} />
       <Stack.Screen name="Notifications"      component={NotificationsScreen} />
-      <Stack.Screen name=\"PrivacyPolicy\"   component={PrivacyPolicyScreen} />
-      <Stack.Screen name=\"TermsOfService\"  component={TermsOfServiceScreen} />
+      <Stack.Screen name="PrivacyPolicy"   component={PrivacyPolicyScreen} />
+      <Stack.Screen name="TermsOfService"  component={TermsOfServiceScreen} />
     </Stack.Navigator>
   );
 }
@@ -187,8 +187,8 @@ function StudentProfileStack() {
       <Stack.Screen name="Profile"            component={ProfileScreen} />
       <Stack.Screen name="AttendanceConfirm"  component={AttendanceConfirmScreen} />
       <Stack.Screen name="Notifications"      component={NotificationsScreen} />
-      <Stack.Screen name=\"PrivacyPolicy\"   component={PrivacyPolicyScreen} />
-      <Stack.Screen name=\"TermsOfService\"  component={TermsOfServiceScreen} />
+      <Stack.Screen name="PrivacyPolicy"   component={PrivacyPolicyScreen} />
+      <Stack.Screen name="TermsOfService"  component={TermsOfServiceScreen} />
     </Stack.Navigator>
   );
 }
@@ -230,8 +230,8 @@ function CoachHomeStack() {
       <Stack.Screen name="CoachNotes"         component={CoachNotesScreen} />
       <Stack.Screen name="PromotionManage"    component={PromotionManageScreen} />
       <Stack.Screen name="Notifications"      component={NotificationsScreen} />
-      <Stack.Screen name=\"PrivacyPolicy\"   component={PrivacyPolicyScreen} />
-      <Stack.Screen name=\"TermsOfService\"  component={TermsOfServiceScreen} />
+      <Stack.Screen name="PrivacyPolicy"   component={PrivacyPolicyScreen} />
+      <Stack.Screen name="TermsOfService"  component={TermsOfServiceScreen} />
     </Stack.Navigator>
   );
 }
@@ -247,8 +247,8 @@ function CoachStudentsStack() {
       <Stack.Screen name="Chat"            component={ChatScreen} />
       <Stack.Screen name="NewConversation" component={NewConversationScreen} />
       <Stack.Screen name="Notifications"   component={NotificationsScreen} />
-      <Stack.Screen name=\"PrivacyPolicy\"   component={PrivacyPolicyScreen} />
-      <Stack.Screen name=\"TermsOfService\"  component={TermsOfServiceScreen} />
+      <Stack.Screen name="PrivacyPolicy"   component={PrivacyPolicyScreen} />
+      <Stack.Screen name="TermsOfService"  component={TermsOfServiceScreen} />
     </Stack.Navigator>
   );
 }
@@ -261,8 +261,8 @@ function CoachMessagesStack() {
       <Stack.Screen name="NewConversation" component={NewConversationScreen} />
       <Stack.Screen name="Announce"        component={SendAnnouncementScreen} />
       <Stack.Screen name="Notifications"   component={NotificationsScreen} />
-      <Stack.Screen name=\"PrivacyPolicy\"   component={PrivacyPolicyScreen} />
-      <Stack.Screen name=\"TermsOfService\"  component={TermsOfServiceScreen} />
+      <Stack.Screen name="PrivacyPolicy"   component={PrivacyPolicyScreen} />
+      <Stack.Screen name="TermsOfService"  component={TermsOfServiceScreen} />
     </Stack.Navigator>
   );
 }
@@ -279,8 +279,8 @@ function CoachProfileStack() {
       <Stack.Screen name="DivisionDashboard" component={DivisionDashboardScreen} />
       <Stack.Screen name="Attendance"        component={AttendanceScreen} />
       <Stack.Screen name="Notifications"     component={NotificationsScreen} />
-      <Stack.Screen name=\"PrivacyPolicy\"   component={PrivacyPolicyScreen} />
-      <Stack.Screen name=\"TermsOfService\"  component={TermsOfServiceScreen} />
+      <Stack.Screen name="PrivacyPolicy"   component={PrivacyPolicyScreen} />
+      <Stack.Screen name="TermsOfService"  component={TermsOfServiceScreen} />
     </Stack.Navigator>
   );
 }
@@ -327,8 +327,8 @@ function AdminDashboardStack() {
       <Stack.Screen name="Chat"               component={ChatScreen} />
       <Stack.Screen name="NewConversation"    component={NewConversationScreen} />
       <Stack.Screen name="Notifications"      component={NotificationsScreen} />
-      <Stack.Screen name=\"PrivacyPolicy\"   component={PrivacyPolicyScreen} />
-      <Stack.Screen name=\"TermsOfService\"  component={TermsOfServiceScreen} />
+      <Stack.Screen name="PrivacyPolicy"   component={PrivacyPolicyScreen} />
+      <Stack.Screen name="TermsOfService"  component={TermsOfServiceScreen} />
     </Stack.Navigator>
   );
 }
@@ -344,8 +344,8 @@ function AdminStudentsStack() {
       <Stack.Screen name="Chat"            component={ChatScreen} />
       <Stack.Screen name="NewConversation" component={NewConversationScreen} />
       <Stack.Screen name="Notifications"   component={NotificationsScreen} />
-      <Stack.Screen name=\"PrivacyPolicy\"   component={PrivacyPolicyScreen} />
-      <Stack.Screen name=\"TermsOfService\"  component={TermsOfServiceScreen} />
+      <Stack.Screen name="PrivacyPolicy"   component={PrivacyPolicyScreen} />
+      <Stack.Screen name="TermsOfService"  component={TermsOfServiceScreen} />
     </Stack.Navigator>
   );
 }
@@ -362,8 +362,8 @@ function AdminProgramsStack() {
       <Stack.Screen name="VideoPlayer"       component={VideoPlayerScreen} />
       <Stack.Screen name="StudentDetail"     component={StudentDetailScreen} />
       <Stack.Screen name="Notifications"     component={NotificationsScreen} />
-      <Stack.Screen name=\"PrivacyPolicy\"   component={PrivacyPolicyScreen} />
-      <Stack.Screen name=\"TermsOfService\"  component={TermsOfServiceScreen} />
+      <Stack.Screen name="PrivacyPolicy"   component={PrivacyPolicyScreen} />
+      <Stack.Screen name="TermsOfService"  component={TermsOfServiceScreen} />
     </Stack.Navigator>
   );
 }
@@ -375,8 +375,8 @@ function AdminMessagesStack() {
       <Stack.Screen name="Chat"            component={ChatScreen} />
       <Stack.Screen name="NewConversation" component={NewConversationScreen} />
       <Stack.Screen name="Notifications"   component={NotificationsScreen} />
-      <Stack.Screen name=\"PrivacyPolicy\"   component={PrivacyPolicyScreen} />
-      <Stack.Screen name=\"TermsOfService\"  component={TermsOfServiceScreen} />
+      <Stack.Screen name="PrivacyPolicy"   component={PrivacyPolicyScreen} />
+      <Stack.Screen name="TermsOfService"  component={TermsOfServiceScreen} />
     </Stack.Navigator>
   );
 }
@@ -423,8 +423,8 @@ function SuperAdminDashboardStack() {
       <Stack.Screen name="Chat"               component={ChatScreen} />
       <Stack.Screen name="NewConversation"    component={NewConversationScreen} />
       <Stack.Screen name="Notifications"      component={NotificationsScreen} />
-      <Stack.Screen name=\"PrivacyPolicy\"   component={PrivacyPolicyScreen} />
-      <Stack.Screen name=\"TermsOfService\"  component={TermsOfServiceScreen} />
+      <Stack.Screen name="PrivacyPolicy"   component={PrivacyPolicyScreen} />
+      <Stack.Screen name="TermsOfService"  component={TermsOfServiceScreen} />
     </Stack.Navigator>
   );
 }
@@ -435,8 +435,8 @@ function SuperAdminUsersStack() {
       <Stack.Screen name="SuperAdminHome" component={SuperAdminHomeScreen} />
       <Stack.Screen name="StudentDetail"  component={StudentDetailScreen} />
       <Stack.Screen name="Notifications"  component={NotificationsScreen} />
-      <Stack.Screen name=\"PrivacyPolicy\"   component={PrivacyPolicyScreen} />
-      <Stack.Screen name=\"TermsOfService\"  component={TermsOfServiceScreen} />
+      <Stack.Screen name="PrivacyPolicy"   component={PrivacyPolicyScreen} />
+      <Stack.Screen name="TermsOfService"  component={TermsOfServiceScreen} />
     </Stack.Navigator>
   );
 }
@@ -450,8 +450,8 @@ function SuperAdminMessagesStack() {
       <Stack.Screen name="BulkMsg"         component={BulkMessageScreen} />
       <Stack.Screen name="Announce"        component={SendAnnouncementScreen} />
       <Stack.Screen name="Notifications"   component={NotificationsScreen} />
-      <Stack.Screen name=\"PrivacyPolicy\"   component={PrivacyPolicyScreen} />
-      <Stack.Screen name=\"TermsOfService\"  component={TermsOfServiceScreen} />
+      <Stack.Screen name="PrivacyPolicy"   component={PrivacyPolicyScreen} />
+      <Stack.Screen name="TermsOfService"  component={TermsOfServiceScreen} />
     </Stack.Navigator>
   );
 }
@@ -468,8 +468,8 @@ function SuperAdminProfileStack() {
       <Stack.Screen name="DivisionDashboard" component={DivisionDashboardScreen} />
       <Stack.Screen name="Attendance"        component={AttendanceScreen} />
       <Stack.Screen name="Notifications"     component={NotificationsScreen} />
-      <Stack.Screen name=\"PrivacyPolicy\"   component={PrivacyPolicyScreen} />
-      <Stack.Screen name=\"TermsOfService\"  component={TermsOfServiceScreen} />
+      <Stack.Screen name="PrivacyPolicy"   component={PrivacyPolicyScreen} />
+      <Stack.Screen name="TermsOfService"  component={TermsOfServiceScreen} />
     </Stack.Navigator>
   );
 }

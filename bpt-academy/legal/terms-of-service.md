@@ -12,7 +12,7 @@ Registered Office: 12 Lakeside Rise, Manchester, England, M9 8QD
 
 BPT Academy Limited ("BPT Academy", "we", "us", "our") is a private limited company registered in England and Wales under Company No. 16487239. Our registered office is at 12 Lakeside Rise, Manchester, England, M9 8QD.
 
-**Contact:** hello@bptacademy.uk
+**Contact:** office@bptacademy.uk
 
 These Terms of Service ("Terms") govern your access to and use of the BPT Academy mobile application and web platform at app.bptacademy.uk (together, the "Platform"), and your participation in any programmes, sessions, or services offered by BPT Academy ("Services").
 
@@ -39,7 +39,7 @@ You must be at least 18 years old to create an account. Parents and guardians ma
 You agree to provide accurate, current, and complete information during registration and to keep your account information up to date. BPT Academy accepts no liability for issues arising from inaccurate information you provide.
 
 ### 3.3 Account Security
-You are responsible for maintaining the confidentiality of your login credentials and for all activity that occurs under your account. You must notify us immediately at hello@bptacademy.uk if you suspect any unauthorised access to your account.
+You are responsible for maintaining the confidentiality of your login credentials and for all activity that occurs under your account. You must notify us immediately at office@bptacademy.uk if you suspect any unauthorised access to your account.
 
 ### 3.4 Junior Accounts
 Where you register on behalf of a child under 18, you confirm that:
@@ -121,7 +121,7 @@ If BPT Academy cancels a scheduled session or programme:
 - We will not be liable for any additional costs (such as travel) you incur as a result of a cancellation
 
 ### 7.5 How to Request a Refund
-To request a refund, contact us at **hello@bptacademy.uk** with your name, account details, and the session or programme in question. We will process eligible refunds within 10 working days.
+To request a refund, contact us at **office@bptacademy.uk** with your name, account details, and the session or programme in question. We will process eligible refunds within 10 working days.
 
 ---
 
@@ -215,7 +215,7 @@ You agree to indemnify and hold harmless BPT Academy Limited, its directors, emp
 ## 14. Termination
 
 ### 14.1 By You
-You may close your account at any time by contacting us at hello@bptacademy.uk. Closing your account does not entitle you to any refund of fees already paid.
+You may close your account at any time by contacting us at office@bptacademy.uk. Closing your account does not entitle you to any refund of fees already paid.
 
 ### 14.2 By Us
 We may suspend or terminate your account at any time if:
@@ -234,7 +234,7 @@ These Terms and any dispute or claim arising out of or in connection with them (
 
 You agree that the courts of **England and Wales** shall have exclusive jurisdiction to settle any dispute or claim arising out of or in connection with these Terms.
 
-**Alternative Dispute Resolution:** Before commencing legal proceedings, we encourage you to contact us at hello@bptacademy.uk to resolve any dispute informally. We will always endeavour to resolve complaints promptly and fairly.
+**Alternative Dispute Resolution:** Before commencing legal proceedings, we encourage you to contact us at office@bptacademy.uk to resolve any dispute informally. We will always endeavour to resolve complaints promptly and fairly.
 
 ---
 
@@ -262,6 +262,6 @@ We reserve the right to update these Terms at any time. We will notify you of ma
 For any questions regarding these Terms:
 
 **BPT Academy Limited**
-Email: hello@bptacademy.uk
+Email: office@bptacademy.uk
 Post: 12 Lakeside Rise, Manchester, England, M9 8QD
 Company No. 16487239
