@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "532550920346",
+    "project_id": "bpt-academy",
+    "storage_bucket": "bpt-academy.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:532550920346:android:72d8f651af07fa8cb21723",
+        "android_client_info": {
+          "package_name": "com.bptacademy.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBxI5t3MNOYYEVXpcMpLaOauE9gPMMkTf8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
