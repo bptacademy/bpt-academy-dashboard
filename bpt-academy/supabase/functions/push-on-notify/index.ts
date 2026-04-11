@@ -1,11 +1,18 @@
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
 const EXPO_PUSH_URL = 'https://exp.host/--/api/v2/push/send';
 
-serve(async (req: Request) => {
+interface PushPayload {
+  recipient_id: string;
+  title: string;
+  body: string;
+  type: string;
+  data: Record<string, unknown>;
+}
+
+Deno.serve(async (req: Request) => {
   if (req.method !== 'POST') {
     return new Response(JSON.stringify({ error: 'Method not allowed' }), {
       status: 405,
@@ -13,9 +20,9 @@ serve(async (req: Request) => {
     });
   }
 
-  let body: Record<string, unknown>;
+  let payload: PushPayload;
   try {
-    body = await req.json();
+    payload = await req.json();
   } catch {
     return new Response(JSON.stringify({ error: 'Invalid JSON body' }), {
       status: 400,
@@ -23,13 +30,7 @@ serve(async (req: Request) => {
     });
   }
 
-  const { recipient_id, title, body: notifBody, type, data } = body as {
-    recipient_id: string;
-    title: string;
-    body: string;
-    type: string;
-    data: Record<string, unknown>;
-  };
+  const { recipient_id, title, body, type, data } = payload;
 
   if (!recipient_id) {
     return new Response(JSON.stringify({ error: 'Missing recipient_id' }), {
@@ -38,7 +39,7 @@ serve(async (req: Request) => {
     });
   }
 
-  // Create admin Supabase client to read push tokens
+  // Admin Supabase client to read push tokens
   const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
   const { data: tokens, error: tokensError } = await supabase
@@ -55,10 +56,11 @@ serve(async (req: Request) => {
   }
 
   if (!tokens || tokens.length === 0) {
-    return new Response(JSON.stringify({ message: 'No push tokens for user', recipient_id }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    console.log('[push-on-notify] No push tokens for user:', recipient_id);
+    return new Response(
+      JSON.stringify({ message: 'No push tokens for user', recipient_id }),
+      { status: 200, headers: { 'Content-Type': 'application/json' } }
+    );
   }
 
   // Build Expo push messages
@@ -66,39 +68,36 @@ serve(async (req: Request) => {
     to: t.token,
     sound: 'default',
     title: title ?? 'BPT Academy',
-    body: notifBody ?? '',
+    body: body ?? '',
     data: { ...(data ?? {}), type },
     badge: 1,
   }));
 
   // Send to Expo Push API
-  let expoResponse: Response;
+  let expoResult: unknown;
   try {
-    expoResponse = await fetch(EXPO_PUSH_URL, {
+    const expoResponse = await fetch(EXPO_PUSH_URL, {
       method: 'POST',
       headers: {
-        'Accept': 'application/json',
+        Accept: 'application/json',
         'Accept-Encoding': 'gzip, deflate',
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(messages),
     });
+    expoResult = await expoResponse.json();
   } catch (fetchErr) {
-    console.error('[push-on-notify] Expo API fetch error:', fetchErr);
-    return new Response(JSON.stringify({ error: 'Failed to reach Expo push API' }), {
-      status: 502,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    console.error('[push-on-notify] Expo API error:', fetchErr);
+    return new Response(
+      JSON.stringify({ error: 'Failed to reach Expo push API' }),
+      { status: 502, headers: { 'Content-Type': 'application/json' } }
+    );
   }
 
-  const expoResult = await expoResponse.json();
-  console.log('[push-on-notify] Expo result:', JSON.stringify(expoResult));
+  console.log('[push-on-notify] Sent', messages.length, 'push(es) to', recipient_id);
 
   return new Response(
     JSON.stringify({ success: true, sent: messages.length, result: expoResult }),
-    {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    }
+    { status: 200, headers: { 'Content-Type': 'application/json' } }
   );
 });
