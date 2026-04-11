@@ -1,4 +1,6 @@
 -- Push notification trigger: fires push-on-notify edge function on every notification insert
+-- NOTE: The service role key is stored in Supabase Vault / app settings, not hardcoded here.
+-- The actual live function in the DB uses current_setting('app.service_role_key', true).
 
 CREATE OR REPLACE FUNCTION notify_push_on_insert()
 RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER AS $$
@@ -7,7 +9,7 @@ BEGIN
     url := 'https://nobxhhnhakawhbimrate.supabase.co/functions/v1/push-on-notify',
     headers := jsonb_build_object(
       'Content-Type', 'application/json',
-      'Authorization', 'Bearer sb_secret_kGcekGhRQ7-_QzUO-92MbA_Ewa3OrUV'
+      'Authorization', 'Bearer ' || current_setting('app.service_role_key', true)
     ),
     body := jsonb_build_object(
       'recipient_id', NEW.recipient_id,
