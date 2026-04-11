@@ -34,7 +34,7 @@ export function useNotifications(): UseNotificationsResult {
 
     fetchUnread();
 
-    // Subscribe to realtime changes
+    // Subscribe to realtime — fires on INSERT and UPDATE (REPLICA IDENTITY FULL enabled)
     const channel = supabase
       .channel(`notifications:${profile.id}`)
       .on(
@@ -45,7 +45,16 @@ export function useNotifications(): UseNotificationsResult {
           table: 'notifications',
           filter: `recipient_id=eq.${profile.id}`,
         },
-        () => {
+        (payload) => {
+          // On UPDATE: if notification was marked read, remove it from state immediately
+          if (payload.eventType === 'UPDATE') {
+            const updated = payload.new as any;
+            if (updated?.read === true) {
+              setNotifications(prev => prev.filter(n => n.id !== updated.id));
+              return;
+            }
+          }
+          // On INSERT or other changes: re-fetch
           fetchUnread();
         }
       )
@@ -62,16 +71,18 @@ export function useNotifications(): UseNotificationsResult {
   }, [profile?.id, fetchUnread]);
 
   const markRead = useCallback(async (id: string) => {
-    await supabase.from('notifications').update({ read: true }).eq('id', id);
+    // Optimistic update — remove from state immediately before DB confirms
     setNotifications(prev => prev.filter(n => n.id !== id));
+    await supabase.from('notifications').update({ read: true }).eq('id', id);
   }, []);
 
   const markAllRead = useCallback(async () => {
     if (!profile?.id) return;
     const ids = notifications.map(n => n.id);
     if (ids.length === 0) return;
-    await supabase.from('notifications').update({ read: true }).in('id', ids);
+    // Optimistic update — clear state immediately
     setNotifications([]);
+    await supabase.from('notifications').update({ read: true }).in('id', ids);
   }, [profile?.id, notifications]);
 
   const refresh = useCallback(async () => {
