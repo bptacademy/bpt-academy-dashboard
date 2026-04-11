@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import { StatsCard } from '@/components/stats-card'
 import { RevenueChart } from '@/components/charts/revenue-chart'
 import { formatCurrency, formatDate } from '@/lib/utils'
-import { Users, BookOpen, DollarSign, Calendar, Plus, Megaphone } from 'lucide-react'
+import { Users, BookOpen, DollarSign, Calendar, Plus, Megaphone, Clock, AlertTriangle, Shield } from 'lucide-react'
 import Link from 'next/link'
 
 type EnrollmentRow = {
@@ -21,6 +21,43 @@ interface RevenueMonth {
   revenue: number
 }
 
+interface AttendanceDueRow {
+  session_id: string
+  program_title: string
+  scheduled_at: string
+  attendance_deadline: string
+}
+
+interface PenaltyRow {
+  coach_id: string
+  coach_name: string
+  program_id: string
+  program_title: string
+  strike_count: number
+}
+
+function hoursRemaining(deadline: string): number {
+  return (new Date(deadline).getTime() - Date.now()) / (1000 * 60 * 60)
+}
+
+function formatDeadline(deadline: string): string {
+  return new Date(deadline).toLocaleString('en-GB', {
+    day: 'numeric',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
+
+function currentMonthLabel(): string {
+  return new Date().toLocaleString('en-GB', { month: 'long', year: 'numeric' })
+}
+
+function currentMonthFormat(): string {
+  const d = new Date()
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+}
+
 export default function DashboardPage() {
   const [stats, setStats] = useState({
     totalStudents: 0,
@@ -32,9 +69,27 @@ export default function DashboardPage() {
   const [revenueData, setRevenueData] = useState<RevenueMonth[]>([])
   const [loading, setLoading] = useState(true)
 
+  const [attendanceDue, setAttendanceDue] = useState<AttendanceDueRow[]>([])
+  const [attendanceDueLoading, setAttendanceDueLoading] = useState(true)
+
+  const [penalties, setPenalties] = useState<PenaltyRow[]>([])
+  const [penaltiesLoading, setPenaltiesLoading] = useState(true)
+  const [userRole, setUserRole] = useState<string>('')
+
   useEffect(() => {
     async function fetchData() {
       const supabase = createClient()
+
+      // Current user role
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .single()
+        setUserRole(profile?.role || '')
+      }
 
       // Total students
       const { count: studentCount } = await supabase
@@ -128,6 +183,74 @@ export default function DashboardPage() {
     fetchData()
   }, [])
 
+  // Attendance due panel
+  useEffect(() => {
+    async function fetchAttendanceDue() {
+      setAttendanceDueLoading(true)
+      const supabase = createClient()
+      const now = new Date().toISOString()
+
+      const { data } = await supabase
+        .from('program_sessions')
+        .select('id, scheduled_at, attendance_deadline, programs!program_sessions_program_id_fkey(title)')
+        .eq('attendance_completed', false)
+        .gt('attendance_deadline', now)
+        .lt('scheduled_at', now)
+        .order('attendance_deadline', { ascending: true })
+
+      if (data) {
+        setAttendanceDue(
+          (data as any[]).map((row) => ({
+            session_id: row.id,
+            program_title: row.programs?.title || 'Unknown',
+            scheduled_at: row.scheduled_at,
+            attendance_deadline: row.attendance_deadline,
+          }))
+        )
+      }
+      setAttendanceDueLoading(false)
+    }
+    fetchAttendanceDue()
+  }, [])
+
+  // Coach penalties panel
+  useEffect(() => {
+    async function fetchPenalties() {
+      setPenaltiesLoading(true)
+      const supabase = createClient()
+      const month = currentMonthFormat()
+
+      const { data } = await supabase
+        .from('coach_penalties')
+        .select('coach_id, program_id, strike_count, profiles!coach_penalties_coach_id_fkey(full_name), programs!coach_penalties_program_id_fkey(title)')
+        .eq('month', month)
+        .order('strike_count', { ascending: false })
+
+      if (data) {
+        // Group by coach+program, keep highest strike_count
+        const map = new Map<string, PenaltyRow>()
+        for (const row of data as any[]) {
+          const key = `${row.coach_id}:${row.program_id}`
+          const existing = map.get(key)
+          if (!existing || row.strike_count > existing.strike_count) {
+            map.set(key, {
+              coach_id: row.coach_id,
+              coach_name: row.profiles?.full_name || 'Unknown',
+              program_id: row.program_id,
+              program_title: row.programs?.title || 'Unknown',
+              strike_count: row.strike_count,
+            })
+          }
+        }
+        setPenalties(Array.from(map.values()).sort((a, b) => b.strike_count - a.strike_count))
+      }
+      setPenaltiesLoading(false)
+    }
+    fetchPenalties()
+  }, [])
+
+  const isAdminOrSuper = userRole === 'admin' || userRole === 'super_admin'
+
   return (
     <div className="space-y-6">
       <div>
@@ -144,6 +267,114 @@ export default function DashboardPage() {
         <StatsCard title="Revenue This Month" value={loading ? '...' : formatCurrency(stats.revenueThisMonth)} icon={DollarSign} description="Paid payments" />
         <StatsCard title="Upcoming Sessions" value={loading ? '...' : stats.upcomingSessions} icon={Calendar} description="Scheduled sessions" />
       </div>
+
+      {/* Attendance Due Panel */}
+      <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <div className="flex items-center gap-2 mb-4">
+          <Clock size={18} className="text-yellow-500" />
+          <h2 className="font-semibold text-gray-900">⏰ Attendance Required</h2>
+        </div>
+        {attendanceDueLoading ? (
+          <div className="py-4 text-center text-gray-400 text-sm">Loading...</div>
+        ) : attendanceDue.length === 0 ? (
+          <div className="py-4 text-center text-gray-400 text-sm">No attendance pending ✅</div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  <th className="text-left py-2 px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Program</th>
+                  <th className="text-left py-2 px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Session</th>
+                  <th className="text-left py-2 px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Deadline</th>
+                  <th className="text-left py-2 px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Hours Remaining</th>
+                </tr>
+              </thead>
+              <tbody>
+                {attendanceDue.map((row) => {
+                  const hours = hoursRemaining(row.attendance_deadline)
+                  const isUrgent = hours <= 4
+                  return (
+                    <tr
+                      key={row.session_id}
+                      className="border-b border-gray-100 last:border-0 hover:bg-gray-50 cursor-pointer transition-colors"
+                      onClick={() => window.location.href = '/attendance'}
+                    >
+                      <td className="py-2 px-3 text-gray-900 font-medium">{row.program_title}</td>
+                      <td className="py-2 px-3 text-gray-600">
+                        {new Date(row.scheduled_at).toLocaleString('en-GB', {
+                          day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
+                        })}
+                      </td>
+                      <td className="py-2 px-3 text-gray-500">{formatDeadline(row.attendance_deadline)}</td>
+                      <td className="py-2 px-3">
+                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold ${
+                          isUrgent
+                            ? 'bg-red-100 text-red-700'
+                            : 'bg-yellow-100 text-yellow-700'
+                        }`}>
+                          <Clock size={11} />
+                          {hours.toFixed(1)}h
+                        </span>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* Coach Penalties Panel — admin/super_admin only */}
+      {isAdminOrSuper && (
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <AlertTriangle size={18} className="text-red-500" />
+            <h2 className="font-semibold text-gray-900">🚨 Coach Penalties — {currentMonthLabel()}</h2>
+          </div>
+          {penaltiesLoading ? (
+            <div className="py-4 text-center text-gray-400 text-sm">Loading...</div>
+          ) : penalties.length === 0 ? (
+            <div className="py-4 text-center text-gray-400 text-sm">No penalties this month ✅</div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-200">
+                    <th className="text-left py-2 px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Coach</th>
+                    <th className="text-left py-2 px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Program</th>
+                    <th className="text-left py-2 px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Strikes</th>
+                    <th className="text-left py-2 px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {penalties.map((row) => (
+                    <tr key={`${row.coach_id}:${row.program_id}`} className="border-b border-gray-100 last:border-0">
+                      <td className="py-2 px-3 text-gray-900 font-medium flex items-center gap-1.5">
+                        <Shield size={13} className="text-gray-400" />
+                        {row.coach_name}
+                      </td>
+                      <td className="py-2 px-3 text-gray-600">{row.program_title}</td>
+                      <td className="py-2 px-3 text-gray-700 font-semibold">{row.strike_count}</td>
+                      <td className="py-2 px-3">
+                        {row.strike_count >= 2 ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-700">
+                            🔴 Review Required
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700">
+                            🟡 Warning
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Quick Actions */}
       <div className="flex flex-wrap gap-3">

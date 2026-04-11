@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { formatDateTime } from '@/lib/utils'
-import { CheckCircle, XCircle, Clock } from 'lucide-react'
+import { CheckCircle, XCircle, Clock, AlertTriangle, Shield } from 'lucide-react'
 
 interface Program {
   id: string
@@ -15,6 +15,9 @@ interface Session {
   scheduled_at: string
   duration_minutes: number | null
   location: string | null
+  attendance_completed: boolean | null
+  auto_completed: boolean | null
+  attendance_deadline: string | null
 }
 
 interface Student {
@@ -35,12 +38,29 @@ function fromBool(attended: boolean): AttendanceStatus {
   return attended ? 'present' : 'absent'
 }
 
+function getSessionIndicator(session: Session): string {
+  if (session.auto_completed) return '🔴'
+  if (!session.attendance_completed) {
+    const deadlinePassed = session.attendance_deadline
+      ? new Date(session.attendance_deadline) < new Date()
+      : false
+    if (!deadlinePassed) return '⏰'
+  }
+  if (session.attendance_completed && !session.auto_completed) return '✅'
+  return ''
+}
+
+function hoursRemaining(deadline: string): number {
+  return (new Date(deadline).getTime() - Date.now()) / (1000 * 60 * 60)
+}
+
 export default function AttendancePage() {
   const [programs, setPrograms] = useState<Program[]>([])
   const [sessions, setSessions] = useState<Session[]>([])
   const [students, setStudents] = useState<Student[]>([])
   const [selectedProgram, setSelectedProgram] = useState('')
   const [selectedSession, setSelectedSession] = useState('')
+  const [selectedSessionData, setSelectedSessionData] = useState<Session | null>(null)
   const [attendance, setAttendance] = useState<Record<string, AttendanceStatus>>({})
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -63,22 +83,36 @@ export default function AttendancePage() {
   async function handleProgramChange(programId: string) {
     setSelectedProgram(programId)
     setSelectedSession('')
+    setSelectedSessionData(null)
     setStudents([])
     setAttendance({})
     if (!programId) { setSessions([]); return }
 
     const supabase = createClient()
+    const now = new Date().toISOString()
     const { data } = await supabase
       .from('program_sessions')
-      .select('*')
+      .select('id, scheduled_at, duration_minutes, location, attendance_completed, auto_completed, attendance_deadline')
       .eq('program_id', programId)
+      .or(`scheduled_at.lt.${now},attendance_completed.eq.false`)
       .order('scheduled_at', { ascending: false })
-    setSessions(data || [])
+
+    // Sort: incomplete sessions first, then by date desc
+    const sorted = (data || []).sort((a: Session, b: Session) => {
+      const aNeeds = !a.attendance_completed
+      const bNeeds = !b.attendance_completed
+      if (aNeeds && !bNeeds) return -1
+      if (!aNeeds && bNeeds) return 1
+      return new Date(b.scheduled_at).getTime() - new Date(a.scheduled_at).getTime()
+    })
+    setSessions(sorted)
   }
 
   async function handleSessionChange(sessionId: string) {
     setSelectedSession(sessionId)
     setSaveError('')
+    const session = sessions.find(s => s.id === sessionId) || null
+    setSelectedSessionData(session)
     if (!sessionId || !selectedProgram) return
     setLoading(true)
     const supabase = createClient()
@@ -134,10 +168,28 @@ export default function AttendancePage() {
       .from('session_attendance')
       .upsert(records, { onConflict: 'session_id,student_id' })
 
-    setSaving(false)
     if (error) {
+      setSaving(false)
       setSaveError('Save failed: ' + error.message)
+      return
+    }
+
+    // Mark session as attendance_completed
+    const { error: sessionError } = await supabase
+      .from('program_sessions')
+      .update({ attendance_completed: true, auto_completed: false })
+      .eq('id', selectedSession)
+
+    setSaving(false)
+    if (sessionError) {
+      setSaveError('Attendance saved but session status update failed: ' + sessionError.message)
     } else {
+      // Update local session data
+      setSelectedSessionData(prev => prev ? { ...prev, attendance_completed: true, auto_completed: false } : prev)
+      setSessions(prev => prev.map(s => s.id === selectedSession
+        ? { ...s, attendance_completed: true, auto_completed: false }
+        : s
+      ))
       setSaved(true)
       setTimeout(() => setSaved(false), 3000)
     }
@@ -152,6 +204,50 @@ export default function AttendancePage() {
   const presentCount = Object.values(attendance).filter(s => s === 'present').length
   const lateCount    = Object.values(attendance).filter(s => s === 'late').length
   const absentCount  = Object.values(attendance).filter(s => s === 'absent').length
+
+  // Deadline banner logic
+  function renderDeadlineBanner() {
+    if (!selectedSessionData) return null
+
+    if (selectedSessionData.auto_completed) {
+      return (
+        <div className="flex items-center gap-2 bg-gray-100 border border-gray-200 rounded-xl px-4 py-3 text-gray-600 text-sm">
+          <Shield size={16} className="shrink-0" />
+          <span>🔒 Auto-completed — all students were marked present automatically</span>
+        </div>
+      )
+    }
+
+    if (selectedSessionData.attendance_completed && !selectedSessionData.auto_completed) {
+      return (
+        <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-xl px-4 py-3 text-green-700 text-sm">
+          <CheckCircle size={16} className="shrink-0" />
+          <span>✅ Attendance completed</span>
+        </div>
+      )
+    }
+
+    if (!selectedSessionData.attendance_completed && selectedSessionData.attendance_deadline) {
+      const deadline = new Date(selectedSessionData.attendance_deadline)
+      const now = new Date()
+      if (deadline > now) {
+        const hours = hoursRemaining(selectedSessionData.attendance_deadline)
+        const isUrgent = hours < 4
+        return (
+          <div className={`flex items-center gap-2 rounded-xl px-4 py-3 text-sm border ${
+            isUrgent
+              ? 'bg-red-50 border-red-200 text-red-700'
+              : 'bg-yellow-50 border-yellow-200 text-yellow-700'
+          }`}>
+            <AlertTriangle size={16} className="shrink-0" />
+            <span>⏰ Attendance closes in {hours.toFixed(1)}h</span>
+          </div>
+        )
+      }
+    }
+
+    return null
+  }
 
   return (
     <div className="space-y-6">
@@ -178,15 +274,20 @@ export default function AttendancePage() {
               <option value="">
                 {selectedProgram && sessions.length === 0 ? 'No sessions — add in Programs' : 'Select a session...'}
               </option>
-              {sessions.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {formatDateTime(s.scheduled_at)}{s.location ? ` — ${s.location}` : ''}
-                </option>
-              ))}
+              {sessions.map((s) => {
+                const indicator = getSessionIndicator(s)
+                return (
+                  <option key={s.id} value={s.id}>
+                    {indicator ? `${indicator} ` : ''}{formatDateTime(s.scheduled_at)}{s.location ? ` — ${s.location}` : ''}
+                  </option>
+                )
+              })}
             </select>
           </div>
         </div>
       </div>
+
+      {selectedSession && renderDeadlineBanner()}
 
       {selectedSession && (
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
