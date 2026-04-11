@@ -353,12 +353,12 @@ export default function ProfileScreen({ navigation }: any) {
               <Text style={styles.chevron}>›</Text>
             </TouchableOpacity>
             <View style={styles.divider} />
-            <TouchableOpacity style={styles.row}>
+            <TouchableOpacity style={styles.row} onPress={() => navigation.navigate('PrivacyPolicy')}>
               <Text style={styles.rowLabel}>Privacy Policy</Text>
               <Text style={styles.chevron}>›</Text>
             </TouchableOpacity>
             <View style={styles.divider} />
-            <TouchableOpacity style={styles.row}>
+            <TouchableOpacity style={styles.row} onPress={() => navigation.navigate('TermsOfService')}>
               <Text style={styles.rowLabel}>Terms of Service</Text>
               <Text style={styles.chevron}>›</Text>
             </TouchableOpacity>
