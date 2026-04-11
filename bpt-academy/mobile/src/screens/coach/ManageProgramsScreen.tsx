@@ -253,6 +253,12 @@ export default function ManageProgramsScreen({ navigation }: any) {
                     <Text style={styles.modulesBtnText}>📋 Modules</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
+                    style={styles.scheduleBtn}
+                    onPress={() => navigation.navigate('ScheduleGenerator', { programId: p.id, programTitle: p.title, maxStudents: p.max_students, durationWeeks: (p as any).duration_weeks ?? null, sessionsPerWeek: (p as any).sessions_per_week ?? null })}
+                  >
+                    <Text style={styles.scheduleBtnText}>📅 Schedule</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
                     style={styles.editBtn}
                     onPress={() => openEdit(p)}
                   >
@@ -469,6 +475,8 @@ const styles = StyleSheet.create({
   cardActions: { flexDirection: 'row', gap: 8 },
   rosterBtn: { flex: 1, backgroundColor: '#F3F4F6', borderRadius: 8, paddingVertical: 8, alignItems: 'center' },
   rosterBtnText: { fontSize: 13, fontWeight: '600', color: '#374151' },
+  scheduleBtn: { backgroundColor: '#EFF6FF', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 6, borderWidth: 1, borderColor: '#BFDBFE' },
+  scheduleBtnText: { fontSize: 12, fontWeight: '600', color: '#2563EB' },
   modulesBtn: { flex: 1, backgroundColor: '#FFF7ED', borderRadius: 8, paddingVertical: 8, alignItems: 'center' },
   modulesBtnText: { fontSize: 13, fontWeight: '600', color: '#D97706' },
   editBtn: { width: 38, backgroundColor: '#EFF6FF', borderRadius: 8, paddingVertical: 8, alignItems: 'center' },
