@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, RefreshControl, Dimensions } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../../context/AuthContext';
@@ -8,6 +9,7 @@ import ScreenHeader from '../../components/common/ScreenHeader';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = (SCREEN_WIDTH - 16 * 2 - 12) / 2;
+const DISMISSED_STORAGE_KEY = 'penalty_dismissed_v1';
 
 interface PenaltyAlert {
   coachName: string;
@@ -24,6 +26,7 @@ export default function CoachHomeScreen({ navigation }: any) {
   const [stats, setStats] = useState({ students: 0, programs: 0, videos: 0 });
   const [refreshing, setRefreshing] = useState(false);
   const [penaltyAlerts, setPenaltyAlerts] = useState<PenaltyAlert[]>([]);
+  const [dismissedKeys, setDismissedKeys] = useState<Set<string>>(new Set());
 
   const fetchStats = async () => {
     const [studentsRes, programsRes, videosRes] = await Promise.all([
@@ -35,6 +38,22 @@ export default function CoachHomeScreen({ navigation }: any) {
       students: studentsRes.count ?? 0,
       programs: programsRes.count ?? 0,
       videos: videosRes.count ?? 0,
+    });
+  };
+
+  const loadDismissed = async () => {
+    try {
+      const raw = await AsyncStorage.getItem(DISMISSED_STORAGE_KEY);
+      if (raw) setDismissedKeys(new Set(JSON.parse(raw)));
+    } catch (_) {}
+  };
+
+  const dismissPenalty = async (key: string) => {
+    setDismissedKeys((prev) => {
+      const next = new Set(prev);
+      next.add(key);
+      AsyncStorage.setItem(DISMISSED_STORAGE_KEY, JSON.stringify([...next])).catch(() => {});
+      return next;
     });
   };
 
@@ -68,7 +87,7 @@ export default function CoachHomeScreen({ navigation }: any) {
   };
 
   const fetchAll = async () => {
-    await Promise.all([fetchStats(), fetchPenalties()]);
+    await Promise.all([fetchStats(), fetchPenalties(), loadDismissed()]);
   };
 
   const onRefresh = async () => { setRefreshing(true); await fetchAll(); setRefreshing(false); };
@@ -104,6 +123,10 @@ export default function CoachHomeScreen({ navigation }: any) {
     { icon: '⚙️', label: 'Settings',     onPress: () => navigation.navigate('AcademySettings') },
     { icon: '💰', label: 'Billing',      onPress: () => navigation.navigate('BillingSettings') },
   ];
+
+  const visiblePenalties = penaltyAlerts.filter(
+    (p) => !dismissedKeys.has(`${p.coachId}:${p.programId}:${p.month}`)
+  );
 
   return (
     <ScrollView
@@ -141,14 +164,15 @@ export default function CoachHomeScreen({ navigation }: any) {
       </View>
 
       {/* Coach Penalty Alerts */}
-      {penaltyAlerts.length > 0 && (
+      {visiblePenalties.length > 0 && (
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>🚨 Coach Penalties This Month</Text>
-          {penaltyAlerts.map((p) => {
+          {visiblePenalties.map((p) => {
             const isCritical = p.strikeCount >= 2;
+            const alertKey = `${p.coachId}:${p.programId}:${p.month}`;
             return (
               <View
-                key={`${p.coachId}:${p.programId}`}
+                key={alertKey}
                 style={[styles.penaltyCard, isCritical && styles.penaltyCardCritical]}
               >
                 <View style={styles.penaltyLeft}>
@@ -164,6 +188,13 @@ export default function CoachHomeScreen({ navigation }: any) {
                 <View style={[styles.penaltyBadge, isCritical && styles.penaltyBadgeCritical]}>
                   <Text style={styles.penaltyBadgeText}>{p.strikeCount}</Text>
                 </View>
+                <TouchableOpacity
+                  style={styles.penaltyDismiss}
+                  onPress={() => dismissPenalty(alertKey)}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                >
+                  <Text style={styles.penaltyDismissText}>✕</Text>
+                </TouchableOpacity>
               </View>
             );
           })}
@@ -224,4 +255,6 @@ const styles = StyleSheet.create({
   },
   penaltyBadgeCritical: { backgroundColor: '#EF4444' },
   penaltyBadgeText: { fontSize: 14, fontWeight: '800', color: '#FFFFFF' },
+  penaltyDismiss: { paddingLeft: 4, alignItems: 'center', justifyContent: 'center' },
+  penaltyDismissText: { fontSize: 18, color: '#9CA3AF', fontWeight: '600' },
 });
