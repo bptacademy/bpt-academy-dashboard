@@ -4,7 +4,6 @@ import {
   View, Text, ScrollView, StyleSheet,
   TouchableOpacity, RefreshControl, Dimensions, Image,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
@@ -68,7 +67,6 @@ function todayScrollOffset(): number {
   return Math.max(0, todayLeft - SCREEN_WIDTH / 2 + DAY_CELL_WIDTH / 2);
 }
 
-// Find next session date from days array
 function nextEventLabel(days: any[], todayStr: string): string {
   for (const day of days) {
     if (day.dateStr >= todayStr && day.events.length > 0) {
@@ -97,7 +95,6 @@ export default function HomeScreen({ navigation }: any) {
   const fetchData = async () => {
     if (!profile) return;
 
-    // Enrollments + module progress
     const [enrollRes] = await Promise.all([
       supabase
         .from('enrollments')
@@ -131,7 +128,6 @@ export default function HomeScreen({ navigation }: any) {
       programIds = enrollRes.data.map((e: any) => e.program_id);
     }
 
-    // Calendar sessions
     if (programIds.length > 0) {
       const now = new Date();
       const fromDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - PAST_DAYS);
@@ -165,7 +161,6 @@ export default function HomeScreen({ navigation }: any) {
       }
     }
 
-    // Top leaderboard entry in own division
     if (profile.division) {
       const { data: leaders } = await supabase
         .from('profiles')
@@ -193,17 +188,15 @@ export default function HomeScreen({ navigation }: any) {
   const goToPrograms = () => navigation.getParent()?.navigate('ProgramsTab');
 
   const now = new Date();
-  const monthLabel = `${MONTH_NAMES[now.getMonth()]} ${now.getFullYear()}`;
-  const nextLabel  = nextEventLabel(days, todayStr);
+  const nextLabel = nextEventLabel(days, todayStr);
 
-  // Name parts
-  const nameParts  = (profile?.full_name ?? '').split(' ');
-  const firstName  = nameParts[0] ?? '';
-  const lastName   = nameParts.slice(1).join(' ').toUpperCase();
-  const initials   = (profile?.full_name ?? '?').split(' ').map((w: string) => w[0]).join('').toUpperCase().slice(0, 2);
-  const avatarUrl  = (profile as any)?.avatar_url ?? null;
+  const nameParts = (profile?.full_name ?? '').split(' ');
+  const firstName = nameParts[0] ?? '';
+  const lastName  = nameParts.slice(1).join(' ').toUpperCase();
+  const initials  = (profile?.full_name ?? '?').split(' ').map((w: string) => w[0]).join('').toUpperCase().slice(0, 2);
+  const avatarUrl = (profile as any)?.avatar_url ?? null;
 
-  // Quick actions — hide Messages & My Progress (they're in the tab bar)
+  // Quick actions — Messages & My Progress removed (they're in the tab bar)
   const quickActions = [
     { icon: '🎬', label: 'Training Videos', onPress: () => navigation.navigate('Videos') },
     { icon: '🏆', label: 'Leaderboard',      onPress: () => navigation.navigate('Leaderboard') },
@@ -328,12 +321,7 @@ export default function HomeScreen({ navigation }: any) {
                   activeOpacity={0.85}
                   style={{ marginBottom: 12 }}
                 >
-                  <LinearGradient
-                    colors={['#1A3A2A', '#16A34A']}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                    style={styles.programCard}
-                  >
+                  <View style={styles.programCard}>
                     <View style={styles.programCardTop}>
                       <View style={{ flex: 1 }}>
                         <Text style={styles.programTitle}>{(e.program as any)?.title}</Text>
@@ -351,7 +339,7 @@ export default function HomeScreen({ navigation }: any) {
                       <Text style={styles.programPct}>{pct}%</Text>
                       <Text style={styles.programSessions}>{e.completedModules}/{e.totalModules} sessions</Text>
                     </View>
-                  </LinearGradient>
+                  </View>
                 </TouchableOpacity>
               );
             })
@@ -368,12 +356,7 @@ export default function HomeScreen({ navigation }: any) {
               </TouchableOpacity>
             </View>
             <TouchableOpacity onPress={() => navigation.navigate('Leaderboard')} activeOpacity={0.85}>
-              <LinearGradient
-                colors={['#0D2D2D', '#0A4A3A']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.leaderCard}
-              >
+              <View style={styles.leaderCard}>
                 <View style={styles.leaderRankCircle}>
                   <Text style={styles.leaderRankText}>#1</Text>
                 </View>
@@ -390,7 +373,7 @@ export default function HomeScreen({ navigation }: any) {
                   <Text style={styles.leaderPointsLabel}>pts</Text>
                 </View>
                 <Text style={styles.leaderChevron}>›</Text>
-              </LinearGradient>
+              </View>
             </TouchableOpacity>
           </View>
         )}
@@ -424,8 +407,7 @@ const styles = StyleSheet.create({
   // ── Header ──
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: 16, paddingBottom: 16,
-    backgroundColor: BG,
+    paddingHorizontal: 16, paddingBottom: 16, backgroundColor: BG,
   },
   avatarRow:   { flexDirection: 'row', alignItems: 'center', flex: 1 },
   avatar:      { width: 46, height: 46, borderRadius: 10, borderWidth: 2, borderColor: GREEN },
@@ -486,13 +468,17 @@ const styles = StyleSheet.create({
   },
   emptyText: { color: SUBTEXT, fontSize: 14, marginBottom: 6 },
   emptyLink: { color: GREEN2, fontWeight: '600', fontSize: 13 },
-  programCard:    { borderRadius: 16, padding: 16 },
+  programCard: {
+    borderRadius: 16, padding: 16,
+    backgroundColor: '#1A3A2A',
+    borderWidth: 1, borderColor: '#2D5A3D',
+  },
   programCardTop: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 14 },
   programTitle:   { fontSize: 16, fontWeight: '700', color: '#FFF', marginBottom: 4 },
   programMeta:    { fontSize: 12, color: 'rgba(255,255,255,0.65)' },
   programChevron: { fontSize: 26, color: 'rgba(255,255,255,0.5)', marginTop: -2 },
   progressBarBg:  { height: 5, backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 3, marginBottom: 8 },
-  progressBarFill:{ height: '100%', backgroundColor: '#FFF', borderRadius: 3 },
+  progressBarFill:{ height: '100%', backgroundColor: GREEN2, borderRadius: 3 },
   programCardBottom: { flexDirection: 'row', justifyContent: 'space-between' },
   programPct:     { fontSize: 13, fontWeight: '700', color: '#FFF' },
   programSessions:{ fontSize: 12, color: 'rgba(255,255,255,0.65)' },
@@ -500,11 +486,13 @@ const styles = StyleSheet.create({
   // ── Leaderboard ──
   leaderCard: {
     borderRadius: 16, padding: 16,
+    backgroundColor: '#0D2D2D',
+    borderWidth: 1, borderColor: '#1A4A3A',
     flexDirection: 'row', alignItems: 'center', gap: 14,
   },
   leaderRankCircle: {
     width: 44, height: 44, borderRadius: 22,
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: 'rgba(34,197,94,0.15)',
     alignItems: 'center', justifyContent: 'center',
     borderWidth: 1.5, borderColor: GREEN2,
   },
