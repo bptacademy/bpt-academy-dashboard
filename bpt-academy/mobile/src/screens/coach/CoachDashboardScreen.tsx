@@ -84,7 +84,6 @@ export default function CoachDashboardScreen({ navigation }: any) {
 
     const due: AttendanceDueSession[] = sessions
       .filter((s: any) => {
-        // Only show if session was today or yesterday (within window)
         const deadline = new Date(s.attendance_deadline);
         const hoursRemaining = (deadline.getTime() - now.getTime()) / (1000 * 60 * 60);
         return hoursRemaining <= 23.99;
@@ -112,7 +111,6 @@ export default function CoachDashboardScreen({ navigation }: any) {
   const goToTab = (tab: string, screen: string) =>
     navigation.getParent()?.navigate(tab, { screen });
 
-  // Attendance grid item only shown when there's an active session window
   const baseGridItems = [
     { icon: '👥', label: 'My Students',  onPress: () => goToTab('StudentsTab', 'Students') },
     { icon: '📋', label: 'Programs',     onPress: () => navigation.navigate('Manage') },
@@ -123,7 +121,6 @@ export default function CoachDashboardScreen({ navigation }: any) {
     { icon: '🎾', label: 'Tournaments',  onPress: () => navigation.navigate('TournamentManage') },
   ];
 
-  // Only show Attendance when at least one session is in the active window (session day + 24h)
   const gridItems = attendanceDue.length > 0
     ? [
         ...baseGridItems.slice(0, 4),
@@ -138,17 +135,15 @@ export default function CoachDashboardScreen({ navigation }: any) {
       style={styles.container}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
     >
-      <ScreenHeader title="BPT Academy 🎾" dark />
-
-      <View style={styles.hero}>
-        <View>
-          <Text style={styles.greeting}>Coach Dashboard 🎾</Text>
-          <Text style={styles.name}>{profile?.full_name}</Text>
-        </View>
-        <View style={styles.coachBadge}>
-          <Text style={styles.coachBadgeText}>Coach</Text>
-        </View>
-      </View>
+      {/* New home header: avatar + welcome + role pill + bell */}
+      <ScreenHeader
+        title=""
+        homeHeader
+        profileName={profile?.full_name}
+        profileRole={profile?.role}
+        profileAvatar={(profile as any)?.avatar_url ?? null}
+        onAvatarPress={() => navigation.navigate('Profile')}
+      />
 
       <View style={styles.statsRow}>
         <TouchableOpacity style={styles.statCard} onPress={() => goToTab('StudentsTab', 'Students')}>
@@ -225,11 +220,6 @@ export default function CoachDashboardScreen({ navigation }: any) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F9FAFB' },
-  hero: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 24, backgroundColor: '#111827' },
-  greeting: { fontSize: 13, color: '#9CA3AF' },
-  name: { fontSize: 22, fontWeight: '700', color: '#FFFFFF' },
-  coachBadge: { backgroundColor: '#EA580C', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20 },
-  coachBadgeText: { color: '#FFFFFF', fontSize: 12, fontWeight: '700' },
   statsRow: { flexDirection: 'row', padding: 16, gap: 12 },
   statCard: { flex: 1, backgroundColor: '#FFFFFF', borderRadius: 14, padding: 16, alignItems: 'center', borderWidth: 1, borderColor: '#E5E7EB' },
   statNumber: { fontSize: 28, fontWeight: '700', color: '#111827' },

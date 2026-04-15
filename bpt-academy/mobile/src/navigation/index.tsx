@@ -186,8 +186,9 @@ function StudentHomeStack() {
       <Stack.Screen name="AttendanceConfirm"   component={AttendanceConfirmScreen} />
       <Stack.Screen name="ReEnrollment"        component={ReEnrollmentScreen} />
       <Stack.Screen name="Notifications"       component={NotificationsScreen} />
-      <Stack.Screen name="PrivacyPolicy"   component={PrivacyPolicyScreen} />
-      <Stack.Screen name="TermsOfService"  component={TermsOfServiceScreen} />
+      <Stack.Screen name="Profile"             component={ProfileScreen} />
+      <Stack.Screen name="PrivacyPolicy"       component={PrivacyPolicyScreen} />
+      <Stack.Screen name="TermsOfService"      component={TermsOfServiceScreen} />
     </Stack.Navigator>
   );
 }
@@ -201,8 +202,9 @@ function StudentProgramsStack() {
       <Stack.Screen name="Payment"            component={PaymentScreen} />
       <Stack.Screen name="AttendanceConfirm"  component={AttendanceConfirmScreen} />
       <Stack.Screen name="Notifications"      component={NotificationsScreen} />
-      <Stack.Screen name="PrivacyPolicy"   component={PrivacyPolicyScreen} />
-      <Stack.Screen name="TermsOfService"  component={TermsOfServiceScreen} />
+      <Stack.Screen name="Profile"            component={ProfileScreen} />
+      <Stack.Screen name="PrivacyPolicy"      component={PrivacyPolicyScreen} />
+      <Stack.Screen name="TermsOfService"     component={TermsOfServiceScreen} />
     </Stack.Navigator>
   );
 }
@@ -216,20 +218,24 @@ function StudentMessagesStack() {
       <Stack.Screen name="NewConversation"    component={NewConversationScreen} />
       <Stack.Screen name="AttendanceConfirm"  component={AttendanceConfirmScreen} />
       <Stack.Screen name="Notifications"      component={NotificationsScreen} />
-      <Stack.Screen name="PrivacyPolicy"   component={PrivacyPolicyScreen} />
-      <Stack.Screen name="TermsOfService"  component={TermsOfServiceScreen} />
+      <Stack.Screen name="Profile"            component={ProfileScreen} />
+      <Stack.Screen name="PrivacyPolicy"      component={PrivacyPolicyScreen} />
+      <Stack.Screen name="TermsOfService"     component={TermsOfServiceScreen} />
     </Stack.Navigator>
   );
 }
 
-function StudentProfileStack() {
+// My Progress tab stack — also handles Profile navigation (via avatar tap)
+function StudentProgressStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="Progress"           component={ProgressScreen} />
       <Stack.Screen name="Profile"            component={ProfileScreen} />
+      <Stack.Screen name="Leaderboard"        component={LeaderboardScreen} />
       <Stack.Screen name="AttendanceConfirm"  component={AttendanceConfirmScreen} />
       <Stack.Screen name="Notifications"      component={NotificationsScreen} />
-      <Stack.Screen name="PrivacyPolicy"   component={PrivacyPolicyScreen} />
-      <Stack.Screen name="TermsOfService"  component={TermsOfServiceScreen} />
+      <Stack.Screen name="PrivacyPolicy"      component={PrivacyPolicyScreen} />
+      <Stack.Screen name="TermsOfService"     component={TermsOfServiceScreen} />
     </Stack.Navigator>
   );
 }
@@ -238,11 +244,11 @@ function StudentTabs() {
   const tabBarScreenOptions = useTabBarScreenOptions();
   return (
     <Tab.Navigator screenOptions={tabBarScreenOptions}>
-      <Tab.Screen name="HomeTab"     component={StudentHomeStack}     options={{ title: 'Home',     tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>🏠</Text> }} />
-      <Tab.Screen name="ProgramsTab" component={StudentProgramsStack} options={{ title: 'Programs', tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>📋</Text> }} />
-      <Tab.Screen name="NotificationsTab" component={NotificationsTabStack} options={{ title: 'Alerts', tabBarIcon: ({ color }) => <BellTabIcon color={color} /> }} />
-      <Tab.Screen name="MessagesTab" component={StudentMessagesStack} options={{ title: 'Messages', tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>💬</Text> }} />
-      <Tab.Screen name="ProfileTab"  component={StudentProfileStack}  options={{ title: 'Profile',  tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>👤</Text> }} />
+      <Tab.Screen name="HomeTab"          component={StudentHomeStack}     options={{ title: 'Home',        tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>🏠</Text> }} />
+      <Tab.Screen name="ProgramsTab"      component={StudentProgramsStack} options={{ title: 'Programs',    tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>📋</Text> }} />
+      <Tab.Screen name="NotificationsTab" component={NotificationsTabStack} options={{ title: 'Alerts',    tabBarIcon: ({ color }) => <BellTabIcon color={color} /> }} />
+      <Tab.Screen name="MessagesTab"      component={StudentMessagesStack} options={{ title: 'Messages',    tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>💬</Text> }} />
+      <Tab.Screen name="ProgressTab"      component={StudentProgressStack} options={{ title: 'My Progress', tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>📈</Text> }} />
     </Tab.Navigator>
   );
 }
@@ -271,9 +277,10 @@ function CoachHomeStack() {
       <Stack.Screen name="Attendance"         component={AttendanceScreen} />
       <Stack.Screen name="CoachNotes"         component={CoachNotesScreen} />
       <Stack.Screen name="PromotionManage"    component={PromotionManageScreen} />
+      <Stack.Screen name="Profile"            component={ProfileScreen} />
       <Stack.Screen name="Notifications"      component={NotificationsScreen} />
-      <Stack.Screen name="PrivacyPolicy"   component={PrivacyPolicyScreen} />
-      <Stack.Screen name="TermsOfService"  component={TermsOfServiceScreen} />
+      <Stack.Screen name="PrivacyPolicy"      component={PrivacyPolicyScreen} />
+      <Stack.Screen name="TermsOfService"     component={TermsOfServiceScreen} />
     </Stack.Navigator>
   );
 }
@@ -288,6 +295,7 @@ function CoachStudentsStack() {
       <Stack.Screen name="PromotionManage" component={PromotionManageScreen} />
       <Stack.Screen name="Chat"            component={ChatScreen} />
       <Stack.Screen name="NewConversation" component={NewConversationScreen} />
+      <Stack.Screen name="Profile"         component={ProfileScreen} />
       <Stack.Screen name="Notifications"   component={NotificationsScreen} />
       <Stack.Screen name="PrivacyPolicy"   component={PrivacyPolicyScreen} />
       <Stack.Screen name="TermsOfService"  component={TermsOfServiceScreen} />
@@ -302,6 +310,7 @@ function CoachMessagesStack() {
       <Stack.Screen name="Chat"            component={ChatScreen} />
       <Stack.Screen name="NewConversation" component={NewConversationScreen} />
       <Stack.Screen name="Announce"        component={SendAnnouncementScreen} />
+      <Stack.Screen name="Profile"         component={ProfileScreen} />
       <Stack.Screen name="Notifications"   component={NotificationsScreen} />
       <Stack.Screen name="PrivacyPolicy"   component={PrivacyPolicyScreen} />
       <Stack.Screen name="TermsOfService"  component={TermsOfServiceScreen} />
@@ -309,7 +318,8 @@ function CoachMessagesStack() {
   );
 }
 
-function CoachProfileStack() {
+// Coach My Progress tab stack — Profile accessible via avatar tap in header
+function CoachProgressStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Profile"           component={ProfileScreen} />
@@ -321,8 +331,8 @@ function CoachProfileStack() {
       <Stack.Screen name="DivisionDashboard" component={DivisionDashboardScreen} />
       <Stack.Screen name="Attendance"        component={AttendanceScreen} />
       <Stack.Screen name="Notifications"     component={NotificationsScreen} />
-      <Stack.Screen name="PrivacyPolicy"   component={PrivacyPolicyScreen} />
-      <Stack.Screen name="TermsOfService"  component={TermsOfServiceScreen} />
+      <Stack.Screen name="PrivacyPolicy"     component={PrivacyPolicyScreen} />
+      <Stack.Screen name="TermsOfService"    component={TermsOfServiceScreen} />
     </Stack.Navigator>
   );
 }
@@ -331,11 +341,11 @@ function CoachTabs() {
   const tabBarScreenOptions = useTabBarScreenOptions();
   return (
     <Tab.Navigator screenOptions={tabBarScreenOptions}>
-      <Tab.Screen name="HomeTab"     component={CoachHomeStack}     options={{ title: 'Home',     tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>🏠</Text> }} />
-      <Tab.Screen name="StudentsTab" component={CoachStudentsStack} options={{ title: 'Students', tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>👥</Text> }} />
-      <Tab.Screen name="NotificationsTab" component={NotificationsTabStack} options={{ title: 'Alerts', tabBarIcon: ({ color }) => <BellTabIcon color={color} /> }} />
-      <Tab.Screen name="MessagesTab" component={CoachMessagesStack} options={{ title: 'Messages', tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>💬</Text> }} />
-      <Tab.Screen name="ProfileTab"  component={CoachProfileStack}  options={{ title: 'Profile',  tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>👤</Text> }} />
+      <Tab.Screen name="HomeTab"          component={CoachHomeStack}     options={{ title: 'Home',        tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>🏠</Text> }} />
+      <Tab.Screen name="StudentsTab"      component={CoachStudentsStack} options={{ title: 'Students',    tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>👥</Text> }} />
+      <Tab.Screen name="NotificationsTab" component={NotificationsTabStack} options={{ title: 'Alerts',  tabBarIcon: ({ color }) => <BellTabIcon color={color} /> }} />
+      <Tab.Screen name="MessagesTab"      component={CoachMessagesStack} options={{ title: 'Messages',    tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>💬</Text> }} />
+      <Tab.Screen name="ProgressTab"      component={CoachProgressStack} options={{ title: 'My Progress', tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>📈</Text> }} />
     </Tab.Navigator>
   );
 }
@@ -370,8 +380,8 @@ function AdminDashboardStack() {
       <Stack.Screen name="Chat"               component={ChatScreen} />
       <Stack.Screen name="NewConversation"    component={NewConversationScreen} />
       <Stack.Screen name="Notifications"      component={NotificationsScreen} />
-      <Stack.Screen name="PrivacyPolicy"   component={PrivacyPolicyScreen} />
-      <Stack.Screen name="TermsOfService"  component={TermsOfServiceScreen} />
+      <Stack.Screen name="PrivacyPolicy"      component={PrivacyPolicyScreen} />
+      <Stack.Screen name="TermsOfService"     component={TermsOfServiceScreen} />
     </Stack.Navigator>
   );
 }
@@ -405,8 +415,8 @@ function AdminProgramsStack() {
       <Stack.Screen name="VideoPlayer"       component={VideoPlayerScreen} />
       <Stack.Screen name="StudentDetail"     component={StudentDetailScreen} />
       <Stack.Screen name="Notifications"     component={NotificationsScreen} />
-      <Stack.Screen name="PrivacyPolicy"   component={PrivacyPolicyScreen} />
-      <Stack.Screen name="TermsOfService"  component={TermsOfServiceScreen} />
+      <Stack.Screen name="PrivacyPolicy"     component={PrivacyPolicyScreen} />
+      <Stack.Screen name="TermsOfService"    component={TermsOfServiceScreen} />
     </Stack.Navigator>
   );
 }
@@ -428,11 +438,11 @@ function AdminTabs() {
   const tabBarScreenOptions = useTabBarScreenOptions();
   return (
     <Tab.Navigator screenOptions={tabBarScreenOptions}>
-      <Tab.Screen name="DashboardTab" component={AdminDashboardStack} options={{ title: 'Dashboard', tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>📊</Text> }} />
-      <Tab.Screen name="StudentsTab"  component={AdminStudentsStack}  options={{ title: 'Students',  tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>👥</Text> }} />
+      <Tab.Screen name="DashboardTab"     component={AdminDashboardStack} options={{ title: 'Dashboard', tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>📊</Text> }} />
+      <Tab.Screen name="StudentsTab"      component={AdminStudentsStack}  options={{ title: 'Students',  tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>👥</Text> }} />
       <Tab.Screen name="NotificationsTab" component={NotificationsTabStack} options={{ title: 'Alerts', tabBarIcon: ({ color }) => <BellTabIcon color={color} /> }} />
-      <Tab.Screen name="ProgramsTab"  component={AdminProgramsStack}  options={{ title: 'Programs',  tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>📋</Text> }} />
-      <Tab.Screen name="MessagesTab"  component={AdminMessagesStack}  options={{ title: 'Messages',  tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>💬</Text> }} />
+      <Tab.Screen name="ProgramsTab"      component={AdminProgramsStack}  options={{ title: 'Programs',  tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>📋</Text> }} />
+      <Tab.Screen name="MessagesTab"      component={AdminMessagesStack}  options={{ title: 'Messages',  tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>💬</Text> }} />
     </Tab.Navigator>
   );
 }
@@ -467,8 +477,8 @@ function SuperAdminDashboardStack() {
       <Stack.Screen name="Chat"               component={ChatScreen} />
       <Stack.Screen name="NewConversation"    component={NewConversationScreen} />
       <Stack.Screen name="Notifications"      component={NotificationsScreen} />
-      <Stack.Screen name="PrivacyPolicy"   component={PrivacyPolicyScreen} />
-      <Stack.Screen name="TermsOfService"  component={TermsOfServiceScreen} />
+      <Stack.Screen name="PrivacyPolicy"      component={PrivacyPolicyScreen} />
+      <Stack.Screen name="TermsOfService"     component={TermsOfServiceScreen} />
     </Stack.Navigator>
   );
 }
@@ -479,8 +489,8 @@ function SuperAdminUsersStack() {
       <Stack.Screen name="SuperAdminHome" component={SuperAdminHomeScreen} />
       <Stack.Screen name="StudentDetail"  component={StudentDetailScreen} />
       <Stack.Screen name="Notifications"  component={NotificationsScreen} />
-      <Stack.Screen name="PrivacyPolicy"   component={PrivacyPolicyScreen} />
-      <Stack.Screen name="TermsOfService"  component={TermsOfServiceScreen} />
+      <Stack.Screen name="PrivacyPolicy"  component={PrivacyPolicyScreen} />
+      <Stack.Screen name="TermsOfService" component={TermsOfServiceScreen} />
     </Stack.Navigator>
   );
 }
@@ -512,8 +522,8 @@ function SuperAdminProfileStack() {
       <Stack.Screen name="DivisionDashboard" component={DivisionDashboardScreen} />
       <Stack.Screen name="Attendance"        component={AttendanceScreen} />
       <Stack.Screen name="Notifications"     component={NotificationsScreen} />
-      <Stack.Screen name="PrivacyPolicy"   component={PrivacyPolicyScreen} />
-      <Stack.Screen name="TermsOfService"  component={TermsOfServiceScreen} />
+      <Stack.Screen name="PrivacyPolicy"     component={PrivacyPolicyScreen} />
+      <Stack.Screen name="TermsOfService"    component={TermsOfServiceScreen} />
     </Stack.Navigator>
   );
 }
@@ -522,11 +532,11 @@ function SuperAdminTabs() {
   const tabBarScreenOptions = useTabBarScreenOptions();
   return (
     <Tab.Navigator screenOptions={tabBarScreenOptions}>
-      <Tab.Screen name="DashboardTab" component={SuperAdminDashboardStack} options={{ title: 'Dashboard', tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>📊</Text> }} />
-      <Tab.Screen name="UsersTab"     component={SuperAdminUsersStack}     options={{ title: 'Users',     tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>👑</Text> }} />
-      <Tab.Screen name="NotificationsTab" component={NotificationsTabStack} options={{ title: 'Alerts', tabBarIcon: ({ color }) => <BellTabIcon color={color} /> }} />
-      <Tab.Screen name="MessagesTab"  component={SuperAdminMessagesStack}  options={{ title: 'Messages',  tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>💬</Text> }} />
-      <Tab.Screen name="ProfileTab"   component={SuperAdminProfileStack}   options={{ title: 'Profile',   tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>👤</Text> }} />
+      <Tab.Screen name="DashboardTab"     component={SuperAdminDashboardStack} options={{ title: 'Dashboard', tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>📊</Text> }} />
+      <Tab.Screen name="UsersTab"         component={SuperAdminUsersStack}     options={{ title: 'Users',     tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>👑</Text> }} />
+      <Tab.Screen name="NotificationsTab" component={NotificationsTabStack}    options={{ title: 'Alerts',    tabBarIcon: ({ color }) => <BellTabIcon color={color} /> }} />
+      <Tab.Screen name="MessagesTab"      component={SuperAdminMessagesStack}  options={{ title: 'Messages',  tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>💬</Text> }} />
+      <Tab.Screen name="ProfileTab"       component={SuperAdminProfileStack}   options={{ title: 'Profile',   tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>👤</Text> }} />
     </Tab.Navigator>
   );
 }
