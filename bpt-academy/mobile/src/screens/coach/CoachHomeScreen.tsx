@@ -68,7 +68,6 @@ export default function CoachHomeScreen({ navigation }: any) {
 
     if (!data) return;
 
-    // Deduplicate by coach+program, keep highest strike count
     const seen = new Map<string, PenaltyAlert>();
     for (const row of data as any[]) {
       const key = `${row.coach_id}:${row.program_id}`;
@@ -134,18 +133,14 @@ export default function CoachHomeScreen({ navigation }: any) {
       style={styles.container}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
     >
-      <ScreenHeader title="BPT Academy 🎾" dark />
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.greeting}>Admin Dashboard 👋</Text>
-          <Text style={styles.name}>{profile?.full_name}</Text>
-        </View>
-        <View style={[styles.adminBadge, isSuperAdmin && { backgroundColor: '#7C3AED' }]}>
-          <Text style={styles.adminBadgeText}>
-            {isSuperAdmin ? '👑 Super Admin' : 'Admin'}
-          </Text>
-        </View>
-      </View>
+      <ScreenHeader
+        title=""
+        homeHeader
+        profileName={profile?.full_name}
+        profileRole={profile?.role}
+        profileAvatar={(profile as any)?.avatar_url ?? null}
+        onAvatarPress={() => navigation.navigate('Profile')}
+      />
 
       {/* Stats */}
       <View style={styles.statsRow}>
@@ -219,11 +214,6 @@ export default function CoachHomeScreen({ navigation }: any) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F9FAFB' },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 24, backgroundColor: '#111827' },
-  greeting: { fontSize: 14, color: '#9CA3AF' },
-  name: { fontSize: 22, fontWeight: '700', color: '#FFFFFF' },
-  adminBadge: { backgroundColor: '#16A34A', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20 },
-  adminBadgeText: { color: '#FFFFFF', fontSize: 12, fontWeight: '700' },
   statsRow: { flexDirection: 'row', padding: 16, gap: 12 },
   statCard: { flex: 1, backgroundColor: '#FFFFFF', borderRadius: 14, padding: 16, alignItems: 'center', borderWidth: 1, borderColor: '#E5E7EB' },
   statNumber: { fontSize: 28, fontWeight: '700', color: '#111827' },

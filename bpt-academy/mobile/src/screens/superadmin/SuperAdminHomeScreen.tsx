@@ -137,23 +137,21 @@ export default function SuperAdminHomeScreen({ navigation }: any) {
 
   return (
     <View style={styles.root}>
-      <ScreenHeader title="Users 👑" dark />
+      <ScreenHeader
+        title=""
+        homeHeader
+        profileName={me?.full_name}
+        profileRole={me?.role}
+        profileAvatar={(me as any)?.avatar_url ?? null}
+        onAvatarPress={() => navigation.navigate('Profile')}
+      />
 
       <ScrollView
         contentContainerStyle={{ paddingBottom: Math.max(insets.bottom + 80, 104) }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-        stickyHeaderIndices={[1]}
+        stickyHeaderIndices={[0]}
       >
-        {/* Hero */}
-        <View style={styles.hero}>
-          <Text style={styles.heroGreeting}>Platform Control 👑</Text>
-          <Text style={styles.heroName}>{me?.full_name}</Text>
-          <View style={styles.superBadge}>
-            <Text style={styles.superBadgeText}>SUPER ADMIN</Text>
-          </View>
-        </View>
-
-        {/* Sticky stats bar — horizontal scroll so labels never get squeezed */}
+        {/* Sticky stats bar */}
         <View style={styles.statsBar}>
           <ScrollView
             horizontal
@@ -324,14 +322,6 @@ export default function SuperAdminHomeScreen({ navigation }: any) {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#F9FAFB' },
-  hero: {
-    backgroundColor: '#111827', paddingHorizontal: 24,
-    paddingTop: 24, paddingBottom: 28, alignItems: 'flex-start',
-  },
-  heroGreeting: { fontSize: 13, color: '#9CA3AF', marginBottom: 4 },
-  heroName: { fontSize: 22, fontWeight: '700', color: '#FFFFFF', marginBottom: 10 },
-  superBadge: { backgroundColor: '#7C3AED', paddingHorizontal: 12, paddingVertical: 5, borderRadius: 20 },
-  superBadgeText: { color: '#FFFFFF', fontSize: 11, fontWeight: '800', letterSpacing: 1 },
 
   // Stats bar — horizontal scroll
   statsBar: { backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#E5E7EB' },
