@@ -78,24 +78,30 @@ import TermsOfServiceScreen from '../screens/legal/TermsOfServiceScreen';
 import NewConversationScreen from '../screens/messaging/NewConversationScreen';
 import ChatScreen from '../screens/messaging/ChatScreen';
 
-// Tab bar shared options
+// ─── Floating pill tab bar ────────────────────────────────────────────────────
 function useTabBarScreenOptions() {
   const insets = useSafeAreaInsets();
   const bottomPad = Platform.OS === 'android' ? Math.max(insets.bottom, 8) : insets.bottom;
   return {
     headerShown: false,
+    tabBarShowLabel: false,
     tabBarStyle: {
-      backgroundColor: '#FFFFFF',
-      borderTopColor: '#E5E7EB',
-      borderTopWidth: 1,
-      paddingTop: 6,
-      paddingBottom: bottomPad,
-      height: 56 + bottomPad,
+      position: 'absolute' as const,
+      bottom: bottomPad + 12,
+      left: 32,
+      right: 32,
+      height: 60,
+      borderRadius: 30,
+      backgroundColor: '#161B22',
+      borderTopWidth: 0,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.4,
+      shadowRadius: 12,
+      elevation: 12,
     },
-    tabBarActiveTintColor: '#16A34A',
-    tabBarInactiveTintColor: '#9CA3AF',
-    tabBarLabelStyle: { fontSize: 10, fontWeight: '600' as const },
-    tabBarLabelPosition: 'below-icon' as const,
+    tabBarActiveTintColor: '#22C55E',
+    tabBarInactiveTintColor: '#4B5563',
   };
 }
 
@@ -104,7 +110,7 @@ function BellTabIcon({ color }: { color: string }) {
   const { unreadCount } = useNotifications();
   return (
     <View style={bellStyles.container}>
-      <Text style={{ fontSize: 20, color }}>🔔</Text>
+      <Text style={{ fontSize: 22, color }}>🔔</Text>
       {unreadCount > 0 && (
         <View style={bellStyles.badge}>
           <Text style={bellStyles.badgeText}>
@@ -117,7 +123,7 @@ function BellTabIcon({ color }: { color: string }) {
 }
 
 const bellStyles = StyleSheet.create({
-  container: { width: 28, height: 28, alignItems: 'center', justifyContent: 'center' },
+  container: { width: 30, height: 30, alignItems: 'center', justifyContent: 'center' },
   badge: {
     position: 'absolute', top: -4, right: -8,
     backgroundColor: '#EF4444', borderRadius: 8,
@@ -242,11 +248,11 @@ function StudentTabs() {
   const tabBarScreenOptions = useTabBarScreenOptions();
   return (
     <Tab.Navigator screenOptions={tabBarScreenOptions}>
-      <Tab.Screen name="HomeTab"          component={StudentHomeStack}     options={{ title: 'Home',        tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>🏠</Text> }} />
-      <Tab.Screen name="ProgramsTab"      component={StudentProgramsStack} options={{ title: 'Programs',    tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>📋</Text> }} />
-      <Tab.Screen name="NotificationsTab" component={NotificationsTabStack} options={{ title: 'Alerts',    tabBarIcon: ({ color }) => <BellTabIcon color={color} /> }} />
-      <Tab.Screen name="MessagesTab"      component={StudentMessagesStack} options={{ title: 'Messages',    tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>💬</Text> }} />
-      <Tab.Screen name="ProgressTab"      component={StudentProgressStack} options={{ title: 'My Progress', tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>📈</Text> }} />
+      <Tab.Screen name="HomeTab"          component={StudentHomeStack}      options={{ tabBarIcon: ({ color }) => <Text style={{ fontSize: 22, color }}>🏠</Text> }} />
+      <Tab.Screen name="ProgramsTab"      component={StudentProgramsStack}  options={{ tabBarIcon: ({ color }) => <Text style={{ fontSize: 22, color }}>📋</Text> }} />
+      <Tab.Screen name="NotificationsTab" component={NotificationsTabStack} options={{ tabBarIcon: ({ color }) => <BellTabIcon color={color} /> }} />
+      <Tab.Screen name="MessagesTab"      component={StudentMessagesStack}  options={{ tabBarIcon: ({ color }) => <Text style={{ fontSize: 22, color }}>💬</Text> }} />
+      <Tab.Screen name="ProgressTab"      component={StudentProgressStack}  options={{ tabBarIcon: ({ color }) => <Text style={{ fontSize: 22, color }}>📈</Text> }} />
     </Tab.Navigator>
   );
 }
@@ -338,11 +344,11 @@ function CoachTabs() {
   const tabBarScreenOptions = useTabBarScreenOptions();
   return (
     <Tab.Navigator screenOptions={tabBarScreenOptions}>
-      <Tab.Screen name="HomeTab"          component={CoachHomeStack}     options={{ title: 'Home',        tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>🏠</Text> }} />
-      <Tab.Screen name="StudentsTab"      component={CoachStudentsStack} options={{ title: 'Students',    tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>👥</Text> }} />
-      <Tab.Screen name="NotificationsTab" component={NotificationsTabStack} options={{ title: 'Alerts',  tabBarIcon: ({ color }) => <BellTabIcon color={color} /> }} />
-      <Tab.Screen name="MessagesTab"      component={CoachMessagesStack} options={{ title: 'Messages',    tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>💬</Text> }} />
-      <Tab.Screen name="ProgressTab"      component={CoachProgressStack} options={{ title: 'My Progress', tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>📈</Text> }} />
+      <Tab.Screen name="HomeTab"          component={CoachHomeStack}        options={{ tabBarIcon: ({ color }) => <Text style={{ fontSize: 22, color }}>🏠</Text> }} />
+      <Tab.Screen name="StudentsTab"      component={CoachStudentsStack}    options={{ tabBarIcon: ({ color }) => <Text style={{ fontSize: 22, color }}>👥</Text> }} />
+      <Tab.Screen name="NotificationsTab" component={NotificationsTabStack} options={{ tabBarIcon: ({ color }) => <BellTabIcon color={color} /> }} />
+      <Tab.Screen name="MessagesTab"      component={CoachMessagesStack}    options={{ tabBarIcon: ({ color }) => <Text style={{ fontSize: 22, color }}>💬</Text> }} />
+      <Tab.Screen name="ProgressTab"      component={CoachProgressStack}    options={{ tabBarIcon: ({ color }) => <Text style={{ fontSize: 22, color }}>📈</Text> }} />
     </Tab.Navigator>
   );
 }
@@ -436,11 +442,11 @@ function AdminTabs() {
   const tabBarScreenOptions = useTabBarScreenOptions();
   return (
     <Tab.Navigator screenOptions={tabBarScreenOptions}>
-      <Tab.Screen name="DashboardTab"     component={AdminDashboardStack} options={{ title: 'Dashboard', tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>📊</Text> }} />
-      <Tab.Screen name="StudentsTab"      component={AdminStudentsStack}  options={{ title: 'Students',  tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>👥</Text> }} />
-      <Tab.Screen name="NotificationsTab" component={NotificationsTabStack} options={{ title: 'Alerts', tabBarIcon: ({ color }) => <BellTabIcon color={color} /> }} />
-      <Tab.Screen name="ProgramsTab"      component={AdminProgramsStack}  options={{ title: 'Programs',  tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>📋</Text> }} />
-      <Tab.Screen name="MessagesTab"      component={AdminMessagesStack}  options={{ title: 'Messages',  tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>💬</Text> }} />
+      <Tab.Screen name="DashboardTab"     component={AdminDashboardStack}   options={{ tabBarIcon: ({ color }) => <Text style={{ fontSize: 22, color }}>📊</Text> }} />
+      <Tab.Screen name="StudentsTab"      component={AdminStudentsStack}    options={{ tabBarIcon: ({ color }) => <Text style={{ fontSize: 22, color }}>👥</Text> }} />
+      <Tab.Screen name="NotificationsTab" component={NotificationsTabStack} options={{ tabBarIcon: ({ color }) => <BellTabIcon color={color} /> }} />
+      <Tab.Screen name="ProgramsTab"      component={AdminProgramsStack}    options={{ tabBarIcon: ({ color }) => <Text style={{ fontSize: 22, color }}>📋</Text> }} />
+      <Tab.Screen name="MessagesTab"      component={AdminMessagesStack}    options={{ tabBarIcon: ({ color }) => <Text style={{ fontSize: 22, color }}>💬</Text> }} />
     </Tab.Navigator>
   );
 }
@@ -532,11 +538,11 @@ function SuperAdminTabs() {
   const tabBarScreenOptions = useTabBarScreenOptions();
   return (
     <Tab.Navigator screenOptions={tabBarScreenOptions}>
-      <Tab.Screen name="DashboardTab"     component={SuperAdminDashboardStack} options={{ title: 'Dashboard', tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>📊</Text> }} />
-      <Tab.Screen name="UsersTab"         component={SuperAdminUsersStack}     options={{ title: 'Users',     tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>👑</Text> }} />
-      <Tab.Screen name="NotificationsTab" component={NotificationsTabStack}    options={{ title: 'Alerts',    tabBarIcon: ({ color }) => <BellTabIcon color={color} /> }} />
-      <Tab.Screen name="MessagesTab"      component={SuperAdminMessagesStack}  options={{ title: 'Messages',  tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>💬</Text> }} />
-      <Tab.Screen name="ProfileTab"       component={SuperAdminProfileStack}   options={{ title: 'Profile',   tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>👤</Text> }} />
+      <Tab.Screen name="DashboardTab"     component={SuperAdminDashboardStack} options={{ tabBarIcon: ({ color }) => <Text style={{ fontSize: 22, color }}>📊</Text> }} />
+      <Tab.Screen name="UsersTab"         component={SuperAdminUsersStack}     options={{ tabBarIcon: ({ color }) => <Text style={{ fontSize: 22, color }}>👑</Text> }} />
+      <Tab.Screen name="NotificationsTab" component={NotificationsTabStack}    options={{ tabBarIcon: ({ color }) => <BellTabIcon color={color} /> }} />
+      <Tab.Screen name="MessagesTab"      component={SuperAdminMessagesStack}  options={{ tabBarIcon: ({ color }) => <Text style={{ fontSize: 22, color }}>💬</Text> }} />
+      <Tab.Screen name="ProfileTab"       component={SuperAdminProfileStack}   options={{ tabBarIcon: ({ color }) => <Text style={{ fontSize: 22, color }}>👤</Text> }} />
     </Tab.Navigator>
   );
 }

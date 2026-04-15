@@ -2,31 +2,48 @@ import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import {
   View, Text, ScrollView, StyleSheet,
-  TouchableOpacity, RefreshControl, Dimensions,
+  TouchableOpacity, RefreshControl, Dimensions, Image,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { Enrollment } from '../../types';
-import ScreenHeader from '../../components/common/ScreenHeader';
+import { useNotifications } from '../../hooks/useNotifications';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const CARD_WIDTH = (SCREEN_WIDTH - 20 * 2 - 12) / 2;
+
+// Calendar geometry
+const DAY_CELL_WIDTH = 52;
+const DAY_CELL_MARGIN = 5;
+const DAY_CELL_TOTAL = DAY_CELL_WIDTH + DAY_CELL_MARGIN * 2;
+const CALENDAR_PADDING = 12;
+const PAST_DAYS = 7;
+const FUTURE_DAYS = 21;
+const TODAY_INDEX = PAST_DAYS;
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
-// Calendar cell geometry
-const DAY_CELL_WIDTH = 56;
-const DAY_CELL_MARGIN = 4;
-const DAY_CELL_TOTAL = DAY_CELL_WIDTH + DAY_CELL_MARGIN * 2;
-const CALENDAR_PADDING = 10;
-const PAST_DAYS = 14;
-const FUTURE_DAYS = 14;
-const TODAY_INDEX = PAST_DAYS;
+// Dark theme colours
+const BG       = '#0D1117';
+const SURFACE  = '#161B22';
+const SURFACE2 = '#1C2330';
+const BORDER   = '#2D3748';
+const TEXT     = '#F0F6FC';
+const SUBTEXT  = '#8B949E';
+const GREEN    = '#16A34A';
+const GREEN2   = '#22C55E';
 
 interface EnrollmentWithProgress extends Enrollment {
   completedModules: number;
   totalModules: number;
+}
+
+interface LeaderEntry {
+  rank: number;
+  full_name: string;
+  division: string;
+  total_points: number;
 }
 
 function localDateStr(d: Date): string {
@@ -48,23 +65,39 @@ function buildDays() {
 
 function todayScrollOffset(): number {
   const todayLeft = CALENDAR_PADDING + TODAY_INDEX * DAY_CELL_TOTAL;
-  const centreOffset = todayLeft - (SCREEN_WIDTH / 2) + (DAY_CELL_WIDTH / 2);
-  return Math.max(0, centreOffset);
+  return Math.max(0, todayLeft - SCREEN_WIDTH / 2 + DAY_CELL_WIDTH / 2);
+}
+
+// Find next session date from days array
+function nextEventLabel(days: any[], todayStr: string): string {
+  for (const day of days) {
+    if (day.dateStr >= todayStr && day.events.length > 0) {
+      const diff = Math.round(
+        (new Date(day.dateStr).getTime() - new Date(todayStr).getTime()) / 86400000
+      );
+      if (diff === 0) return 'Today';
+      if (diff === 1) return 'Tomorrow';
+      return `In ${diff} Days`;
+    }
+  }
+  return 'No Upcoming';
 }
 
 export default function HomeScreen({ navigation }: any) {
   const { profile } = useAuth();
   const insets = useSafeAreaInsets();
+  const { unreadCount } = useNotifications();
   const [enrollments, setEnrollments] = useState<EnrollmentWithProgress[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [days, setDays] = useState(buildDays);
+  const [leaderTop, setLeaderTop] = useState<LeaderEntry | null>(null);
   const calendarRef = useRef<ScrollView>(null);
-
   const todayStr = localDateStr(new Date());
 
   const fetchData = async () => {
     if (!profile) return;
 
+    // Enrollments + module progress
     const [enrollRes] = await Promise.all([
       supabase
         .from('enrollments')
@@ -79,10 +112,8 @@ export default function HomeScreen({ navigation }: any) {
       const withProgress = await Promise.all(
         enrollRes.data.map(async (e) => {
           const { data: modules } = await supabase
-            .from('modules')
-            .select('id')
-            .eq('program_id', e.program_id);
-          const moduleIds = (modules ?? []).map((m: { id: string }) => m.id);
+            .from('modules').select('id').eq('program_id', e.program_id);
+          const moduleIds = (modules ?? []).map((m: any) => m.id);
           let completedModules = 0;
           if (moduleIds.length > 0) {
             const { count } = await supabase
@@ -100,11 +131,11 @@ export default function HomeScreen({ navigation }: any) {
       programIds = enrollRes.data.map((e: any) => e.program_id);
     }
 
+    // Calendar sessions
     if (programIds.length > 0) {
       const now = new Date();
       const fromDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - PAST_DAYS);
       const toDate   = new Date(now.getFullYear(), now.getMonth(), now.getDate() + FUTURE_DAYS + 1);
-
       const { data: sessions } = await supabase
         .from('program_sessions')
         .select('id, scheduled_at, title, duration_minutes, location, program_id, program:programs(title)')
@@ -120,18 +151,31 @@ export default function HomeScreen({ navigation }: any) {
             id: s.id,
             title: s.title ?? (s.program as any)?.title ?? 'Training Session',
             type: 'session' as const,
-            time: `${String(dt.getHours()).padStart(2, '0')}:${String(dt.getMinutes()).padStart(2, '0')}`,
+            time: `${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}`,
             description: (s.program as any)?.title ? `Program: ${(s.program as any).title}` : undefined,
             location: s.location,
             duration_minutes: s.duration_minutes,
             _dateStr: localDateStr(dt),
           };
         });
-
         setDays(prev => prev.map(day => ({
           ...day,
           events: mapped.filter((e: any) => e._dateStr === day.dateStr),
         })));
+      }
+    }
+
+    // Top leaderboard entry in own division
+    if (profile.division) {
+      const { data: leaders } = await supabase
+        .from('profiles')
+        .select('id, full_name, division, ranking_points')
+        .eq('division', profile.division)
+        .eq('role', 'student')
+        .order('ranking_points', { ascending: false })
+        .limit(1);
+      if (leaders && leaders.length > 0) {
+        setLeaderTop({ rank: 1, full_name: leaders[0].full_name, division: leaders[0].division, total_points: leaders[0].ranking_points ?? 0 });
       }
     }
   };
@@ -147,179 +191,342 @@ export default function HomeScreen({ navigation }: any) {
   }, []);
 
   const goToPrograms = () => navigation.getParent()?.navigate('ProgramsTab');
-  const goToMessages = () => navigation.getParent()?.navigate('MessagesTab');
-
-  const quickActions = [
-    { icon: '🎬', label: 'Training Videos', onPress: () => navigation.navigate('Videos') },
-    { icon: '📈', label: 'My Progress',      onPress: () => navigation.getParent()?.navigate('ProgressTab') },
-    { icon: '🏆', label: 'Leaderboard',      onPress: () => navigation.navigate('Leaderboard') },
-    { icon: '🎾', label: 'Tournaments',      onPress: () => navigation.navigate('Tournaments') },
-    { icon: '💬', label: 'Messages',         onPress: goToMessages },
-  ];
 
   const now = new Date();
   const monthLabel = `${MONTH_NAMES[now.getMonth()]} ${now.getFullYear()}`;
+  const nextLabel  = nextEventLabel(days, todayStr);
+
+  // Name parts
+  const nameParts  = (profile?.full_name ?? '').split(' ');
+  const firstName  = nameParts[0] ?? '';
+  const lastName   = nameParts.slice(1).join(' ').toUpperCase();
+  const initials   = (profile?.full_name ?? '?').split(' ').map((w: string) => w[0]).join('').toUpperCase().slice(0, 2);
+  const avatarUrl  = (profile as any)?.avatar_url ?? null;
+
+  // Quick actions — hide Messages & My Progress (they're in the tab bar)
+  const quickActions = [
+    { icon: '🎬', label: 'Training Videos', onPress: () => navigation.navigate('Videos') },
+    { icon: '🏆', label: 'Leaderboard',      onPress: () => navigation.navigate('Leaderboard') },
+    { icon: '🎾', label: 'Tournaments',      onPress: () => navigation.navigate('Tournaments') },
+    { icon: '📅', label: 'My Schedule',      onPress: () => navigation.navigate('CalendarDay', { date: todayStr, events: days.find(d => d.dateStr === todayStr)?.events ?? [] }) },
+  ];
 
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={{ paddingBottom: Math.max(insets.bottom + 80, 104) }}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-    >
-      {/* New home header: avatar + welcome + role pill + bell */}
-      <ScreenHeader
-        title=""
-        homeHeader
-        profileName={profile?.full_name}
-        profileRole={profile?.role}
-        profileAvatar={(profile as any)?.avatar_url ?? null}
-        onAvatarPress={() => navigation.navigate('Profile')}
-      />
-
-      {/* ── Calendar Strip ── */}
-      <View style={styles.calendarSection}>
-        <View style={styles.calendarHeader}>
-          <Text style={styles.calendarTitle}>📅 Schedule</Text>
-          <Text style={styles.calendarMonth}>{monthLabel}</Text>
-        </View>
-        <ScrollView
-          ref={calendarRef}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.calendarList}
-          nestedScrollEnabled
-        >
-          {days.map((day) => {
-            const isToday = day.dateStr === todayStr;
-            const isPast  = day.dateStr < todayStr;
-            const hasEvents = day.events.length > 0;
-            return (
-              <TouchableOpacity
-                key={day.dateStr}
-                style={[
-                  styles.dayCell,
-                  isToday && styles.dayCellToday,
-                  isPast && !isToday && styles.dayCellPast,
-                ]}
-                onPress={() => navigation.navigate('CalendarDay', { date: day.dateStr, events: day.events })}
-                activeOpacity={0.7}
-              >
-                <Text style={[styles.dayName, isToday && styles.dayNameToday, isPast && !isToday && styles.dayNamePast]}>
-                  {DAY_NAMES[day.date.getDay()]}
-                </Text>
-                <Text style={[styles.dayNum, isToday && styles.dayNumToday, isPast && !isToday && styles.dayNumPast]}>
-                  {day.date.getDate()}
-                </Text>
-                <View style={hasEvents ? (isPast && !isToday ? styles.eventDotPast : styles.eventDot) : styles.eventDotEmpty} />
-              </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
-      </View>
-
-      {/* My Programs */}
-      <View style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>📚 My Programs</Text>
-          <TouchableOpacity onPress={goToPrograms}>
-            <Text style={styles.seeAll}>See all</Text>
+    <View style={styles.root}>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={{ paddingBottom: Math.max(insets.bottom + 100, 120) }}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={GREEN2} />}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* ── Header ── */}
+        <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
+          <TouchableOpacity style={styles.avatarRow} onPress={() => navigation.navigate('Profile')} activeOpacity={0.8}>
+            {avatarUrl ? (
+              <Image source={{ uri: avatarUrl }} style={styles.avatar} />
+            ) : (
+              <View style={styles.avatarPlaceholder}>
+                <Text style={styles.avatarInitials}>{initials}</Text>
+              </View>
+            )}
+            <View style={styles.welcomeBlock}>
+              <Text style={styles.welcomeLabel}>Welcome,</Text>
+              <Text style={styles.welcomeName} numberOfLines={1}>
+                {firstName}{lastName ? ` ${lastName}` : ''}
+              </Text>
+            </View>
           </TouchableOpacity>
-        </View>
-        {enrollments.length === 0 ? (
-          <View style={styles.emptyCard}>
-            <Text style={styles.emptyText}>You're not enrolled in any programs yet.</Text>
-            <TouchableOpacity onPress={goToPrograms}>
-              <Text style={styles.emptyLink}>Browse programs →</Text>
+
+          <View style={styles.headerRight}>
+            <View style={styles.rolePill}>
+              <Text style={styles.rolePillText}>{profile?.role ?? 'Student'}</Text>
+            </View>
+            <TouchableOpacity
+              style={styles.bellWrap}
+              onPress={() => navigation.navigate('Notifications')}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Text style={styles.bellIcon}>🔔</Text>
+              {unreadCount > 0 && (
+                <View style={styles.bellBadge}>
+                  <Text style={styles.bellBadgeText}>{unreadCount > 9 ? '9+' : String(unreadCount)}</Text>
+                </View>
+              )}
             </TouchableOpacity>
           </View>
-        ) : (
-          enrollments.map((e) => {
-            const pct = e.totalModules > 0 ? Math.round((e.completedModules / e.totalModules) * 100) : 0;
-            return (
-              <TouchableOpacity
-                key={e.id}
-                style={styles.programCard}
-                onPress={() => navigation.navigate('ProgramDetail', { programId: e.program_id })}
-              >
-                <Text style={styles.programTitle}>{(e.program as any)?.title}</Text>
-                <Text style={styles.programMeta}>
-                  {(e.program as any)?.duration_weeks} weeks
-                  {(e.program as any)?.sessions_per_week ? ` · ${(e.program as any).sessions_per_week}x/week` : ''}
-                </Text>
-                <View style={styles.progressBar}>
-                  <View style={[styles.progressFill, { width: `${pct}%` as any }]} />
-                </View>
-                <Text style={styles.progressLabel}>
-                  {e.completedModules}/{e.totalModules} sessions complete · {pct}%
-                </Text>
-              </TouchableOpacity>
-            );
-          })
-        )}
-      </View>
-
-      {/* Quick Actions */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>⚡ Quick Actions</Text>
-        <View style={styles.quickGrid}>
-          {quickActions.map((item) => (
-            <TouchableOpacity key={item.label} style={styles.actionCard} onPress={item.onPress}>
-              <Text style={styles.actionIcon}>{item.icon}</Text>
-              <Text style={styles.actionLabel}>{item.label}</Text>
-            </TouchableOpacity>
-          ))}
         </View>
-      </View>
-    </ScrollView>
+
+        {/* ── Calendar ── */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Upcoming Events</Text>
+            <View style={styles.nextBadge}>
+              <Text style={styles.nextBadgeText}>Next {nextLabel}</Text>
+            </View>
+          </View>
+          <View style={styles.calendarWrap}>
+            <ScrollView
+              ref={calendarRef}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ paddingHorizontal: CALENDAR_PADDING }}
+              nestedScrollEnabled
+            >
+              {days.map((day) => {
+                const isToday   = day.dateStr === todayStr;
+                const isPast    = day.dateStr < todayStr;
+                const hasEvents = day.events.length > 0;
+                return (
+                  <TouchableOpacity
+                    key={day.dateStr}
+                    style={[
+                      styles.dayCell,
+                      isToday && styles.dayCellToday,
+                      isPast && !isToday && styles.dayCellPast,
+                    ]}
+                    onPress={() => navigation.navigate('CalendarDay', { date: day.dateStr, events: day.events })}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={[styles.dayName, isToday && styles.dayNameToday, isPast && !isToday && styles.dayNamePast]}>
+                      {DAY_NAMES[day.date.getDay()]}
+                    </Text>
+                    <Text style={[styles.dayNum, isToday && styles.dayNumToday, isPast && !isToday && styles.dayNumPast]}>
+                      {day.date.getDate()}
+                    </Text>
+                    <View style={hasEvents
+                      ? (isToday ? styles.eventDotToday : isPast ? styles.eventDotPast : styles.eventDot)
+                      : styles.eventDotEmpty}
+                    />
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </View>
+        </View>
+
+        {/* ── My Programs ── */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Programs</Text>
+            <TouchableOpacity onPress={goToPrograms}>
+              <Text style={styles.seeAll}>See all →</Text>
+            </TouchableOpacity>
+          </View>
+
+          {enrollments.length === 0 ? (
+            <TouchableOpacity style={styles.emptyCard} onPress={goToPrograms}>
+              <Text style={styles.emptyText}>No active programs yet</Text>
+              <Text style={styles.emptyLink}>Browse programs →</Text>
+            </TouchableOpacity>
+          ) : (
+            enrollments.map((e) => {
+              const pct = e.totalModules > 0 ? Math.round((e.completedModules / e.totalModules) * 100) : 0;
+              return (
+                <TouchableOpacity
+                  key={e.id}
+                  onPress={() => navigation.navigate('ProgramDetail', { programId: e.program_id })}
+                  activeOpacity={0.85}
+                  style={{ marginBottom: 12 }}
+                >
+                  <LinearGradient
+                    colors={['#1A3A2A', '#16A34A']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={styles.programCard}
+                  >
+                    <View style={styles.programCardTop}>
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.programTitle}>{(e.program as any)?.title}</Text>
+                        <Text style={styles.programMeta}>
+                          {(e.program as any)?.duration_weeks} weeks
+                          {(e.program as any)?.sessions_per_week ? ` · ${(e.program as any).sessions_per_week}x/week` : ''}
+                        </Text>
+                      </View>
+                      <Text style={styles.programChevron}>›</Text>
+                    </View>
+                    <View style={styles.progressBarBg}>
+                      <View style={[styles.progressBarFill, { width: `${pct}%` as any }]} />
+                    </View>
+                    <View style={styles.programCardBottom}>
+                      <Text style={styles.programPct}>{pct}%</Text>
+                      <Text style={styles.programSessions}>{e.completedModules}/{e.totalModules} sessions</Text>
+                    </View>
+                  </LinearGradient>
+                </TouchableOpacity>
+              );
+            })
+          )}
+        </View>
+
+        {/* ── Leaderboard teaser ── */}
+        {leaderTop && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Leaderboard</Text>
+              <TouchableOpacity onPress={() => navigation.navigate('Leaderboard')}>
+                <Text style={styles.seeAll}>See all →</Text>
+              </TouchableOpacity>
+            </View>
+            <TouchableOpacity onPress={() => navigation.navigate('Leaderboard')} activeOpacity={0.85}>
+              <LinearGradient
+                colors={['#0D2D2D', '#0A4A3A']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.leaderCard}
+              >
+                <View style={styles.leaderRankCircle}>
+                  <Text style={styles.leaderRankText}>#1</Text>
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.leaderName}>{leaderTop.full_name}</Text>
+                  <View style={styles.leaderDivisionBadge}>
+                    <Text style={styles.leaderDivisionText}>
+                      {leaderTop.division.replace('_', ' ').replace(/\b\w/g, (c: string) => c.toUpperCase())}
+                    </Text>
+                  </View>
+                </View>
+                <View style={{ alignItems: 'flex-end' }}>
+                  <Text style={styles.leaderPoints}>{leaderTop.total_points}</Text>
+                  <Text style={styles.leaderPointsLabel}>pts</Text>
+                </View>
+                <Text style={styles.leaderChevron}>›</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* ── Quick Actions ── */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Quick Actions</Text>
+          <View style={styles.quickGrid}>
+            {quickActions.map((item) => (
+              <TouchableOpacity key={item.label} style={styles.actionCard} onPress={item.onPress} activeOpacity={0.8}>
+                <Text style={styles.actionIcon}>{item.icon}</Text>
+                <Text style={styles.actionLabel}>{item.label}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        {/* ── BPT watermark ── */}
+        <View style={styles.watermark}>
+          <Text style={styles.watermarkText}>BPT Academy</Text>
+        </View>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F9FAFB' },
+  root:      { flex: 1, backgroundColor: BG },
+  container: { flex: 1, backgroundColor: BG },
 
-  calendarSection: {
-    backgroundColor: '#FFFFFF', paddingTop: 14, paddingBottom: 14,
-    borderBottomWidth: 1, borderBottomColor: '#F3F4F6',
+  // ── Header ──
+  header: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingHorizontal: 16, paddingBottom: 16,
+    backgroundColor: BG,
   },
-  calendarHeader: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    paddingHorizontal: 16, marginBottom: 12,
+  avatarRow:   { flexDirection: 'row', alignItems: 'center', flex: 1 },
+  avatar:      { width: 46, height: 46, borderRadius: 10, borderWidth: 2, borderColor: GREEN },
+  avatarPlaceholder: {
+    width: 46, height: 46, borderRadius: 10, backgroundColor: GREEN,
+    alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: GREEN2,
   },
-  calendarTitle: { fontSize: 15, fontWeight: '700', color: '#111827' },
-  calendarMonth: { fontSize: 13, color: '#6B7280', fontWeight: '500' },
-  calendarList: { paddingHorizontal: CALENDAR_PADDING },
-  dayCell: {
-    width: DAY_CELL_WIDTH, height: 72, alignItems: 'center', justifyContent: 'center',
-    marginHorizontal: DAY_CELL_MARGIN, borderRadius: 14, backgroundColor: '#F9FAFB',
+  avatarInitials: { color: '#FFF', fontSize: 16, fontWeight: '700' },
+  welcomeBlock:   { marginLeft: 10, flex: 1 },
+  welcomeLabel:   { fontSize: 11, color: SUBTEXT, fontWeight: '500' },
+  welcomeName:    { fontSize: 15, fontWeight: '700', color: TEXT },
+  headerRight:    { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  rolePill: {
+    borderWidth: 1, borderColor: GREEN, borderRadius: 12,
+    paddingHorizontal: 10, paddingVertical: 3,
   },
-  dayCellToday: { backgroundColor: '#16A34A' },
-  dayCellPast: { backgroundColor: '#F3F4F6', opacity: 0.75 },
-  dayName: { fontSize: 11, fontWeight: '600', color: '#9CA3AF', marginBottom: 4, textTransform: 'uppercase' },
-  dayNameToday: { color: '#D1FAE5' },
-  dayNamePast: { color: '#C4C9D4' },
-  dayNum: { fontSize: 20, fontWeight: '700', color: '#111827' },
-  dayNumToday: { color: '#FFFFFF' },
-  dayNumPast: { color: '#9CA3AF' },
-  eventDot:     { width: 6, height: 6, borderRadius: 3, backgroundColor: '#EF4444', marginTop: 4 },
-  eventDotPast: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#9CA3AF', marginTop: 4 },
-  eventDotEmpty: { width: 6, height: 6, marginTop: 4 },
+  rolePillText:   { fontSize: 11, fontWeight: '700', color: GREEN },
+  bellWrap:       { padding: 4 },
+  bellIcon:       { fontSize: 20 },
+  bellBadge: {
+    position: 'absolute', top: 0, right: 0,
+    minWidth: 16, height: 16, borderRadius: 8,
+    backgroundColor: '#EF4444', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 3,
+  },
+  bellBadgeText:  { color: '#FFF', fontSize: 9, fontWeight: '700' },
 
-  section: { padding: 20 },
+  // ── Sections ──
+  section:       { paddingHorizontal: 16, marginBottom: 4 },
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-  sectionTitle: { fontSize: 17, fontWeight: '700', color: '#111827', marginBottom: 12 },
-  seeAll: { color: '#16A34A', fontSize: 14, fontWeight: '600' },
+  sectionTitle:  { fontSize: 16, fontWeight: '700', color: TEXT },
+  seeAll:        { fontSize: 13, color: GREEN2, fontWeight: '600' },
+  nextBadge:     { backgroundColor: SURFACE2, borderRadius: 10, paddingHorizontal: 10, paddingVertical: 4 },
+  nextBadgeText: { fontSize: 11, color: GREEN2, fontWeight: '600' },
 
-  emptyCard: { backgroundColor: '#FFFFFF', borderRadius: 12, padding: 20, alignItems: 'center', borderWidth: 1, borderColor: '#E5E7EB' },
-  emptyText: { color: '#6B7280', fontSize: 14, marginBottom: 8 },
-  emptyLink: { color: '#16A34A', fontWeight: '600', fontSize: 14 },
-  programCard: { backgroundColor: '#FFFFFF', borderRadius: 12, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: '#E5E7EB' },
-  programTitle: { fontSize: 16, fontWeight: '700', color: '#111827' },
-  programMeta: { fontSize: 13, color: '#6B7280', marginTop: 4 },
-  progressBar: { height: 6, backgroundColor: '#E5E7EB', borderRadius: 3, marginTop: 12 },
-  progressFill: { height: '100%', backgroundColor: '#16A34A', borderRadius: 3 },
-  progressLabel: { fontSize: 12, color: '#6B7280', marginTop: 4 },
-  quickGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
-  actionCard: { width: CARD_WIDTH, backgroundColor: '#FFFFFF', borderRadius: 12, padding: 16, alignItems: 'center', borderWidth: 1, borderColor: '#E5E7EB' },
-  actionIcon: { fontSize: 28, marginBottom: 8 },
-  actionLabel: { fontSize: 12, fontWeight: '600', color: '#374151', textAlign: 'center' },
+  // ── Calendar ──
+  calendarWrap: { backgroundColor: SURFACE, borderRadius: 16, paddingVertical: 12, overflow: 'hidden' },
+  dayCell: {
+    width: DAY_CELL_WIDTH, height: 70, alignItems: 'center', justifyContent: 'center',
+    marginHorizontal: DAY_CELL_MARGIN, borderRadius: 12, backgroundColor: SURFACE2,
+  },
+  dayCellToday: { backgroundColor: GREEN },
+  dayCellPast:  { opacity: 0.45 },
+  dayName: { fontSize: 10, fontWeight: '600', color: SUBTEXT, marginBottom: 4, textTransform: 'uppercase' },
+  dayNameToday: { color: '#D1FAE5' },
+  dayNamePast:  { color: SUBTEXT },
+  dayNum: { fontSize: 18, fontWeight: '700', color: TEXT },
+  dayNumToday: { color: '#FFFFFF' },
+  dayNumPast:  { color: SUBTEXT },
+  eventDot:      { width: 5, height: 5, borderRadius: 2.5, backgroundColor: '#EF4444', marginTop: 4 },
+  eventDotToday: { width: 5, height: 5, borderRadius: 2.5, backgroundColor: '#FFF', marginTop: 4 },
+  eventDotPast:  { width: 5, height: 5, borderRadius: 2.5, backgroundColor: SUBTEXT, marginTop: 4 },
+  eventDotEmpty: { width: 5, height: 5, marginTop: 4 },
+
+  // ── Programs ──
+  emptyCard: {
+    backgroundColor: SURFACE, borderRadius: 14, padding: 20, alignItems: 'center',
+    borderWidth: 1, borderColor: BORDER,
+  },
+  emptyText: { color: SUBTEXT, fontSize: 14, marginBottom: 6 },
+  emptyLink: { color: GREEN2, fontWeight: '600', fontSize: 13 },
+  programCard:    { borderRadius: 16, padding: 16 },
+  programCardTop: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 14 },
+  programTitle:   { fontSize: 16, fontWeight: '700', color: '#FFF', marginBottom: 4 },
+  programMeta:    { fontSize: 12, color: 'rgba(255,255,255,0.65)' },
+  programChevron: { fontSize: 26, color: 'rgba(255,255,255,0.5)', marginTop: -2 },
+  progressBarBg:  { height: 5, backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 3, marginBottom: 8 },
+  progressBarFill:{ height: '100%', backgroundColor: '#FFF', borderRadius: 3 },
+  programCardBottom: { flexDirection: 'row', justifyContent: 'space-between' },
+  programPct:     { fontSize: 13, fontWeight: '700', color: '#FFF' },
+  programSessions:{ fontSize: 12, color: 'rgba(255,255,255,0.65)' },
+
+  // ── Leaderboard ──
+  leaderCard: {
+    borderRadius: 16, padding: 16,
+    flexDirection: 'row', alignItems: 'center', gap: 14,
+  },
+  leaderRankCircle: {
+    width: 44, height: 44, borderRadius: 22,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    alignItems: 'center', justifyContent: 'center',
+    borderWidth: 1.5, borderColor: GREEN2,
+  },
+  leaderRankText:     { fontSize: 15, fontWeight: '800', color: GREEN2 },
+  leaderName:         { fontSize: 15, fontWeight: '700', color: '#FFF', marginBottom: 4 },
+  leaderDivisionBadge:{ backgroundColor: 'rgba(255,255,255,0.1)', alignSelf: 'flex-start', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3 },
+  leaderDivisionText: { fontSize: 11, color: 'rgba(255,255,255,0.75)', fontWeight: '600' },
+  leaderPoints:       { fontSize: 20, fontWeight: '800', color: GREEN2 },
+  leaderPointsLabel:  { fontSize: 11, color: SUBTEXT },
+  leaderChevron:      { fontSize: 24, color: 'rgba(255,255,255,0.3)' },
+
+  // ── Quick Actions ──
+  quickGrid:   { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+  actionCard:  {
+    width: (SCREEN_WIDTH - 32 - 10) / 2,
+    backgroundColor: SURFACE, borderRadius: 14, padding: 16,
+    alignItems: 'center', borderWidth: 1, borderColor: BORDER,
+  },
+  actionIcon:  { fontSize: 26, marginBottom: 8 },
+  actionLabel: { fontSize: 12, fontWeight: '600', color: TEXT, textAlign: 'center' },
+
+  // ── Watermark ──
+  watermark:     { alignItems: 'center', paddingVertical: 24 },
+  watermarkText: { fontSize: 13, fontWeight: '700', color: 'rgba(255,255,255,0.05)', letterSpacing: 3, textTransform: 'uppercase' },
 });
