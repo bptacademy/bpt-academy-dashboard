@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import {
   View, Text, ScrollView, StyleSheet,
-  TouchableOpacity, RefreshControl, ActivityIndicator,
+  TouchableOpacity, RefreshControl, ActivityIndicator, Image, Dimensions,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
@@ -166,6 +166,7 @@ export default function ParentDashboardScreen({ navigation }: any) {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
+      <Image source={require('../../../assets/bg.png')} style={styles.bgImage} resizeMode="cover" />
       <ScreenHeader
         title=""
         homeHeader
@@ -216,18 +217,19 @@ export default function ParentDashboardScreen({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F3F4F6' },
+  container: { flex: 1, backgroundColor: '#0B1628' },
+  bgImage: { position: 'absolute', top: 0, left: 0, width: Dimensions.get('window').width, height: Dimensions.get('window').height },
 
   loadingContainer: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   loadingText: { marginTop: 12, color: '#6B7280', fontSize: 14 },
 
   scroll: { flex: 1 },
-  scrollContent: { padding: 16 },
+  scrollContent: { padding: 16, backgroundColor: 'transparent' },
 
-  sectionTitle: { fontSize: 16, fontWeight: '700', color: '#1a2744', marginBottom: 14, marginTop: 4 },
+  sectionTitle: { fontSize: 16, fontWeight: '700', color: '#F0F6FC', marginBottom: 14, marginTop: 4 },
 
   card: {
-    backgroundColor: '#FFFFFF', borderRadius: 16, padding: 16, marginBottom: 14,
+    backgroundColor: 'rgba(17,30,51,0.85)', borderRadius: 16, padding: 16, marginBottom: 14,
     shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.07, shadowRadius: 8, elevation: 3,
   },
@@ -235,18 +237,18 @@ const styles = StyleSheet.create({
   avatar: { width: 52, height: 52, borderRadius: 26, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
   avatarText: { fontSize: 22, fontWeight: '800', color: '#FFFFFF' },
   cardInfo: { flex: 1 },
-  childName: { fontSize: 17, fontWeight: '700', color: '#111827' },
-  childAge: { fontSize: 13, color: '#6B7280', marginTop: 1 },
+  childName: { fontSize: 17, fontWeight: '700', color: '#F0F6FC' },
+  childAge: { fontSize: 13, color: '#7A8FA6', marginTop: 1 },
   divisionBadge: {
     marginTop: 6, alignSelf: 'flex-start', borderRadius: 12,
     borderWidth: 1, paddingHorizontal: 10, paddingVertical: 3,
   },
   divisionBadgeText: { fontSize: 12, fontWeight: '700' },
 
-  statsRow: { flexDirection: 'row', backgroundColor: '#F9FAFB', borderRadius: 10, paddingVertical: 12, marginBottom: 14 },
+  statsRow: { flexDirection: 'row', backgroundColor: 'rgba(23,34,64,0.6)', borderRadius: 10, paddingVertical: 12, marginBottom: 14 },
   statItem: { flex: 1, alignItems: 'center' },
-  statValue: { fontSize: 16, fontWeight: '800', color: '#16A34A', maxWidth: 80 },
-  statLabel: { fontSize: 11, color: '#6B7280', marginTop: 2 },
+  statValue: { fontSize: 16, fontWeight: '800', color: '#22C55E', maxWidth: 80 },
+  statLabel: { fontSize: 11, color: '#7A8FA6', marginTop: 2 },
   statDivider: { width: 1, backgroundColor: '#E5E7EB' },
 
   viewBtn: { backgroundColor: '#16A34A', borderRadius: 10, paddingVertical: 12, alignItems: 'center' },

@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: 16, paddingBottom: 10,
-    backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#F3F4F6',
+    backgroundColor: 'transparent', borderBottomWidth: 1, borderBottomColor: 'rgba(30,48,80,0.5)',
   },
   headerDark: { backgroundColor: '#111827', borderBottomColor: '#1F2937' },
 
@@ -160,11 +160,11 @@ const styles = StyleSheet.create({
 
   // Back arrow (deep in stack)
   backBtn: { width: 44, height: 44, justifyContent: 'center' },
-  backIcon: { fontSize: 34, color: '#374151', lineHeight: 40 },
+  backIcon: { fontSize: 34, color: '#F0F6FC', lineHeight: 40 },
   backIconDark: { color: '#FFFFFF' },
 
   title: {
-    flex: 1, fontSize: 17, fontWeight: '700', color: '#111827',
+    flex: 1, fontSize: 17, fontWeight: '700', color: '#F0F6FC',
     textAlign: 'center', marginHorizontal: 8,
   },
   titleDark: { color: '#FFFFFF' },
