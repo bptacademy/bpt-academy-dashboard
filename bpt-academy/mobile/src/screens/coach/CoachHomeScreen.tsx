@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, RefreshControl, Dimensions } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, RefreshControl, Dimensions, Image } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -128,11 +128,13 @@ export default function CoachHomeScreen({ navigation }: any) {
   );
 
   return (
-    <ScrollView
-      contentContainerStyle={{ paddingBottom: Math.max(insets.bottom + 80, 104) }}
-      style={styles.container}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-    >
+    <View style={styles.root}>
+      <Image source={require('../../../assets/bg.png')} style={styles.bgImage} resizeMode="cover" />
+      <ScrollView
+        contentContainerStyle={{ paddingBottom: Math.max(insets.bottom + 80, 104) }}
+        style={styles.container}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+      >
       <ScreenHeader
         title=""
         homeHeader
@@ -208,22 +210,26 @@ export default function CoachHomeScreen({ navigation }: any) {
           ))}
         </View>
       </View>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
 
+const { width: SW, height: SH } = Dimensions.get('window');
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F9FAFB' },
+  root: { flex: 1, backgroundColor: '#0B1628' },
+  bgImage: { position: 'absolute', top: 0, left: 0, width: SW, height: SH },
+  container: { flex: 1 },
   statsRow: { flexDirection: 'row', padding: 16, gap: 12 },
-  statCard: { flex: 1, backgroundColor: '#FFFFFF', borderRadius: 14, padding: 16, alignItems: 'center', borderWidth: 1, borderColor: '#E5E7EB' },
-  statNumber: { fontSize: 28, fontWeight: '700', color: '#111827' },
-  statLabel: { fontSize: 13, color: '#6B7280', marginTop: 2 },
+  statCard: { flex: 1, backgroundColor: 'rgba(17,30,51,0.85)', borderRadius: 14, padding: 16, alignItems: 'center', borderWidth: 1, borderColor: '#E5E7EB' },
+  statNumber: { fontSize: 28, fontWeight: '700', color: '#F0F6FC' },
+  statLabel: { fontSize: 13, color: '#7A8FA6', marginTop: 2 },
   section: { padding: 16, paddingBottom: 4 },
-  sectionTitle: { fontSize: 17, fontWeight: '700', color: '#111827', marginBottom: 12 },
+  sectionTitle: { fontSize: 17, fontWeight: '700', color: '#F0F6FC', marginBottom: 12 },
   actionGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
-  actionCard: { width: CARD_WIDTH, backgroundColor: '#FFFFFF', borderRadius: 14, padding: 20, alignItems: 'center', borderWidth: 1, borderColor: '#E5E7EB' },
+  actionCard: { width: CARD_WIDTH, backgroundColor: 'rgba(17,30,51,0.85)', borderRadius: 14, padding: 20, alignItems: 'center', borderWidth: 1, borderColor: '#E5E7EB' },
   actionIcon: { fontSize: 32, marginBottom: 8 },
-  actionLabel: { fontSize: 14, fontWeight: '600', color: '#374151' },
+  actionLabel: { fontSize: 14, fontWeight: '600', color: '#F0F6FC' },
 
   // Penalty cards
   penaltyCard: {

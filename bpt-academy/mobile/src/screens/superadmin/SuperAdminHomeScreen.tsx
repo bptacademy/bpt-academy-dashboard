@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
-  RefreshControl, Alert, Modal, ActivityIndicator, TextInput, Dimensions,
+  RefreshControl, Alert, Modal, ActivityIndicator, TextInput, Dimensions, Image,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
@@ -137,6 +137,7 @@ export default function SuperAdminHomeScreen({ navigation }: any) {
 
   return (
     <View style={styles.root}>
+      <Image source={require('../../../assets/bg.png')} style={styles.bgImage} resizeMode="cover" />
       <ScreenHeader
         title=""
         homeHeader
@@ -321,40 +322,41 @@ export default function SuperAdminHomeScreen({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#F9FAFB' },
+  root: { flex: 1, backgroundColor: '#0B1628' },
+  bgImage: { position: 'absolute', top: 0, left: 0, width: Dimensions.get('window').width, height: Dimensions.get('window').height },
 
   // Stats bar — horizontal scroll
-  statsBar: { backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#E5E7EB' },
+  statsBar: { backgroundColor: 'rgba(11,22,40,0.9)', borderBottomWidth: 1, borderBottomColor: '#E5E7EB' },
   statsScroll: { flexDirection: 'row', paddingHorizontal: 8 },
   statCell: {
     alignItems: 'center', paddingVertical: 14, paddingHorizontal: 20,
     minWidth: 80, borderBottomWidth: 2, borderBottomColor: 'transparent',
   },
-  statNum: { fontSize: 22, fontWeight: '700' },
-  statLabel: { fontSize: 11, color: '#6B7280', marginTop: 3, fontWeight: '500' },
+  statNum: { fontSize: 22, fontWeight: '700', color: '#F0F6FC' },
+  statLabel: { fontSize: 11, color: '#7A8FA6', marginTop: 3, fontWeight: '500' },
 
-  filterBar: { backgroundColor: '#FFFFFF', paddingHorizontal: 16, paddingVertical: 12, gap: 10 },
+  filterBar: { backgroundColor: 'rgba(11,22,40,0.85)', paddingHorizontal: 16, paddingVertical: 12, gap: 10 },
   searchInput: {
-    backgroundColor: '#F3F4F6', borderRadius: 10,
-    paddingHorizontal: 14, paddingVertical: 11, fontSize: 15, color: '#111827',
+    backgroundColor: 'rgba(23,34,64,0.9)', borderRadius: 10,
+    paddingHorizontal: 14, paddingVertical: 11, fontSize: 15, color: '#F0F6FC',
   },
   roleChips: { gap: 8, paddingVertical: 2 },
   chip: {
-    borderWidth: 1, borderColor: '#D1D5DB', borderRadius: 20,
-    paddingHorizontal: 14, paddingVertical: 7, backgroundColor: '#F9FAFB',
+    borderWidth: 1, borderColor: 'rgba(30,48,80,0.8)', borderRadius: 20,
+    paddingHorizontal: 14, paddingVertical: 7, backgroundColor: 'rgba(17,30,51,0.85)',
   },
-  chipText: { fontSize: 13, color: '#374151', fontWeight: '500' },
+  chipText: { fontSize: 13, color: '#7A8FA6', fontWeight: '500' },
   chipTextActive: { color: '#FFFFFF', fontWeight: '700' },
   list: { padding: 16, gap: 10 },
   card: {
-    backgroundColor: '#FFFFFF', borderRadius: 14, padding: 14,
-    flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: '#E5E7EB',
+    backgroundColor: 'rgba(17,30,51,0.85)', borderRadius: 14, padding: 14,
+    flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(30,48,80,0.8)',
   },
   avatar: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center', marginRight: 14 },
   avatarText: { color: '#FFFFFF', fontWeight: '700', fontSize: 17 },
   cardInfo: { flex: 1, gap: 4 },
   cardNameRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  cardName: { fontSize: 15, fontWeight: '600', color: '#111827' },
+  cardName: { fontSize: 15, fontWeight: '600', color: '#F0F6FC' },
   meBadge: {
     fontSize: 10, fontWeight: '800', color: '#7C3AED',
     backgroundColor: '#F5F3FF', paddingHorizontal: 7, paddingVertical: 2, borderRadius: 8, letterSpacing: 0.5,
