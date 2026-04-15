@@ -8,6 +8,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { Profile, Division, DIVISION_LABELS, DIVISION_COLORS } from '../../types';
+import ScreenHeader from '../../components/common/ScreenHeader';
 
 interface ChildStats {
   upcomingSessions: number;
@@ -64,7 +65,6 @@ export default function ParentDashboardScreen({ navigation }: any) {
 
     const cards = await Promise.all(
       profiles.map(async (child: Profile): Promise<ChildCard> => {
-        // Upcoming sessions
         const { data: enrollments } = await supabase
           .from('enrollments')
           .select('program_id')
@@ -82,7 +82,6 @@ export default function ParentDashboardScreen({ navigation }: any) {
           upcomingSessions = count ?? 0;
         }
 
-        // Attendance %
         const { data: attended } = await supabase
           .from('session_attendance')
           .select('attended')
@@ -93,7 +92,6 @@ export default function ParentDashboardScreen({ navigation }: any) {
           attendancePct = Math.round((yes / attended.length) * 100);
         }
 
-        // Current level label
         const division = child.division as Division | undefined;
         const currentLevel = division ? (DIVISION_LABELS[division] ?? division) : 'Not set';
 
@@ -168,21 +166,14 @@ export default function ParentDashboardScreen({ navigation }: any) {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <Text style={styles.headerIcon}>👨‍👩‍👧‍👦</Text>
-          <View>
-            <Text style={styles.welcomeText}>Welcome back,</Text>
-            <Text style={styles.parentName} numberOfLines={1}>
-              {profile?.full_name ?? 'Parent'}
-            </Text>
-          </View>
-        </View>
-        <TouchableOpacity style={styles.settingsBtn} onPress={() => navigation.navigate('Profile')}>
-          <Text style={styles.settingsIcon}>⚙️</Text>
-        </TouchableOpacity>
-      </View>
+      <ScreenHeader
+        title=""
+        homeHeader
+        profileName={profile?.full_name}
+        profileRole={profile?.role}
+        profileAvatar={(profile as any)?.avatar_url ?? null}
+        onAvatarPress={() => navigation.navigate('Profile')}
+      />
 
       {loading ? (
         <View style={styles.loadingContainer}>
@@ -226,21 +217,6 @@ export default function ParentDashboardScreen({ navigation }: any) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F3F4F6' },
-
-  header: {
-    backgroundColor: '#1a2744',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  headerLeft: { flexDirection: 'row', alignItems: 'center', flex: 1 },
-  headerIcon: { fontSize: 28, marginRight: 12 },
-  welcomeText: { fontSize: 13, color: '#94A3B8' },
-  parentName: { fontSize: 18, fontWeight: '800', color: '#FFFFFF', maxWidth: 220 },
-  settingsBtn: { padding: 8 },
-  settingsIcon: { fontSize: 22 },
 
   loadingContainer: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   loadingText: { marginTop: 12, color: '#6B7280', fontSize: 14 },
