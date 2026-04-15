@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import {
   View, Text, ScrollView, StyleSheet,
-  TouchableOpacity, RefreshControl, Dimensions, Image,
+  TouchableOpacity, RefreshControl, Dimensions, Image, ImageBackground,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../../context/AuthContext';
@@ -23,15 +23,19 @@ const TODAY_INDEX = PAST_DAYS;
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
-// Dark theme colours
-const BG       = '#0D1117';
-const SURFACE  = '#161B22';
-const SURFACE2 = '#1C2330';
-const BORDER   = '#2D3748';
+// Palette from Figma
+const BG       = '#0B1628';
+const SURFACE  = '#111E33';
+const SURFACE2 = '#172240';
+const BORDER   = '#1E3050';
 const TEXT     = '#F0F6FC';
-const SUBTEXT  = '#8B949E';
+const SUBTEXT  = '#7A8FA6';
 const GREEN    = '#16A34A';
 const GREEN2   = '#22C55E';
+
+// Grid line positions (relative widths)
+const GRID_COLS = 8;
+const GRID_ROWS = 11;
 
 interface EnrollmentWithProgress extends Enrollment {
   completedModules: number;
@@ -80,6 +84,39 @@ function nextEventLabel(days: any[], todayStr: string): string {
   }
   return 'No Upcoming';
 }
+
+// Grid overlay component
+function GridOverlay() {
+  const cols = Array.from({ length: GRID_COLS });
+  const rows = Array.from({ length: GRID_ROWS });
+  return (
+    <View style={StyleSheet.absoluteFill} pointerEvents="none">
+      {cols.map((_, i) => (
+        <View
+          key={`c${i}`}
+          style={[gridStyles.col, { left: `${(i / GRID_COLS) * 100}%` as any }]}
+        />
+      ))}
+      {rows.map((_, i) => (
+        <View
+          key={`r${i}`}
+          style={[gridStyles.row, { top: `${(i / GRID_ROWS) * 100}%` as any }]}
+        />
+      ))}
+    </View>
+  );
+}
+
+const gridStyles = StyleSheet.create({
+  col: {
+    position: 'absolute', top: 0, bottom: 0, width: 1,
+    backgroundColor: 'rgba(255,255,255,0.04)',
+  },
+  row: {
+    position: 'absolute', left: 0, right: 0, height: 1,
+    backgroundColor: 'rgba(255,255,255,0.04)',
+  },
+});
 
 export default function HomeScreen({ navigation }: any) {
   const { profile } = useAuth();
@@ -170,7 +207,12 @@ export default function HomeScreen({ navigation }: any) {
         .order('ranking_points', { ascending: false })
         .limit(1);
       if (leaders && leaders.length > 0) {
-        setLeaderTop({ rank: 1, full_name: leaders[0].full_name, division: leaders[0].division, total_points: leaders[0].ranking_points ?? 0 });
+        setLeaderTop({
+          rank: 1,
+          full_name: leaders[0].full_name,
+          division: leaders[0].division,
+          total_points: leaders[0].ranking_points ?? 0,
+        });
       }
     }
   };
@@ -186,8 +228,6 @@ export default function HomeScreen({ navigation }: any) {
   }, []);
 
   const goToPrograms = () => navigation.getParent()?.navigate('ProgramsTab');
-
-  const now = new Date();
   const nextLabel = nextEventLabel(days, todayStr);
 
   const nameParts = (profile?.full_name ?? '').split(' ');
@@ -196,7 +236,6 @@ export default function HomeScreen({ navigation }: any) {
   const initials  = (profile?.full_name ?? '?').split(' ').map((w: string) => w[0]).join('').toUpperCase().slice(0, 2);
   const avatarUrl = (profile as any)?.avatar_url ?? null;
 
-  // Quick actions — Messages & My Progress removed (they're in the tab bar)
   const quickActions = [
     { icon: '🎬', label: 'Training Videos', onPress: () => navigation.navigate('Videos') },
     { icon: '🏆', label: 'Leaderboard',      onPress: () => navigation.navigate('Leaderboard') },
@@ -206,48 +245,66 @@ export default function HomeScreen({ navigation }: any) {
 
   return (
     <View style={styles.root}>
+      {/* Grid overlay across entire screen */}
+      <GridOverlay />
+
       <ScrollView
         style={styles.container}
-        contentContainerStyle={{ paddingBottom: Math.max(insets.bottom + 100, 120) }}
+        contentContainerStyle={{ paddingBottom: 120 }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={GREEN2} />}
         showsVerticalScrollIndicator={false}
       >
-        {/* ── Header ── */}
-        <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-          <TouchableOpacity style={styles.avatarRow} onPress={() => navigation.navigate('Profile')} activeOpacity={0.8}>
-            {avatarUrl ? (
-              <Image source={{ uri: avatarUrl }} style={styles.avatar} />
-            ) : (
-              <View style={styles.avatarPlaceholder}>
-                <Text style={styles.avatarInitials}>{initials}</Text>
-              </View>
-            )}
-            <View style={styles.welcomeBlock}>
-              <Text style={styles.welcomeLabel}>Welcome,</Text>
-              <Text style={styles.welcomeName} numberOfLines={1}>
-                {firstName}{lastName ? ` ${lastName}` : ''}
-              </Text>
-            </View>
-          </TouchableOpacity>
+        {/* ── Arena Hero ── */}
+        <ImageBackground
+          source={require('../../../assets/arena.png')}
+          style={[styles.heroImage, { paddingTop: insets.top }]}
+          imageStyle={styles.heroImageStyle}
+        >
+          {/* Dark overlay */}
+          <View style={styles.heroOverlay} />
 
-          <View style={styles.headerRight}>
-            <View style={styles.rolePill}>
-              <Text style={styles.rolePillText}>{profile?.role ?? 'Student'}</Text>
-            </View>
-            <TouchableOpacity
-              style={styles.bellWrap}
-              onPress={() => navigation.navigate('Notifications')}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            >
-              <Text style={styles.bellIcon}>🔔</Text>
-              {unreadCount > 0 && (
-                <View style={styles.bellBadge}>
-                  <Text style={styles.bellBadgeText}>{unreadCount > 9 ? '9+' : String(unreadCount)}</Text>
+          {/* Header on top of arena */}
+          <View style={styles.header}>
+            <TouchableOpacity style={styles.avatarRow} onPress={() => navigation.navigate('Profile')} activeOpacity={0.8}>
+              {avatarUrl ? (
+                <Image source={{ uri: avatarUrl }} style={styles.avatar} />
+              ) : (
+                <View style={styles.avatarPlaceholder}>
+                  <Text style={styles.avatarInitials}>{initials}</Text>
                 </View>
               )}
+              <View style={styles.welcomeBlock}>
+                <Text style={styles.welcomeLabel}>Welcome,</Text>
+                <Text style={styles.welcomeName} numberOfLines={1}>
+                  {firstName}{lastName ? ` ${lastName}` : ''}
+                </Text>
+              </View>
             </TouchableOpacity>
+
+            <View style={styles.headerRight}>
+              <View style={styles.rolePill}>
+                <Text style={styles.rolePillText}>{profile?.role ?? 'Student'}</Text>
+              </View>
+              <TouchableOpacity
+                style={styles.bellWrap}
+                onPress={() => navigation.navigate('Notifications')}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <Text style={styles.bellIcon}>🔔</Text>
+                {unreadCount > 0 && (
+                  <View style={styles.bellBadge}>
+                    <Text style={styles.bellBadgeText}>{unreadCount > 9 ? '9+' : String(unreadCount)}</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
+
+          {/* BPT Watermark inside hero */}
+          <View style={styles.watermarkWrap}>
+            <Text style={styles.watermarkText}>BPT ACADEMY</Text>
+          </View>
+        </ImageBackground>
 
         {/* ── Calendar ── */}
         <View style={styles.section}>
@@ -297,7 +354,7 @@ export default function HomeScreen({ navigation }: any) {
           </View>
         </View>
 
-        {/* ── My Programs ── */}
+        {/* ── Programs ── */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Programs</Text>
@@ -346,7 +403,7 @@ export default function HomeScreen({ navigation }: any) {
           )}
         </View>
 
-        {/* ── Leaderboard teaser ── */}
+        {/* ── Leaderboard ── */}
         {leaderTop && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
@@ -390,11 +447,6 @@ export default function HomeScreen({ navigation }: any) {
             ))}
           </View>
         </View>
-
-        {/* ── BPT watermark ── */}
-        <View style={styles.watermark}>
-          <Text style={styles.watermarkText}>BPT Academy</Text>
-        </View>
       </ScrollView>
     </View>
   );
@@ -402,12 +454,40 @@ export default function HomeScreen({ navigation }: any) {
 
 const styles = StyleSheet.create({
   root:      { flex: 1, backgroundColor: BG },
-  container: { flex: 1, backgroundColor: BG },
+  container: { flex: 1, backgroundColor: 'transparent' },
+
+  // ── Arena Hero ──
+  heroImage: {
+    width: '100%',
+    minHeight: 200,
+    justifyContent: 'flex-end',
+  },
+  heroImageStyle: {
+    opacity: 0.2,
+    resizeMode: 'cover',
+  },
+  heroOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: BG,
+    opacity: 0.5,
+  },
+  watermarkWrap: {
+    alignItems: 'center',
+    paddingBottom: 20,
+    paddingTop: 8,
+  },
+  watermarkText: {
+    fontSize: 28,
+    letterSpacing: 8,
+    color: 'rgba(255,255,255,0.12)',
+    fontFamily: 'TTOctosquaresCond-Bold',
+    textTransform: 'uppercase',
+  },
 
   // ── Header ──
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: 16, paddingBottom: 16, backgroundColor: BG,
+    paddingHorizontal: 16, paddingTop: 12, paddingBottom: 12,
   },
   avatarRow:   { flexDirection: 'row', alignItems: 'center', flex: 1 },
   avatar:      { width: 46, height: 46, borderRadius: 10, borderWidth: 2, borderColor: GREEN },
@@ -417,14 +497,14 @@ const styles = StyleSheet.create({
   },
   avatarInitials: { color: '#FFF', fontSize: 16, fontWeight: '700' },
   welcomeBlock:   { marginLeft: 10, flex: 1 },
-  welcomeLabel:   { fontSize: 11, color: SUBTEXT, fontWeight: '500' },
-  welcomeName:    { fontSize: 15, fontWeight: '700', color: TEXT },
+  welcomeLabel:   { fontSize: 11, color: 'rgba(255,255,255,0.6)', fontFamily: 'TTOctosquaresCond-Light' },
+  welcomeName:    { fontSize: 15, fontWeight: '700', color: TEXT, fontFamily: 'TTOctosquaresCond-Bold' },
   headerRight:    { flexDirection: 'row', alignItems: 'center', gap: 8 },
   rolePill: {
-    borderWidth: 1, borderColor: GREEN, borderRadius: 12,
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.4)', borderRadius: 12,
     paddingHorizontal: 10, paddingVertical: 3,
   },
-  rolePillText:   { fontSize: 11, fontWeight: '700', color: GREEN },
+  rolePillText:   { fontSize: 11, fontWeight: '600', color: 'rgba(255,255,255,0.8)', fontFamily: 'TTOctosquaresCond-Light' },
   bellWrap:       { padding: 4 },
   bellIcon:       { fontSize: 20 },
   bellBadge: {
@@ -435,26 +515,26 @@ const styles = StyleSheet.create({
   bellBadgeText:  { color: '#FFF', fontSize: 9, fontWeight: '700' },
 
   // ── Sections ──
-  section:       { paddingHorizontal: 16, marginBottom: 4 },
+  section:       { paddingHorizontal: 16, marginBottom: 8 },
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-  sectionTitle:  { fontSize: 16, fontWeight: '700', color: TEXT },
-  seeAll:        { fontSize: 13, color: GREEN2, fontWeight: '600' },
-  nextBadge:     { backgroundColor: SURFACE2, borderRadius: 10, paddingHorizontal: 10, paddingVertical: 4 },
+  sectionTitle:  { fontSize: 15, fontWeight: '700', color: TEXT, fontFamily: 'TTOctosquaresCond-Bold', letterSpacing: 1 },
+  seeAll:        { fontSize: 12, color: GREEN2, fontWeight: '600' },
+  nextBadge:     { backgroundColor: SURFACE2, borderRadius: 10, paddingHorizontal: 10, paddingVertical: 4, borderWidth: 1, borderColor: BORDER },
   nextBadgeText: { fontSize: 11, color: GREEN2, fontWeight: '600' },
 
   // ── Calendar ──
-  calendarWrap: { backgroundColor: SURFACE, borderRadius: 16, paddingVertical: 12, overflow: 'hidden' },
+  calendarWrap: { backgroundColor: SURFACE, borderRadius: 16, paddingVertical: 12, overflow: 'hidden', borderWidth: 1, borderColor: BORDER },
   dayCell: {
     width: DAY_CELL_WIDTH, height: 70, alignItems: 'center', justifyContent: 'center',
     marginHorizontal: DAY_CELL_MARGIN, borderRadius: 12, backgroundColor: SURFACE2,
   },
   dayCellToday: { backgroundColor: GREEN },
-  dayCellPast:  { opacity: 0.45 },
+  dayCellPast:  { opacity: 0.4 },
   dayName: { fontSize: 10, fontWeight: '600', color: SUBTEXT, marginBottom: 4, textTransform: 'uppercase' },
   dayNameToday: { color: '#D1FAE5' },
   dayNamePast:  { color: SUBTEXT },
   dayNum: { fontSize: 18, fontWeight: '700', color: TEXT },
-  dayNumToday: { color: '#FFFFFF' },
+  dayNumToday: { color: '#FFF' },
   dayNumPast:  { color: SUBTEXT },
   eventDot:      { width: 5, height: 5, borderRadius: 2.5, backgroundColor: '#EF4444', marginTop: 4 },
   eventDotToday: { width: 5, height: 5, borderRadius: 2.5, backgroundColor: '#FFF', marginTop: 4 },
@@ -470,39 +550,39 @@ const styles = StyleSheet.create({
   emptyLink: { color: GREEN2, fontWeight: '600', fontSize: 13 },
   programCard: {
     borderRadius: 16, padding: 16,
-    backgroundColor: '#1A3A2A',
-    borderWidth: 1, borderColor: '#2D5A3D',
+    backgroundColor: '#0E2318',
+    borderWidth: 1, borderColor: '#1A4030',
   },
   programCardTop: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 14 },
-  programTitle:   { fontSize: 16, fontWeight: '700', color: '#FFF', marginBottom: 4 },
-  programMeta:    { fontSize: 12, color: 'rgba(255,255,255,0.65)' },
-  programChevron: { fontSize: 26, color: 'rgba(255,255,255,0.5)', marginTop: -2 },
-  progressBarBg:  { height: 5, backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 3, marginBottom: 8 },
-  progressBarFill:{ height: '100%', backgroundColor: GREEN2, borderRadius: 3 },
+  programTitle:   { fontSize: 15, fontWeight: '700', color: '#FFF', marginBottom: 4, fontFamily: 'TTOctosquaresCond-Bold' },
+  programMeta:    { fontSize: 12, color: 'rgba(255,255,255,0.55)' },
+  programChevron: { fontSize: 26, color: 'rgba(255,255,255,0.4)', marginTop: -2 },
+  progressBarBg:  { height: 4, backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: 2, marginBottom: 8 },
+  progressBarFill:{ height: '100%', backgroundColor: GREEN2, borderRadius: 2 },
   programCardBottom: { flexDirection: 'row', justifyContent: 'space-between' },
-  programPct:     { fontSize: 13, fontWeight: '700', color: '#FFF' },
-  programSessions:{ fontSize: 12, color: 'rgba(255,255,255,0.65)' },
+  programPct:     { fontSize: 13, fontWeight: '700', color: GREEN2 },
+  programSessions:{ fontSize: 12, color: 'rgba(255,255,255,0.55)' },
 
   // ── Leaderboard ──
   leaderCard: {
     borderRadius: 16, padding: 16,
-    backgroundColor: '#0D2D2D',
-    borderWidth: 1, borderColor: '#1A4A3A',
+    backgroundColor: '#091E1E',
+    borderWidth: 1, borderColor: '#0F3030',
     flexDirection: 'row', alignItems: 'center', gap: 14,
   },
   leaderRankCircle: {
     width: 44, height: 44, borderRadius: 22,
-    backgroundColor: 'rgba(34,197,94,0.15)',
+    backgroundColor: 'rgba(34,197,94,0.12)',
     alignItems: 'center', justifyContent: 'center',
     borderWidth: 1.5, borderColor: GREEN2,
   },
-  leaderRankText:     { fontSize: 15, fontWeight: '800', color: GREEN2 },
-  leaderName:         { fontSize: 15, fontWeight: '700', color: '#FFF', marginBottom: 4 },
-  leaderDivisionBadge:{ backgroundColor: 'rgba(255,255,255,0.1)', alignSelf: 'flex-start', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3 },
-  leaderDivisionText: { fontSize: 11, color: 'rgba(255,255,255,0.75)', fontWeight: '600' },
-  leaderPoints:       { fontSize: 20, fontWeight: '800', color: GREEN2 },
+  leaderRankText:     { fontSize: 14, fontWeight: '800', color: GREEN2, fontFamily: 'TTOctosquaresCond-Bold' },
+  leaderName:         { fontSize: 14, fontWeight: '700', color: '#FFF', marginBottom: 4, fontFamily: 'TTOctosquaresCond-Bold' },
+  leaderDivisionBadge:{ backgroundColor: 'rgba(255,255,255,0.08)', alignSelf: 'flex-start', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3 },
+  leaderDivisionText: { fontSize: 11, color: 'rgba(255,255,255,0.65)', fontWeight: '600' },
+  leaderPoints:       { fontSize: 20, fontWeight: '800', color: GREEN2, fontFamily: 'TTOctosquaresCond-Bold' },
   leaderPointsLabel:  { fontSize: 11, color: SUBTEXT },
-  leaderChevron:      { fontSize: 24, color: 'rgba(255,255,255,0.3)' },
+  leaderChevron:      { fontSize: 24, color: 'rgba(255,255,255,0.25)' },
 
   // ── Quick Actions ──
   quickGrid:   { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
@@ -513,8 +593,4 @@ const styles = StyleSheet.create({
   },
   actionIcon:  { fontSize: 26, marginBottom: 8 },
   actionLabel: { fontSize: 12, fontWeight: '600', color: TEXT, textAlign: 'center' },
-
-  // ── Watermark ──
-  watermark:     { alignItems: 'center', paddingVertical: 24 },
-  watermarkText: { fontSize: 13, fontWeight: '700', color: 'rgba(255,255,255,0.05)', letterSpacing: 3, textTransform: 'uppercase' },
 });

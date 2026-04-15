@@ -42,7 +42,18 @@
     },
     "plugins": [
       "expo-secure-store",
-      "expo-font",
+      [
+        "expo-font",
+        {
+          "fonts": [
+            "./assets/fonts/TTOctosquaresCond-Light.ttf",
+            "./assets/fonts/TTOctosquaresCond-Bold.ttf",
+            "./assets/fonts/TTOctosquares-Light.ttf",
+            "./assets/fonts/TTOctosquaresComp-Regular.ttf",
+            "./assets/fonts/TTOctosquaresComp-DBold.ttf"
+          ]
+        }
+      ],
       "expo-video",
       "expo-image-picker",
       "@react-native-community/datetimepicker",
