@@ -10,7 +10,7 @@ import { supabase } from '../../lib/supabase';
 import { Enrollment } from '../../types';
 import { useNotifications } from '../../hooks/useNotifications';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 // Calendar geometry
 const DAY_CELL_WIDTH = 52;
@@ -21,21 +21,15 @@ const PAST_DAYS = 7;
 const FUTURE_DAYS = 21;
 const TODAY_INDEX = PAST_DAYS;
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
-// Palette from Figma
-const BG       = '#0B1628';
-const SURFACE  = '#111E33';
-const SURFACE2 = '#172240';
-const BORDER   = '#1E3050';
-const TEXT     = '#F0F6FC';
-const SUBTEXT  = '#7A8FA6';
-const GREEN    = '#16A34A';
-const GREEN2   = '#22C55E';
-
-// Grid line positions (relative widths)
-const GRID_COLS = 8;
-const GRID_ROWS = 11;
+// Palette
+const BG      = '#0B1628';
+const SURFACE = '#111E33';
+const BORDER  = '#1E3050';
+const TEXT    = '#F0F6FC';
+const SUBTEXT = '#7A8FA6';
+const GREEN   = '#16A34A';
+const GREEN2  = '#22C55E';
 
 interface EnrollmentWithProgress extends Enrollment {
   completedModules: number;
@@ -84,39 +78,6 @@ function nextEventLabel(days: any[], todayStr: string): string {
   }
   return 'No Upcoming';
 }
-
-// Grid overlay component
-function GridOverlay() {
-  const cols = Array.from({ length: GRID_COLS });
-  const rows = Array.from({ length: GRID_ROWS });
-  return (
-    <View style={StyleSheet.absoluteFill} pointerEvents="none">
-      {cols.map((_, i) => (
-        <View
-          key={`c${i}`}
-          style={[gridStyles.col, { left: `${(i / GRID_COLS) * 100}%` as any }]}
-        />
-      ))}
-      {rows.map((_, i) => (
-        <View
-          key={`r${i}`}
-          style={[gridStyles.row, { top: `${(i / GRID_ROWS) * 100}%` as any }]}
-        />
-      ))}
-    </View>
-  );
-}
-
-const gridStyles = StyleSheet.create({
-  col: {
-    position: 'absolute', top: 0, bottom: 0, width: 1,
-    backgroundColor: 'rgba(255,255,255,0.04)',
-  },
-  row: {
-    position: 'absolute', left: 0, right: 0, height: 1,
-    backgroundColor: 'rgba(255,255,255,0.04)',
-  },
-});
 
 export default function HomeScreen({ navigation }: any) {
   const { profile } = useAuth();
@@ -245,8 +206,12 @@ export default function HomeScreen({ navigation }: any) {
 
   return (
     <View style={styles.root}>
-      {/* Grid overlay across entire screen */}
-      <GridOverlay />
+      {/* Full-screen background image — fixed behind everything */}
+      <Image
+        source={require('../../../assets/bg.png')}
+        style={styles.bgImage}
+        resizeMode="cover"
+      />
 
       <ScrollView
         style={styles.container}
@@ -254,57 +219,42 @@ export default function HomeScreen({ navigation }: any) {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={GREEN2} />}
         showsVerticalScrollIndicator={false}
       >
-        {/* ── Arena Hero ── */}
-        <ImageBackground
-          source={require('../../../assets/arena.png')}
-          style={[styles.heroImage, { paddingTop: insets.top }]}
-          imageStyle={styles.heroImageStyle}
-        >
-          {/* Dark overlay */}
-          <View style={styles.heroOverlay} />
+        {/* ── Header ── */}
+        <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
+          <TouchableOpacity style={styles.avatarRow} onPress={() => navigation.navigate('Profile')} activeOpacity={0.8}>
+            {avatarUrl ? (
+              <Image source={{ uri: avatarUrl }} style={styles.avatar} />
+            ) : (
+              <View style={styles.avatarPlaceholder}>
+                <Text style={styles.avatarInitials}>{initials}</Text>
+              </View>
+            )}
+            <View style={styles.welcomeBlock}>
+              <Text style={styles.welcomeLabel}>Welcome,</Text>
+              <Text style={styles.welcomeName} numberOfLines={1}>
+                {firstName}{lastName ? ` ${lastName}` : ''}
+              </Text>
+            </View>
+          </TouchableOpacity>
 
-          {/* Header on top of arena */}
-          <View style={styles.header}>
-            <TouchableOpacity style={styles.avatarRow} onPress={() => navigation.navigate('Profile')} activeOpacity={0.8}>
-              {avatarUrl ? (
-                <Image source={{ uri: avatarUrl }} style={styles.avatar} />
-              ) : (
-                <View style={styles.avatarPlaceholder}>
-                  <Text style={styles.avatarInitials}>{initials}</Text>
+          <View style={styles.headerRight}>
+            <View style={styles.rolePill}>
+              <Text style={styles.rolePillText}>{profile?.role ?? 'Student'}</Text>
+            </View>
+            <TouchableOpacity
+              style={styles.bellWrap}
+              onPress={() => navigation.navigate('Notifications')}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Text style={styles.bellIcon}>🔔</Text>
+              {unreadCount > 0 && (
+                <View style={styles.bellBadge}>
+                  <Text style={styles.bellBadgeText}>{unreadCount > 9 ? '9+' : String(unreadCount)}</Text>
                 </View>
               )}
-              <View style={styles.welcomeBlock}>
-                <Text style={styles.welcomeLabel}>Welcome,</Text>
-                <Text style={styles.welcomeName} numberOfLines={1}>
-                  {firstName}{lastName ? ` ${lastName}` : ''}
-                </Text>
-              </View>
             </TouchableOpacity>
-
-            <View style={styles.headerRight}>
-              <View style={styles.rolePill}>
-                <Text style={styles.rolePillText}>{profile?.role ?? 'Student'}</Text>
-              </View>
-              <TouchableOpacity
-                style={styles.bellWrap}
-                onPress={() => navigation.navigate('Notifications')}
-                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-              >
-                <Text style={styles.bellIcon}>🔔</Text>
-                {unreadCount > 0 && (
-                  <View style={styles.bellBadge}>
-                    <Text style={styles.bellBadgeText}>{unreadCount > 9 ? '9+' : String(unreadCount)}</Text>
-                  </View>
-                )}
-              </TouchableOpacity>
-            </View>
           </View>
-
-          {/* BPT Watermark inside hero */}
-          <View style={styles.watermarkWrap}>
-            <Text style={styles.watermarkText}>BPT ACADEMY</Text>
-          </View>
-        </ImageBackground>
+        </View>
 
         {/* ── Calendar ── */}
         <View style={styles.section}>
@@ -454,40 +404,18 @@ export default function HomeScreen({ navigation }: any) {
 
 const styles = StyleSheet.create({
   root:      { flex: 1, backgroundColor: BG },
-  container: { flex: 1, backgroundColor: 'transparent' },
-
-  // ── Arena Hero ──
-  heroImage: {
-    width: '100%',
-    minHeight: 200,
-    justifyContent: 'flex-end',
+  bgImage: {
+    position: 'absolute',
+    top: 0, left: 0, right: 0, bottom: 0,
+    width: SCREEN_WIDTH,
+    height: SCREEN_HEIGHT,
   },
-  heroImageStyle: {
-    opacity: 0.2,
-    resizeMode: 'cover',
-  },
-  heroOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: BG,
-    opacity: 0.5,
-  },
-  watermarkWrap: {
-    alignItems: 'center',
-    paddingBottom: 20,
-    paddingTop: 8,
-  },
-  watermarkText: {
-    fontSize: 28,
-    letterSpacing: 8,
-    color: 'rgba(255,255,255,0.12)',
-    fontFamily: 'TTOctosquaresCond-Bold',
-    textTransform: 'uppercase',
-  },
+  container: { flex: 1 },
 
   // ── Header ──
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: 16, paddingTop: 12, paddingBottom: 12,
+    paddingHorizontal: 16, paddingBottom: 16,
   },
   avatarRow:   { flexDirection: 'row', alignItems: 'center', flex: 1 },
   avatar:      { width: 46, height: 46, borderRadius: 10, borderWidth: 2, borderColor: GREEN },
@@ -497,14 +425,14 @@ const styles = StyleSheet.create({
   },
   avatarInitials: { color: '#FFF', fontSize: 16, fontWeight: '700' },
   welcomeBlock:   { marginLeft: 10, flex: 1 },
-  welcomeLabel:   { fontSize: 11, color: 'rgba(255,255,255,0.6)', fontFamily: 'TTOctosquaresCond-Light' },
+  welcomeLabel:   { fontSize: 11, color: 'rgba(255,255,255,0.55)', fontFamily: 'TTOctosquaresCond-Light' },
   welcomeName:    { fontSize: 15, fontWeight: '700', color: TEXT, fontFamily: 'TTOctosquaresCond-Bold' },
   headerRight:    { flexDirection: 'row', alignItems: 'center', gap: 8 },
   rolePill: {
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.4)', borderRadius: 12,
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.35)', borderRadius: 12,
     paddingHorizontal: 10, paddingVertical: 3,
   },
-  rolePillText:   { fontSize: 11, fontWeight: '600', color: 'rgba(255,255,255,0.8)', fontFamily: 'TTOctosquaresCond-Light' },
+  rolePillText:   { fontSize: 11, fontWeight: '600', color: 'rgba(255,255,255,0.7)', fontFamily: 'TTOctosquaresCond-Light' },
   bellWrap:       { padding: 4 },
   bellIcon:       { fontSize: 20 },
   bellBadge: {
@@ -519,14 +447,14 @@ const styles = StyleSheet.create({
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
   sectionTitle:  { fontSize: 15, fontWeight: '700', color: TEXT, fontFamily: 'TTOctosquaresCond-Bold', letterSpacing: 1 },
   seeAll:        { fontSize: 12, color: GREEN2, fontWeight: '600' },
-  nextBadge:     { backgroundColor: SURFACE2, borderRadius: 10, paddingHorizontal: 10, paddingVertical: 4, borderWidth: 1, borderColor: BORDER },
+  nextBadge:     { backgroundColor: 'rgba(17,30,51,0.8)', borderRadius: 10, paddingHorizontal: 10, paddingVertical: 4, borderWidth: 1, borderColor: BORDER },
   nextBadgeText: { fontSize: 11, color: GREEN2, fontWeight: '600' },
 
   // ── Calendar ──
-  calendarWrap: { backgroundColor: SURFACE, borderRadius: 16, paddingVertical: 12, overflow: 'hidden', borderWidth: 1, borderColor: BORDER },
+  calendarWrap: { backgroundColor: 'rgba(17,30,51,0.85)', borderRadius: 16, paddingVertical: 12, overflow: 'hidden', borderWidth: 1, borderColor: BORDER },
   dayCell: {
     width: DAY_CELL_WIDTH, height: 70, alignItems: 'center', justifyContent: 'center',
-    marginHorizontal: DAY_CELL_MARGIN, borderRadius: 12, backgroundColor: SURFACE2,
+    marginHorizontal: DAY_CELL_MARGIN, borderRadius: 12, backgroundColor: 'rgba(23,34,64,0.9)',
   },
   dayCellToday: { backgroundColor: GREEN },
   dayCellPast:  { opacity: 0.4 },
@@ -543,14 +471,14 @@ const styles = StyleSheet.create({
 
   // ── Programs ──
   emptyCard: {
-    backgroundColor: SURFACE, borderRadius: 14, padding: 20, alignItems: 'center',
+    backgroundColor: 'rgba(17,30,51,0.85)', borderRadius: 14, padding: 20, alignItems: 'center',
     borderWidth: 1, borderColor: BORDER,
   },
   emptyText: { color: SUBTEXT, fontSize: 14, marginBottom: 6 },
   emptyLink: { color: GREEN2, fontWeight: '600', fontSize: 13 },
   programCard: {
     borderRadius: 16, padding: 16,
-    backgroundColor: '#0E2318',
+    backgroundColor: 'rgba(14,35,24,0.9)',
     borderWidth: 1, borderColor: '#1A4030',
   },
   programCardTop: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 14 },
@@ -566,7 +494,7 @@ const styles = StyleSheet.create({
   // ── Leaderboard ──
   leaderCard: {
     borderRadius: 16, padding: 16,
-    backgroundColor: '#091E1E',
+    backgroundColor: 'rgba(9,30,30,0.9)',
     borderWidth: 1, borderColor: '#0F3030',
     flexDirection: 'row', alignItems: 'center', gap: 14,
   },
@@ -588,7 +516,7 @@ const styles = StyleSheet.create({
   quickGrid:   { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   actionCard:  {
     width: (SCREEN_WIDTH - 32 - 10) / 2,
-    backgroundColor: SURFACE, borderRadius: 14, padding: 16,
+    backgroundColor: 'rgba(17,30,51,0.85)', borderRadius: 14, padding: 16,
     alignItems: 'center', borderWidth: 1, borderColor: BORDER,
   },
   actionIcon:  { fontSize: 26, marginBottom: 8 },
