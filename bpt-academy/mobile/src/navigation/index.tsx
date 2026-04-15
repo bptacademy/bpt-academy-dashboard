@@ -102,6 +102,7 @@ function useTabBarScreenOptions() {
     },
     tabBarActiveTintColor: '#22C55E',
     tabBarInactiveTintColor: '#4B5563',
+    sceneContainerStyle: { paddingBottom: bottomPad + 12 + 60 + 20 },
   };
 }
 
