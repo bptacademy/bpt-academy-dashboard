@@ -38,3 +38,7 @@ MEMORY.md
 mobile/.env
 mobile/.env.*
 backups/
+
+# Root-level package files (accidentally committed; not part of the project)
+/package.json
+/package-lock.json
