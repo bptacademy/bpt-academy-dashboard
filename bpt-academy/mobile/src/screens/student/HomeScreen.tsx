@@ -149,21 +149,9 @@ export default function HomeScreen({ navigation }: any) {
   const goToPrograms = () => navigation.getParent()?.navigate('ProgramsTab');
   const goToMessages = () => navigation.getParent()?.navigate('MessagesTab');
 
-  const skillBadgeColor: Record<string, string> = {
-    beginner: '#3B82F6', intermediate: '#F59E0B', advanced: '#EF4444',
-  };
-
-  const greeting = (() => {
-    const hour = new Date().getHours();
-    if (hour >= 5 && hour < 12) return 'Good morning 🌅';
-    if (hour >= 12 && hour < 17) return 'Good afternoon ☀️';
-    if (hour >= 17 && hour < 21) return 'Good evening 🌆';
-    return 'Good night 🌙';
-  })();
-
   const quickActions = [
     { icon: '🎬', label: 'Training Videos', onPress: () => navigation.navigate('Videos') },
-    { icon: '📈', label: 'My Progress',      onPress: () => navigation.navigate('Progress') },
+    { icon: '📈', label: 'My Progress',      onPress: () => navigation.getParent()?.navigate('ProgressTab') },
     { icon: '🏆', label: 'Leaderboard',      onPress: () => navigation.navigate('Leaderboard') },
     { icon: '🎾', label: 'Tournaments',      onPress: () => navigation.navigate('Tournaments') },
     { icon: '💬', label: 'Messages',         onPress: goToMessages },
@@ -178,22 +166,15 @@ export default function HomeScreen({ navigation }: any) {
       contentContainerStyle={{ paddingBottom: Math.max(insets.bottom + 80, 104) }}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
     >
-      <ScreenHeader title="BPT Academy 🎾" />
-
-      {/* Welcome strip */}
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.greeting}>{greeting}</Text>
-          <Text style={styles.name}>{profile?.full_name}</Text>
-        </View>
-        {profile?.skill_level && (
-          <View style={[styles.badge, { backgroundColor: skillBadgeColor[profile.skill_level] ?? '#6B7280' }]}>
-            <Text style={styles.badgeText}>
-              {profile.skill_level.charAt(0).toUpperCase() + profile.skill_level.slice(1)}
-            </Text>
-          </View>
-        )}
-      </View>
+      {/* New home header: avatar + welcome + role pill + bell */}
+      <ScreenHeader
+        title=""
+        homeHeader
+        profileName={profile?.full_name}
+        profileRole={profile?.role}
+        profileAvatar={(profile as any)?.avatar_url ?? null}
+        onAvatarPress={() => navigation.navigate('Profile')}
+      />
 
       {/* ── Calendar Strip ── */}
       <View style={styles.calendarSection}>
@@ -295,15 +276,6 @@ export default function HomeScreen({ navigation }: any) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F9FAFB' },
-  header: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    padding: 24, backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1, borderBottomColor: '#F3F4F6',
-  },
-  greeting: { fontSize: 14, color: '#6B7280' },
-  name: { fontSize: 22, fontWeight: '700', color: '#111827' },
-  badge: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20 },
-  badgeText: { color: '#FFFFFF', fontSize: 12, fontWeight: '600' },
 
   calendarSection: {
     backgroundColor: '#FFFFFF', paddingTop: 14, paddingBottom: 14,

@@ -7,9 +7,23 @@ import { useNotifications } from '../../hooks/useNotifications';
 interface Props {
   title: string;
   dark?: boolean;
+  /** When true: shows avatar + welcome name on left, bell on right (home screen style). */
+  homeHeader?: boolean;
+  profileName?: string | null;
+  profileRole?: string | null;
+  profileAvatar?: string | null;
+  onAvatarPress?: () => void;
 }
 
-export default function ScreenHeader({ title, dark = false }: Props) {
+export default function ScreenHeader({
+  title,
+  dark = false,
+  homeHeader = false,
+  profileName,
+  profileRole,
+  profileAvatar,
+  onAvatarPress,
+}: Props) {
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
   const { unreadCount } = useNotifications();
@@ -29,6 +43,68 @@ export default function ScreenHeader({ title, dark = false }: Props) {
 
   const badgeLabel = unreadCount > 9 ? '9+' : String(unreadCount);
 
+  // ── Home Header variant (avatar + welcome name) ────────────────────────────
+  if (homeHeader) {
+    const initials = profileName
+      ? profileName
+          .split(' ')
+          .map((w: string) => w[0])
+          .join('')
+          .toUpperCase()
+          .slice(0, 2)
+      : '?';
+    const rolePill = profileRole
+      ? profileRole.charAt(0).toUpperCase() + profileRole.slice(1).replace('_', ' ')
+      : null;
+    const nameParts = profileName ? profileName.split(' ') : [];
+    const firstName = nameParts[0] ?? '';
+    const lastName = nameParts.slice(1).join(' ').toUpperCase();
+
+    return (
+      <View style={[styles.header, styles.homeHeaderRow, { paddingTop: insets.top + 10 }]}>
+        {/* Left: avatar + welcome */}
+        <TouchableOpacity style={styles.homeLeft} onPress={onAvatarPress} activeOpacity={0.8}>
+          {profileAvatar ? (
+            <Image source={{ uri: profileAvatar }} style={styles.avatar} />
+          ) : (
+            <View style={styles.avatarPlaceholder}>
+              <Text style={styles.avatarInitials}>{initials}</Text>
+            </View>
+          )}
+          <View style={styles.welcomeBlock}>
+            <Text style={styles.welcomeLabel}>Welcome,</Text>
+            <Text style={styles.welcomeName} numberOfLines={1}>
+              {firstName}
+              {lastName ? ` ${lastName}` : ''}
+            </Text>
+          </View>
+        </TouchableOpacity>
+
+        {/* Right: role pill + bell */}
+        <View style={styles.homeRight}>
+          {rolePill && (
+            <View style={styles.rolePill}>
+              <Text style={styles.rolePillText}>{rolePill}</Text>
+            </View>
+          )}
+          <TouchableOpacity
+            style={styles.bellBtnHome}
+            onPress={() => navigation.navigate('Notifications')}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <Text style={styles.bellIcon}>🔔</Text>
+            {unreadCount > 0 && (
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>{badgeLabel}</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
+
+  // ── Default header ─────────────────────────────────────────────────────────
   return (
     <View style={[styles.header, dark && styles.headerDark, { paddingTop: insets.top + 10 }]}>
       {/* Left: back arrow when deep, logo at tab root */}
@@ -94,7 +170,7 @@ const styles = StyleSheet.create({
   titleDark: { color: '#FFFFFF' },
 
   // Balancing placeholder — matches left element width
-  rightPlaceholderSmall: { width: 44 }, // matches back button width
+  rightPlaceholderSmall: { width: 44 },
 
   // Bell button (tab root, matches logo width for balance)
   bellBtn: {
@@ -102,11 +178,40 @@ const styles = StyleSheet.create({
   },
   bellIcon: { fontSize: 22 },
   badge: {
-    position: 'absolute', top: 12, right: 8,
+    position: 'absolute', top: -4, right: -6,
     minWidth: 18, height: 18, borderRadius: 9,
     backgroundColor: '#EF4444',
     alignItems: 'center', justifyContent: 'center',
     paddingHorizontal: 4,
   },
   badgeText: { color: '#FFFFFF', fontSize: 10, fontWeight: '700' },
+
+  // ── Home Header styles ──────────────────────────────────────────────────────
+  homeHeaderRow: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+  },
+  homeLeft: {
+    flexDirection: 'row', alignItems: 'center', flex: 1,
+  },
+  avatar: {
+    width: 46, height: 46, borderRadius: 23,
+    borderWidth: 2, borderColor: '#16A34A',
+  },
+  avatarPlaceholder: {
+    width: 46, height: 46, borderRadius: 23,
+    backgroundColor: '#16A34A',
+    alignItems: 'center', justifyContent: 'center',
+    borderWidth: 2, borderColor: '#16A34A',
+  },
+  avatarInitials: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
+  welcomeBlock: { marginLeft: 10, flex: 1 },
+  welcomeLabel: { fontSize: 12, color: '#6B7280', fontWeight: '500' },
+  welcomeName: { fontSize: 16, fontWeight: '700', color: '#111827' },
+  homeRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  rolePill: {
+    backgroundColor: '#DCFCE7', borderRadius: 12,
+    paddingHorizontal: 10, paddingVertical: 4,
+  },
+  rolePillText: { fontSize: 11, fontWeight: '700', color: '#16A34A' },
+  bellBtnHome: { padding: 6 },
 });
