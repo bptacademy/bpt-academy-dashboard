@@ -99,7 +99,6 @@ function useTabBarScreenOptions() {
   };
 }
 
-
 // ─── Bell tab icon with unread badge ─────────────────────────────────────────
 function BellTabIcon({ color }: { color: string }) {
   const { unreadCount } = useNotifications();
@@ -225,7 +224,6 @@ function StudentMessagesStack() {
   );
 }
 
-// My Progress tab stack — also handles Profile navigation (via avatar tap)
 function StudentProgressStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
@@ -318,7 +316,6 @@ function CoachMessagesStack() {
   );
 }
 
-// Coach My Progress tab stack — Profile accessible via avatar tap in header
 function CoachProgressStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
@@ -379,6 +376,7 @@ function AdminDashboardStack() {
       <Stack.Screen name="PromotionManage"    component={PromotionManageScreen} />
       <Stack.Screen name="Chat"               component={ChatScreen} />
       <Stack.Screen name="NewConversation"    component={NewConversationScreen} />
+      <Stack.Screen name="Profile"            component={ProfileScreen} />
       <Stack.Screen name="Notifications"      component={NotificationsScreen} />
       <Stack.Screen name="PrivacyPolicy"      component={PrivacyPolicyScreen} />
       <Stack.Screen name="TermsOfService"     component={TermsOfServiceScreen} />
@@ -476,6 +474,7 @@ function SuperAdminDashboardStack() {
       <Stack.Screen name="TournamentDetail"   component={TournamentDetailScreen} />
       <Stack.Screen name="Chat"               component={ChatScreen} />
       <Stack.Screen name="NewConversation"    component={NewConversationScreen} />
+      <Stack.Screen name="Profile"            component={ProfileScreen} />
       <Stack.Screen name="Notifications"      component={NotificationsScreen} />
       <Stack.Screen name="PrivacyPolicy"      component={PrivacyPolicyScreen} />
       <Stack.Screen name="TermsOfService"     component={TermsOfServiceScreen} />
@@ -488,6 +487,7 @@ function SuperAdminUsersStack() {
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="SuperAdminHome" component={SuperAdminHomeScreen} />
       <Stack.Screen name="StudentDetail"  component={StudentDetailScreen} />
+      <Stack.Screen name="Profile"        component={ProfileScreen} />
       <Stack.Screen name="Notifications"  component={NotificationsScreen} />
       <Stack.Screen name="PrivacyPolicy"  component={PrivacyPolicyScreen} />
       <Stack.Screen name="TermsOfService" component={TermsOfServiceScreen} />
