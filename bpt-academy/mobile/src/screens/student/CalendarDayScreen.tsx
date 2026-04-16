@@ -1,6 +1,5 @@
 import React from 'react';
 import {
-import BackButton from '../../../components/common/BackButton';
   View,
   Text,
   FlatList,
@@ -8,6 +7,7 @@ import BackButton from '../../../components/common/BackButton';
   ListRenderItemInfo, Image, Dimensions} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import BackHeader from '../../components/common/BackHeader';
+import BackButton from '../../../components/common/BackButton';
 
 export interface CalendarEvent {
   id: string;
