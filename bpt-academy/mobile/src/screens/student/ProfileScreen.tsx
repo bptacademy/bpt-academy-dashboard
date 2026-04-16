@@ -165,7 +165,8 @@ export default function ProfileScreen({ navigation }: any) {
   const initials = (profile?.full_name ?? '?').split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
 
   return (
-    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <KeyboardAvoidingView style={{ flex: 1, backgroundColor: '#0B1628' }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <Image source={require('../../../assets/bg.png')} style={styles.bgImage} resizeMode="cover" />
       <ScreenHeader title="Profile" />
       <ScrollView style={styles.container}>
 
@@ -431,8 +432,6 @@ function Field({ label, value, editing, onChangeText, placeholder, keyboardType 
 }) {
   return (
     <View style={fieldStyles.row}>
-      <Image source={require('../../../assets/bg.png')} style={styles.bgImage} resizeMode="cover" />
-
       <Text style={fieldStyles.label}>{label}</Text>
       {editing ? (
         <TextInput style={fieldStyles.input} value={value} onChangeText={onChangeText}
@@ -445,7 +444,6 @@ function Field({ label, value, editing, onChangeText, placeholder, keyboardType 
 }
 
 const fieldStyles = StyleSheet.create({
-  bgImage: { position: 'absolute', top: 0, left: 0, width: Dimensions.get('window').width, height: Dimensions.get('window').height },
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, minHeight: 54 },
   label: { fontSize: 15, color: '#374151', flex: 1 },
   value: { fontSize: 15, color: '#6B7280', flex: 1.5, textAlign: 'right' },
@@ -453,7 +451,8 @@ const fieldStyles = StyleSheet.create({
 });
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F9FAFB' },
+  bgImage: { position: 'absolute', top: 0, left: 0, width: Dimensions.get('window').width, height: Dimensions.get('window').height },
+  container: { flex: 1, backgroundColor: 'transparent' },
   header: { backgroundColor: '#FFFFFF', alignItems: 'center', paddingBottom: 24, borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
   avatarWrapper: { position: 'relative', marginBottom: 14 },
   avatarCircle: { width: 90, height: 90, borderRadius: 45, backgroundColor: '#16A34A', alignItems: 'center', justifyContent: 'center' },
