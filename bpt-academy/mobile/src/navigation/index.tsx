@@ -93,7 +93,7 @@ function useTabBarScreenOptions() {
       right: 32,
       height: 60,
       borderRadius: 30,
-      backgroundColor: '#161B22',
+      backgroundColor: 'rgba(11,22,40,0.30)',
       borderTopWidth: 0,
       shadowColor: '#000',
       shadowOffset: { width: 0, height: 4 },
@@ -102,7 +102,7 @@ function useTabBarScreenOptions() {
       elevation: 12,
     },
     tabBarActiveTintColor: '#22C55E',
-    tabBarInactiveTintColor: '#4B5563',
+    tabBarInactiveTintColor: 'rgba(255,255,255,0.30)',
     sceneContainerStyle: { paddingBottom: bottomPad + 12 + 60 + 20 },
   };
 }
