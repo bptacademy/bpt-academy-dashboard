@@ -6,7 +6,7 @@ import { useNotifications } from '../hooks/useNotifications';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 import { Notification } from '../types';
-import BackButton from '../../components/common/BackButton';
+import BackButton from '../components/common/BackButton';
 
 interface NotificationWithExpiry extends Notification {
   expires_at?: string | null;

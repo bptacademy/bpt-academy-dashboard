@@ -8,7 +8,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import BackHeader from '../../components/common/BackHeader';
-import BackButton from '../../../components/common/BackButton';
+import BackButton from '../../components/common/BackButton';
 
 interface Message {
   id: string;

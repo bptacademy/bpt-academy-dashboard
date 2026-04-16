@@ -7,7 +7,7 @@ import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { Video as VideoType } from '../../types';
 import BackHeader from '../../components/common/BackHeader';
-import BackButton from '../../../components/common/BackButton';
+import BackButton from '../../components/common/BackButton';
 
 const { width } = Dimensions.get('window');
 

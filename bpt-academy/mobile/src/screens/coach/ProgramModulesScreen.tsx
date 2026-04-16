@@ -6,7 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
 import BackHeader from '../../components/common/BackHeader';
 import { Module } from '../../types';
-import BackButton from '../../../components/common/BackButton';
+import BackButton from '../../components/common/BackButton';
 
 export default function ProgramModulesScreen({ route }: any) {
   const insets = useSafeAreaInsets();

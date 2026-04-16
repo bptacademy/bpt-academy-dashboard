@@ -7,7 +7,7 @@ import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { Program, Module, StudentProgress, ProgramSession, Division, DIVISION_LABELS, DIVISION_COLORS } from '../../types';
 import BackHeader from '../../components/common/BackHeader';
-import BackButton from '../../../components/common/BackButton';
+import BackButton from '../../components/common/BackButton';
 
 const DEFAULT_PRICE_GBP = 49.99;
 

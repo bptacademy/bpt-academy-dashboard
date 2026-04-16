@@ -5,7 +5,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import BackHeader from '../../components/common/BackHeader';
 import { supabase } from '../../lib/supabase';
-import BackButton from '../../../components/common/BackButton';
+import BackButton from '../../components/common/BackButton';
 import {
   Profile, Enrollment, ProgramSession, SessionAttendance,
   CoachNote, Payment, Division, DIVISION_LABELS, DIVISION_COLORS,

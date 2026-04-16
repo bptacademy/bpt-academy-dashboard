@@ -7,7 +7,7 @@ import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { CoachNote, Profile } from '../../types';
 import BackHeader from '../../components/common/BackHeader';
-import BackButton from '../../../components/common/BackButton';
+import BackButton from '../../components/common/BackButton';
 
 interface NoteWithCoach extends CoachNote {
   coach?: { full_name: string } | null;

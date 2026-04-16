@@ -7,7 +7,7 @@ import { supabase } from '../../lib/supabase';
 import { Profile, UserRole, SkillLevel, EnrollmentStatus, Division, DIVISION_LABELS } from '../../types';
 import BackHeader from '../../components/common/BackHeader';
 import { useAuth } from '../../context/AuthContext';
-import BackButton from '../../../components/common/BackButton';
+import BackButton from '../../components/common/BackButton';
 
 // ─── Goal types ───────────────────────────────────────────────
 type GoalCategory = 'technical' | 'tactical' | 'physical' | 'mindset';
