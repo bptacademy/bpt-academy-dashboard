@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, ScrollView,
   Alert, Switch, TextInput, Image, ActivityIndicator,
-  KeyboardAvoidingView, Platform, Modal,, Dimensions} from 'react-native';
+  KeyboardAvoidingView, Platform, Modal, Dimensions} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import DateTimePicker from '@react-native-community/datetimepicker';

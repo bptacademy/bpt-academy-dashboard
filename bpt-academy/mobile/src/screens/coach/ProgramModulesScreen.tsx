@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
-  TextInput, Alert, ActivityIndicator, Modal, RefreshControl,, Image, Dimensions} from 'react-native';
+  TextInput, Alert, ActivityIndicator, Modal, RefreshControl, Image, Dimensions} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
 import BackHeader from '../../components/common/BackHeader';
