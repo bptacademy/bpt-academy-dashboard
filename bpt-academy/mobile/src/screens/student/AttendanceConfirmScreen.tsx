@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity,
-  ActivityIndicator, Alert, ScrollView,
-} from 'react-native';
+  ActivityIndicator, Alert, ScrollView,, Image, Dimensions} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
@@ -89,6 +88,8 @@ export default function AttendanceConfirmScreen({ navigation, route }: Props) {
 
   return (
     <View style={styles.container}>
+      <Image source={require('../../../assets/bg.png')} style={styles.bgImage} resizeMode="cover" />
+
       <ScreenHeader title="Confirm Attendance" />
       <ScrollView contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 32 }]}>
 
@@ -154,6 +155,7 @@ export default function AttendanceConfirmScreen({ navigation, route }: Props) {
 }
 
 const styles = StyleSheet.create({
+  bgImage: { position: 'absolute', top: 0, left: 0, width: Dimensions.get('window').width, height: Dimensions.get('window').height },
   container: { flex: 1, backgroundColor: '#F9FAFB' },
   content: { padding: 20 },
 

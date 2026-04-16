@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
   View, Text, ScrollView, StyleSheet,
-  TouchableOpacity, RefreshControl, Alert,
+  TouchableOpacity, RefreshControl, Alert, Image, Dimensions,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
@@ -47,104 +47,108 @@ export default function ProgramsScreen({ navigation }: any) {
   const filtered = filter === 'all' ? programs : programs.filter((p) => (p as any).division === filter);
 
   return (
-    <ScrollView
-      contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
-      style={styles.container}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-    >
-      <ScreenHeader title="Programs" />
+    <View style={styles.container}>
+      <Image source={require('../../../assets/bg.png')} style={styles.bgImage} resizeMode="cover" />
+      <ScrollView
+        contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
+        style={{ flex: 1 }}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+      >
+        <ScreenHeader title="Programs" />
 
-      {/* Filter chips */}
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filters} contentContainerStyle={styles.filtersContent}>
-        <TouchableOpacity
-          style={[styles.chip, filter === 'all' && styles.chipActive]}
-          onPress={() => setFilter('all')}
-        >
-          <Text style={[styles.chipText, filter === 'all' && styles.chipTextActive]}>All</Text>
-        </TouchableOpacity>
-        {DIVISIONS.map((div) => (
+        {/* Filter chips */}
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filters} contentContainerStyle={styles.filtersContent}>
           <TouchableOpacity
-            key={div}
-            style={[styles.chip, filter === div && { backgroundColor: DIVISION_COLORS[div], borderColor: DIVISION_COLORS[div] }]}
-            onPress={() => setFilter(div)}
+            style={[styles.chip, filter === 'all' && styles.chipActive]}
+            onPress={() => setFilter('all')}
           >
-            <Text style={[styles.chipText, filter === div && styles.chipTextActive]}>
-              {DIVISION_LABELS[div]}
-            </Text>
+            <Text style={[styles.chipText, filter === 'all' && styles.chipTextActive]}>All</Text>
           </TouchableOpacity>
-        ))}
-      </ScrollView>
-
-      {/* Program list */}
-      <View style={styles.list}>
-        {filtered.map((program) => {
-          const enrolled = enrolledIds.includes(program.id);
-          return (
+          {DIVISIONS.map((div) => (
             <TouchableOpacity
-              key={program.id}
-              style={styles.card}
-              onPress={() => navigation.navigate('ProgramDetail', { programId: program.id })}
+              key={div}
+              style={[styles.chip, filter === div && { backgroundColor: DIVISION_COLORS[div], borderColor: DIVISION_COLORS[div] }]}
+              onPress={() => setFilter(div)}
             >
-              <View style={styles.cardHeader}>
-                {(() => {
-                  const div = ((program as any).division ?? 'amateur') as Division;
-                  const color = DIVISION_COLORS[div] ?? '#6B7280';
-                  const label = DIVISION_LABELS[div] ?? div;
-                  const sub = program.skill_level
-                    ? ` · ${program.skill_level.charAt(0).toUpperCase() + program.skill_level.slice(1)}`
-                    : '';
-                  return (
-                    <View style={[styles.levelBadge, { backgroundColor: color + '20' }]}>
-                      <Text style={[styles.levelText, { color }]}>{label}{sub}</Text>
-                    </View>
-                  );
-                })()}
-                {enrolled && (
-                  <View style={styles.enrolledBadge}>
-                    <Text style={styles.enrolledText}>✓ Enrolled</Text>
-                  </View>
-                )}
-              </View>
-
-              <Text style={styles.cardTitle}>{program.title}</Text>
-              {program.description && (
-                <Text style={styles.cardDesc} numberOfLines={2}>{program.description}</Text>
-              )}
-
-              <View style={styles.cardFooter}>
-                <Text style={styles.cardMeta}>⏱ {program.duration_weeks ?? '—'} weeks</Text>
-                {(program as any).price_gbp != null
-                  ? <Text style={styles.cardPrice}>£{parseFloat((program as any).price_gbp).toFixed(2)}</Text>
-                  : <Text style={styles.cardPriceFree}>Free</Text>
-                }
-              </View>
-
-              {!enrolled && (
-                <TouchableOpacity
-                  style={[styles.enrollButton, activeEnrollmentExists && styles.enrollButtonLocked]}
-                  onPress={() => handleEnrollPress(program.id)}
-                >
-                  <Text style={styles.enrollButtonText}>
-                    {activeEnrollmentExists ? '🔒 View Program' : 'Pay & Enroll'}
-                  </Text>
-                </TouchableOpacity>
-              )}
+              <Text style={[styles.chipText, filter === div && styles.chipTextActive]}>
+                {DIVISION_LABELS[div]}
+              </Text>
             </TouchableOpacity>
-          );
-        })}
+          ))}
+        </ScrollView>
 
-        {filtered.length === 0 && (
-          <View style={styles.empty}>
-            <Text style={styles.emptyText}>No programs found.</Text>
-          </View>
-        )}
-      </View>
-    </ScrollView>
+        {/* Program list */}
+        <View style={styles.list}>
+          {filtered.map((program) => {
+            const enrolled = enrolledIds.includes(program.id);
+            return (
+              <TouchableOpacity
+                key={program.id}
+                style={styles.card}
+                onPress={() => navigation.navigate('ProgramDetail', { programId: program.id })}
+              >
+                <View style={styles.cardHeader}>
+                  {(() => {
+                    const div = ((program as any).division ?? 'amateur') as Division;
+                    const color = DIVISION_COLORS[div] ?? '#6B7280';
+                    const label = DIVISION_LABELS[div] ?? div;
+                    const sub = program.skill_level
+                      ? ` · ${program.skill_level.charAt(0).toUpperCase() + program.skill_level.slice(1)}`
+                      : '';
+                    return (
+                      <View style={[styles.levelBadge, { backgroundColor: color + '20' }]}>
+                        <Text style={[styles.levelText, { color }]}>{label}{sub}</Text>
+                      </View>
+                    );
+                  })()}
+                  {enrolled && (
+                    <View style={styles.enrolledBadge}>
+                      <Text style={styles.enrolledText}>✓ Enrolled</Text>
+                    </View>
+                  )}
+                </View>
+
+                <Text style={styles.cardTitle}>{program.title}</Text>
+                {program.description && (
+                  <Text style={styles.cardDesc} numberOfLines={2}>{program.description}</Text>
+                )}
+
+                <View style={styles.cardFooter}>
+                  <Text style={styles.cardMeta}>⏱ {program.duration_weeks ?? '—'} weeks</Text>
+                  {(program as any).price_gbp != null
+                    ? <Text style={styles.cardPrice}>£{parseFloat((program as any).price_gbp).toFixed(2)}</Text>
+                    : <Text style={styles.cardPriceFree}>Free</Text>
+                  }
+                </View>
+
+                {!enrolled && (
+                  <TouchableOpacity
+                    style={[styles.enrollButton, activeEnrollmentExists && styles.enrollButtonLocked]}
+                    onPress={() => handleEnrollPress(program.id)}
+                  >
+                    <Text style={styles.enrollButtonText}>
+                      {activeEnrollmentExists ? '🔒 View Program' : 'Pay & Enroll'}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+              </TouchableOpacity>
+            );
+          })}
+
+          {filtered.length === 0 && (
+            <View style={styles.empty}>
+              <Text style={styles.emptyText}>No programs found.</Text>
+            </View>
+          )}
+        </View>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F9FAFB' },
+  container: { flex: 1, backgroundColor: '#0B1628' },
+  bgImage: { position: 'absolute', top: 0, left: 0, width: Dimensions.get('window').width, height: Dimensions.get('window').height },
   header: { padding: 24, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
   title: { fontSize: 26, fontWeight: '700', color: '#111827' },
   subtitle: { fontSize: 14, color: '#6B7280', marginTop: 2 },

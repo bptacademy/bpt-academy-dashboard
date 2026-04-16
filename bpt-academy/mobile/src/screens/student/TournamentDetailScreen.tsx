@@ -1,8 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
-  ActivityIndicator, Alert, RefreshControl,
-} from 'react-native';
+  ActivityIndicator, Alert, RefreshControl,, Image, Dimensions} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
@@ -183,6 +182,8 @@ export default function TournamentDetailScreen({ navigation, route }: any) {
 
   if (loading) return (
     <View style={styles.container}>
+      <Image source={require('../../../assets/bg.png')} style={styles.bgImage} resizeMode="cover" />
+
       <BackHeader title="Tournament" />
       <ActivityIndicator size="large" color="#16A34A" style={styles.loader} />
     </View>
@@ -487,6 +488,7 @@ function statusColor(status: string) {
 // ─── Styles ──────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
+  bgImage: { position: 'absolute', top: 0, left: 0, width: Dimensions.get('window').width, height: Dimensions.get('window').height },
   container: { flex: 1, backgroundColor: '#F9FAFB' },
   loader: { marginTop: 60 },
   errorText: { textAlign: 'center', marginTop: 40, color: '#6B7280' },

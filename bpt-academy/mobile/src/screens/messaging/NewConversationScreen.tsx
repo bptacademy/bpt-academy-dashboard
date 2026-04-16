@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
-  TextInput, Alert,
-} from 'react-native';
+  TextInput, Alert,, Image, Dimensions} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
@@ -112,6 +111,7 @@ export default function NewConversationScreen({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
+  bgImage: { position: 'absolute', top: 0, left: 0, width: Dimensions.get('window').width, height: Dimensions.get('window').height },
   container: { flex: 1, backgroundColor: '#F9FAFB' },
   header: { padding: 24, paddingTop: 16, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
   title: { fontSize: 22, fontWeight: '700', color: '#111827' },

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, RefreshControl, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, RefreshControl, ActivityIndicator, Image, Dimensions} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
 import { Division, DIVISION_LABELS, DIVISION_COLORS } from '../../types';
@@ -135,6 +135,7 @@ export default function DivisionDashboardScreen({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
+  bgImage: { position: 'absolute', top: 0, left: 0, width: Dimensions.get('window').width, height: Dimensions.get('window').height },
   container: { flex: 1, backgroundColor: '#F9FAFB' },
   totalsRow: { flexDirection: 'row', padding: 16, gap: 10 },
   totalCard: { flex: 1, backgroundColor: '#111827', borderRadius: 14, padding: 16, alignItems: 'center' },

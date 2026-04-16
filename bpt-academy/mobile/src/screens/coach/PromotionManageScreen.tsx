@@ -1,8 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
-  Alert, ActivityIndicator, RefreshControl,
-} from 'react-native';
+  Alert, ActivityIndicator, RefreshControl,, Image, Dimensions} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
@@ -46,6 +45,8 @@ function MetricBar({ label, value, target, suffix = '%' }: {
   const met = value >= target;
   return (
     <View style={styles.metricRow}>
+      <Image source={require('../../../assets/bg.png')} style={styles.bgImage} resizeMode="cover" />
+
       <View style={styles.metricHeader}>
         <Text style={styles.metricLabel}>{label}</Text>
         <View style={styles.metricRight}>
@@ -450,6 +451,7 @@ export default function PromotionManageScreen({ route, navigation }: any) {
 }
 
 const styles = StyleSheet.create({
+  bgImage: { position: 'absolute', top: 0, left: 0, width: Dimensions.get('window').width, height: Dimensions.get('window').height },
   root: { flex: 1, backgroundColor: '#F9FAFB' },
   content: { padding: 16, paddingBottom: 48 },
   loader: { marginTop: 60 },

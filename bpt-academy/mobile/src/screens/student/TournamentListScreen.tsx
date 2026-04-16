@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
-  RefreshControl, ActivityIndicator,
-} from 'react-native';
+  RefreshControl, ActivityIndicator,, Image, Dimensions} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
@@ -70,6 +69,8 @@ export default function TournamentListScreen({ navigation }: { navigation: any }
 
   return (
     <View style={styles.container}>
+      <Image source={require('../../../assets/bg.png')} style={styles.bgImage} resizeMode="cover" />
+
       <BackHeader title="Tournaments" />
       <ScrollView
         contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
@@ -179,6 +180,7 @@ export default function TournamentListScreen({ navigation }: { navigation: any }
 }
 
 const styles = StyleSheet.create({
+  bgImage: { position: 'absolute', top: 0, left: 0, width: Dimensions.get('window').width, height: Dimensions.get('window').height },
   container: { flex: 1, backgroundColor: '#F9FAFB' },
   academyHeader: { padding: 16, paddingBottom: 4 },
   academyTitle: { fontSize: 16, fontWeight: '700', color: '#111827' },

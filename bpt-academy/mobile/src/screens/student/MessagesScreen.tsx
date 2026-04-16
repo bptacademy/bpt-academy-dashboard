@@ -1,8 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import {
   View, Text, ScrollView, StyleSheet,
-  TouchableOpacity, RefreshControl, Modal,
-} from 'react-native';
+  TouchableOpacity, RefreshControl, Modal,, Image, Dimensions} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { supabase } from '../../lib/supabase';
@@ -323,6 +322,8 @@ export default function MessagesScreen({ navigation }: any) {
 
   return (
     <View style={styles.wrapper}>
+      <Image source={require('../../../assets/bg.png')} style={styles.bgImage} resizeMode="cover" />
+
       <ScrollView
         contentContainerStyle={{ paddingBottom: Math.max(insets.bottom + 80, 104) }}
         style={styles.container}
@@ -465,6 +466,7 @@ export default function MessagesScreen({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
+  bgImage: { position: 'absolute', top: 0, left: 0, width: Dimensions.get('window').width, height: Dimensions.get('window').height },
   wrapper: { flex: 1, backgroundColor: '#F9FAFB' },
   container: { flex: 1 },
   section: { padding: 16, paddingBottom: 8 },

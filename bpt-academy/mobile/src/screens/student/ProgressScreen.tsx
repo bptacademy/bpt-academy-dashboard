@@ -2,8 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
-  RefreshControl, ActivityIndicator, Modal,
-} from 'react-native';
+  RefreshControl, ActivityIndicator, Modal,, Image, Dimensions} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
@@ -356,6 +355,8 @@ export default function ProgressScreen() {
   // ─── Render ──────────────────────────────────────────────────
   return (
     <View style={styles.container}>
+      <Image source={require('../../../assets/bg.png')} style={styles.bgImage} resizeMode="cover" />
+
       <ScreenHeader title="My Progress" />
 
       {/* Tab bar */}
@@ -882,6 +883,7 @@ export default function ProgressScreen() {
 
 // ─── Styles ───────────────────────────────────────────────────
 const styles = StyleSheet.create({
+  bgImage: { position: 'absolute', top: 0, left: 0, width: Dimensions.get('window').width, height: Dimensions.get('window').height },
   container: { flex: 1, backgroundColor: '#F9FAFB' },
   tabs: {
     flexDirection: 'row', backgroundColor: '#FFFFFF',

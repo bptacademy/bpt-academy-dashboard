@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
-  Alert, KeyboardAvoidingView, Platform, ScrollView,
-} from 'react-native';
+  Alert, KeyboardAvoidingView, Platform, ScrollView,, Image, Dimensions} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import BackHeader from '../../components/common/BackHeader';
@@ -150,6 +149,8 @@ export default function AddChildScreen({ navigation }: any) {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
+      <Image source={require('../../../assets/bg.png')} style={styles.bgImage} resizeMode="cover" />
+
       <BackHeader title="Add Child" dark />
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <ScrollView contentContainerStyle={styles.inner} keyboardShouldPersistTaps="handled">
@@ -249,6 +250,7 @@ export default function AddChildScreen({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
+  bgImage: { position: 'absolute', top: 0, left: 0, width: Dimensions.get('window').width, height: Dimensions.get('window').height },
   container: { flex: 1, backgroundColor: '#F3F4F6' },
   flex: { flex: 1 },
   inner: { padding: 16 },

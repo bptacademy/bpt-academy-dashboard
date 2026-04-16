@@ -1,8 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, ScrollView,
-  Dimensions, Alert, TextInput, KeyboardAvoidingView, Platform,
-} from 'react-native';
+  Dimensions, Alert, TextInput, KeyboardAvoidingView, Platform,, Image} from 'react-native';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
@@ -201,6 +200,7 @@ export default function VideoPlayerScreen({ route, navigation }: any) {
 }
 
 const styles = StyleSheet.create({
+  bgImage: { position: 'absolute', top: 0, left: 0, width: Dimensions.get('window').width, height: Dimensions.get('window').height },
   container: { flex: 1, backgroundColor: '#F9FAFB' },
   playerContainer: { backgroundColor: '#000', width, height: width * 0.5625 },
   video: { width: '100%', height: '100%' },

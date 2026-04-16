@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TextInput,
-  TouchableOpacity, Alert, ActivityIndicator, Linking,
-} from 'react-native';
+  TouchableOpacity, Alert, ActivityIndicator, Linking,, Image, Dimensions} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
 import ScreenHeader from '../../components/common/ScreenHeader';
@@ -74,6 +73,8 @@ export default function BillingSettingsScreen() {
   if (loading) {
     return (
       <View style={styles.center}>
+      <Image source={require('../../../assets/bg.png')} style={styles.bgImage} resizeMode="cover" />
+
         <ActivityIndicator size="large" color="#16A34A" />
       </View>
     );
@@ -261,6 +262,7 @@ export default function BillingSettingsScreen() {
 // ─── Styles ──────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
+  bgImage: { position: 'absolute', top: 0, left: 0, width: Dimensions.get('window').width, height: Dimensions.get('window').height },
   container: { flex: 1, backgroundColor: '#F9FAFB' },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
 

@@ -1,8 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
-  ActivityIndicator, RefreshControl,
-} from 'react-native';
+  ActivityIndicator, RefreshControl,, Image, Dimensions} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
@@ -184,6 +183,8 @@ export default function LeaderboardScreen() {
   // ─── Render ──────────────────────────────────────────────────
   return (
     <View style={styles.container}>
+      <Image source={require('../../../assets/bg.png')} style={styles.bgImage} resizeMode="cover" />
+
       <ScreenHeader title="🏆 Leaderboard" />
 
       {/* Main tabs */}
@@ -450,6 +451,7 @@ export default function LeaderboardScreen() {
 
 // ─── Styles ───────────────────────────────────────────────────
 const styles = StyleSheet.create({
+  bgImage: { position: 'absolute', top: 0, left: 0, width: Dimensions.get('window').width, height: Dimensions.get('window').height },
   container: { flex: 1, backgroundColor: '#F9FAFB' },
 
   mainTabs: {

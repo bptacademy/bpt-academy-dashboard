@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
-  RefreshControl, Alert, ActivityIndicator,
-} from 'react-native';
+  RefreshControl, Alert, ActivityIndicator,, Image, Dimensions} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
@@ -228,6 +227,7 @@ export default function PaymentReconciliationScreen() {
 }
 
 const styles = StyleSheet.create({
+  bgImage: { position: 'absolute', top: 0, left: 0, width: Dimensions.get('window').width, height: Dimensions.get('window').height },
   container: { flex: 1, backgroundColor: '#F9FAFB' },
   summary: { flexDirection: 'row', backgroundColor: '#111827', paddingVertical: 16 },
   summaryItem: { flex: 1, alignItems: 'center' },

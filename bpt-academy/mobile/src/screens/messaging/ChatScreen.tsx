@@ -2,8 +2,7 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import {
   View, Text, FlatList, StyleSheet, TextInput,
   TouchableOpacity, KeyboardAvoidingView, Platform, ActivityIndicator,
-  Alert,
-} from 'react-native';
+  Alert,, Image, Dimensions} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { supabase } from '../../lib/supabase';
@@ -195,7 +194,9 @@ export default function ChatScreen({ route, navigation }: any) {
   };
 
   if (loading) return (
-    <View style={styles.loading}><ActivityIndicator size="large" color="#16A34A" /></View>
+    <View style={styles.loading}>
+      <Image source={require('../../../assets/bg.png')} style={styles.bgImage} resizeMode="cover" />
+<ActivityIndicator size="large" color="#16A34A" /></View>
   );
 
   return (
@@ -256,6 +257,7 @@ export default function ChatScreen({ route, navigation }: any) {
 }
 
 const styles = StyleSheet.create({
+  bgImage: { position: 'absolute', top: 0, left: 0, width: Dimensions.get('window').width, height: Dimensions.get('window').height },
   container: { flex: 1, backgroundColor: '#F9FAFB' },
   flex: { flex: 1 },
   loading: { flex: 1, alignItems: 'center', justifyContent: 'center' },

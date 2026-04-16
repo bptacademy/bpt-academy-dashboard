@@ -1,8 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
-  RefreshControl, Alert, Modal, TextInput, ActivityIndicator,
-} from 'react-native';
+  RefreshControl, Alert, Modal, TextInput, ActivityIndicator,, Image, Dimensions} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
 import { Profile, UserRole, SkillLevel, EnrollmentStatus, Division, DIVISION_LABELS } from '../../types';
@@ -326,6 +325,8 @@ export default function StudentDetailScreen({ route, navigation }: any) {
 
   if (!student) return (
     <View style={styles.loading}>
+      <Image source={require('../../../assets/bg.png')} style={styles.bgImage} resizeMode="cover" />
+
       <Text style={styles.loadingText}>Loading...</Text>
     </View>
   );
@@ -766,6 +767,7 @@ export default function StudentDetailScreen({ route, navigation }: any) {
 }
 
 const styles = StyleSheet.create({
+  bgImage: { position: 'absolute', top: 0, left: 0, width: Dimensions.get('window').width, height: Dimensions.get('window').height },
   container: { flex: 1, backgroundColor: '#F9FAFB' },
   loading: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   loadingText: { color: '#6B7280', fontSize: 15 },

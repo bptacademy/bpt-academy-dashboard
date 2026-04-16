@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
-  RefreshControl, Alert,
-} from 'react-native';
+  RefreshControl, Alert,, Image, Dimensions} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
 import { Program, EnrollmentStatus, Division, DIVISION_LABELS, DIVISION_COLORS } from '../../types';
@@ -343,6 +342,7 @@ export default function ProgramRosterScreen({ route, navigation }: any) {
 }
 
 const styles = StyleSheet.create({
+  bgImage: { position: 'absolute', top: 0, left: 0, width: Dimensions.get('window').width, height: Dimensions.get('window').height },
   container: { flex: 1, backgroundColor: '#F9FAFB' },
   waitCard: {
     flexDirection: 'row', alignItems: 'center', backgroundColor: '#F0F9FF',

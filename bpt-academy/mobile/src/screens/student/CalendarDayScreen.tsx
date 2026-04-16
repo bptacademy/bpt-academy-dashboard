@@ -4,8 +4,7 @@ import {
   Text,
   FlatList,
   StyleSheet,
-  ListRenderItemInfo,
-} from 'react-native';
+  ListRenderItemInfo,, Image, Dimensions} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import BackHeader from '../../components/common/BackHeader';
 
@@ -61,6 +60,8 @@ function EventCard({ item }: { item: CalendarEvent }) {
   const cfg = EVENT_TYPE_CONFIG[item.type] ?? EVENT_TYPE_CONFIG.session;
   return (
     <View style={styles.card}>
+      <Image source={require('../../../assets/bg.png')} style={styles.bgImage} resizeMode="cover" />
+
       <View style={styles.cardLeft}>
         <Text style={styles.cardIcon}>{cfg.icon}</Text>
         {item.time ? <Text style={styles.cardTime}>{item.time}</Text> : null}
@@ -129,6 +130,7 @@ export default function CalendarDayScreen({ route }: any) {
 }
 
 const styles = StyleSheet.create({
+  bgImage: { position: 'absolute', top: 0, left: 0, width: Dimensions.get('window').width, height: Dimensions.get('window').height },
   container: { flex: 1, backgroundColor: '#F9FAFB' },
 
   dateHeader: {
