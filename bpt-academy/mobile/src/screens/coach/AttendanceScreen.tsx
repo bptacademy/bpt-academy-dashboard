@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {
+import BackButton from '../../../components/common/BackButton';
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
   ActivityIndicator, Alert, Switch, Image, Dimensions} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -203,6 +204,8 @@ export default function AttendanceScreen({ route }: any) {
 
   return (
     <View style={styles.container}>
+      <BackButton />
+
       <Image source={require('../../../assets/bg.png')} style={styles.bgImage} resizeMode="cover" />
 
       <BackHeader title={sessionTitle ?? 'Attendance'} />

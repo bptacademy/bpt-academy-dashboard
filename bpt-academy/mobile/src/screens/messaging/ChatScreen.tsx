@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import {
+import BackButton from '../../../components/common/BackButton';
   View, Text, FlatList, StyleSheet, TextInput,
   TouchableOpacity, KeyboardAvoidingView, Platform, ActivityIndicator,
   Alert, Image, Dimensions} from 'react-native';
@@ -195,6 +196,8 @@ export default function ChatScreen({ route, navigation }: any) {
 
   if (loading) return (
     <View style={styles.loading}>
+      <BackButton />
+
       <Image source={require('../../../assets/bg.png')} style={styles.bgImage} resizeMode="cover" />
 <ActivityIndicator size="large" color="#16A34A" /></View>
   );

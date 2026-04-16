@@ -1,5 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import {
+import BackButton from '../../../components/common/BackButton';
   View, Text, StyleSheet, TouchableOpacity, ScrollView,
   Dimensions, Alert, TextInput, KeyboardAvoidingView, Platform, Image} from 'react-native';
 import { useVideoPlayer, VideoView } from 'expo-video';

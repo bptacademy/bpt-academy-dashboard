@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import {
+import BackButton from '../../components/common/BackButton';
   View, Text, FlatList, TouchableOpacity, StyleSheet, RefreshControl, Image, Dimensions} from 'react-native';
 import BackHeader from '../components/common/BackHeader';
 import { useNotifications } from '../hooks/useNotifications';
@@ -110,6 +111,8 @@ export default function NotificationsScreen({ navigation }: any) {
 
   return (
     <View style={styles.container}>
+      <BackButton />
+
       <Image source={require('../../assets/bg.png')} style={styles.bgImage} resizeMode="cover" />
 
       <BackHeader title="Notifications" />

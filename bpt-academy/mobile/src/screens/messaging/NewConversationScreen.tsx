@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {
+import BackButton from '../../../components/common/BackButton';
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
   TextInput, Alert, Image, Dimensions} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';

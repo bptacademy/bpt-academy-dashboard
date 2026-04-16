@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import {
+import BackButton from '../../../components/common/BackButton';
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
   RefreshControl, Alert, Modal, TextInput, ActivityIndicator, Image, Dimensions} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -325,6 +326,8 @@ export default function StudentDetailScreen({ route, navigation }: any) {
 
   if (!student) return (
     <View style={styles.loading}>
+      <BackButton />
+
       <Image source={require('../../../assets/bg.png')} style={styles.bgImage} resizeMode="cover" />
 
       <Text style={styles.loadingText}>Loading...</Text>

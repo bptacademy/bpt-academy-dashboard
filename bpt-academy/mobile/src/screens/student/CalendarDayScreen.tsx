@@ -1,5 +1,6 @@
 import React from 'react';
 import {
+import BackButton from '../../../components/common/BackButton';
   View,
   Text,
   FlatList,
@@ -60,6 +61,8 @@ function EventCard({ item }: { item: CalendarEvent }) {
   const cfg = EVENT_TYPE_CONFIG[item.type] ?? EVENT_TYPE_CONFIG.session;
   return (
     <View style={styles.card}>
+      <BackButton />
+
       <Image source={require('../../../assets/bg.png')} style={styles.bgImage} resizeMode="cover" />
 
       <View style={styles.cardLeft}>

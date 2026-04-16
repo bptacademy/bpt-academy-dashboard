@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, ScrollView, StyleSheet, Image, Dimensions} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import BackHeader from '../../components/common/BackHeader';
+import BackButton from '../../../components/common/BackButton';
 
 const LAST_UPDATED = '11 April 2026';
 
@@ -66,6 +67,8 @@ export default function PrivacyPolicyScreen() {
 
   return (
     <View style={styles.container}>
+      <BackButton />
+
       <Image source={require('../../../assets/bg.png')} style={styles.bgImage} resizeMode="cover" />
 
       <BackHeader title="Privacy Policy" />

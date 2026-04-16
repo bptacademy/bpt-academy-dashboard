@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import {
+import BackButton from '../../../components/common/BackButton';
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
   ActivityIndicator, RefreshControl, Alert, Image, Dimensions} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -290,6 +291,8 @@ export default function ReportsScreen({ navigation }: any) {
 
   if (loading) return (
     <View style={styles.loadingContainer}>
+      <BackButton />
+
       <Image source={require('../../../assets/bg.png')} style={styles.bgImage} resizeMode="cover" />
 
       <BackHeader title="Reports" />

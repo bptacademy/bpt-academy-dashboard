@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {
+import BackButton from '../../../components/common/BackButton';
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
   TextInput, ActivityIndicator, Alert, Switch, Modal, KeyboardAvoidingView, Platform, Image, Dimensions} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -118,6 +119,8 @@ export default function CoachNotesScreen({ navigation, route }: Props) {
 
   return (
     <View style={styles.container}>
+      <BackButton />
+
       <Image source={require('../../../assets/bg.png')} style={styles.bgImage} resizeMode="cover" />
 
       <BackHeader title="Coach Notes" />
