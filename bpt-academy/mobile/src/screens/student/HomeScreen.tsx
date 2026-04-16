@@ -516,7 +516,7 @@ const styles = StyleSheet.create({
   quickGrid:   { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   actionCard:  {
     width: (SCREEN_WIDTH - 32 - 10) / 2,
-    backgroundColor: 'rgba(17,30,51,0.85)', borderRadius: 14, padding: 16,
+    backgroundColor: 'rgba(17,30,51,0.25)', borderRadius: 14, padding: 16,
     alignItems: 'center', borderWidth: 1, borderColor: BORDER,
   },
   actionIcon:  { fontSize: 26, marginBottom: 8 },
