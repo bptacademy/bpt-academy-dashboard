@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import {
-import BackButton from '../../../components/common/BackButton';
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
   RefreshControl, Alert, Image, Dimensions} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
 import { Program, EnrollmentStatus, Division, DIVISION_LABELS, DIVISION_COLORS } from '../../types';
 import BackHeader from '../../components/common/BackHeader';
+import BackButton from '../../../components/common/BackButton';
 
 interface EnrollmentRow {
   id: string;

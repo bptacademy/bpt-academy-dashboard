@@ -1,12 +1,12 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import {
-import BackButton from '../../components/common/BackButton';
   View, Text, FlatList, TouchableOpacity, StyleSheet, RefreshControl, Image, Dimensions} from 'react-native';
 import BackHeader from '../components/common/BackHeader';
 import { useNotifications } from '../hooks/useNotifications';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 import { Notification } from '../types';
+import BackButton from '../../components/common/BackButton';
 
 interface NotificationWithExpiry extends Notification {
   expires_at?: string | null;

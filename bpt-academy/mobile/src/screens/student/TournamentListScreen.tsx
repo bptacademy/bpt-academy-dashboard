@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import {
-import BackButton from '../../../components/common/BackButton';
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
   RefreshControl, ActivityIndicator, Image, Dimensions} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -9,6 +8,7 @@ import { supabase } from '../../lib/supabase';
 import { Tournament, Division, DIVISION_LABELS, DIVISION_COLORS } from '../../types';
 import BackHeader from '../../components/common/BackHeader';
 import LTASection from '../../components/common/LTASection';
+import BackButton from '../../../components/common/BackButton';
 
 const ALL_DIVISIONS: Division[] = ['amateur', 'semi_pro', 'pro', 'junior_9_11', 'junior_12_15', 'junior_15_18'];
 

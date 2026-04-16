@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import {
-import BackButton from '../../../components/common/BackButton';
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
   TextInput, ActivityIndicator, Alert, Switch, Modal, KeyboardAvoidingView, Platform, Image, Dimensions} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -8,6 +7,7 @@ import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { CoachNote, Profile } from '../../types';
 import BackHeader from '../../components/common/BackHeader';
+import BackButton from '../../../components/common/BackButton';
 
 interface NoteWithCoach extends CoachNote {
   coach?: { full_name: string } | null;

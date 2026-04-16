@@ -1,12 +1,12 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import {
-import BackButton from '../../../components/common/BackButton';
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
   TextInput, Alert, ActivityIndicator, Modal, RefreshControl, Image, Dimensions} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
 import BackHeader from '../../components/common/BackHeader';
 import { Module } from '../../types';
+import BackButton from '../../../components/common/BackButton';
 
 export default function ProgramModulesScreen({ route }: any) {
   const insets = useSafeAreaInsets();

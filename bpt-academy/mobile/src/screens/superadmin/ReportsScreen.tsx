@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import {
-import BackButton from '../../../components/common/BackButton';
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
   ActivityIndicator, RefreshControl, Alert, Image, Dimensions} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -11,6 +10,7 @@ import * as Sharing from 'expo-sharing';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
 import BackHeader from '../../components/common/BackHeader';
+import BackButton from '../../../components/common/BackButton';
 
 type ReportMode = 'weekly' | 'monthly';
 

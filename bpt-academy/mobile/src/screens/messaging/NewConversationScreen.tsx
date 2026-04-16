@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import {
-import BackButton from '../../../components/common/BackButton';
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
   TextInput, Alert, Image, Dimensions} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -8,6 +7,7 @@ import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { Profile } from '../../types';
 import BackHeader from '../../components/common/BackHeader';
+import BackButton from '../../../components/common/BackButton';
 
 export default function NewConversationScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();

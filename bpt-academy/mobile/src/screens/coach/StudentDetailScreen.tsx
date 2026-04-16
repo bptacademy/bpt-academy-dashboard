@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import {
-import BackButton from '../../../components/common/BackButton';
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
   RefreshControl, Alert, Modal, TextInput, ActivityIndicator, Image, Dimensions} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -8,6 +7,7 @@ import { supabase } from '../../lib/supabase';
 import { Profile, UserRole, SkillLevel, EnrollmentStatus, Division, DIVISION_LABELS } from '../../types';
 import BackHeader from '../../components/common/BackHeader';
 import { useAuth } from '../../context/AuthContext';
+import BackButton from '../../../components/common/BackButton';
 
 // ─── Goal types ───────────────────────────────────────────────
 type GoalCategory = 'technical' | 'tactical' | 'physical' | 'mindset';

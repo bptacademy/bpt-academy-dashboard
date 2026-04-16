@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import {
-import BackButton from '../../../components/common/BackButton';
   View, Text, FlatList, StyleSheet, TextInput,
   TouchableOpacity, KeyboardAvoidingView, Platform, ActivityIndicator,
   Alert, Image, Dimensions} from 'react-native';
@@ -9,6 +8,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import BackHeader from '../../components/common/BackHeader';
+import BackButton from '../../../components/common/BackButton';
 
 interface Message {
   id: string;
