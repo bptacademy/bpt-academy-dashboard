@@ -79,31 +79,52 @@ import NewConversationScreen from '../screens/messaging/NewConversationScreen';
 import ChatScreen from '../screens/messaging/ChatScreen';
 import { Ionicons } from '@expo/vector-icons';
 
-// ─── Floating pill tab bar ────────────────────────────────────────────────────
+// ─── Shared stack screen options — dark back arrow on all pages ───────────────
+const sharedStackScreenOptions = {
+  headerShown: true,
+  headerBackTitle: '',
+  headerTitle: '',
+  headerTransparent: true,
+  headerTintColor: '#F0F6FC',
+  headerStyle: { backgroundColor: 'transparent' as const },
+};
+
+// ─── Tab bar ─────────────────────────────────────────────────────────────────
 function useTabBarScreenOptions() {
   const insets = useSafeAreaInsets();
-  const bottomPad = Platform.OS === 'android' ? Math.max(insets.bottom, 8) : insets.bottom;
+  // On devices with no home indicator (old Android), add a small minimum pad
+  const bottomPad = Platform.OS === 'android' ? Math.max(insets.bottom, 12) : insets.bottom;
   return {
     headerShown: false,
     tabBarShowLabel: false,
     tabBarStyle: {
       position: 'absolute' as const,
-      bottom: bottomPad + 12,
-      left: 32,
-      right: 32,
-      height: 60,
-      borderRadius: 30,
+      bottom: bottomPad + 8,
+      left: 16,
+      right: 16,
+      height: 64,
+      borderRadius: 32,
       backgroundColor: '#0B1628',
       borderTopWidth: 0,
+      borderWidth: 1,
+      borderColor: 'rgba(255,255,255,0.12)',
       shadowColor: '#000',
       shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.4,
-      shadowRadius: 12,
-      elevation: 12,
+      shadowOpacity: 0.5,
+      shadowRadius: 16,
+      elevation: 16,
+      // Centre icons vertically inside the bar
+      paddingBottom: 0,
+      paddingTop: 0,
+    },
+    tabBarItemStyle: {
+      justifyContent: 'center' as const,
+      alignItems: 'center' as const,
+      paddingVertical: 0,
     },
     tabBarActiveTintColor: '#22C55E',
-    tabBarInactiveTintColor: 'rgba(255,255,255,0.30)',
-    sceneContainerStyle: { paddingBottom: bottomPad + 12 + 60 + 20 },
+    tabBarInactiveTintColor: 'rgba(255,255,255,0.40)',
+    sceneContainerStyle: { paddingBottom: bottomPad + 8 + 64 + 8 },
   };
 }
 
@@ -175,8 +196,8 @@ function ParentStack() {
 
 function StudentHomeStack() {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="Home"                component={HomeScreen} />
+    <Stack.Navigator screenOptions={sharedStackScreenOptions}>
+      <Stack.Screen name="Home"                component={HomeScreen}              options={{ headerShown: false }} />
       <Stack.Screen name="CalendarDay"         component={CalendarDayScreen} />
       <Stack.Screen name="ProgramDetail"       component={ProgramDetailScreen} />
       <Stack.Screen name="VideoPlayer"         component={VideoPlayerScreen} />
@@ -202,8 +223,8 @@ function StudentHomeStack() {
 
 function StudentProgramsStack() {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="Programs"           component={ProgramsScreen} />
+    <Stack.Navigator screenOptions={sharedStackScreenOptions}>
+      <Stack.Screen name="Programs"           component={ProgramsScreen}          options={{ headerShown: false }} />
       <Stack.Screen name="ProgramDetail"      component={ProgramDetailScreen} />
       <Stack.Screen name="VideoPlayer"        component={VideoPlayerScreen} />
       <Stack.Screen name="Payment"            component={PaymentScreen} />
@@ -218,8 +239,8 @@ function StudentProgramsStack() {
 
 function StudentMessagesStack() {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="Messages"           component={MessagesScreen} />
+    <Stack.Navigator screenOptions={sharedStackScreenOptions}>
+      <Stack.Screen name="Messages"           component={MessagesScreen}          options={{ headerShown: false }} />
       <Stack.Screen name="MyCoachNotes"       component={MyCoachNotesScreen} />
       <Stack.Screen name="Chat"               component={ChatScreen} />
       <Stack.Screen name="NewConversation"    component={NewConversationScreen} />
@@ -234,8 +255,8 @@ function StudentMessagesStack() {
 
 function StudentProgressStack() {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="Progress"           component={ProgressScreen} />
+    <Stack.Navigator screenOptions={sharedStackScreenOptions}>
+      <Stack.Screen name="Progress"           component={ProgressScreen}          options={{ headerShown: false }} />
       <Stack.Screen name="Profile"            component={ProfileScreen} />
       <Stack.Screen name="Leaderboard"        component={LeaderboardScreen} />
       <Stack.Screen name="AttendanceConfirm"  component={AttendanceConfirmScreen} />
@@ -263,8 +284,8 @@ function StudentTabs() {
 
 function CoachHomeStack() {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="Dashboard"          component={CoachDashboardScreen} />
+    <Stack.Navigator screenOptions={sharedStackScreenOptions}>
+      <Stack.Screen name="Dashboard"          component={CoachDashboardScreen}    options={{ headerShown: false }} />
       <Stack.Screen name="Manage"             component={ManageProgramsScreen} />
       <Stack.Screen name="ProgramRoster"      component={ProgramRosterScreen} />
       <Stack.Screen name="ProgramModules"     component={ProgramModulesScreen} />
@@ -293,8 +314,8 @@ function CoachHomeStack() {
 
 function CoachStudentsStack() {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="Students"        component={ManageStudentsScreen} />
+    <Stack.Navigator screenOptions={sharedStackScreenOptions}>
+      <Stack.Screen name="Students"        component={ManageStudentsScreen}    options={{ headerShown: false }} />
       <Stack.Screen name="StudentDetail"   component={StudentDetailScreen} />
       <Stack.Screen name="Attendance"      component={AttendanceScreen} />
       <Stack.Screen name="CoachNotes"      component={CoachNotesScreen} />
@@ -311,8 +332,8 @@ function CoachStudentsStack() {
 
 function CoachMessagesStack() {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="Messages"        component={MessagesScreen} />
+    <Stack.Navigator screenOptions={sharedStackScreenOptions}>
+      <Stack.Screen name="Messages"        component={MessagesScreen}          options={{ headerShown: false }} />
       <Stack.Screen name="Chat"            component={ChatScreen} />
       <Stack.Screen name="NewConversation" component={NewConversationScreen} />
       <Stack.Screen name="Announce"        component={SendAnnouncementScreen} />
@@ -326,8 +347,8 @@ function CoachMessagesStack() {
 
 function CoachProgressStack() {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="Profile"           component={ProfileScreen} />
+    <Stack.Navigator screenOptions={sharedStackScreenOptions}>
+      <Stack.Screen name="Profile"           component={ProfileScreen}           options={{ headerShown: false }} />
       <Stack.Screen name="Manage"            component={ManageProgramsScreen} />
       <Stack.Screen name="ProgramRoster"     component={ProgramRosterScreen} />
       <Stack.Screen name="ManageVideos"      component={ManageVideosScreen} />
@@ -359,8 +380,8 @@ function CoachTabs() {
 
 function AdminDashboardStack() {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="Dashboard"          component={CoachHomeScreen} />
+    <Stack.Navigator screenOptions={sharedStackScreenOptions}>
+      <Stack.Screen name="Dashboard"          component={CoachHomeScreen}         options={{ headerShown: false }} />
       <Stack.Screen name="Reports"            component={ReportsScreen} />
       <Stack.Screen name="Manage"             component={ManageProgramsScreen} />
       <Stack.Screen name="ProgramRoster"      component={ProgramRosterScreen} />
@@ -394,8 +415,8 @@ function AdminDashboardStack() {
 
 function AdminStudentsStack() {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="Students"        component={ManageStudentsScreen} />
+    <Stack.Navigator screenOptions={sharedStackScreenOptions}>
+      <Stack.Screen name="Students"        component={ManageStudentsScreen}    options={{ headerShown: false }} />
       <Stack.Screen name="StudentDetail"   component={StudentDetailScreen} />
       <Stack.Screen name="Attendance"      component={AttendanceScreen} />
       <Stack.Screen name="CoachNotes"      component={CoachNotesScreen} />
@@ -411,8 +432,8 @@ function AdminStudentsStack() {
 
 function AdminProgramsStack() {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="Manage"            component={ManageProgramsScreen} />
+    <Stack.Navigator screenOptions={sharedStackScreenOptions}>
+      <Stack.Screen name="Manage"            component={ManageProgramsScreen}    options={{ headerShown: false }} />
       <Stack.Screen name="ProgramRoster"     component={ProgramRosterScreen} />
       <Stack.Screen name="ProgramModules"    component={ProgramModulesScreen} />
       <Stack.Screen name="ScheduleGenerator" component={ScheduleGeneratorScreen} />
@@ -429,8 +450,8 @@ function AdminProgramsStack() {
 
 function AdminMessagesStack() {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="Messages"        component={MessagesScreen} />
+    <Stack.Navigator screenOptions={sharedStackScreenOptions}>
+      <Stack.Screen name="Messages"        component={MessagesScreen}          options={{ headerShown: false }} />
       <Stack.Screen name="Chat"            component={ChatScreen} />
       <Stack.Screen name="NewConversation" component={NewConversationScreen} />
       <Stack.Screen name="Notifications"   component={NotificationsScreen} />
@@ -457,8 +478,8 @@ function AdminTabs() {
 
 function SuperAdminDashboardStack() {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="Dashboard"          component={CoachHomeScreen} />
+    <Stack.Navigator screenOptions={sharedStackScreenOptions}>
+      <Stack.Screen name="Dashboard"          component={CoachHomeScreen}         options={{ headerShown: false }} />
       <Stack.Screen name="Reports"            component={ReportsScreen} />
       <Stack.Screen name="Manage"             component={ManageProgramsScreen} />
       <Stack.Screen name="ProgramRoster"      component={ProgramRosterScreen} />
@@ -492,8 +513,8 @@ function SuperAdminDashboardStack() {
 
 function SuperAdminUsersStack() {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="SuperAdminHome" component={SuperAdminHomeScreen} />
+    <Stack.Navigator screenOptions={sharedStackScreenOptions}>
+      <Stack.Screen name="SuperAdminHome" component={SuperAdminHomeScreen}    options={{ headerShown: false }} />
       <Stack.Screen name="StudentDetail"  component={StudentDetailScreen} />
       <Stack.Screen name="Profile"        component={ProfileScreen} />
       <Stack.Screen name="Notifications"  component={NotificationsScreen} />
@@ -505,8 +526,8 @@ function SuperAdminUsersStack() {
 
 function SuperAdminMessagesStack() {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="Messages"        component={SuperAdminMessagesScreen} />
+    <Stack.Navigator screenOptions={sharedStackScreenOptions}>
+      <Stack.Screen name="Messages"        component={SuperAdminMessagesScreen} options={{ headerShown: false }} />
       <Stack.Screen name="Chat"            component={ChatScreen} />
       <Stack.Screen name="NewConversation" component={NewConversationScreen} />
       <Stack.Screen name="BulkMsg"         component={BulkMessageScreen} />
@@ -520,8 +541,8 @@ function SuperAdminMessagesStack() {
 
 function SuperAdminProfileStack() {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="Profile"           component={ProfileScreen} />
+    <Stack.Navigator screenOptions={sharedStackScreenOptions}>
+      <Stack.Screen name="Profile"           component={ProfileScreen}           options={{ headerShown: false }} />
       <Stack.Screen name="Manage"            component={ManageProgramsScreen} />
       <Stack.Screen name="ProgramRoster"     component={ProgramRosterScreen} />
       <Stack.Screen name="ManageVideos"      component={ManageVideosScreen} />
