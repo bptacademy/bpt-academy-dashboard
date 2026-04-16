@@ -233,7 +233,7 @@ const styles = StyleSheet.create({
   section: { padding: 16, paddingBottom: 4 },
   sectionTitle: { fontSize: 17, fontWeight: '700', color: '#F0F6FC', marginBottom: 12 },
   actionGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
-  actionCard: { width: CARD_WIDTH, backgroundColor: 'rgba(17,30,51,0.85)', borderRadius: 14, padding: 20, alignItems: 'center', borderWidth: 1, borderColor: '#E5E7EB' },
+  actionCard: { width: CARD_WIDTH, backgroundColor: 'rgba(17,30,51,0.25)', borderRadius: 14, padding: 20, alignItems: 'center', borderWidth: 1, borderColor: '#E5E7EB' },
   actionIcon: { fontSize: 30, marginBottom: 8 },
   actionLabel: { fontSize: 13, fontWeight: '600', color: '#F0F6FC', textAlign: 'center' },
   notice: { flexDirection: 'row', margin: 16, marginTop: 4, backgroundColor: '#FFFBEB', borderRadius: 12, padding: 14, borderWidth: 1, borderColor: '#FDE68A', alignItems: 'flex-start', gap: 10 },
