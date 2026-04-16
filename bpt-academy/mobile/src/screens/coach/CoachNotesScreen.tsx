@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
-  TextInput, ActivityIndicator, Alert, Switch, Modal, KeyboardAvoidingView, Platform,
-} from 'react-native';
+  TextInput, ActivityIndicator, Alert, Switch, Modal, KeyboardAvoidingView, Platform,, Image, Dimensions} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
@@ -119,6 +118,8 @@ export default function CoachNotesScreen({ navigation, route }: Props) {
 
   return (
     <View style={styles.container}>
+      <Image source={require('../../../assets/bg.png')} style={styles.bgImage} resizeMode="cover" />
+
       <BackHeader title="Coach Notes" />
       <View style={styles.body}>
         {/* Student list panel */}
@@ -250,6 +251,7 @@ export default function CoachNotesScreen({ navigation, route }: Props) {
 }
 
 const styles = StyleSheet.create({
+  bgImage: { position: 'absolute', top: 0, left: 0, width: Dimensions.get('window').width, height: Dimensions.get('window').height },
   container: { flex: 1, backgroundColor: '#F9FAFB' },
   body: { flex: 1, flexDirection: 'row' },
   studentPanel: {

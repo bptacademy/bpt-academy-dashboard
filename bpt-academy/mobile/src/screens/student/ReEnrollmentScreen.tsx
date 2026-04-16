@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
   View, Text, ScrollView, StyleSheet,
-  TouchableOpacity, ActivityIndicator, Alert,
-} from 'react-native';
+  TouchableOpacity, ActivityIndicator, Alert,, Image, Dimensions} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
@@ -94,7 +93,9 @@ export default function ReEnrollmentScreen({ route, navigation }: any) {
   };
 
   if (loading) return (
-    <View style={styles.loading}><ActivityIndicator size="large" color="#16A34A" /></View>
+    <View style={styles.loading}>
+      <Image source={require('../../../assets/bg.png')} style={styles.bgImage} resizeMode="cover" />
+<ActivityIndicator size="large" color="#16A34A" /></View>
   );
 
   return (
@@ -172,6 +173,7 @@ export default function ReEnrollmentScreen({ route, navigation }: any) {
 }
 
 const styles = StyleSheet.create({
+  bgImage: { position: 'absolute', top: 0, left: 0, width: Dimensions.get('window').width, height: Dimensions.get('window').height },
   container: { flex: 1, backgroundColor: '#F9FAFB' },
   loading: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   content: { padding: 16 },

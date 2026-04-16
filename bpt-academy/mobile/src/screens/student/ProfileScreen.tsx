@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, ScrollView,
   Alert, Switch, TextInput, Image, ActivityIndicator,
-  KeyboardAvoidingView, Platform, Modal,
-} from 'react-native';
+  KeyboardAvoidingView, Platform, Modal,, Dimensions} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -432,6 +431,8 @@ function Field({ label, value, editing, onChangeText, placeholder, keyboardType 
 }) {
   return (
     <View style={fieldStyles.row}>
+      <Image source={require('../../../assets/bg.png')} style={styles.bgImage} resizeMode="cover" />
+
       <Text style={fieldStyles.label}>{label}</Text>
       {editing ? (
         <TextInput style={fieldStyles.input} value={value} onChangeText={onChangeText}
@@ -444,6 +445,7 @@ function Field({ label, value, editing, onChangeText, placeholder, keyboardType 
 }
 
 const fieldStyles = StyleSheet.create({
+  bgImage: { position: 'absolute', top: 0, left: 0, width: Dimensions.get('window').width, height: Dimensions.get('window').height },
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, minHeight: 54 },
   label: { fontSize: 15, color: '#374151', flex: 1 },
   value: { fontSize: 15, color: '#6B7280', flex: 1.5, textAlign: 'right' },

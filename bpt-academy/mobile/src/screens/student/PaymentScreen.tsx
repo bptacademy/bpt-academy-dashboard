@@ -1,8 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
-  Alert, ActivityIndicator, TextInput, Linking,
-} from 'react-native';
+  Alert, ActivityIndicator, TextInput, Linking,, Image, Dimensions} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
@@ -221,6 +220,8 @@ export default function PaymentScreen({ navigation, route }: any) {
 
   return (
     <View style={styles.container}>
+      <Image source={require('../../../assets/bg.png')} style={styles.bgImage} resizeMode="cover" />
+
       <BackHeader title="Payment" />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
 
@@ -330,6 +331,7 @@ function BankRow({ label, value }: { label: string; value: string }) {
 }
 
 const styles = StyleSheet.create({
+  bgImage: { position: 'absolute', top: 0, left: 0, width: Dimensions.get('window').width, height: Dimensions.get('window').height },
   container: { flex: 1, backgroundColor: '#F9FAFB' },
   content: { padding: 20, paddingBottom: 40 },
   amountCard: { backgroundColor: '#111827', borderRadius: 16, padding: 28, alignItems: 'center', marginBottom: 20 },

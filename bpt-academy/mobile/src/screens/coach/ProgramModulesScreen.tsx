@@ -1,8 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
-  TextInput, Alert, ActivityIndicator, Modal, RefreshControl,
-} from 'react-native';
+  TextInput, Alert, ActivityIndicator, Modal, RefreshControl,, Image, Dimensions} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
 import BackHeader from '../../components/common/BackHeader';
@@ -119,6 +118,8 @@ export default function ProgramModulesScreen({ route }: any) {
   if (loading) {
     return (
       <View style={styles.container}>
+      <Image source={require('../../../assets/bg.png')} style={styles.bgImage} resizeMode="cover" />
+
         <BackHeader title="Modules" />
         <ActivityIndicator size="large" color="#16A34A" style={styles.loader} />
       </View>
@@ -260,6 +261,7 @@ export default function ProgramModulesScreen({ route }: any) {
 }
 
 const styles = StyleSheet.create({
+  bgImage: { position: 'absolute', top: 0, left: 0, width: Dimensions.get('window').width, height: Dimensions.get('window').height },
   container: { flex: 1, backgroundColor: '#F9FAFB' },
   loader: { marginTop: 60 },
   content: { padding: 16 },

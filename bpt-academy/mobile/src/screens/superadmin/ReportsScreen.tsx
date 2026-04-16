@@ -1,8 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
-  ActivityIndicator, RefreshControl, Alert,
-} from 'react-native';
+  ActivityIndicator, RefreshControl, Alert,, Image, Dimensions} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
@@ -291,6 +290,8 @@ export default function ReportsScreen({ navigation }: any) {
 
   if (loading) return (
     <View style={styles.loadingContainer}>
+      <Image source={require('../../../assets/bg.png')} style={styles.bgImage} resizeMode="cover" />
+
       <BackHeader title="Reports" />
       <ActivityIndicator size="large" color="#16A34A" style={{ marginTop: 60 }} />
     </View>
@@ -409,6 +410,7 @@ export default function ReportsScreen({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
+  bgImage: { position: 'absolute', top: 0, left: 0, width: Dimensions.get('window').width, height: Dimensions.get('window').height },
   container: { flex: 1, backgroundColor: '#F9FAFB' },
   loadingContainer: { flex: 1, backgroundColor: '#F9FAFB' },
   content: { padding: 16 },

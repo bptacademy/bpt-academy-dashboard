@@ -2,8 +2,7 @@ import React, { useEffect, useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   ScrollView, Alert, KeyboardAvoidingView, Platform,
-  Animated, Easing,
-} from 'react-native';
+  Animated, Easing,, Image, Dimensions} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import { supabase } from '../../lib/supabase';
@@ -248,6 +247,8 @@ export default function UploadVideoScreen({ navigation }: any) {
                   const isActive = s.key === stage;
                   return (
                     <View key={s.key} style={styles.stageRow}>
+      <Image source={require('../../../assets/bg.png')} style={styles.bgImage} resizeMode="cover" />
+
                       <View style={[styles.stageIcon, isDone && styles.stageIconDone, isActive && styles.stageIconActive]}>
                         <Text style={styles.stageIconText}>{isDone ? '✓' : s.icon}</Text>
                       </View>
@@ -293,6 +294,7 @@ export default function UploadVideoScreen({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
+  bgImage: { position: 'absolute', top: 0, left: 0, width: Dimensions.get('window').width, height: Dimensions.get('window').height },
   container: { flex: 1, backgroundColor: '#FFFFFF' },
   inner: { padding: 24 },
   header: { marginTop: 20, marginBottom: 24 },

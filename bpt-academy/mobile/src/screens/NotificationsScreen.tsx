@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import {
-  View, Text, FlatList, TouchableOpacity, StyleSheet, RefreshControl,
-} from 'react-native';
+  View, Text, FlatList, TouchableOpacity, StyleSheet, RefreshControl,, Image, Dimensions} from 'react-native';
 import BackHeader from '../components/common/BackHeader';
 import { useNotifications } from '../hooks/useNotifications';
 import { useAuth } from '../context/AuthContext';
@@ -111,6 +110,8 @@ export default function NotificationsScreen({ navigation }: any) {
 
   return (
     <View style={styles.container}>
+      <Image source={require('../../assets/bg.png')} style={styles.bgImage} resizeMode="cover" />
+
       <BackHeader title="Notifications" />
 
       {/* Mark all read header row */}
@@ -139,6 +140,7 @@ export default function NotificationsScreen({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
+  bgImage: { position: 'absolute', top: 0, left: 0, width: Dimensions.get('window').width, height: Dimensions.get('window').height },
   container: { flex: 1, backgroundColor: '#F9FAFB' },
 
   markAllRow: {

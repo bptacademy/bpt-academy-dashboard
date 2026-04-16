@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {
-  View, Text, ScrollView, StyleSheet, ActivityIndicator, RefreshControl,
-} from 'react-native';
+  View, Text, ScrollView, StyleSheet, ActivityIndicator, RefreshControl,, Image, Dimensions} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
@@ -54,6 +53,8 @@ export default function MyCoachNotesScreen() {
   if (!isStudent) {
     return (
       <View style={styles.container}>
+      <Image source={require('../../../assets/bg.png')} style={styles.bgImage} resizeMode="cover" />
+
         <ScreenHeader title="Coach Notes" />
         <View style={styles.emptyCard}>
           <Text style={styles.emptyIcon}>🎾</Text>
@@ -110,6 +111,7 @@ export default function MyCoachNotesScreen() {
 }
 
 const styles = StyleSheet.create({
+  bgImage: { position: 'absolute', top: 0, left: 0, width: Dimensions.get('window').width, height: Dimensions.get('window').height },
   container: { flex: 1, backgroundColor: '#F9FAFB' },
   content: { padding: 20, paddingBottom: 40 },
   loader: { marginTop: 60 },

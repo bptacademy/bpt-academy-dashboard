@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
-  RefreshControl, Alert, Modal, TextInput,
-} from 'react-native';
+  RefreshControl, Alert, Modal, TextInput,, Image, Dimensions} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
 import { Tournament, TournamentStatus, Division, DIVISION_LABELS } from '../../types';
@@ -93,6 +92,8 @@ export default function TournamentManageScreen({ navigation }: any) {
 
   return (
     <View style={{ flex: 1 }}>
+      <Image source={require('../../../assets/bg.png')} style={styles.bgImage} resizeMode="cover" />
+
       <ScrollView
         style={styles.container}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
@@ -202,6 +203,7 @@ export default function TournamentManageScreen({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
+  bgImage: { position: 'absolute', top: 0, left: 0, width: Dimensions.get('window').width, height: Dimensions.get('window').height },
   container: { flex: 1, backgroundColor: '#F9FAFB' },
   academyHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, paddingBottom: 4 },
   academyTitle: { fontSize: 16, fontWeight: '700', color: '#111827' },

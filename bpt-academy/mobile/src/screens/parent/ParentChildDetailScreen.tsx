@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   View, Text, ScrollView, StyleSheet,
-  TouchableOpacity, ActivityIndicator,
-} from 'react-native';
+  TouchableOpacity, ActivityIndicator,, Image, Dimensions} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import BackHeader from '../../components/common/BackHeader';
 import { supabase } from '../../lib/supabase';
@@ -166,6 +165,8 @@ export default function ParentChildDetailScreen({ route, navigation }: any) {
           const pctStr = `${Math.round(pct * 100)}%`;
           return (
             <View key={e.id} style={styles.programCard}>
+      <Image source={require('../../../assets/bg.png')} style={styles.bgImage} resizeMode="cover" />
+
               <Text style={styles.programTitle}>{(e.program as any)?.title ?? 'Program'}</Text>
               <View style={styles.progressBarBg}>
                 <View style={[styles.progressBarFill, { width: pctStr as any }]} />
@@ -351,6 +352,7 @@ export default function ParentChildDetailScreen({ route, navigation }: any) {
 }
 
 const styles = StyleSheet.create({
+  bgImage: { position: 'absolute', top: 0, left: 0, width: Dimensions.get('window').width, height: Dimensions.get('window').height },
   container: { flex: 1, backgroundColor: '#F3F4F6' },
 
   tabBar: { backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#E5E7EB' },
