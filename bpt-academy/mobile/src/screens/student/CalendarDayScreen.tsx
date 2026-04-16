@@ -7,7 +7,7 @@ import {
   ListRenderItemInfo, Image, Dimensions} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import BackHeader from '../../components/common/BackHeader';
-import BackButton from '../../../components/common/BackButton';
+import BackButton from '../../components/common/BackButton';
 
 export interface CalendarEvent {
   id: string;

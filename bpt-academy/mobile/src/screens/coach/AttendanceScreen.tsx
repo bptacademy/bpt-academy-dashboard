@@ -6,7 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
 import { SessionAttendance, Profile, ProgramSession } from '../../types';
 import BackHeader from '../../components/common/BackHeader';
-import BackButton from '../../../components/common/BackButton';
+import BackButton from '../../components/common/BackButton';
 
 interface StudentRow {
   profile: Profile;
