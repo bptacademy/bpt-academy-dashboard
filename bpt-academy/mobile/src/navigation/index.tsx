@@ -93,7 +93,7 @@ function useTabBarScreenOptions() {
       right: 32,
       height: 60,
       borderRadius: 30,
-      backgroundColor: 'rgba(11,22,40,0.05)',
+      backgroundColor: 'transparent',
       borderTopWidth: 0,
       shadowColor: '#000',
       shadowOffset: { width: 0, height: 4 },
