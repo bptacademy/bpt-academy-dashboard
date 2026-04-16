@@ -4,7 +4,7 @@ import {
   Text,
   FlatList,
   StyleSheet,
-  ListRenderItemInfo,, Image, Dimensions} from 'react-native';
+  ListRenderItemInfo, Image, Dimensions} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import BackHeader from '../../components/common/BackHeader';
 

@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, ScrollView,
-  Dimensions, Alert, TextInput, KeyboardAvoidingView, Platform,, Image} from 'react-native';
+  Dimensions, Alert, TextInput, KeyboardAvoidingView, Platform, Image} from 'react-native';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';

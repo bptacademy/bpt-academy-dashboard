@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import {
-  View, Text, FlatList, TouchableOpacity, StyleSheet, RefreshControl,, Image, Dimensions} from 'react-native';
+  View, Text, FlatList, TouchableOpacity, StyleSheet, RefreshControl, Image, Dimensions} from 'react-native';
 import BackHeader from '../components/common/BackHeader';
 import { useNotifications } from '../hooks/useNotifications';
 import { useAuth } from '../context/AuthContext';
