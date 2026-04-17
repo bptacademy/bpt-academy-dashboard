@@ -1,30 +1,27 @@
 import React, { useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity,
-  StyleSheet, Alert, KeyboardAvoidingView, Platform, ScrollView, Image, Dimensions,
+  StyleSheet, Alert, KeyboardAvoidingView, Platform,
+  ScrollView, Image, useWindowDimensions,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const LOGO_WIDTH = Math.min(SCREEN_WIDTH - 48, 320);
-const LOGO_HEIGHT = LOGO_WIDTH * 0.55;
-
-type Props = {
-  navigation: NativeStackNavigationProp<any>;
-};
+type Props = { navigation: NativeStackNavigationProp<any> };
 
 export default function LoginScreen({ navigation }: Props) {
-  const [email, setEmail] = useState('');
+  const { width, height } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+  const [email, setEmail]       = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading]   = useState(false);
+
+  const LOGO_WIDTH  = Math.min(width - 64, 260);
+  const LOGO_HEIGHT = LOGO_WIDTH * 0.55;
 
   const handleLogin = async () => {
-    if (!email || !password) {
-      Alert.alert('Error', 'Please fill in all fields');
-      return;
-    }
+    if (!email || !password) { Alert.alert('Error', 'Please fill in all fields'); return; }
     setLoading(true);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
@@ -32,87 +29,116 @@ export default function LoginScreen({ navigation }: Props) {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-    <KeyboardAvoidingView
-      style={styles.flex}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      <ScrollView contentContainerStyle={styles.inner} keyboardShouldPersistTaps="handled">
-        {/* Logo / Header */}
-        <View style={styles.header}>
-          <Image source={require('../../../assets/logo.png')} style={[styles.logo, { width: LOGO_WIDTH, height: LOGO_HEIGHT }]} resizeMode="contain" />
-          <Text style={styles.subtitle}>Welcome back</Text>
-        </View>
+    <View style={styles.root}>
+      {/* Full-screen background — covers every pixel on every device */}
+      <Image
+        source={require('../../../assets/bg.png')}
+        style={[styles.bg, { width, height }]}
+        resizeMode="cover"
+      />
 
-        {/* Form */}
-        <View style={styles.form}>
-          <Text style={styles.label}>Email</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="you@example.com"
-            placeholderTextColor="#9CA3AF"
-            value={email}
-            onChangeText={setEmail}
-            autoCapitalize="none"
-            keyboardType="email-address"
-          />
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <ScrollView
+          contentContainerStyle={[
+            styles.inner,
+            { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 32 },
+          ]}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Logo */}
+          <View style={styles.header}>
+            <Image
+              source={require('../../../assets/logo.png')}
+              style={{ width: LOGO_WIDTH, height: LOGO_HEIGHT, marginBottom: 12 }}
+              resizeMode="contain"
+            />
+            <Text style={styles.subtitle}>Welcome back</Text>
+          </View>
 
-          <Text style={styles.label}>Password</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="••••••••"
-            placeholderTextColor="#9CA3AF"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-          />
+          {/* Form card */}
+          <View style={styles.card}>
+            <Text style={styles.label}>Email</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="you@example.com"
+              placeholderTextColor="rgba(255,255,255,0.35)"
+              value={email}
+              onChangeText={setEmail}
+              autoCapitalize="none"
+              keyboardType="email-address"
+              autoCorrect={false}
+            />
 
-          <TouchableOpacity
-            style={[styles.button, loading && styles.buttonDisabled]}
-            onPress={handleLogin}
-            disabled={loading}
-          >
-            <Text style={styles.buttonText}>
-              {loading ? 'Signing in...' : 'Sign In'}
-            </Text>
-          </TouchableOpacity>
+            <Text style={styles.label}>Password</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="••••••••"
+              placeholderTextColor="rgba(255,255,255,0.35)"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+            />
 
-          <TouchableOpacity
-            style={styles.linkButton}
-            onPress={() => navigation.navigate('Register')}
-          >
-            <Text style={styles.linkText}>
-              Don't have an account? <Text style={styles.linkBold}>Sign up</Text>
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
-    </SafeAreaView>
+            <TouchableOpacity
+              style={[styles.button, loading && styles.buttonDisabled]}
+              onPress={handleLogin}
+              disabled={loading}
+            >
+              <Text style={styles.buttonText}>{loading ? 'Signing in...' : 'Sign In'}</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.linkButton} onPress={() => navigation.navigate('Register')}>
+              <Text style={styles.linkText}>
+                Don't have an account?{' '}
+                <Text style={styles.linkBold}>Sign up</Text>
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FFFFFF' },
+  root: { flex: 1, backgroundColor: '#0B1628' },
+  bg: { position: 'absolute', top: 0, left: 0 },
   flex: { flex: 1 },
-  inner: { flexGrow: 1, padding: 24, justifyContent: 'center' },
-  header: { alignItems: 'center', marginBottom: 40 },
-  logo: { marginBottom: 16 },
-  subtitle: { fontSize: 16, color: '#6B7280', marginTop: 4 },
-  form: { gap: 8 },
-  label: { fontSize: 14, fontWeight: '600', color: '#374151', marginBottom: 4 },
+  inner: { flexGrow: 1, paddingHorizontal: 24, justifyContent: 'center' },
+  header: { alignItems: 'center', marginBottom: 32 },
+  subtitle: { fontSize: 16, color: 'rgba(255,255,255,0.60)', marginTop: 4 },
+  card: {
+    backgroundColor: 'rgba(17,30,51,0.80)',
+    borderRadius: 20,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.10)',
+  },
+  label: { fontSize: 14, fontWeight: '600', color: '#F0F6FC', marginBottom: 6, marginTop: 4 },
   input: {
-    borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 10,
-    padding: 14, fontSize: 16, color: '#111827', marginBottom: 16,
-    backgroundColor: '#F9FAFB',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.15)',
+    borderRadius: 10,
+    padding: 14,
+    fontSize: 16,
+    color: '#F0F6FC',
+    marginBottom: 16,
+    backgroundColor: 'rgba(255,255,255,0.07)',
   },
   button: {
-    backgroundColor: '#16A34A', borderRadius: 10,
-    padding: 16, alignItems: 'center', marginTop: 8,
+    backgroundColor: '#3B82F6',
+    borderRadius: 10,
+    padding: 16,
+    alignItems: 'center',
+    marginTop: 8,
   },
   buttonDisabled: { opacity: 0.6 },
   buttonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
   linkButton: { alignItems: 'center', marginTop: 20 },
-  linkText: { color: '#6B7280', fontSize: 14 },
-  linkBold: { color: '#16A34A', fontWeight: '700' },
+  linkText: { color: 'rgba(255,255,255,0.55)', fontSize: 14 },
+  linkBold: { color: '#3B82F6', fontWeight: '700' },
 });
