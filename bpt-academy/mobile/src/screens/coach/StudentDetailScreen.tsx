@@ -817,7 +817,7 @@ const styles = StyleSheet.create({
   miniBarFill: { height: '100%', backgroundColor: '#16A34A', borderRadius: 2 },
   miniBarLabel: { fontSize: 12, color: '#9CA3AF', paddingHorizontal: 14, marginTop: 4, marginBottom: 10 },
   enrollActions: { borderTopWidth: 1, borderTopColor: '#F3F4F6' },
-  enrollActionScroll: { paddingHorizontal: 14, paddingVertical: 10, gap: 8  paddingBottom: 80,},
+  enrollActionScroll: { paddingHorizontal: 14, paddingVertical: 10, gap: 8, paddingBottom: 80,},
   statusChip: { borderWidth: 1, borderRadius: 16, paddingHorizontal: 12, paddingVertical: 6 },
   statusChipText: { fontSize: 12, fontWeight: '600' },
   removeChip: { borderWidth: 1, borderColor: '#FCA5A5', borderRadius: 16, paddingHorizontal: 12, paddingVertical: 6 },

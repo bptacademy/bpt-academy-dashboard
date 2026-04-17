@@ -329,7 +329,7 @@ const styles = StyleSheet.create({
 
   // Stats bar — horizontal scroll
   statsBar: { backgroundColor: 'rgba(11,22,40,0.9)', borderBottomWidth: 1, borderBottomColor: '#E5E7EB' },
-  statsScroll: { flexDirection: 'row', paddingHorizontal: 8  paddingBottom: 80,},
+  statsScroll: { flexDirection: 'row', paddingHorizontal: 8, paddingBottom: 80,},
   statCell: {
     alignItems: 'center', paddingVertical: 14, paddingHorizontal: 20,
     minWidth: 80, borderBottomWidth: 2, borderBottomColor: 'transparent',
@@ -342,7 +342,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(23,34,64,0.9)', borderRadius: 10,
     paddingHorizontal: 14, paddingVertical: 11, fontSize: 15, color: '#F0F6FC',
   },
-  roleChips: { gap: 8, paddingVertical: 2  paddingBottom: 80,},
+  roleChips: { gap: 8, paddingVertical: 2, paddingBottom: 80,},
   chip: {
     borderWidth: 1, borderColor: 'rgba(30,48,80,0.8)', borderRadius: 20,
     paddingHorizontal: 14, paddingVertical: 7, backgroundColor: 'rgba(17,30,51,0.85)',
