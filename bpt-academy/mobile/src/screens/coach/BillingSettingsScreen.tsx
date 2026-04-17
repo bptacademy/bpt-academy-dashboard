@@ -281,7 +281,7 @@ const styles = StyleSheet.create({
   tabBtnText: { fontSize: 14, fontWeight: '600', color: '#6B7280' },
   tabBtnTextActive: { color: '#16A34A' },
 
-  content: { padding: 20, paddingBottom: 48 },
+  content: { padding: 20, paddingBottom: 72 },
 
   // Info card (Stripe mode explanation)
   infoCard: {

@@ -174,7 +174,7 @@ const styles = StyleSheet.create({
   uploadBtnText: { color: '#FFFFFF', fontWeight: '700', fontSize: 14 },
   searchContainer: { padding: 16, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
   searchInput: { backgroundColor: '#F3F4F6', borderRadius: 10, padding: 12, fontSize: 15, color: '#111827' },
-  list: { padding: 16 },
+  list: { padding: 16  paddingBottom: 80,},
   card: { backgroundColor: '#FFFFFF', borderRadius: 14, marginBottom: 16, borderWidth: 1, borderColor: '#E5E7EB', overflow: 'hidden' },
   thumbnail: { height: 160, backgroundColor: '#111827', alignItems: 'center', justifyContent: 'center' },
   thumbnailIcon: { fontSize: 48 },

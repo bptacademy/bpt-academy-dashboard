@@ -457,7 +457,7 @@ const styles = StyleSheet.create({
   addRow: { flexDirection: 'row', justifyContent: 'flex-end', padding: 12, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
   addBtn: { backgroundColor: '#16A34A', borderRadius: 20, paddingHorizontal: 16, paddingVertical: 8 },
   addBtnText: { color: '#FFFFFF', fontWeight: '700', fontSize: 14 },
-  list: { padding: 16 },
+  list: { padding: 16, paddingBottom: 80 },
 
   card: { backgroundColor: '#FFFFFF', borderRadius: 14, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: '#E5E7EB' },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 },

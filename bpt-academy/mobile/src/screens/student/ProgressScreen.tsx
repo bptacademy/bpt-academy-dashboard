@@ -898,7 +898,7 @@ const styles = StyleSheet.create({
   },
   tabText: { fontSize: 11, fontWeight: '700', color: '#6B7280', textAlign: 'center' },
   scroll: { flex: 1 },
-  content: { padding: 16, paddingBottom: 40 },
+  content: { padding: 16, paddingBottom: 72 },
   loader: { marginTop: 60 },
 
   levelCard: { borderRadius: 16, padding: 24, marginBottom: 14, alignItems: 'center' },

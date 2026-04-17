@@ -155,7 +155,7 @@ const styles = StyleSheet.create({
   title: { fontSize: 26, fontWeight: '700', color: '#111827' },
   subtitle: { fontSize: 14, color: '#6B7280', marginTop: 2 },
   filters: { backgroundColor: '#FFFFFF' },
-  filtersContent: { paddingHorizontal: 20, paddingVertical: 12, gap: 8 },
+  filtersContent: { paddingHorizontal: 20, paddingVertical: 12, gap: 8  paddingBottom: 80,},
   chip: { borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 20, paddingHorizontal: 16, paddingVertical: 8, backgroundColor: '#F9FAFB' },
   chipActive: { backgroundColor: '#16A34A', borderColor: '#16A34A' },
   chipText: { fontSize: 13, color: '#374151', fontWeight: '500' },

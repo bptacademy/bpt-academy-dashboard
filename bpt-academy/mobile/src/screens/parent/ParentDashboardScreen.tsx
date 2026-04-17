@@ -226,7 +226,7 @@ const styles = StyleSheet.create({
   loadingText: { marginTop: 12, color: '#6B7280', fontSize: 14 },
 
   scroll: { flex: 1 },
-  scrollContent: { padding: 16, backgroundColor: 'transparent' },
+  scrollContent: { padding: 16, backgroundColor: 'transparent'  paddingBottom: 80,},
 
   sectionTitle: { fontSize: 16, fontWeight: '700', color: '#F0F6FC', marginBottom: 14, marginTop: 4 },
 

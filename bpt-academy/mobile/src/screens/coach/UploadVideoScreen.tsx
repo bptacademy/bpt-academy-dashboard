@@ -298,7 +298,7 @@ export default function UploadVideoScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   bgImage: { position: 'absolute', top: 0, left: 0, width: Dimensions.get('window').width, height: Dimensions.get('window').height },
   container: { flex: 1, backgroundColor: '#FFFFFF' },
-  inner: { padding: 24 },
+  inner: { padding: 24  paddingBottom: 80,},
   header: { marginTop: 20, marginBottom: 24 },
   title: { fontSize: 26, fontWeight: '700', color: '#111827' },
   subtitle: { fontSize: 14, color: '#6B7280', marginTop: 4 },
@@ -321,7 +321,7 @@ const styles = StyleSheet.create({
   },
   textarea: { height: 90, textAlignVertical: 'top' },
   programScroll: { marginBottom: 24 },
-  programScrollContent: { gap: 8, paddingRight: 8 },
+  programScrollContent: { gap: 8, paddingRight: 8  paddingBottom: 80,},
   programChip: { borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8, backgroundColor: '#F9FAFB', maxWidth: 160 },
   programChipActive: { backgroundColor: '#16A34A', borderColor: '#16A34A' },
   programChipText: { fontSize: 13, color: '#374151' },

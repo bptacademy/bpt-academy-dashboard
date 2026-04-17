@@ -115,7 +115,7 @@ export default function MyCoachNotesScreen() {
 const styles = StyleSheet.create({
   bgImage: { position: 'absolute', top: 0, left: 0, width: Dimensions.get('window').width, height: Dimensions.get('window').height },
   container: { flex: 1, backgroundColor: '#F9FAFB' },
-  content: { padding: 20, paddingBottom: 40 },
+  content: { padding: 20, paddingBottom: 72 },
   loader: { marginTop: 60 },
   emptyCard: {
     backgroundColor: '#FFFFFF', borderRadius: 14, padding: 40,

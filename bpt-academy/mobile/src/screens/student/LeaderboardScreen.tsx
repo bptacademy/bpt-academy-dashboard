@@ -475,7 +475,7 @@ const styles = StyleSheet.create({
   divTabText: { fontSize: 13, fontWeight: '600', color: '#374151' },
   divTabTextActive: { color: '#FFFFFF' },
 
-  content: { padding: 16, paddingBottom: 40 },
+  content: { padding: 16, paddingBottom: 72 },
   loader: { marginTop: 60 },
 
   emptyCard: {

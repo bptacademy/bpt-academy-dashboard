@@ -240,7 +240,7 @@ const styles = StyleSheet.create({
   filterChipActive: { backgroundColor: '#16A34A', borderColor: '#16A34A' },
   filterText: { fontSize: 13, color: '#374151', fontWeight: '500' },
   filterTextActive: { color: '#FFFFFF', fontWeight: '700' },
-  list: { padding: 16, gap: 12 },
+  list: { padding: 16, gap: 12  paddingBottom: 80,},
   card: { backgroundColor: '#FFFFFF', borderRadius: 14, padding: 16, borderWidth: 1, borderColor: '#E5E7EB' },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
   studentName: { fontSize: 16, fontWeight: '700', color: '#111827' },

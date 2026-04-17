@@ -418,7 +418,7 @@ const styles = StyleSheet.create({
   bgImage: { position: 'absolute', top: 0, left: 0, width: Dimensions.get('window').width, height: Dimensions.get('window').height },
   container: { flex: 1, backgroundColor: '#F9FAFB' },
   loadingContainer: { flex: 1, backgroundColor: '#F9FAFB' },
-  content: { padding: 16 },
+  content: { padding: 16  paddingBottom: 80,},
 
   segmentRow: { flexDirection: 'row', backgroundColor: '#E5E7EB', borderRadius: 10, padding: 3, marginBottom: 16 },
   segmentBtn: { flex: 1, paddingVertical: 8, borderRadius: 8, alignItems: 'center' },

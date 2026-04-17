@@ -255,7 +255,7 @@ const styles = StyleSheet.create({
   bgImage: { position: 'absolute', top: 0, left: 0, width: Dimensions.get('window').width, height: Dimensions.get('window').height },
   container: { flex: 1, backgroundColor: '#F3F4F6' },
   flex: { flex: 1 },
-  inner: { padding: 16 },
+  inner: { padding: 16  paddingBottom: 80,},
 
   section: {
     backgroundColor: '#FFFFFF', borderRadius: 14, padding: 16, marginBottom: 16,
