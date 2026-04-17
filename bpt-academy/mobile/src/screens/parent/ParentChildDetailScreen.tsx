@@ -361,7 +361,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F3F4F6' },
 
   tabBar: { backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#E5E7EB' },
-  tabBarInner: { paddingHorizontal: 12, paddingVertical: 4  paddingBottom: 80,},
+  tabBarInner: { paddingHorizontal: 12, paddingVertical: 4, paddingBottom: 80,},
   tabItem: { alignItems: 'center', paddingHorizontal: 14, paddingVertical: 10, marginHorizontal: 2, borderRadius: 8 },
   tabItemActive: { backgroundColor: '#ECFDF5' },
   tabIcon: { fontSize: 18 },

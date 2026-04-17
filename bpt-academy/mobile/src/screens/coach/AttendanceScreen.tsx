@@ -395,7 +395,7 @@ const styles = StyleSheet.create({
   loader: { marginTop: 40 },
   emptyCard: { margin: 20, backgroundColor: '#FFFFFF', borderRadius: 14, padding: 24, alignItems: 'center', borderWidth: 1, borderColor: '#E5E7EB' },
   emptyText: { color: '#6B7280', fontSize: 14 },
-  list: { padding: 12, gap: 8  paddingBottom: 80,},
+  list: { padding: 12, gap: 8, paddingBottom: 80,},
   row: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', borderRadius: 12, padding: 12, borderWidth: 1, borderColor: '#E5E7EB', gap: 10 },
   rowPresent: { borderColor: '#BBF7D0', backgroundColor: '#F0FDF4' },
   rowSelected: { borderColor: '#3B82F6', backgroundColor: '#EFF6FF' },

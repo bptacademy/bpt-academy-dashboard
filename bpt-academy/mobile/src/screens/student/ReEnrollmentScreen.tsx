@@ -178,7 +178,7 @@ const styles = StyleSheet.create({
   bgImage: { position: 'absolute', top: 0, left: 0, width: Dimensions.get('window').width, height: Dimensions.get('window').height },
   container: { flex: 1, backgroundColor: '#F9FAFB' },
   loading: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  content: { padding: 16  paddingBottom: 80,},
+  content: { padding: 16, paddingBottom: 80,},
 
   confirmedCard: {
     backgroundColor: '#ECFDF5', borderRadius: 16, padding: 32,
