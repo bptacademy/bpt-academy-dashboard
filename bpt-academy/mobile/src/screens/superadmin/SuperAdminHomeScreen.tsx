@@ -4,6 +4,7 @@ import {
   RefreshControl, Alert, Modal, ActivityIndicator, TextInput, Dimensions, Image,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTabBarPadding } from '../../hooks/useTabBarPadding';
 import { supabase } from '../../lib/supabase';
 import { Profile, UserRole } from '../../types';
 import ScreenHeader from '../../components/common/ScreenHeader';
@@ -29,6 +30,7 @@ const initials = (name: string) =>
 // ─── Component ──────────────────────────────────────────────────────────
 export default function SuperAdminHomeScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
+  const tabBarPadding = useTabBarPadding();
   const { profile: me } = useAuth();
 
   const [stats, setStats] = useState({ total: 0, students: 0, coaches: 0, admins: 0, superAdmins: 0 });

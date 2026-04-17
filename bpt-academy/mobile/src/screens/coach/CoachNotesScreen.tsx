@@ -3,6 +3,7 @@ import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
   TextInput, ActivityIndicator, Alert, Switch, Modal, KeyboardAvoidingView, Platform, Image, Dimensions} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTabBarPadding } from '../../hooks/useTabBarPadding';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { CoachNote, Profile } from '../../types';
@@ -20,6 +21,7 @@ interface Props {
 
 export default function CoachNotesScreen({ navigation, route }: Props) {
   const insets = useSafeAreaInsets();
+  const tabBarPadding = useTabBarPadding();
   const targetStudentId = route?.params?.studentId;
   const targetStudentName = route?.params?.studentName;
   const { profile: coachProfile } = useAuth();

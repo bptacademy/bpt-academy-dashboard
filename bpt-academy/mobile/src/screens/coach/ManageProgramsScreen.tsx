@@ -3,6 +3,7 @@ import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
   RefreshControl, Alert, TextInput, Modal, ActivityIndicator, Image, Dimensions} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTabBarPadding } from '../../hooks/useTabBarPadding';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { Program, SkillLevel, Division, DIVISION_LABELS, DIVISION_COLORS } from '../../types';
@@ -36,6 +37,7 @@ const EMPTY_FORM: FormState = {
 
 export default function ManageProgramsScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
+  const tabBarPadding = useTabBarPadding();
   const { profile } = useAuth();
   const [programs, setPrograms]             = useState<Program[]>([]);
   const [programCoaches, setProgramCoaches] = useState<Record<string, CoachProfile[]>>({});

@@ -4,6 +4,7 @@ import {
   TouchableOpacity, KeyboardAvoidingView, Platform, ActivityIndicator,
   Alert, Image, Dimensions} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTabBarPadding } from '../../hooks/useTabBarPadding';
 import { useFocusEffect } from '@react-navigation/native';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
@@ -22,6 +23,7 @@ export default function ChatScreen({ route, navigation }: any) {
   const { conversationId, title, conversationType } = route.params;
   const { profile } = useAuth();
   const insets = useSafeAreaInsets();
+  const tabBarPadding = useTabBarPadding();
   const [messages, setMessages]       = useState<Message[]>([]);
   const [text, setText]               = useState('');
   const [sending, setSending]         = useState(false);

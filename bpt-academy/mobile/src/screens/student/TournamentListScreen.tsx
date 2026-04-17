@@ -3,6 +3,7 @@ import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
   RefreshControl, ActivityIndicator, Image, Dimensions} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTabBarPadding } from '../../hooks/useTabBarPadding';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { Tournament, Division, DIVISION_LABELS, DIVISION_COLORS } from '../../types';
@@ -14,6 +15,7 @@ const ALL_DIVISIONS: Division[] = ['amateur', 'semi_pro', 'pro', 'junior_9_11', 
 
 export default function TournamentListScreen({ navigation }: { navigation: any }) {
   const insets = useSafeAreaInsets();
+  const tabBarPadding = useTabBarPadding();
   const { profile } = useAuth();
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [myRegistrations, setMyRegistrations] = useState<Record<string, string>>({});
@@ -76,7 +78,7 @@ export default function TournamentListScreen({ navigation }: { navigation: any }
 
       <BackHeader title="Tournaments" />
       <ScrollView
-        contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
+        contentContainerStyle={{ paddingBottom: tabBarPadding }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         showsVerticalScrollIndicator={false}
       >

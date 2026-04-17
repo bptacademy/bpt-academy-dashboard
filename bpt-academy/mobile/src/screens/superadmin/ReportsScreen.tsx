@@ -3,6 +3,7 @@ import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
   ActivityIndicator, RefreshControl, Alert, Image, Dimensions} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTabBarPadding } from '../../hooks/useTabBarPadding';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 // NOTE: xlsx is required lazily inside handleExport() to avoid a React Native
@@ -68,6 +69,7 @@ function uint8ToBase64(bytes: Uint8Array): string {
 
 export default function ReportsScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
+  const tabBarPadding = useTabBarPadding();
   const { profile } = useAuth();
 
   const [mode, setMode] = useState<ReportMode>('weekly');
@@ -304,7 +306,7 @@ export default function ReportsScreen({ navigation }: any) {
     <View style={styles.container}>
       <BackHeader title="Reports" />
       <ScrollView
-        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 32 }]}
+        contentContainerStyle={[styles.content, { paddingBottom: tabBarPadding }]}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         showsVerticalScrollIndicator={false}
       >

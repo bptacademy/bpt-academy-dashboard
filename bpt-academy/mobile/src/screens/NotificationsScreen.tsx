@@ -4,6 +4,7 @@ import {
   Image, Dimensions, Modal, ScrollView,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTabBarPadding } from '../hooks/useTabBarPadding';
 import BackHeader from '../components/common/BackHeader';
 import { useNotifications } from '../hooks/useNotifications';
 import { useAuth } from '../context/AuthContext';
@@ -49,6 +50,7 @@ function typeIcon(type: string): string {
 
 export default function NotificationsScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
+  const tabBarPadding = useTabBarPadding();
   const { profile } = useAuth();
   const { unreadCount, markRead, markAllRead, refresh: refreshUnread } = useNotifications();
   const [allNotifications, setAllNotifications] = useState<NotificationWithExpiry[]>([]);
@@ -147,7 +149,7 @@ export default function NotificationsScreen({ navigation }: any) {
         renderItem={renderItem}
         contentContainerStyle={[
           allNotifications.length === 0 ? styles.emptyContainer : styles.listContent,
-          { paddingBottom: 48 + insets.bottom + 16 },
+          { paddingBottom: tabBarPadding },
         ]}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FFFFFF" />}
         ListEmptyComponent={

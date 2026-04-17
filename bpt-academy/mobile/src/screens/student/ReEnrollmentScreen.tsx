@@ -3,6 +3,7 @@ import {
   View, Text, ScrollView, StyleSheet,
   TouchableOpacity, ActivityIndicator, Alert, Image, Dimensions} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTabBarPadding } from '../../hooks/useTabBarPadding';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import BackHeader from '../../components/common/BackHeader';
@@ -10,6 +11,7 @@ import BackHeader from '../../components/common/BackHeader';
 export default function ReEnrollmentScreen({ route, navigation }: any) {
   const { enrollmentId, programId, programTitle, price, deadline } = route.params;
   const insets = useSafeAreaInsets();
+  const tabBarPadding = useTabBarPadding();
   const { profile } = useAuth();
   const [loading, setLoading] = useState(true);
   const [confirming, setConfirming] = useState(false);
@@ -101,7 +103,7 @@ export default function ReEnrollmentScreen({ route, navigation }: any) {
   return (
     <View style={styles.container}>
       <BackHeader title="Re-enrollment" />
-      <ScrollView contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 32 }]}>
+      <ScrollView contentContainerStyle={[styles.content, { paddingBottom: tabBarPadding }]}>
 
         {alreadyConfirmed ? (
           <View style={styles.confirmedCard}>

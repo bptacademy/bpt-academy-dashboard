@@ -3,6 +3,7 @@ import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
   RefreshControl, TextInput, Image, Dimensions} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTabBarPadding } from '../../hooks/useTabBarPadding';
 import { supabase } from '../../lib/supabase';
 import { Profile } from '../../types';
 import ScreenHeader from '../../components/common/ScreenHeader';
@@ -16,6 +17,7 @@ const LEVEL_COLORS: Record<string, string> = {
 
 export default function ManageStudentsScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
+  const tabBarPadding = useTabBarPadding();
   const [students, setStudents] = useState<Profile[]>([]);
   const [filtered, setFiltered] = useState<Profile[]>([]);
   const [search, setSearch] = useState('');
@@ -43,7 +45,7 @@ export default function ManageStudentsScreen({ navigation }: any) {
 
   return (
     <ScrollView
-      contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
+      contentContainerStyle={{ paddingBottom: tabBarPadding }}
       style={styles.container}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
     >

@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, RefreshControl, Dimensions, Image } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTabBarPadding } from '../../hooks/useTabBarPadding';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
 import ScreenHeader from '../../components/common/ScreenHeader';
@@ -27,6 +28,7 @@ function localDateStr(d: Date): string {
 
 export default function CoachDashboardScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
+  const tabBarPadding = useTabBarPadding();
   const { profile } = useAuth();
   const [stats, setStats] = useState({ myStudents: 0, myPrograms: 0, videos: 0 });
   const [refreshing, setRefreshing] = useState(false);

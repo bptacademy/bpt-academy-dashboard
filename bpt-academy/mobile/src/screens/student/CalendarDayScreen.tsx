@@ -4,6 +4,7 @@ import {
   ListRenderItemInfo, Image, Dimensions,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTabBarPadding } from '../../hooks/useTabBarPadding';
 import BackHeader from '../../components/common/BackHeader';
 
 export interface CalendarEvent {
@@ -60,6 +61,7 @@ function EventCard({ item }: { item: CalendarEvent }) {
 
 export default function CalendarDayScreen({ route }: any) {
   const insets = useSafeAreaInsets();
+  const tabBarPadding = useTabBarPadding();
   const { date, events } = route.params as RouteParams;
 
   const sortedEvents = [...(events ?? [])].sort((a, b) => {
@@ -91,7 +93,7 @@ export default function CalendarDayScreen({ route }: any) {
           data={sortedEvents}
           keyExtractor={item => item.id}
           renderItem={({ item }: ListRenderItemInfo<CalendarEvent>) => <EventCard item={item} />}
-          contentContainerStyle={[styles.list, { paddingBottom: 48 + insets.bottom + 24 }]}
+          contentContainerStyle={[styles.list, { paddingBottom: tabBarPadding }]}
           showsVerticalScrollIndicator={false}
         />
       )}

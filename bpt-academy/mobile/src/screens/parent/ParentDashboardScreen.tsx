@@ -4,6 +4,7 @@ import {
   TouchableOpacity, RefreshControl, ActivityIndicator, Image, Dimensions,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTabBarPadding } from '../../hooks/useTabBarPadding';
 import { useFocusEffect } from '@react-navigation/native';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
@@ -32,6 +33,7 @@ function calcAge(dob: string): number {
 export default function ParentDashboardScreen({ navigation }: any) {
   const { profile, signOut } = useAuth();
   const insets = useSafeAreaInsets();
+  const tabBarPadding = useTabBarPadding();
   const [children, setChildren] = useState<ChildCard[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);

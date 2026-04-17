@@ -3,6 +3,7 @@ import {
   View, Text, ScrollView, StyleSheet,
   TouchableOpacity, ActivityIndicator, Image, Dimensions} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTabBarPadding } from '../../hooks/useTabBarPadding';
 import BackHeader from '../../components/common/BackHeader';
 import { supabase } from '../../lib/supabase';
 import BackButton from '../../components/common/BackButton';
@@ -38,6 +39,7 @@ function calcAge(dob: string): number {
 export default function ParentChildDetailScreen({ route, navigation }: any) {
   const { child } = route.params as { child: Profile };
   const insets = useSafeAreaInsets();
+  const tabBarPadding = useTabBarPadding();
   const [activeTab, setActiveTab] = useState<Tab>('overview');
   const [loading, setLoading] = useState(true);
 

@@ -4,6 +4,7 @@ import {
   ScrollView, Alert, KeyboardAvoidingView, Platform,
   Animated, Easing, Image, Dimensions} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTabBarPadding } from '../../hooks/useTabBarPadding';
 import * as ImagePicker from 'expo-image-picker';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
@@ -21,6 +22,7 @@ const STAGES: { key: UploadStage; label: string; icon: string }[] = [
 
 export default function UploadVideoScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
+  const tabBarPadding = useTabBarPadding();
   const { profile } = useAuth();
   const [programs, setPrograms] = useState<Program[]>([]);
   const [form, setForm] = useState({
