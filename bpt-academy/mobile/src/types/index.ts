@@ -1,6 +1,6 @@
 export type UserRole = 'student' | 'coach' | 'admin' | 'super_admin' | 'parent';
 export type SkillLevel = 'beginner' | 'intermediate' | 'advanced';
-export type EnrollmentStatus = 'active' | 'waitlisted' | 'completed' | 'cancelled';
+export type EnrollmentStatus = 'active' | 'waitlisted' | 'completed' | 'cancelled' | 'pending_payment' | 'pending_next_cycle';
 export type Division = 'amateur' | 'semi_pro' | 'pro' | 'junior_9_11' | 'junior_12_15' | 'junior_15_18';
 export type PaymentMethod = 'stripe' | 'bank_transfer';
 export type PaymentStatus = 'pending' | 'confirmed' | 'failed' | 'refunded';
