@@ -230,7 +230,7 @@ const styles = StyleSheet.create({
   cancelBtn: { fontSize: 16, color: '#6B7280' },
   saveBtn: { fontSize: 16, color: '#16A34A', fontWeight: '700' },
   form: { padding: 20, gap: 4 },
-  label: { fontSize: 14, fontWeight: '600', color: '#374151', marginBottom: 6, marginTop: 8 },
+  label: { fontSize: 14, fontWeight: '600', color: '#F0F6FC', marginBottom: 6, marginTop: 8 },
   input: { borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 10, padding: 14, fontSize: 15, color: '#111827', backgroundColor: '#F9FAFB', marginBottom: 4 },
   divGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 24 },
   divChip: { borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8, backgroundColor: '#F9FAFB' },

@@ -216,7 +216,7 @@ export default function ChatScreen({ route, navigation }: any) {
         </View>
       )}
 
-      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'} keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}>
+      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'} keyboardVerticalOffset={Platform.OS === 'ios' ? 48 + insets.bottom : 0}>
         <FlatList
           ref={flatListRef}
           data={messages}
@@ -263,7 +263,7 @@ export default function ChatScreen({ route, navigation }: any) {
 
 const styles = StyleSheet.create({
   bgImage: { position: 'absolute', top: 0, left: 0, width: Dimensions.get('window').width, height: Dimensions.get('window').height },
-  container: { flex: 1, backgroundColor: '#F9FAFB' },
+  container: { flex: 1, backgroundColor: '#0B1628' },
   flex: { flex: 1 },
   loading: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   divisionBanner: { backgroundColor: '#FFFBEB', borderBottomWidth: 1, borderBottomColor: '#FDE68A', paddingVertical: 8, paddingHorizontal: 16, alignItems: 'center' },
@@ -277,16 +277,16 @@ const styles = StyleSheet.create({
   msgAvatarText: { color: '#FFF', fontSize: 12, fontWeight: '700' },
   bubble: { maxWidth: '75%', borderRadius: 18, paddingHorizontal: 14, paddingVertical: 10 },
   bubbleMe: { backgroundColor: '#16A34A', borderBottomRightRadius: 4 },
-  bubbleThem: { backgroundColor: '#FFFFFF', borderBottomLeftRadius: 4, borderWidth: 1, borderColor: '#E5E7EB' },
-  bubbleText: { fontSize: 15, color: '#111827', lineHeight: 20 },
+  bubbleThem: { backgroundColor: 'rgba(17,30,51,0.90)', borderBottomLeftRadius: 4, borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)' },
+  bubbleText: { fontSize: 15, color: '#F0F6FC', lineHeight: 20 },
   bubbleTextMe: { color: '#FFFFFF' },
-  bubbleTime: { fontSize: 11, color: '#9CA3AF', marginTop: 4, textAlign: 'right' },
+  bubbleTime: { fontSize: 11, color: '#7A8FA6', marginTop: 4, textAlign: 'right' },
   bubbleTimeMe: { color: 'rgba(255,255,255,0.7)' },
   empty: { alignItems: 'center', paddingTop: 60 },
   emptyIcon: { fontSize: 48, marginBottom: 12 },
   emptyText: { color: '#9CA3AF', fontSize: 15 },
-  inputRow: { flexDirection: 'row', alignItems: 'flex-end', paddingHorizontal: 12, paddingTop: 10, gap: 10, backgroundColor: '#FFFFFF', borderTopWidth: 1, borderTopColor: '#E5E7EB' },
-  input: { flex: 1, borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 22, paddingHorizontal: 16, paddingVertical: 10, fontSize: 15, color: '#111827', maxHeight: 120, backgroundColor: '#F9FAFB' },
+  inputRow: { flexDirection: 'row', alignItems: 'flex-end', paddingHorizontal: 12, paddingTop: 10, paddingBottom: 8, gap: 10, backgroundColor: 'rgba(11,22,40,0.97)', borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.10)' },
+  input: { flex: 1, borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', borderRadius: 22, paddingHorizontal: 16, paddingVertical: 10, fontSize: 15, color: '#F0F6FC', maxHeight: 120, backgroundColor: 'rgba(255,255,255,0.08)' },
   sendBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#16A34A', alignItems: 'center', justifyContent: 'center' },
   sendBtnDisabled: { opacity: 0.4 },
   sendIcon: { color: '#FFFFFF', fontSize: 16 },

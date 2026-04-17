@@ -134,7 +134,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#FFFFFF' },
   inner: { padding: 24, paddingBottom: 80,},
   form: {},
-  label: { fontSize: 14, fontWeight: '600', color: '#374151', marginBottom: 6 },
+  label: { fontSize: 14, fontWeight: '600', color: '#F0F6FC', marginBottom: 6 },
   input: { borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 10, padding: 14, fontSize: 16, color: '#111827', marginBottom: 20, backgroundColor: '#F9FAFB' },
   textarea: { height: 140, textAlignVertical: 'top' },
   previewCard: { backgroundColor: '#F9FAFB', borderRadius: 12, padding: 16, marginBottom: 24, borderWidth: 1, borderColor: '#E5E7EB' },

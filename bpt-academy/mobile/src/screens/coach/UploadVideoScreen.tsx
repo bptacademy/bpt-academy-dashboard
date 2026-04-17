@@ -314,7 +314,7 @@ const styles = StyleSheet.create({
   videoName: { fontSize: 14, fontWeight: '600', color: '#16A34A', marginBottom: 4, maxWidth: 260 },
   videoChange: { fontSize: 13, color: '#6B7280' },
   form: {},
-  label: { fontSize: 14, fontWeight: '600', color: '#374151', marginBottom: 6 },
+  label: { fontSize: 14, fontWeight: '600', color: '#F0F6FC', marginBottom: 6 },
   input: {
     borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 10,
     padding: 14, fontSize: 16, color: '#111827', marginBottom: 18, backgroundColor: '#F9FAFB',

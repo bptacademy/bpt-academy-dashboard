@@ -192,7 +192,7 @@ const styles = StyleSheet.create({
   content: { padding: 16, paddingBottom: 80,},
   section: { backgroundColor: '#FFFFFF', borderRadius: 14, padding: 16, marginBottom: 14, borderWidth: 1, borderColor: '#E5E7EB' },
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-  sectionTitle: { fontSize: 16, fontWeight: '700', color: '#111827' },
+  sectionTitle: { fontSize: 16, fontWeight: '700', color: '#F0F6FC' },
   selectAll: { fontSize: 14, color: '#16A34A', fontWeight: '600' },
   divGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   divChip: { borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8, backgroundColor: '#F9FAFB' },

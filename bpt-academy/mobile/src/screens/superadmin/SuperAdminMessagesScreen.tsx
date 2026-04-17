@@ -353,7 +353,7 @@ const styles = StyleSheet.create({
   wrapper: { flex: 1, backgroundColor: '#F9FAFB' },
   container: { flex: 1 },
   section: { padding: 16, paddingBottom: 4 },
-  sectionTitle: { fontSize: 15, fontWeight: '700', color: '#111827', marginBottom: 4 },
+  sectionTitle: { fontSize: 15, fontWeight: '700', color: '#F0F6FC', marginBottom: 4 },
   sectionHint: { fontSize: 12, color: '#9CA3AF', marginBottom: 10 },
 
   toolRow: { flexDirection: 'row', gap: 12, marginTop: 4 },

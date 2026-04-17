@@ -497,7 +497,7 @@ const styles = StyleSheet.create({
   cancelBtn: { fontSize: 16, color: '#6B7280' },
   saveBtn: { fontSize: 16, color: '#16A34A', fontWeight: '700' },
   form: { padding: 20, gap: 4 },
-  label: { fontSize: 14, fontWeight: '600', color: '#374151', marginBottom: 4 },
+  label: { fontSize: 14, fontWeight: '600', color: '#F0F6FC', marginBottom: 4 },
   input: { borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 10, padding: 14, fontSize: 16, color: '#111827', marginBottom: 16, backgroundColor: '#F9FAFB' },
   textarea: { height: 100, textAlignVertical: 'top' },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 },

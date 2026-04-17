@@ -122,8 +122,8 @@ const styles = StyleSheet.create({
     alignItems: 'center', borderWidth: 1, borderColor: '#E5E7EB', margin: 20,
   },
   emptyIcon: { fontSize: 48, marginBottom: 12 },
-  emptyTitle: { fontSize: 17, fontWeight: '700', color: '#111827', marginBottom: 6 },
-  emptyText: { fontSize: 13, color: '#6B7280', textAlign: 'center' },
+  emptyTitle: { fontSize: 17, fontWeight: '700', color: '#F0F6FC', marginBottom: 6 },
+  emptyText: { fontSize: 13, color: '#7A8FA6', textAlign: 'center' },
   countLabel: { fontSize: 13, color: '#6B7280', marginBottom: 14 },
   noteCard: {
     backgroundColor: '#FFFFFF', borderRadius: 14, padding: 18,

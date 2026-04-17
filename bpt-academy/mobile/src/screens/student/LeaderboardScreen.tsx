@@ -483,8 +483,8 @@ const styles = StyleSheet.create({
     alignItems: 'center', borderWidth: 1, borderColor: '#E5E7EB', marginTop: 8,
   },
   emptyIcon: { fontSize: 48, marginBottom: 12 },
-  emptyTitle: { fontSize: 17, fontWeight: '700', color: '#111827', marginBottom: 6 },
-  emptyText: { color: '#6B7280', fontSize: 14, textAlign: 'center', lineHeight: 20 },
+  emptyTitle: { fontSize: 17, fontWeight: '700', color: '#F0F6FC', marginBottom: 6 },
+  emptyText: { color: '#7A8FA6', fontSize: 14, textAlign: 'center', lineHeight: 20 },
 
   podium: {
     flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'center',

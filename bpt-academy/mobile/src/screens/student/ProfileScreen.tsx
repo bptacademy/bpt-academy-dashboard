@@ -447,7 +447,7 @@ function Field({ label, value, editing, onChangeText, placeholder, keyboardType 
 
 const fieldStyles = StyleSheet.create({
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, minHeight: 54 },
-  label: { fontSize: 15, color: '#374151', flex: 1 },
+  label: { fontSize: 15, color: '#F0F6FC', flex: 1 },
   value: { fontSize: 15, color: '#6B7280', flex: 1.5, textAlign: 'right' },
   input: { fontSize: 15, color: '#111827', flex: 1.5, textAlign: 'right' },
 });
@@ -494,7 +494,7 @@ const styles = StyleSheet.create({
   modalCancel: { fontSize: 16, color: '#6B7280' },
   modalSave: { fontSize: 16, color: '#16A34A', fontWeight: '700' },
   modalBody: { padding: 24 },
-  fieldLabel: { fontSize: 14, fontWeight: '600', color: '#374151', marginBottom: 8 },
+  fieldLabel: { fontSize: 14, fontWeight: '600', color: '#F0F6FC', marginBottom: 8 },
   input: { borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 10, padding: 14, fontSize: 16, color: '#111827', marginBottom: 20, backgroundColor: '#F9FAFB' },
   dobRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, minHeight: 54 },
   dobLabel: { fontSize: 15, color: '#374151', flex: 1 },

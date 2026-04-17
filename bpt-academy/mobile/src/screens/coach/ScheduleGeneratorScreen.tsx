@@ -446,7 +446,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF', borderRadius: 14, padding: 16,
     marginBottom: 14, borderWidth: 1, borderColor: '#E5E7EB',
   },
-  sectionTitle: { fontSize: 15, fontWeight: '700', color: '#111827', marginBottom: 4 },
+  sectionTitle: { fontSize: 15, fontWeight: '700', color: '#F0F6FC', marginBottom: 4 },
   sectionHint: { fontSize: 12, color: '#9CA3AF', marginBottom: 12 },
 
   dateRow: { gap: 8, paddingBottom: 4 },

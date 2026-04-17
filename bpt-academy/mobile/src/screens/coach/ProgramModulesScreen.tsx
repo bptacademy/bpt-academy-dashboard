@@ -303,7 +303,7 @@ const styles = StyleSheet.create({
     alignItems: 'center', borderWidth: 1, borderColor: '#E5E7EB',
   },
   emptyIcon: { fontSize: 40, marginBottom: 12 },
-  emptyTitle: { fontSize: 16, fontWeight: '700', color: '#111827', marginBottom: 6 },
+  emptyTitle: { fontSize: 16, fontWeight: '700', color: '#F0F6FC', marginBottom: 6 },
   emptyNote: { fontSize: 13, color: '#9CA3AF', textAlign: 'center', lineHeight: 20 },
 
   fab: {
@@ -325,7 +325,7 @@ const styles = StyleSheet.create({
   saveBtn: { fontSize: 16, color: '#16A34A', fontWeight: '700' },
   modalBody: { padding: 20 },
 
-  fieldLabel: { fontSize: 14, fontWeight: '600', color: '#374151', marginBottom: 6 },
+  fieldLabel: { fontSize: 14, fontWeight: '600', color: '#F0F6FC', marginBottom: 6 },
   fieldHint: { fontSize: 12, color: '#6B7280', marginBottom: 8, lineHeight: 18 },
   input: {
     borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 10,

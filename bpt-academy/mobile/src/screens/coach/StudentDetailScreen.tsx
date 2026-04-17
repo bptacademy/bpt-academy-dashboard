@@ -833,7 +833,7 @@ const styles = StyleSheet.create({
   cancelBtn: { fontSize: 16, color: '#6B7280' },
   saveBtn: { fontSize: 16, color: '#16A34A', fontWeight: '700' },
   modalBody: { padding: 24 },
-  fieldLabel: { fontSize: 14, fontWeight: '700', color: '#374151', marginBottom: 10, marginTop: 8 },
+  fieldLabel: { fontSize: 14, fontWeight: '700', color: '#F0F6FC', marginBottom: 10, marginTop: 8 },
   chipGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 20 },
   selectChip: { borderWidth: 1.5, borderColor: '#D1D5DB', borderRadius: 20, paddingHorizontal: 18, paddingVertical: 9, backgroundColor: '#F9FAFB' },
   selectChipText: { fontSize: 14, color: '#374151', fontWeight: '500' },
