@@ -3,6 +3,7 @@ import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
   RefreshControl, Alert, Modal, TextInput, ActivityIndicator, Image, Dimensions} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTabBarPadding } from '../../hooks/useTabBarPadding';
 import { supabase } from '../../lib/supabase';
 import { Profile, UserRole, SkillLevel, EnrollmentStatus, Division, DIVISION_LABELS } from '../../types';
 import BackHeader from '../../components/common/BackHeader';
@@ -73,6 +74,7 @@ const SKILL_COLORS: Record<string, string> = {
 
 export default function StudentDetailScreen({ route, navigation }: any) {
   const insets = useSafeAreaInsets();
+  const tabBarPadding = useTabBarPadding();
   const { studentId } = route.params;
   const { profile: coachProfile } = useAuth();
   const [student, setStudent] = useState<Profile | null>(null);
@@ -338,7 +340,7 @@ export default function StudentDetailScreen({ route, navigation }: any) {
     <View style={{ flex: 1 }}>
       <BackHeader title={student.full_name} />
       <ScrollView
-        contentContainerStyle={{ paddingBottom: 48 + insets.bottom + 32 }}
+        contentContainerStyle={{ paddingBottom: tabBarPadding }}
         style={styles.container}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >

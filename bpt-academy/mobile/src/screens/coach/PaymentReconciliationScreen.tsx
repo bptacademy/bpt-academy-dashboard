@@ -3,6 +3,7 @@ import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
   RefreshControl, Alert, ActivityIndicator, Image, Dimensions} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTabBarPadding } from '../../hooks/useTabBarPadding';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { Payment } from '../../types';
@@ -16,6 +17,7 @@ interface PaymentRow extends Payment {
 
 export default function PaymentReconciliationScreen() {
   const insets = useSafeAreaInsets();
+  const tabBarPadding = useTabBarPadding();
   const { profile } = useAuth();
   // allPayments holds the full unfiltered list for summary stats
   const [allPayments, setAllPayments] = useState<PaymentRow[]>([]);
@@ -131,7 +133,7 @@ export default function PaymentReconciliationScreen() {
 
   return (
     <ScrollView
-      contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
+      contentContainerStyle={{ paddingBottom: tabBarPadding }}
       style={styles.container}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
     >

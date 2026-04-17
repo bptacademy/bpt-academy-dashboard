@@ -3,6 +3,7 @@ import {
   View, Text, StyleSheet, TouchableOpacity,
   ActivityIndicator, Alert, ScrollView, Image, Dimensions} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTabBarPadding } from '../../hooks/useTabBarPadding';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
 import ScreenHeader from '../../components/common/ScreenHeader';
@@ -23,6 +24,7 @@ interface Props {
 
 export default function AttendanceConfirmScreen({ navigation, route }: Props) {
   const insets = useSafeAreaInsets();
+  const tabBarPadding = useTabBarPadding();
   const { profile } = useAuth();
   const { session_id, program_title, session_time, editable_until } = route.params;
 
@@ -91,7 +93,7 @@ export default function AttendanceConfirmScreen({ navigation, route }: Props) {
       <Image source={require('../../../assets/bg.png')} style={styles.bgImage} resizeMode="cover" />
 
       <ScreenHeader title="Confirm Attendance" />
-      <ScrollView contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 32 }]}>
+      <ScrollView contentContainerStyle={[styles.content, { paddingBottom: tabBarPadding }]}>
 
         {/* Session info card */}
         <View style={styles.sessionCard}>

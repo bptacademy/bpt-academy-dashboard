@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, ScrollView, StyleSheet, Image, Dimensions} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTabBarPadding } from '../../hooks/useTabBarPadding';
 import BackHeader from '../../components/common/BackHeader';
 import BackButton from '../../components/common/BackButton';
 
@@ -64,6 +65,7 @@ const SECTIONS: Section[] = [
 
 export default function PrivacyPolicyScreen() {
   const insets = useSafeAreaInsets();
+  const tabBarPadding = useTabBarPadding();
 
   return (
     <View style={styles.container}>
@@ -73,7 +75,7 @@ export default function PrivacyPolicyScreen() {
 
       <BackHeader title="Privacy Policy" />
       <ScrollView
-        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 40 }]}
+        contentContainerStyle={[styles.content, { paddingBottom: tabBarPadding }]}
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.metaCard}>

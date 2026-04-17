@@ -3,6 +3,7 @@ import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
   Alert, ActivityIndicator, Image, Dimensions} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTabBarPadding } from '../../hooks/useTabBarPadding';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import BackHeader from '../../components/common/BackHeader';
@@ -80,6 +81,7 @@ function buildStartOptions(): Date[] {
 export default function ScheduleGeneratorScreen({ route, navigation }: any) {
   const { programId, programTitle, maxStudents, durationWeeks, sessionsPerWeek } = route.params;
   const insets = useSafeAreaInsets();
+  const tabBarPadding = useTabBarPadding();
   const { profile } = useAuth();
 
   // Derive the fixed session count from program settings
@@ -264,7 +266,7 @@ export default function ScheduleGeneratorScreen({ route, navigation }: any) {
 
       <BackHeader title="Generate Schedule" />
       <ScrollView
-        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 32 }]}
+        contentContainerStyle={[styles.content, { paddingBottom: tabBarPadding }]}
         showsVerticalScrollIndicator={false}
       >
         {/* Program info */}

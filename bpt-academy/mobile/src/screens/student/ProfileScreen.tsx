@@ -4,6 +4,7 @@ import {
   Alert, Switch, TextInput, Image, ActivityIndicator,
   KeyboardAvoidingView, Platform, Modal, Dimensions} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTabBarPadding } from '../../hooks/useTabBarPadding';
 import * as ImagePicker from 'expo-image-picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useAuth } from '../../context/AuthContext';
@@ -21,6 +22,7 @@ const DIVISIONS: Division[] = ['amateur', 'semi_pro', 'pro'];
 
 export default function ProfileScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
+  const tabBarPadding = useTabBarPadding();
   const { profile, signOut, previewRole, setPreviewRole, effectiveRole, refreshProfile } = useAuth();
 
   const isActualAdmin = profile?.role === 'admin' || profile?.role === 'coach';
@@ -168,7 +170,7 @@ export default function ProfileScreen({ navigation }: any) {
     <KeyboardAvoidingView style={{ flex: 1, backgroundColor: '#0B1628' }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <Image source={require('../../../assets/bg.png')} style={styles.bgImage} resizeMode="cover" />
       <ScreenHeader title="Profile" />
-      <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 48 + insets.bottom + 24 }}>
+      <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: tabBarPadding }}>
 
         {/* Header */}
         <View style={styles.header}>

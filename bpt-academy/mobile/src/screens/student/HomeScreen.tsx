@@ -5,6 +5,7 @@ import {
   TouchableOpacity, RefreshControl, Dimensions, Image, ImageBackground,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTabBarPadding } from '../../hooks/useTabBarPadding';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { Enrollment } from '../../types';
@@ -82,6 +83,7 @@ function nextEventLabel(days: any[], todayStr: string): string {
 export default function HomeScreen({ navigation }: any) {
   const { profile } = useAuth();
   const insets = useSafeAreaInsets();
+  const tabBarPadding = useTabBarPadding();
   const { unreadCount } = useNotifications();
   const [enrollments, setEnrollments] = useState<EnrollmentWithProgress[]>([]);
   const [refreshing, setRefreshing] = useState(false);
@@ -215,7 +217,7 @@ export default function HomeScreen({ navigation }: any) {
 
       <ScrollView
         style={styles.container}
-        contentContainerStyle={{ paddingBottom: 120 }}
+        contentContainerStyle={{ paddingBottom: tabBarPadding }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={GREEN2} />}
         showsVerticalScrollIndicator={false}
       >

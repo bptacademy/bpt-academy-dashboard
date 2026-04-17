@@ -3,6 +3,7 @@ import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   Alert, KeyboardAvoidingView, Platform, ScrollView, Image, Dimensions} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTabBarPadding } from '../../hooks/useTabBarPadding';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import BackHeader from '../../components/common/BackHeader';
 import { supabase } from '../../lib/supabase';
@@ -45,6 +46,7 @@ function generateUUID(): string {
 export default function AddChildScreen({ navigation }: any) {
   const { profile } = useAuth();
   const insets = useSafeAreaInsets();
+  const tabBarPadding = useTabBarPadding();
 
   const [child, setChild] = useState<ChildForm>({
     fullName: '',

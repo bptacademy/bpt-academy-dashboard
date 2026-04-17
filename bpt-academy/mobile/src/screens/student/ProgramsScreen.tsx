@@ -4,6 +4,7 @@ import {
   TouchableOpacity, RefreshControl, Alert, Image, Dimensions,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTabBarPadding } from '../../hooks/useTabBarPadding';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { Program, SkillLevel, Division, DIVISION_LABELS, DIVISION_COLORS } from '../../types';
@@ -13,6 +14,7 @@ const DIVISIONS: Division[] = ['amateur', 'semi_pro', 'pro'];
 
 export default function ProgramsScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
+  const tabBarPadding = useTabBarPadding();
   const { profile } = useAuth();
   const [programs, setPrograms] = useState<Program[]>([]);
   const [enrolledIds, setEnrolledIds] = useState<string[]>([]);
@@ -50,7 +52,7 @@ export default function ProgramsScreen({ navigation }: any) {
     <View style={styles.container}>
       <Image source={require('../../../assets/bg.png')} style={styles.bgImage} resizeMode="cover" />
       <ScrollView
-        contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
+        contentContainerStyle={{ paddingBottom: tabBarPadding }}
         style={{ flex: 1 }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >

@@ -3,6 +3,7 @@ import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
   Alert, ActivityIndicator, RefreshControl, Image, Dimensions} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTabBarPadding } from '../../hooks/useTabBarPadding';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { LEVEL_LABELS } from '../../types';
@@ -72,6 +73,7 @@ function MetricBar({ label, value, target, suffix = '%' }: {
 
 export default function PromotionManageScreen({ route, navigation }: any) {
   const insets = useSafeAreaInsets();
+  const tabBarPadding = useTabBarPadding();
   const { studentId, studentName } = route.params;
   const { profile: coachProfile } = useAuth();
 
@@ -251,7 +253,7 @@ export default function PromotionManageScreen({ route, navigation }: any) {
     <View style={styles.root}>
       <BackHeader title={`${studentName} — Promotion`} />
       <ScrollView
-        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 24 }]}
+        contentContainerStyle={[styles.content, { paddingBottom: tabBarPadding }]}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
         {loading ? (

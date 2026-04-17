@@ -3,6 +3,7 @@ import {
   View, Text, ScrollView, StyleSheet, TextInput,
   TouchableOpacity, Alert, ActivityIndicator, Image, Dimensions} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTabBarPadding } from '../../hooks/useTabBarPadding';
 import { supabase } from '../../lib/supabase';
 import ScreenHeader from '../../components/common/ScreenHeader';
 
@@ -25,6 +26,7 @@ const ALL_FIELDS = [...BANK_FIELDS, ...PAYMENT_LINK_FIELDS];
 
 export default function AcademySettingsScreen() {
   const insets = useSafeAreaInsets();
+  const tabBarPadding = useTabBarPadding();
   const [settings, setSettings] = useState<Settings>({});
   const [loading, setLoading]   = useState(true);
   const [saving, setSaving]     = useState(false);

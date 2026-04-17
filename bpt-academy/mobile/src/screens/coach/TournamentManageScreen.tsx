@@ -3,6 +3,7 @@ import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
   RefreshControl, Alert, Modal, TextInput, Image, Dimensions} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTabBarPadding } from '../../hooks/useTabBarPadding';
 import { supabase } from '../../lib/supabase';
 import { Tournament, TournamentStatus, Division, DIVISION_LABELS } from '../../types';
 import ScreenHeader from '../../components/common/ScreenHeader';
@@ -21,6 +22,7 @@ const STATUS_CYCLE: TournamentStatus[] = ['upcoming', 'registration_open', 'ongo
 
 export default function TournamentManageScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
+  const tabBarPadding = useTabBarPadding();
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);

@@ -3,6 +3,7 @@ import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
   ActivityIndicator, RefreshControl, Image, Dimensions} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTabBarPadding } from '../../hooks/useTabBarPadding';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { Division, DIVISION_LABELS, DIVISION_COLORS } from '../../types';
@@ -53,6 +54,7 @@ function resultLabel(reason: string): string {
 
 export default function LeaderboardScreen() {
   const insets = useSafeAreaInsets();
+  const tabBarPadding = useTabBarPadding();
   const { profile } = useAuth();
   const [mainTab, setMainTab] = useState<MainTab>('rankings');
   const [activeDivision, setActiveDivision] = useState<Division>('amateur');
@@ -233,7 +235,7 @@ export default function LeaderboardScreen() {
           <ScrollView
             refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 24 }]}
+            contentContainerStyle={[styles.content, { paddingBottom: tabBarPadding }]}
           >
             {loading ? (
               <ActivityIndicator size="large" color={divColor} style={styles.loader} />
@@ -325,7 +327,7 @@ export default function LeaderboardScreen() {
         <ScrollView
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 24 }]}
+          contentContainerStyle={[styles.content, { paddingBottom: tabBarPadding }]}
         >
           <View style={styles.bptBanner}>
             <Text style={styles.bptBannerTitle}>🎾 Britain Padel Tour Pathway</Text>

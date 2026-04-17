@@ -3,6 +3,7 @@ import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
   RefreshControl, Alert, ActivityIndicator, Image, Dimensions} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTabBarPadding } from '../../hooks/useTabBarPadding';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { Program, Module, StudentProgress, ProgramSession, Division, DIVISION_LABELS, DIVISION_COLORS } from '../../types';
@@ -13,6 +14,7 @@ const DEFAULT_PRICE_GBP = 49.99;
 
 export default function ProgramDetailScreen({ route, navigation }: any) {
   const insets = useSafeAreaInsets();
+  const tabBarPadding = useTabBarPadding();
   const { programId } = route.params;
   const { profile, refreshProfile } = useAuth();
 
@@ -221,7 +223,7 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
 
   return (
     <ScrollView
-      contentContainerStyle={{ paddingBottom: 48 + insets.bottom + 24 }}
+      contentContainerStyle={{ paddingBottom: tabBarPadding }}
       style={styles.container}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={async () => { setRefreshing(true); await fetchData(); setRefreshing(false); }} />}
     >

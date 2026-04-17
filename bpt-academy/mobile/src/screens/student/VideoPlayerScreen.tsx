@@ -1,4 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
+import { useTabBarPadding } from '../../hooks/useTabBarPadding';
 import {
   View, Text, StyleSheet, TouchableOpacity, ScrollView,
   Dimensions, Alert, TextInput, KeyboardAvoidingView, Platform, Image} from 'react-native';
@@ -14,6 +15,7 @@ const { width } = Dimensions.get('window');
 export default function VideoPlayerScreen({ route, navigation }: any) {
   const video = route.params?.video as VideoType;
   const { profile, isCoach, isAdmin, isSuperAdmin } = useAuth();
+  const tabBarPadding = useTabBarPadding();
   const [comments, setComments] = useState<any[]>([]);
   const [newComment, setNewComment] = useState('');
   const [bookmarked, setBookmarked] = useState(false);
