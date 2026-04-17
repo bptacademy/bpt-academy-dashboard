@@ -2,7 +2,7 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Text, View, StyleSheet } from 'react-native';
+import { Text, View, StyleSheet, Image } from 'react-native';
 import { Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNotifications } from '../hooks/useNotifications';
@@ -77,37 +77,55 @@ import TermsOfServiceScreen from '../screens/legal/TermsOfServiceScreen';
 // Messaging
 import NewConversationScreen from '../screens/messaging/NewConversationScreen';
 import ChatScreen from '../screens/messaging/ChatScreen';
-import { Ionicons } from '@expo/vector-icons';
 
 // ─── No native header — every screen manages its own back button ──────────────
 const sharedStackScreenOptions = {
   headerShown: false,
 };
 
-// ─── Tab bar ─────────────────────────────────────────────────────────────────
+// ─── Custom PNG tab icons ─────────────────────────────────────────────────────
+const tabIcons = {
+  home:         require('../../assets/icons/home.png'),
+  programs:     require('../../assets/icons/programs.png'),
+  notification: require('../../assets/icons/notification.png'),
+  messages:     require('../../assets/icons/messages.png'),
+  myprogress:   require('../../assets/icons/myprogress.png'),
+};
+
+function TabIcon({ source, color }: { source: any; color: string }) {
+  return (
+    <Image
+      source={source}
+      style={{ width: 26, height: 26, tintColor: color }}
+      resizeMode="contain"
+    />
+  );
+}
+
+// ─── Tab bar ──────────────────────────────────────────────────────────────────
+export const TAB_BAR_HEIGHT = 64;
+
 function useTabBarScreenOptions() {
   const insets = useSafeAreaInsets();
-  const bottomPad = Platform.OS === 'android' ? Math.max(insets.bottom, 12) : insets.bottom;
+  const safeBottom = Platform.OS === 'android' ? Math.max(insets.bottom, 0) : insets.bottom;
   return {
     headerShown: false,
     tabBarShowLabel: false,
     tabBarStyle: {
       position: 'absolute' as const,
-      bottom: bottomPad + 8,
-      left: 16,
-      right: 16,
-      height: 64,
-      borderRadius: 32,
+      bottom: 0,
+      left: 0,
+      right: 0,
+      height: TAB_BAR_HEIGHT + safeBottom,
       backgroundColor: '#0B1628',
-      borderTopWidth: 0,
-      borderWidth: 1,
-      borderColor: 'rgba(255,255,255,0.12)',
+      borderTopWidth: 1,
+      borderTopColor: 'rgba(255,255,255,0.12)',
       shadowColor: '#000',
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.5,
-      shadowRadius: 16,
+      shadowOffset: { width: 0, height: -4 },
+      shadowOpacity: 0.4,
+      shadowRadius: 12,
       elevation: 16,
-      paddingBottom: 0,
+      paddingBottom: safeBottom,
       paddingTop: 0,
     },
     tabBarItemStyle: {
@@ -117,9 +135,9 @@ function useTabBarScreenOptions() {
       paddingVertical: 0,
       marginVertical: 0,
     },
-    tabBarActiveTintColor: '#22C55E',
+    tabBarActiveTintColor: '#3B82F6',
     tabBarInactiveTintColor: 'rgba(255,255,255,0.40)',
-    sceneContainerStyle: { paddingBottom: bottomPad + 8 + 64 + 8 },
+    sceneContainerStyle: { paddingBottom: TAB_BAR_HEIGHT + safeBottom },
   };
 }
 
@@ -128,7 +146,11 @@ function BellTabIcon({ color }: { color: string }) {
   const { unreadCount } = useNotifications();
   return (
     <View style={bellStyles.container}>
-      <Ionicons name="notifications-outline" size={24} color={color} />
+      <Image
+        source={tabIcons.notification}
+        style={{ width: 26, height: 26, tintColor: color }}
+        resizeMode="contain"
+      />
       {unreadCount > 0 && (
         <View style={bellStyles.badge}>
           <Text style={bellStyles.badgeText}>
@@ -266,11 +288,11 @@ function StudentTabs() {
   const tabBarScreenOptions = useTabBarScreenOptions();
   return (
     <Tab.Navigator screenOptions={tabBarScreenOptions}>
-      <Tab.Screen name="HomeTab"          component={StudentHomeStack}      options={{ tabBarIcon: ({ color }) => <Ionicons name="home-outline" size={24} color={color} /> }} />
-      <Tab.Screen name="ProgramsTab"      component={StudentProgramsStack}  options={{ tabBarIcon: ({ color }) => <Ionicons name="play-circle-outline" size={24} color={color} /> }} />
+      <Tab.Screen name="HomeTab"          component={StudentHomeStack}      options={{ tabBarIcon: ({ color }) => <TabIcon source={tabIcons.home} color={color} /> }} />
+      <Tab.Screen name="ProgramsTab"      component={StudentProgramsStack}  options={{ tabBarIcon: ({ color }) => <TabIcon source={tabIcons.programs} color={color} /> }} />
       <Tab.Screen name="NotificationsTab" component={NotificationsTabStack} options={{ tabBarIcon: ({ color }) => <BellTabIcon color={color} /> }} />
-      <Tab.Screen name="MessagesTab"      component={StudentMessagesStack}  options={{ tabBarIcon: ({ color }) => <Ionicons name="chatbubble-outline" size={24} color={color} /> }} />
-      <Tab.Screen name="ProgressTab"      component={StudentProgressStack}  options={{ tabBarIcon: ({ color }) => <Ionicons name="bar-chart-outline" size={24} color={color} /> }} />
+      <Tab.Screen name="MessagesTab"      component={StudentMessagesStack}  options={{ tabBarIcon: ({ color }) => <TabIcon source={tabIcons.messages} color={color} /> }} />
+      <Tab.Screen name="ProgressTab"      component={StudentProgressStack}  options={{ tabBarIcon: ({ color }) => <TabIcon source={tabIcons.myprogress} color={color} /> }} />
     </Tab.Navigator>
   );
 }
@@ -362,11 +384,11 @@ function CoachTabs() {
   const tabBarScreenOptions = useTabBarScreenOptions();
   return (
     <Tab.Navigator screenOptions={tabBarScreenOptions}>
-      <Tab.Screen name="HomeTab"          component={CoachHomeStack}        options={{ tabBarIcon: ({ color }) => <Ionicons name="home-outline" size={24} color={color} /> }} />
-      <Tab.Screen name="StudentsTab"      component={CoachStudentsStack}    options={{ tabBarIcon: ({ color }) => <Ionicons name="people-outline" size={24} color={color} /> }} />
+      <Tab.Screen name="HomeTab"          component={CoachHomeStack}        options={{ tabBarIcon: ({ color }) => <TabIcon source={tabIcons.home} color={color} /> }} />
+      <Tab.Screen name="StudentsTab"      component={CoachStudentsStack}    options={{ tabBarIcon: ({ color }) => <TabIcon source={tabIcons.myprogress} color={color} /> }} />
       <Tab.Screen name="NotificationsTab" component={NotificationsTabStack} options={{ tabBarIcon: ({ color }) => <BellTabIcon color={color} /> }} />
-      <Tab.Screen name="MessagesTab"      component={CoachMessagesStack}    options={{ tabBarIcon: ({ color }) => <Ionicons name="chatbubble-outline" size={24} color={color} /> }} />
-      <Tab.Screen name="ProgressTab"      component={CoachProgressStack}    options={{ tabBarIcon: ({ color }) => <Ionicons name="bar-chart-outline" size={24} color={color} /> }} />
+      <Tab.Screen name="MessagesTab"      component={CoachMessagesStack}    options={{ tabBarIcon: ({ color }) => <TabIcon source={tabIcons.messages} color={color} /> }} />
+      <Tab.Screen name="ProgressTab"      component={CoachProgressStack}    options={{ tabBarIcon: ({ color }) => <TabIcon source={tabIcons.myprogress} color={color} /> }} />
     </Tab.Navigator>
   );
 }
@@ -460,11 +482,11 @@ function AdminTabs() {
   const tabBarScreenOptions = useTabBarScreenOptions();
   return (
     <Tab.Navigator screenOptions={tabBarScreenOptions}>
-      <Tab.Screen name="DashboardTab"     component={AdminDashboardStack}   options={{ tabBarIcon: ({ color }) => <Ionicons name="grid-outline" size={24} color={color} /> }} />
-      <Tab.Screen name="StudentsTab"      component={AdminStudentsStack}    options={{ tabBarIcon: ({ color }) => <Ionicons name="people-outline" size={24} color={color} /> }} />
+      <Tab.Screen name="DashboardTab"     component={AdminDashboardStack}   options={{ tabBarIcon: ({ color }) => <TabIcon source={tabIcons.home} color={color} /> }} />
+      <Tab.Screen name="StudentsTab"      component={AdminStudentsStack}    options={{ tabBarIcon: ({ color }) => <TabIcon source={tabIcons.myprogress} color={color} /> }} />
       <Tab.Screen name="NotificationsTab" component={NotificationsTabStack} options={{ tabBarIcon: ({ color }) => <BellTabIcon color={color} /> }} />
-      <Tab.Screen name="ProgramsTab"      component={AdminProgramsStack}    options={{ tabBarIcon: ({ color }) => <Ionicons name="play-circle-outline" size={24} color={color} /> }} />
-      <Tab.Screen name="MessagesTab"      component={AdminMessagesStack}    options={{ tabBarIcon: ({ color }) => <Ionicons name="chatbubble-outline" size={24} color={color} /> }} />
+      <Tab.Screen name="ProgramsTab"      component={AdminProgramsStack}    options={{ tabBarIcon: ({ color }) => <TabIcon source={tabIcons.programs} color={color} /> }} />
+      <Tab.Screen name="MessagesTab"      component={AdminMessagesStack}    options={{ tabBarIcon: ({ color }) => <TabIcon source={tabIcons.messages} color={color} /> }} />
     </Tab.Navigator>
   );
 }
@@ -556,11 +578,11 @@ function SuperAdminTabs() {
   const tabBarScreenOptions = useTabBarScreenOptions();
   return (
     <Tab.Navigator screenOptions={tabBarScreenOptions}>
-      <Tab.Screen name="DashboardTab"     component={SuperAdminDashboardStack} options={{ tabBarIcon: ({ color }) => <Ionicons name="grid-outline" size={24} color={color} /> }} />
-      <Tab.Screen name="UsersTab"         component={SuperAdminUsersStack}     options={{ tabBarIcon: ({ color }) => <Ionicons name="people-circle-outline" size={24} color={color} /> }} />
+      <Tab.Screen name="DashboardTab"     component={SuperAdminDashboardStack} options={{ tabBarIcon: ({ color }) => <TabIcon source={tabIcons.home} color={color} /> }} />
+      <Tab.Screen name="UsersTab"         component={SuperAdminUsersStack}     options={{ tabBarIcon: ({ color }) => <TabIcon source={tabIcons.myprogress} color={color} /> }} />
       <Tab.Screen name="NotificationsTab" component={NotificationsTabStack}    options={{ tabBarIcon: ({ color }) => <BellTabIcon color={color} /> }} />
-      <Tab.Screen name="MessagesTab"      component={SuperAdminMessagesStack}  options={{ tabBarIcon: ({ color }) => <Ionicons name="chatbubble-outline" size={24} color={color} /> }} />
-      <Tab.Screen name="ProfileTab"       component={SuperAdminProfileStack}   options={{ tabBarIcon: ({ color }) => <Ionicons name="person-outline" size={24} color={color} /> }} />
+      <Tab.Screen name="MessagesTab"      component={SuperAdminMessagesStack}  options={{ tabBarIcon: ({ color }) => <TabIcon source={tabIcons.messages} color={color} /> }} />
+      <Tab.Screen name="ProfileTab"       component={SuperAdminProfileStack}   options={{ tabBarIcon: ({ color }) => <TabIcon source={tabIcons.myprogress} color={color} /> }} />
     </Tab.Navigator>
   );
 }

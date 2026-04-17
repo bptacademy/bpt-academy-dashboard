@@ -168,7 +168,7 @@ export default function ProfileScreen({ navigation }: any) {
     <KeyboardAvoidingView style={{ flex: 1, backgroundColor: '#0B1628' }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <Image source={require('../../../assets/bg.png')} style={styles.bgImage} resizeMode="cover" />
       <ScreenHeader title="Profile" />
-      <ScrollView style={styles.container}>
+      <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 64 + insets.bottom + 24 }}>
 
         {/* Header */}
         <View style={styles.header}>
