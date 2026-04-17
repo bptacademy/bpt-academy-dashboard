@@ -154,11 +154,11 @@ const styles = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   content: { padding: 20, paddingBottom: 72 },
   section: { marginBottom: 24 },
-  sectionTitle: { fontSize: 16, fontWeight: '700', color: '#111827', marginBottom: 6 },
+  sectionTitle: { fontSize: 16, fontWeight: '700', color: '#F0F6FC', marginBottom: 6 },
   sectionHint: { fontSize: 13, color: '#6B7280', marginBottom: 14, lineHeight: 20 },
   card: { backgroundColor: '#FFFFFF', borderRadius: 14, borderWidth: 1, borderColor: '#E5E7EB', overflow: 'hidden', padding: 16, gap: 14 },
   field: { gap: 6 },
-  label: { fontSize: 13, fontWeight: '600', color: '#374151' },
+  label: { fontSize: 13, fontWeight: '600', color: '#F0F6FC' },
   input: {
     borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 10,
     paddingHorizontal: 14, paddingVertical: 12, fontSize: 15,

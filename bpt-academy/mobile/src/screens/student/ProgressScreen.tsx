@@ -910,7 +910,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF', borderRadius: 14, padding: 16,
     marginBottom: 14, borderWidth: 1, borderColor: '#E5E7EB',
   },
-  sectionTitle: { fontSize: 15, fontWeight: '700', color: '#111827', marginBottom: 14 },
+  sectionTitle: { fontSize: 15, fontWeight: '700', color: '#F0F6FC', marginBottom: 14 },
 
   journeyPath: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', flexWrap: 'nowrap' },
   journeyStep: { alignItems: 'center', width: 56 },
@@ -974,7 +974,7 @@ const styles = StyleSheet.create({
     alignItems: 'center', borderWidth: 1, borderColor: '#E5E7EB', marginTop: 20,
   },
   emptyIcon: { fontSize: 48, marginBottom: 12 },
-  emptyTitle: { fontSize: 17, fontWeight: '700', color: '#111827', marginBottom: 6 },
+  emptyTitle: { fontSize: 17, fontWeight: '700', color: '#F0F6FC', marginBottom: 6 },
 
   goalsBanner: {
     borderRadius: 14, padding: 16, marginBottom: 14,

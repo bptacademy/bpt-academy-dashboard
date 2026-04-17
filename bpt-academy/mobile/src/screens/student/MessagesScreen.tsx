@@ -473,7 +473,7 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   section: { padding: 16, paddingBottom: 8 },
   sectionRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 },
-  sectionTitle: { fontSize: 15, fontWeight: '700', color: '#111827' },
+  sectionTitle: { fontSize: 15, fontWeight: '700', color: '#F0F6FC' },
   sectionHint: { fontSize: 12, color: '#9CA3AF', marginBottom: 10 },
   unreadBadge: { backgroundColor: '#EA580C', borderRadius: 10, paddingHorizontal: 8, paddingVertical: 2 },
   unreadBadgeText: { fontSize: 11, fontWeight: '700', color: '#FFFFFF' },

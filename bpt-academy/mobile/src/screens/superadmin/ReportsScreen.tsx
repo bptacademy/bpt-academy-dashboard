@@ -436,7 +436,7 @@ const styles = StyleSheet.create({
   statSub: { fontSize: 11, color: '#9CA3AF' },
 
   section: { backgroundColor: '#FFFFFF', borderRadius: 14, padding: 16, marginBottom: 14, borderWidth: 1, borderColor: '#E5E7EB' },
-  sectionTitle: { fontSize: 15, fontWeight: '700', color: '#111827', marginBottom: 12 },
+  sectionTitle: { fontSize: 15, fontWeight: '700', color: '#F0F6FC', marginBottom: 12 },
 
   rowCard: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
   rowLeft: { flex: 1 },

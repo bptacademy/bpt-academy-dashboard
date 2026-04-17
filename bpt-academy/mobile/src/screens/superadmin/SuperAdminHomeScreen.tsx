@@ -130,7 +130,7 @@ export default function SuperAdminHomeScreen({ navigation }: any) {
   };
 
   const STAT_ITEMS = [
-    { label: 'Total',       value: stats.total,       color: '#374151', filter: 'all' as const },
+    { label: 'Total',       value: stats.total,       color: '#F0F6FC', filter: 'all' as const },
     { label: 'Students',    value: stats.students,    color: '#2563EB', filter: 'student' as const },
     { label: 'Coaches',     value: stats.coaches,     color: '#EA580C', filter: 'coach' as const },
     { label: 'Admins',      value: stats.admins,      color: '#16A34A', filter: 'admin' as const },

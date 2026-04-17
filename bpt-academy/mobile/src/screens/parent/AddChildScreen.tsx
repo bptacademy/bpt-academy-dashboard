@@ -266,7 +266,7 @@ const styles = StyleSheet.create({
   sectionIcon: { fontSize: 18, marginRight: 8 },
   sectionTitle: { fontSize: 16, fontWeight: '700', color: '#1a2744' },
 
-  label: { fontSize: 14, fontWeight: '600', color: '#374151', marginBottom: 6, marginTop: 4 },
+  label: { fontSize: 14, fontWeight: '600', color: '#F0F6FC', marginBottom: 6, marginTop: 4 },
   input: {
     borderWidth: 1, borderColor: '#D1D5DB', borderRadius: 10, padding: 13,
     fontSize: 15, color: '#111827', marginBottom: 12, backgroundColor: '#F9FAFB',

@@ -502,7 +502,7 @@ const styles = StyleSheet.create({
   statNumber: { fontSize: 20, fontWeight: '700' },
   statLabel: { fontSize: 11, color: '#6B7280', marginTop: 4, textAlign: 'center' },
   section: { padding: 16 },
-  sectionTitle: { fontSize: 17, fontWeight: '700', color: '#111827', marginBottom: 12 },
+  sectionTitle: { fontSize: 17, fontWeight: '700', color: '#F0F6FC', marginBottom: 12 },
   empty: { alignItems: 'center', paddingVertical: 40 },
   emptyIcon: { fontSize: 40, marginBottom: 10 },
   emptyText: { color: '#9CA3AF', fontSize: 14 },

@@ -511,7 +511,7 @@ const styles = StyleSheet.create({
   heroMetaText: { fontSize: 13, color: '#9CA3AF' },
 
   section: { padding: 20 },
-  sectionTitle: { fontSize: 16, fontWeight: '700', color: '#111827', marginBottom: 12 },
+  sectionTitle: { fontSize: 16, fontWeight: '700', color: '#F0F6FC', marginBottom: 12 },
 
   divRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   divChip: { paddingHorizontal: 12, paddingVertical: 5, borderRadius: 12 },

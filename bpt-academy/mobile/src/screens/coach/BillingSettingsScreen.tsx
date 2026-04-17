@@ -296,7 +296,7 @@ const styles = StyleSheet.create({
   infoCode: { fontFamily: 'monospace', color: '#16A34A', fontSize: 12 },
   infoDivider: { height: 1, backgroundColor: '#F3F4F6' },
 
-  sectionTitle: { fontSize: 15, fontWeight: '700', color: '#111827', marginBottom: 6 },
+  sectionTitle: { fontSize: 15, fontWeight: '700', color: '#F0F6FC', marginBottom: 6 },
   sectionHint:  { fontSize: 13, color: '#6B7280', lineHeight: 19, marginBottom: 16 },
 
   // Payment link cards
@@ -334,7 +334,7 @@ const styles = StyleSheet.create({
   },
   fieldDivider: { height: 1, backgroundColor: '#F3F4F6', marginVertical: 12 },
   fieldRow: { gap: 6 },
-  fieldLabel: { fontSize: 13, fontWeight: '600', color: '#374151' },
+  fieldLabel: { fontSize: 13, fontWeight: '600', color: '#F0F6FC' },
   fieldInput: {
     borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 8,
     paddingHorizontal: 12, paddingVertical: 11,
