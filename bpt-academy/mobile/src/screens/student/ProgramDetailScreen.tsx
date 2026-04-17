@@ -219,7 +219,7 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
 
   return (
     <ScrollView
-      contentContainerStyle={{ paddingBottom: 64 + insets.bottom + 24 }}
+      contentContainerStyle={{ paddingBottom: 48 + insets.bottom + 24 }}
       style={styles.container}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={async () => { setRefreshing(true); await fetchData(); setRefreshing(false); }} />}
     >
