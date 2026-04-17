@@ -20,6 +20,15 @@ interface EnrollmentRow {
   };
 }
 
+const STATUS_LABELS: Record<string, string> = {
+  active:              'Active',
+  pending_payment:     'Pending Payment',
+  pending_next_cycle:  'Next Cycle',
+  waitlisted:          'Waitlisted',
+  completed:           'Completed',
+  cancelled:           'Cancelled',
+};
+
 const STATUS_COLORS: Record<string, { bg: string; text: string }> = {
   active:              { bg: '#ECFDF5', text: '#16A34A' },
   waitlisted:          { bg: '#FFFBEB', text: '#D97706' },
@@ -383,12 +392,12 @@ export default function ProgramRosterScreen({ route, navigation }: any) {
         </View>
       )}
 
-      {/* Stats row */}
-      <View style={styles.statsRow}>
-        {(Object.entries(counts) as [EnrollmentStatus, number][]).map(([status, count]) => (
+      {/* Stats row — 2 rows of 3 */}
+      <View style={styles.statsGrid}>
+        {(Object.entries(counts) as [string, number][]).map(([status, count]) => (
           <View key={status} style={styles.statCard}>
-            <Text style={[styles.statNumber, { color: STATUS_COLORS[status].text }]}>{count}</Text>
-            <Text style={styles.statLabel}>{status.charAt(0).toUpperCase() + status.slice(1)}</Text>
+            <Text style={[styles.statNumber, { color: STATUS_COLORS[status]?.text ?? '#6B7280' }]}>{count}</Text>
+            <Text style={styles.statLabel}>{STATUS_LABELS[status] ?? status}</Text>
           </View>
         ))}
       </View>
@@ -430,8 +439,8 @@ export default function ProgramRosterScreen({ route, navigation }: any) {
 
                 {/* Status badge */}
                 <View style={[styles.statusBadge, { backgroundColor: STATUS_COLORS[e.status].bg }]}>
-                  <Text style={[styles.statusText, { color: STATUS_COLORS[e.status].text }]}>
-                    {e.status.charAt(0).toUpperCase() + e.status.slice(1)}
+                  <Text style={[styles.statusText, { color: STATUS_COLORS[e.status]?.text ?? '#6B7280' }]}>
+                    {STATUS_LABELS[e.status] ?? e.status}
                   </Text>
                 </View>
               </View>
@@ -442,11 +451,11 @@ export default function ProgramRosterScreen({ route, navigation }: any) {
                   {STATUSES.filter((s) => s !== e.status).map((s) => (
                     <TouchableOpacity
                       key={s}
-                      style={[styles.actionChip, { borderColor: STATUS_COLORS[s].text }]}
+                      style={[styles.actionChip, { borderColor: STATUS_COLORS[s]?.text ?? '#6B7280' }]}
                       onPress={() => updateStatus(e, s)}
                     >
-                      <Text style={[styles.actionChipText, { color: STATUS_COLORS[s].text }]}>
-                        → {s.charAt(0).toUpperCase() + s.slice(1)}
+                      <Text style={[styles.actionChipText, { color: STATUS_COLORS[s]?.text ?? '#6B7280' }]}>
+                        → {STATUS_LABELS[s] ?? s}
                       </Text>
                     </TouchableOpacity>
                   ))}
@@ -486,10 +495,10 @@ const styles = StyleSheet.create({
   header: { backgroundColor: '#111827', padding: 24, paddingTop: 16 },
   programTitle: { fontSize: 22, fontWeight: '700', color: '#FFFFFF', marginBottom: 4 },
   programMeta: { fontSize: 14, color: '#9CA3AF', textTransform: 'capitalize' },
-  statsRow: { flexDirection: 'row', padding: 16, gap: 10 },
-  statCard: { flex: 1, backgroundColor: '#FFFFFF', borderRadius: 12, padding: 12, alignItems: 'center', borderWidth: 1, borderColor: '#E5E7EB' },
-  statNumber: { fontSize: 22, fontWeight: '700' },
-  statLabel: { fontSize: 11, color: '#6B7280', marginTop: 2, textTransform: 'capitalize' },
+  statsGrid: { flexDirection: 'row', flexWrap: 'wrap', padding: 16, gap: 10 },
+  statCard: { width: '30%', backgroundColor: '#FFFFFF', borderRadius: 12, padding: 12, alignItems: 'center', borderWidth: 1, borderColor: '#E5E7EB' },
+  statNumber: { fontSize: 20, fontWeight: '700' },
+  statLabel: { fontSize: 11, color: '#6B7280', marginTop: 4, textAlign: 'center' },
   section: { padding: 16 },
   sectionTitle: { fontSize: 17, fontWeight: '700', color: '#111827', marginBottom: 12 },
   empty: { alignItems: 'center', paddingVertical: 40 },
