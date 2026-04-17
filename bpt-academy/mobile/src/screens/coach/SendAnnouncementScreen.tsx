@@ -132,7 +132,7 @@ export default function SendAnnouncementScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   bgImage: { position: 'absolute', top: 0, left: 0, width: Dimensions.get('window').width, height: Dimensions.get('window').height },
   container: { flex: 1, backgroundColor: '#FFFFFF' },
-  inner: { padding: 24 },
+  inner: { padding: 24  paddingBottom: 80,},
   form: {},
   label: { fontSize: 14, fontWeight: '600', color: '#374151', marginBottom: 6 },
   input: { borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 10, padding: 14, fontSize: 16, color: '#111827', marginBottom: 20, backgroundColor: '#F9FAFB' },

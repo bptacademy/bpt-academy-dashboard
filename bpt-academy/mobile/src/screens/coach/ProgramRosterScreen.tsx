@@ -518,7 +518,7 @@ const styles = StyleSheet.create({
   statusBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, flexShrink: 0 },
   statusText: { fontSize: 12, fontWeight: '600' },
   actions: { borderTopWidth: 1, borderTopColor: '#F3F4F6' },
-  actionScroll: { paddingHorizontal: 14, paddingVertical: 10, gap: 8 },
+  actionScroll: { paddingHorizontal: 14, paddingVertical: 10, gap: 8  paddingBottom: 80,},
   actionChip: { borderWidth: 1, borderRadius: 16, paddingHorizontal: 12, paddingVertical: 6 },
   actionChipText: { fontSize: 12, fontWeight: '600' },
   removeChip: { borderWidth: 1, borderColor: '#FCA5A5', borderRadius: 16, paddingHorizontal: 12, paddingVertical: 6 },

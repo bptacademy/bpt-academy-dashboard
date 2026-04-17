@@ -335,7 +335,7 @@ function BankRow({ label, value }: { label: string; value: string }) {
 const styles = StyleSheet.create({
   bgImage: { position: 'absolute', top: 0, left: 0, width: Dimensions.get('window').width, height: Dimensions.get('window').height },
   container: { flex: 1, backgroundColor: '#F9FAFB' },
-  content: { padding: 20, paddingBottom: 40 },
+  content: { padding: 20, paddingBottom: 72 },
   amountCard: { backgroundColor: '#111827', borderRadius: 16, padding: 28, alignItems: 'center', marginBottom: 20 },
   amountContext: { fontSize: 14, color: '#D1FAE5', fontWeight: '600', marginBottom: 4 },
   amountLabel: { fontSize: 13, color: '#9CA3AF', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.5 },

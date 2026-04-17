@@ -159,7 +159,7 @@ export default function AttendanceConfirmScreen({ navigation, route }: Props) {
 const styles = StyleSheet.create({
   bgImage: { position: 'absolute', top: 0, left: 0, width: Dimensions.get('window').width, height: Dimensions.get('window').height },
   container: { flex: 1, backgroundColor: '#F9FAFB' },
-  content: { padding: 20 },
+  content: { padding: 20  paddingBottom: 80,},
 
   sessionCard: {
     backgroundColor: '#FFFFFF', borderRadius: 14, padding: 20,

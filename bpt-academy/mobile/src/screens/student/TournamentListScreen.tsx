@@ -189,7 +189,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F9FAFB' },
   academyHeader: { padding: 16, paddingBottom: 4 },
   academyTitle: { fontSize: 16, fontWeight: '700', color: '#111827' },
-  filterRow: { paddingHorizontal: 16, paddingVertical: 12, gap: 8 },
+  filterRow: { paddingHorizontal: 16, paddingVertical: 12, gap: 8  paddingBottom: 80,},
   filterChip: { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20, backgroundColor: '#E5E7EB', marginRight: 8 },
   filterChipActive: { backgroundColor: '#16A34A' },
   filterText: { fontSize: 13, fontWeight: '600', color: '#374151' },

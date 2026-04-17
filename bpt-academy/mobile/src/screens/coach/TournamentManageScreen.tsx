@@ -211,7 +211,7 @@ const styles = StyleSheet.create({
   academyTitle: { fontSize: 16, fontWeight: '700', color: '#111827' },
   addBtn: { backgroundColor: '#16A34A', borderRadius: 20, paddingHorizontal: 16, paddingVertical: 8 },
   addBtnText: { color: '#FFFFFF', fontWeight: '700', fontSize: 14 },
-  list: { padding: 16, gap: 12 },
+  list: { padding: 16, gap: 12  paddingBottom: 80,},
   card: { backgroundColor: '#FFFFFF', borderRadius: 14, padding: 16, borderWidth: 1, borderColor: '#E5E7EB' },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
   statusBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },

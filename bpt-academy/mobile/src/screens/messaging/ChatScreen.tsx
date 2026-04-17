@@ -216,7 +216,7 @@ export default function ChatScreen({ route, navigation }: any) {
         </View>
       )}
 
-      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'} keyboardVerticalOffset={0}>
+      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'} keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}>
         <FlatList
           ref={flatListRef}
           data={messages}
@@ -235,7 +235,7 @@ export default function ChatScreen({ route, navigation }: any) {
           }
         />
 
-        <View style={[styles.inputRow, { paddingBottom: Math.max(insets.bottom, 8) }]}>
+        <View style={[styles.inputRow, { paddingBottom: Math.max(insets.bottom + 8, 16) }]}>
           <TextInput
             style={styles.input}
             value={text}
@@ -268,7 +268,7 @@ const styles = StyleSheet.create({
   loading: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   divisionBanner: { backgroundColor: '#FFFBEB', borderBottomWidth: 1, borderBottomColor: '#FDE68A', paddingVertical: 8, paddingHorizontal: 16, alignItems: 'center' },
   divisionBannerText: { fontSize: 13, color: '#92400E', fontWeight: '500' },
-  messageList: { padding: 16, paddingBottom: 8 },
+  messageList: { padding: 16, paddingBottom: 80 },
   dateSeparator: { alignItems: 'center', marginVertical: 16 },
   dateSeparatorText: { fontSize: 12, color: '#9CA3AF', backgroundColor: '#F3F4F6', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 12 },
   msgRow: { flexDirection: 'row', alignItems: 'flex-end', marginBottom: 8, gap: 8 },

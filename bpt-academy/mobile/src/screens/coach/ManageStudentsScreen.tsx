@@ -107,7 +107,7 @@ const styles = StyleSheet.create({
   subtitle: { fontSize: 14, color: '#6B7280', marginTop: 2 },
   searchContainer: { padding: 16, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
   searchInput: { backgroundColor: '#F3F4F6', borderRadius: 10, padding: 12, fontSize: 15, color: '#111827' },
-  list: { padding: 16 },
+  list: { padding: 16  paddingBottom: 80,},
   card: { backgroundColor: '#FFFFFF', borderRadius: 12, padding: 14, marginBottom: 10, flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: '#E5E7EB' },
   avatar: { width: 46, height: 46, borderRadius: 23, backgroundColor: '#111827', alignItems: 'center', justifyContent: 'center', marginRight: 14 },
   avatarText: { color: '#FFFFFF', fontWeight: '700', fontSize: 16 },

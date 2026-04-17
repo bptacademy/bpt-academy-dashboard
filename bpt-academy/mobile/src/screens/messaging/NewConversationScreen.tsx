@@ -121,7 +121,7 @@ const styles = StyleSheet.create({
   subtitle: { fontSize: 14, color: '#6B7280', marginTop: 4 },
   searchBox: { padding: 16, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
   searchInput: { backgroundColor: '#F3F4F6', borderRadius: 10, padding: 12, fontSize: 15, color: '#111827' },
-  list: { padding: 16 },
+  list: { padding: 16  paddingBottom: 80,},
   card: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', borderRadius: 12, padding: 14, marginBottom: 10, borderWidth: 1, borderColor: '#E5E7EB', gap: 12 },
   avatar: { width: 46, height: 46, borderRadius: 23, backgroundColor: '#16A34A', alignItems: 'center', justifyContent: 'center' },
   avatarText: { color: '#FFFFFF', fontWeight: '700', fontSize: 16 },

@@ -254,7 +254,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.2)',
     alignSelf: 'center', marginTop: 12, marginBottom: 8,
   },
-  modalBody: { padding: 24, alignItems: 'center' },
+  modalBody: { padding: 24, alignItems: 'center'  paddingBottom: 80,},
   modalIcon: { fontSize: 48, marginBottom: 12 },
   modalTitle: { fontSize: 18, fontWeight: '700', color: '#F0F6FC', textAlign: 'center', marginBottom: 6 },
   modalTime: { fontSize: 12, color: '#7A8FA6', marginBottom: 16 },
