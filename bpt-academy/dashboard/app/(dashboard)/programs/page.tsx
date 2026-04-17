@@ -44,13 +44,10 @@ const DAYS_OF_WEEK = [
   { key: 'wednesday', label: 'Wed' },
   { key: 'thursday',  label: 'Thu' },
   { key: 'friday',    label: 'Fri' },
-  { key: 'saturday',  label: 'Sat' },
-  { key: 'sunday',    label: 'Sun' },
 ]
 
-const DAY_INDEX: Record<string, number> = {
-  sunday: 0, monday: 1, tuesday: 2, wednesday: 3,
-  thursday: 4, friday: 5, saturday: 6,
+const DAY_INDEX: Record<string, number> = { monday: 1, tuesday: 2, wednesday: 3,
+  thursday: 4, friday: 5,
 }
 
 function addDays(d: Date, n: number): Date {
@@ -60,6 +57,8 @@ function addDays(d: Date, n: number): Date {
 function localDateStr(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
 }
+
+function isWeekday(d: Date): boolean { const dow = d.getDay(); return dow !== 0 && dow !== 6; }
 
 function generateSessionDates(startDate: Date, selectedDays: string[]): Date[] {
   const dates: Date[] = []

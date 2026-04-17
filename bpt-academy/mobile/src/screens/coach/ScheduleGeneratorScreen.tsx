@@ -13,13 +13,10 @@ const DAYS = [
   { key: 'wednesday', label: 'Wed' },
   { key: 'thursday',  label: 'Thu' },
   { key: 'friday',    label: 'Fri' },
-  { key: 'saturday',  label: 'Sat' },
-  { key: 'sunday',    label: 'Sun' },
-];
+  ];
 
-const DAY_INDEX: Record<string, number> = {
-  sunday: 0, monday: 1, tuesday: 2, wednesday: 3,
-  thursday: 4, friday: 5, saturday: 6,
+const DAY_INDEX: Record<string, number> = { monday: 1, tuesday: 2, wednesday: 3,
+  thursday: 4, friday: 5,
 };
 
 function formatDateLabel(d: Date): string {
@@ -48,6 +45,12 @@ function getMonthStr(d: Date): string {
  * falling on `selectedDays` of the week.
  * Walks forward day-by-day until we have exactly the right number of sessions.
  */
+// Skip weekends in date generation
+function isWeekday(d: Date): boolean {
+  const dow = d.getDay();
+  return dow !== 0 && dow !== 6;
+}
+
 function generateSessionDates(startDate: Date, selectedDays: string[], targetCount: number): Date[] {
   if (selectedDays.length === 0 || targetCount <= 0) return [];
   const dates: Date[] = [];
