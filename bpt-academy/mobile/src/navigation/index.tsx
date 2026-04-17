@@ -103,7 +103,7 @@ function TabIcon({ source, color }: { source: any; color: string }) {
 }
 
 // ─── Tab bar ──────────────────────────────────────────────────────────────────
-export const TAB_BAR_HEIGHT = 64;
+export const TAB_BAR_HEIGHT = 48;
 
 function useTabBarScreenOptions() {
   const insets = useSafeAreaInsets();

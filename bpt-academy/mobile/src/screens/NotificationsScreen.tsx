@@ -147,7 +147,7 @@ export default function NotificationsScreen({ navigation }: any) {
         renderItem={renderItem}
         contentContainerStyle={[
           allNotifications.length === 0 ? styles.emptyContainer : styles.listContent,
-          { paddingBottom: 64 + insets.bottom + 16 },
+          { paddingBottom: 48 + insets.bottom + 16 },
         ]}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FFFFFF" />}
         ListEmptyComponent={

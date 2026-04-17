@@ -32,11 +32,11 @@ interface PromotionCycle {
 }
 
 const STATUS_META: Record<string, { bg: string; text: string; label: string }> = {
-  active:   { bg: '#EFF6FF', text: '#2563EB', label: 'In Progress' },
-  eligible: { bg: '#FEF9C3', text: '#92400E', label: '⭐ Eligible' },
-  approved: { bg: '#DCFCE7', text: '#16A34A', label: '✅ Approved' },
-  promoted: { bg: '#F0FDF4', text: '#15803D', label: '🚀 Promoted' },
-  expired:  { bg: '#F3F4F6', text: '#6B7280', label: 'Expired' },
+  active:   { bg: 'rgba(37,99,235,0.20)', text: '#60A5FA', label: 'In Progress' },
+  eligible: { bg: 'rgba(234,179,8,0.20)', text: '#FCD34D', label: '⭐ Eligible' },
+  approved: { bg: 'rgba(22,163,74,0.20)', text: '#4ADE80', label: '✅ Approved' },
+  promoted: { bg: 'rgba(21,128,61,0.20)', text: '#86EFAC', label: '🚀 Promoted' },
+  expired:  { bg: 'rgba(255,255,255,0.08)', text: '#7A8FA6', label: 'Expired' },
 };
 
 function MetricBar({ label, value, target, suffix = '%' }: {
@@ -46,7 +46,6 @@ function MetricBar({ label, value, target, suffix = '%' }: {
   const met = value >= target;
   return (
     <View style={styles.metricRow}>
-      <BackButton />
 
       <Image source={require('../../../assets/bg.png')} style={styles.bgImage} resizeMode="cover" />
 
@@ -382,7 +381,7 @@ export default function PromotionManageScreen({ route, navigation }: any) {
                         {new Date(h.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
                       </Text>
                     </View>
-                    <View style={[styles.historyBadge, { backgroundColor: STATUS_META[h.status]?.bg ?? '#F3F4F6' }]}>
+                    <View style={[styles.historyBadge, { backgroundColor: STATUS_META[h.status]?.bg ?? 'rgba(255,255,255,0.08)' }]}>
                       <Text style={[styles.historyBadgeText, { color: STATUS_META[h.status]?.text ?? '#374151' }]}>
                         {STATUS_META[h.status]?.label ?? h.status}
                       </Text>
@@ -455,62 +454,62 @@ export default function PromotionManageScreen({ route, navigation }: any) {
 
 const styles = StyleSheet.create({
   bgImage: { position: 'absolute', top: 0, left: 0, width: Dimensions.get('window').width, height: Dimensions.get('window').height },
-  root: { flex: 1, backgroundColor: '#F9FAFB' },
+  root: { flex: 1, backgroundColor: '#0B1628' },
   content: { padding: 16, paddingBottom: 48 },
   loader: { marginTop: 60 },
 
   card: {
-    backgroundColor: '#FFFFFF', borderRadius: 14, padding: 16,
+    backgroundColor: 'rgba(17,30,51,0.85)', borderRadius: 14, padding: 16,
     marginBottom: 14, borderWidth: 1, borderColor: '#E5E7EB',
   },
-  cardTitle: { fontSize: 15, fontWeight: '700', color: '#111827', marginBottom: 14 },
+  cardTitle: { fontSize: 15, fontWeight: '700', color: '#F0F6FC', marginBottom: 14 },
 
   // Status card
   statusRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 },
-  levelFrom: { fontSize: 14, color: '#6B7280', fontWeight: '600' },
+  levelFrom: { fontSize: 14, color: '#7A8FA6', fontWeight: '600' },
   arrow: { fontSize: 18, color: '#D1D5DB', marginVertical: 2 },
   levelTo: { fontSize: 20, fontWeight: '800', color: '#16A34A' },
   statusRight: { alignItems: 'flex-end', gap: 6 },
   statusBadge: { paddingHorizontal: 12, paddingVertical: 5, borderRadius: 14 },
   statusText: { fontSize: 13, fontWeight: '700' },
   approvalNote: { fontSize: 11, color: '#92400E', fontWeight: '600' },
-  dateRange: { fontSize: 12, color: '#9CA3AF' },
-  lastEval: { fontSize: 11, color: '#9CA3AF', marginTop: 2 },
+  dateRange: { fontSize: 12, color: '#4B6278' },
+  lastEval: { fontSize: 11, color: '#4B6278', marginTop: 2 },
 
   // Criteria
   eligibilityPill: { borderRadius: 10, padding: 12, marginBottom: 16 },
-  eligibilityPillMet: { backgroundColor: '#DCFCE7' },
-  eligibilityPillNot: { backgroundColor: '#F3F4F6' },
+  eligibilityPillMet: { backgroundColor: 'rgba(34,197,94,0.20)' },
+  eligibilityPillNot: { backgroundColor: 'rgba(255,255,255,0.08)' },
   eligibilityText: { fontSize: 13, fontWeight: '700', textAlign: 'center' },
   eligibilityTextMet: { color: '#15803D' },
-  eligibilityTextNot: { color: '#6B7280' },
+  eligibilityTextNot: { color: '#7A8FA6' },
 
   // Metric bar
   metricRow: { marginBottom: 16 },
   metricHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
-  metricLabel: { fontSize: 13, fontWeight: '600', color: '#374151' },
+  metricLabel: { fontSize: 13, fontWeight: '600', color: '#CBD5E1' },
   metricRight: { flexDirection: 'row', alignItems: 'baseline' },
   metricValue: { fontSize: 16, fontWeight: '800', color: '#3B82F6' },
   metricMet: { color: '#16A34A' },
-  metricTarget: { fontSize: 12, color: '#9CA3AF' },
+  metricTarget: { fontSize: 12, color: '#4B6278' },
   metricCheck: { fontSize: 14, fontWeight: '800' },
   metricCheckMet: { color: '#16A34A' },
   metricCheckNo: { color: '#EF4444' },
-  barBg: { height: 12, backgroundColor: '#E5E7EB', borderRadius: 6, overflow: 'hidden', position: 'relative' },
+  barBg: { height: 12, backgroundColor: 'rgba(255,255,255,0.12)', borderRadius: 6, overflow: 'hidden', position: 'relative' },
   barFill: { height: '100%', borderRadius: 6 },
-  barMarker: { position: 'absolute', top: 0, bottom: 0, width: 2, backgroundColor: '#374151' },
-  criteriaNote: { fontSize: 11, color: '#9CA3AF', marginTop: 4, lineHeight: 16 },
+  barMarker: { position: 'absolute', top: 0, bottom: 0, width: 2, backgroundColor: 'rgba(255,255,255,0.4)' },
+  criteriaNote: { fontSize: 11, color: '#4B6278', marginTop: 4, lineHeight: 16 },
 
   // Action buttons
   btn: {
     borderWidth: 1.5, borderColor: '#E5E7EB', borderRadius: 12,
     paddingVertical: 14, alignItems: 'center', marginBottom: 10,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: 'rgba(17,30,51,0.85)',
   },
   btnGreen:  { backgroundColor: '#16A34A', borderColor: '#16A34A' },
   btnOrange: { backgroundColor: '#FFF7ED', borderColor: '#FED7AA' },
   btnRed:    { backgroundColor: '#FEF2F2', borderColor: '#FECACA' },
-  btnText:   { fontSize: 15, fontWeight: '700', color: '#374151' },
+  btnText:   { fontSize: 15, fontWeight: '700', color: '#CBD5E1' },
   btnTextWhite: { color: '#FFFFFF' },
 
   // History
@@ -518,13 +517,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     paddingVertical: 10, borderTopWidth: 1, borderTopColor: '#F3F4F6',
   },
-  historyLevels: { fontSize: 14, fontWeight: '600', color: '#111827' },
-  historyDate: { fontSize: 12, color: '#9CA3AF', marginTop: 2 },
+  historyLevels: { fontSize: 14, fontWeight: '600', color: '#F0F6FC' },
+  historyDate: { fontSize: 12, color: '#4B6278', marginTop: 2 },
   historyBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
   historyBadgeText: { fontSize: 12, fontWeight: '700' },
 
   // Empty state
   emptyIcon: { fontSize: 48, textAlign: 'center', marginBottom: 12 },
-  emptyTitle: { fontSize: 17, fontWeight: '700', color: '#111827', textAlign: 'center', marginBottom: 8 },
-  emptyText: { fontSize: 14, color: '#6B7280', textAlign: 'center', lineHeight: 22 },
+  emptyTitle: { fontSize: 17, fontWeight: '700', color: '#F0F6FC', textAlign: 'center', marginBottom: 8 },
+  emptyText: { fontSize: 14, color: '#7A8FA6', textAlign: 'center', lineHeight: 22 },
 });

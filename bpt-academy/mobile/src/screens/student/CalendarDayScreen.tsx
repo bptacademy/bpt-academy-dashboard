@@ -91,7 +91,7 @@ export default function CalendarDayScreen({ route }: any) {
           data={sortedEvents}
           keyExtractor={item => item.id}
           renderItem={({ item }: ListRenderItemInfo<CalendarEvent>) => <EventCard item={item} />}
-          contentContainerStyle={[styles.list, { paddingBottom: 64 + insets.bottom + 24 }]}
+          contentContainerStyle={[styles.list, { paddingBottom: 48 + insets.bottom + 24 }]}
           showsVerticalScrollIndicator={false}
         />
       )}

@@ -338,7 +338,7 @@ export default function StudentDetailScreen({ route, navigation }: any) {
     <View style={{ flex: 1 }}>
       <BackHeader title={student.full_name} />
       <ScrollView
-        contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
+        contentContainerStyle={{ paddingBottom: 48 + insets.bottom + 32 }}
         style={styles.container}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
