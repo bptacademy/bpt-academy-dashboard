@@ -105,9 +105,9 @@ export default function PaymentScreen({ navigation, route }: any) {
         .eq('program_id', programId)
         .maybeSingle();
       if (existingEnroll) {
-        await supabase.from('enrollments').update({ status: 'active' }).eq('id', existingEnroll.id);
+        await supabase.from('enrollments').update({ status: 'pending_payment', payment_status: 'pending' }).eq('id', existingEnroll.id);
       } else {
-        await supabase.from('enrollments').insert({ student_id: studentId, program_id: programId, status: 'active' });
+        await supabase.from('enrollments').insert({ student_id: studentId, program_id: programId, status: 'pending_payment', payment_status: 'pending' });
       }
       // Kick off promotion cycle (explicit call in case trigger doesn't fire)
       await supabase.rpc('start_promotion_cycle_for_student', {
@@ -158,15 +158,15 @@ export default function PaymentScreen({ navigation, route }: any) {
 
       if (existing) {
         // Only update if currently cancelled/waitlisted — don't downgrade an active enrollment
-        if (['cancelled', 'waitlisted'].includes(existing.status)) {
-          await supabase.from('enrollments').update({ status: 'waitlisted' }).eq('id', existing.id);
+        if (['cancelled', 'waitlisted', 'pending_payment'].includes(existing.status)) {
+          await supabase.from('enrollments').update({ status: 'pending_payment' }).eq('id', existing.id);
         }
         bankEnrollmentId = existing.id;
       } else {
         const { data: newEnroll, error: enrollError } = await supabase.from('enrollments').insert({
           student_id: studentId,
           program_id: programId,
-          status: 'waitlisted', // pending payment confirmation
+          status: 'pending_payment', // awaiting coach bank transfer confirmation
         }).select('id').single();
         if (enrollError) {
           setLoadingBank(false);
@@ -207,13 +207,13 @@ export default function PaymentScreen({ navigation, route }: any) {
     if (error) { Alert.alert('Error', error.message); return; }
 
     Alert.alert(
-      tournamentId ? '✅ Registration Confirmed' : '✅ Enrollment Confirmed',
+      tournamentId ? '✅ Registration Confirmed' : '✅ Enrollment Request Received',
       `Please transfer £${amount.toFixed(2)} to:\n\n` +
       `Account: ${bankDetails?.bank_account_name ?? 'BPT Academy'}\n` +
       `Sort Code: ${bankDetails?.bank_sort_code ?? '—'}\n` +
       `Account No: ${bankDetails?.bank_account_number ?? '—'}\n` +
       `Reference: ${generatedRef}\n\n` +
-      `Payment verified within 1–2 business days.`,
+      `Your enrollment is pending payment confirmation. Once verified, you'll be notified and placed in the next program cycle.`,
       [{ text: 'OK', onPress: () => navigation.goBack() }],
     );
   };

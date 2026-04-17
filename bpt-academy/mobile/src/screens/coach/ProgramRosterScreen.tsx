@@ -20,11 +20,13 @@ interface EnrollmentRow {
   };
 }
 
-const STATUS_COLORS: Record<EnrollmentStatus, { bg: string; text: string }> = {
-  active:     { bg: '#ECFDF5', text: '#16A34A' },
-  waitlisted: { bg: '#FFFBEB', text: '#D97706' },
-  completed:  { bg: '#EFF6FF', text: '#2563EB' },
-  cancelled:  { bg: '#FEF2F2', text: '#DC2626' },
+const STATUS_COLORS: Record<string, { bg: string; text: string }> = {
+  active:              { bg: '#ECFDF5', text: '#16A34A' },
+  waitlisted:          { bg: '#FFFBEB', text: '#D97706' },
+  completed:           { bg: '#EFF6FF', text: '#2563EB' },
+  cancelled:           { bg: '#FEF2F2', text: '#DC2626' },
+  pending_payment:     { bg: '#FEF3C7', text: '#D97706' },
+  pending_next_cycle:  { bg: '#EFF6FF', text: '#2563EB' },
 };
 
 export default function ProgramRosterScreen({ route, navigation }: any) {
@@ -63,6 +65,95 @@ export default function ProgramRosterScreen({ route, navigation }: any) {
   };
 
   const onRefresh = async () => { setRefreshing(true); await fetchData(); setRefreshing(false); };
+
+  // Confirm payment → move to pending_next_cycle + notify student
+  const confirmPayment = async (enrollment: EnrollmentRow) => {
+    Alert.alert(
+      'Confirm Payment',
+      `Confirm bank transfer received from ${enrollment.student.full_name}? They will be placed in the next program cycle.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Confirm Payment',
+          onPress: async () => {
+            // Get next_cycle_start_date for this program
+            const { data: prog } = await supabase
+              .from('programs')
+              .select('next_cycle_start_date, title')
+              .eq('id', programId)
+              .single();
+
+            await supabase.from('enrollments').update({
+              status: 'pending_next_cycle',
+              payment_confirmed: true,
+              payment_status: 'paid',
+            }).eq('id', enrollment.id);
+
+            const startMsg = prog?.next_cycle_start_date
+              ? `Your sessions start on ${new Date(prog.next_cycle_start_date + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}.`
+              : 'Your coach will confirm your start date soon.';
+
+            await supabase.from('notifications').insert({
+              recipient_id: enrollment.student.id,
+              title: '✅ Payment Confirmed!',
+              body: `Your enrollment in ${prog?.title ?? 'the program'} is confirmed. ${startMsg}`,
+              type: 'enrollment',
+              data: { program_id: programId },
+            });
+
+            fetchData();
+          },
+        },
+      ]
+    );
+  };
+
+  // Set next cycle start date for the program
+  const setNextCycleDate = async () => {
+    const { data: prog } = await supabase
+      .from('programs')
+      .select('next_cycle_start_date')
+      .eq('id', programId)
+      .single();
+
+    const current = prog?.next_cycle_start_date ?? '';
+    Alert.prompt(
+      'Set Next Cycle Start Date',
+      'Enter date (YYYY-MM-DD):',
+      async (dateStr) => {
+        if (!dateStr || !/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+          Alert.alert('Invalid date', 'Please use YYYY-MM-DD format.');
+          return;
+        }
+        await supabase.from('programs').update({ next_cycle_start_date: dateStr }).eq('id', programId);
+
+        // Notify all pending_next_cycle students of the confirmed date
+        const { data: pending } = await supabase
+          .from('enrollments')
+          .select('student_id')
+          .eq('program_id', programId)
+          .eq('status', 'pending_next_cycle');
+
+        if (pending && pending.length > 0) {
+          const formatted = new Date(dateStr + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+          await supabase.from('notifications').insert(
+            pending.map((p: any) => ({
+              recipient_id: p.student_id,
+              title: '📅 Your start date is confirmed',
+              body: `Your program sessions will begin on ${formatted}. We'll see you on the court!`,
+              type: 'enrollment',
+              data: { program_id: programId, cycle_start: dateStr },
+            }))
+          );
+        }
+
+        Alert.alert('✅ Done', `Next cycle set to ${dateStr}.`);
+        fetchData();
+      },
+      'plain-text',
+      current,
+    );
+  };
   useEffect(() => { fetchData(); }, [programId]);
 
   const loadAvailableStudents = async () => {
@@ -134,13 +225,15 @@ export default function ProgramRosterScreen({ route, navigation }: any) {
   const initials = (name: string) =>
     name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
 
-  const STATUSES: EnrollmentStatus[] = ['active', 'waitlisted', 'completed', 'cancelled'];
+  const STATUSES: EnrollmentStatus[] = ['active', 'pending_payment', 'pending_next_cycle', 'waitlisted', 'completed', 'cancelled'];
 
   const counts = {
-    active:     enrollments.filter((e) => e.status === 'active').length,
-    waitlisted: enrollments.filter((e) => e.status === 'waitlisted').length,
-    completed:  enrollments.filter((e) => e.status === 'completed').length,
-    cancelled:  enrollments.filter((e) => e.status === 'cancelled').length,
+    active:             enrollments.filter((e) => e.status === 'active').length,
+    pending_payment:    enrollments.filter((e) => e.status === 'pending_payment').length,
+    pending_next_cycle: enrollments.filter((e) => e.status === 'pending_next_cycle').length,
+    waitlisted:         enrollments.filter((e) => e.status === 'waitlisted').length,
+    completed:          enrollments.filter((e) => e.status === 'completed').length,
+    cancelled:          enrollments.filter((e) => e.status === 'cancelled').length,
   };
 
   return (
@@ -199,6 +292,39 @@ export default function ProgramRosterScreen({ route, navigation }: any) {
       >
         <Text style={styles.attendanceBtnText}>📋 Take Attendance — Today</Text>
       </TouchableOpacity>
+
+      {/* Next Cycle Date */}
+      <TouchableOpacity style={styles.cycleDateBtn} onPress={setNextCycleDate}>
+        <Text style={styles.cycleDateBtnText}>
+          📅 Next Cycle Start:{' '}
+          {(program as any)?.next_cycle_start_date
+            ? new Date((program as any).next_cycle_start_date + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+            : 'Not set — tap to set'}
+        </Text>
+      </TouchableOpacity>
+
+      {/* Pending Payment section */}
+      {enrollments.filter(e => e.status === 'pending_payment').length > 0 && (
+        <View style={styles.section}>
+          <Text style={styles.pendingTitle}>⏳ Awaiting Payment Confirmation ({enrollments.filter(e => e.status === 'pending_payment').length})</Text>
+          {enrollments.filter(e => e.status === 'pending_payment').map((e) => (
+            <View key={e.id} style={styles.pendingCard}>
+              <View style={styles.cardTop}>
+                <View style={styles.avatar}>
+                  <Text style={styles.avatarText}>{initials(e.student.full_name)}</Text>
+                </View>
+                <View style={styles.info}>
+                  <Text style={styles.studentName}>{e.student.full_name}</Text>
+                  <Text style={styles.enrollDate}>Bank transfer pending verification</Text>
+                </View>
+                <TouchableOpacity style={styles.confirmBtn} onPress={() => confirmPayment(e)}>
+                  <Text style={styles.confirmBtnText}>✓ Confirm</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          ))}
+        </View>
+      )}
 
       {/* Enroll student */}
       <TouchableOpacity style={styles.enrollToggleBtn} onPress={() => { loadAvailableStudents(); setShowEnroll(v => !v); }}>
@@ -399,4 +525,10 @@ const styles = StyleSheet.create({
   enrollBtn: { backgroundColor: '#16A34A', borderRadius: 10, paddingVertical: 12, alignItems: 'center' },
   enrollBtnDisabled: { opacity: 0.5 },
   enrollBtnText: { color: '#FFFFFF', fontSize: 14, fontWeight: '700' },
+  cycleDateBtn: { backgroundColor: 'rgba(59,130,246,0.12)', margin: 16, marginBottom: 8, marginTop: 8, borderRadius: 10, paddingVertical: 12, paddingHorizontal: 16, borderWidth: 1, borderColor: 'rgba(59,130,246,0.30)' },
+  cycleDateBtnText: { color: '#3B82F6', fontSize: 14, fontWeight: '600' },
+  pendingTitle: { fontSize: 15, fontWeight: '700', color: '#D97706', marginBottom: 10 },
+  pendingCard: { backgroundColor: '#FFFBEB', borderRadius: 14, marginBottom: 10, borderWidth: 1, borderColor: '#FDE68A', overflow: 'hidden' },
+  confirmBtn: { backgroundColor: '#16A34A', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 },
+  confirmBtnText: { color: '#FFFFFF', fontSize: 13, fontWeight: '700' },
 });

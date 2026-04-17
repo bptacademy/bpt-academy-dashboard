@@ -17,6 +17,7 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
   const { profile, refreshProfile } = useAuth();
 
   const [program, setProgram]                     = useState<Program | null>(null);
+  const [enrollmentStatus, setEnrollmentStatus]   = useState<string | null>(null);
   const [modules, setModules]                     = useState<(Module & { progress?: StudentProgress })[]>([]);
   const [sessions, setSessions]                   = useState<ProgramSession[]>([]);
   const [coaches, setCoaches]                     = useState<{ id: string; full_name: string; avatar_url?: string }[]>([]);
@@ -33,13 +34,14 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
       supabase.from('programs').select('*').eq('id', programId).single(),
       supabase.from('modules').select('*').eq('program_id', programId).order('order_index'),
       supabase.from('program_sessions').select('*').eq('program_id', programId).gte('scheduled_at', new Date().toISOString()).order('scheduled_at'),
-      supabase.from('enrollments').select('id').eq('student_id', profile!.id).eq('program_id', programId).eq('status', 'active').maybeSingle(),
+      supabase.from('enrollments').select('id, status').eq('student_id', profile!.id).eq('program_id', programId).neq('status', 'cancelled').maybeSingle(),
       supabase.from('enrollments').select('id').eq('student_id', profile!.id).eq('status', 'active'),
       supabase.from('program_coaches').select('coach:profiles!coach_id(id, full_name, avatar_url)').eq('program_id', programId),
     ]);
 
     if (progRes.data) setProgram(progRes.data);
-    setEnrolled(!!enrollRes.data);
+    setEnrolled(enrollRes.data?.status === 'active');
+    setEnrollmentStatus(enrollRes.data?.status ?? null);
     setHasActiveEnrollment((activeEnrollRes.data?.length ?? 0) > 0);
     if (coachRes.data) setCoaches(coachRes.data.map((r: any) => r.coach).filter(Boolean));
 
@@ -349,6 +351,31 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
         </View>
       )}
 
+      {/* Pending next cycle banner */}
+      {enrollmentStatus === 'pending_next_cycle' && (
+        <View style={styles.pendingCycleBanner}>
+          <Text style={styles.pendingCycleIcon}>📅</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.pendingCycleTitle}>You're enrolled for the next cycle</Text>
+            <Text style={styles.pendingCycleBody}>
+              {(program as any)?.next_cycle_start_date
+                ? `Your sessions start on ${new Date((program as any).next_cycle_start_date + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}.`
+                : 'Your coach will confirm your start date soon.'}
+            </Text>
+          </View>
+        </View>
+      )}
+
+      {enrollmentStatus === 'pending_payment' && (
+        <View style={styles.pendingPaymentBanner}>
+          <Text style={styles.pendingCycleIcon}>⏳</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.pendingCycleTitle}>Payment pending confirmation</Text>
+            <Text style={styles.pendingCycleBody}>Your coach is verifying your bank transfer. You'll be notified once confirmed.</Text>
+          </View>
+        </View>
+      )}
+
       {/* Modules */}
       {modules.length > 0 && (
         <View style={styles.section}>
@@ -370,8 +397,8 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
         </View>
       )}
 
-      {/* Sessions */}
-      {sessions.length > 0 && (
+      {/* Sessions — only visible to active enrollments */}
+      {sessions.length > 0 && enrollmentStatus === 'active' && (
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>📅 Upcoming Sessions</Text>
           {sessions.map((s) => (
@@ -475,4 +502,9 @@ const styles = StyleSheet.create({
   sessionTitle: { fontSize: 15, fontWeight: '600', color: '#F0F6FC', marginBottom: 4 },
   sessionLocation: { fontSize: 13, color: '#7A8FA6', marginBottom: 2 },
   sessionDuration: { fontSize: 13, color: '#7A8FA6' },
+  pendingCycleBanner: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, margin: 16, backgroundColor: 'rgba(59,130,246,0.12)', borderRadius: 14, padding: 16, borderWidth: 1, borderColor: 'rgba(59,130,246,0.30)' },
+  pendingPaymentBanner: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, margin: 16, backgroundColor: 'rgba(245,158,11,0.12)', borderRadius: 14, padding: 16, borderWidth: 1, borderColor: 'rgba(245,158,11,0.30)' },
+  pendingCycleIcon: { fontSize: 28 },
+  pendingCycleTitle: { fontSize: 15, fontWeight: '700', color: '#F0F6FC', marginBottom: 4 },
+  pendingCycleBody: { fontSize: 13, color: '#7A8FA6', lineHeight: 18 },
 });
