@@ -21,6 +21,8 @@ interface Program {
   status?: string
   sessions_per_week?: number
   enrolled_count?: number
+  next_cycle_start_date?: string | null
+  current_cycle_start_date?: string | null
 }
 
 interface Session {
@@ -92,6 +94,8 @@ export default function ProgramsPage() {
   const [allStudents, setAllStudents] = useState<{id: string, full_name: string}[]>([])
   const [enrollStudentId, setEnrollStudentId] = useState('')
   const [enrolling, setEnrolling] = useState(false)
+  const [nextCycleDate, setNextCycleDate] = useState('')
+  const [savingCycleDate, setSavingCycleDate] = useState(false)
   const [viewSessions, setViewSessions] = useState<Program | null>(null)
   const [sessions, setSessions] = useState<Session[]>([])
   const [newSession, setNewSession] = useState({ scheduled_at: '', duration_minutes: '60', location: '' })
@@ -117,7 +121,7 @@ export default function ProgramsPage() {
   const fetchPrograms = useCallback(async () => {
     setLoading(true)
     const supabase = createClient()
-    const { data: programData } = await supabase.from('programs').select('*').order('created_at', { ascending: false })
+    const { data: programData } = await supabase.from('programs').select('*, next_cycle_start_date, current_cycle_start_date').order('created_at', { ascending: false })
     if (programData) {
       const enriched = await Promise.all(
         programData.map(async (p: Program) => {
@@ -162,6 +166,7 @@ export default function ProgramsPage() {
 
   async function loadRoster(program: Program) {
     setViewRoster(program)
+    setNextCycleDate(program.next_cycle_start_date || '')
     const supabase = createClient()
     const { data } = await supabase
       .from('enrollments')
@@ -206,6 +211,58 @@ export default function ProgramsPage() {
     const supabase = createClient()
     await supabase.from('enrollments').update({ status: 'cancelled' }).eq('student_id', studentId).eq('program_id', viewRoster.id)
     loadRoster(viewRoster); fetchPrograms()
+  }
+
+  async function confirmPayment(studentId: string, studentName: string) {
+    if (!viewRoster) return
+    if (!confirm(`Confirm bank transfer received from ${studentName}? They will be placed in the next program cycle.`)) return
+    const supabase = createClient()
+    await supabase.from('enrollments')
+      .update({ status: 'pending_next_cycle', payment_confirmed: true, payment_status: 'paid' })
+      .eq('student_id', studentId)
+      .eq('program_id', viewRoster.id)
+
+    // Notify student
+    const cycleMsg = viewRoster.next_cycle_start_date
+      ? `Your sessions start on ${new Date(viewRoster.next_cycle_start_date + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}.`
+      : 'Your coach will confirm your start date soon.'
+    await supabase.from('notifications').insert({
+      recipient_id: studentId,
+      title: '✅ Payment Confirmed!',
+      body: `Your enrollment in ${viewRoster.title} is confirmed. ${cycleMsg}`,
+      type: 'enrollment',
+      data: { program_id: viewRoster.id },
+    })
+    loadRoster(viewRoster)
+  }
+
+  async function saveNextCycleDate() {
+    if (!viewRoster || !nextCycleDate) return
+    setSavingCycleDate(true)
+    const supabase = createClient()
+    await supabase.from('programs').update({ next_cycle_start_date: nextCycleDate }).eq('id', viewRoster.id)
+
+    // Notify all pending_next_cycle students
+    const { data: pending } = await supabase
+      .from('enrollments')
+      .select('student_id')
+      .eq('program_id', viewRoster.id)
+      .eq('status', 'pending_next_cycle')
+    if (pending && pending.length > 0) {
+      const formatted = new Date(nextCycleDate + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
+      await supabase.from('notifications').insert(
+        pending.map((p: any) => ({
+          recipient_id: p.student_id,
+          title: '📅 Your start date is confirmed',
+          body: `Your program sessions will begin on ${formatted}. We'll see you on the court!`,
+          type: 'enrollment',
+          data: { program_id: viewRoster.id, cycle_start: nextCycleDate },
+        }))
+      )
+    }
+    setViewRoster({ ...viewRoster, next_cycle_start_date: nextCycleDate })
+    setSavingCycleDate(false)
+    fetchPrograms()
   }
 
   async function loadSessions(program: Program) {
@@ -336,6 +393,7 @@ export default function ProgramsPage() {
                 <p><span className="font-medium">Coach:</span> {program.coach_name}</p>
                 {program.price_gbp != null && program.price_gbp > 0 && <p><span className="font-medium">Price:</span> {formatCurrency(program.price_gbp)}</p>}
                 {program.start_date && <p><span className="font-medium">Dates:</span> {formatDate(program.start_date)}{program.end_date && ` — ${formatDate(program.end_date)}`}</p>}
+                {program.next_cycle_start_date && <p className="text-blue-600"><span className="font-medium">Next cycle:</span> {formatDate(program.next_cycle_start_date)}</p>}
               </div>
               <div className="flex items-center justify-between pt-2 border-t border-gray-100">
                 <div className="flex items-center gap-1 text-xs text-gray-500">
@@ -550,9 +608,68 @@ export default function ProgramsPage() {
                 </button>
               </div>
             </div>
+            {/* Next Cycle Date */}
+            <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-100">
+              <p className="text-sm font-semibold text-blue-700 mb-2">📅 Next Cycle Start Date</p>
+              <div className="flex gap-2">
+                <input type="date" value={nextCycleDate} onChange={e => setNextCycleDate(e.target.value)}
+                  className="flex-1 px-3 py-2 border border-blue-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white" />
+                <button onClick={saveNextCycleDate} disabled={!nextCycleDate || savingCycleDate}
+                  className="px-3 py-2 bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 text-white rounded-lg text-sm font-medium">
+                  {savingCycleDate ? '...' : 'Set & Notify'}
+                </button>
+              </div>
+              {viewRoster?.next_cycle_start_date && (
+                <p className="text-xs text-blue-500 mt-1">Current: {new Date(viewRoster.next_cycle_start_date + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+              )}
+            </div>
+
+            {/* Pending Payment */}
+            {roster.filter(r => r.status === 'pending_payment').length > 0 && (
+              <div className="mb-4">
+                <p className="text-sm font-semibold text-amber-700 mb-2">⏳ Awaiting Payment ({roster.filter(r => r.status === 'pending_payment').length})</p>
+                <div className="space-y-2">
+                  {roster.filter(r => r.status === 'pending_payment').map((s, i) => (
+                    <div key={i} className="flex items-center justify-between p-3 bg-amber-50 rounded-lg border border-amber-200">
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">{s.full_name}</p>
+                        <p className="text-xs text-amber-600">Bank transfer pending</p>
+                      </div>
+                      <button onClick={() => confirmPayment(s.student_id, s.full_name)}
+                        className="px-3 py-1.5 bg-green-500 hover:bg-green-600 text-white rounded-lg text-xs font-medium">
+                        ✓ Confirm Payment
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Pending Next Cycle */}
+            {roster.filter(r => r.status === 'pending_next_cycle').length > 0 && (
+              <div className="mb-4">
+                <p className="text-sm font-semibold text-blue-700 mb-2">🗓 Starting Next Cycle ({roster.filter(r => r.status === 'pending_next_cycle').length})</p>
+                <div className="space-y-2">
+                  {roster.filter(r => r.status === 'pending_next_cycle').map((s, i) => (
+                    <div key={i} className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-100">
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">{s.full_name}</p>
+                        <p className="text-xs text-blue-600">
+                          Starts: {viewRoster?.next_cycle_start_date
+                            ? new Date(viewRoster.next_cycle_start_date + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+                            : 'Date not set'}
+                        </p>
+                      </div>
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-medium">Confirmed</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Enrolled students */}
             <div className="space-y-2 mb-4">
-              <p className="text-sm font-semibold text-gray-700">Enrolled ({roster.filter(r => r.status === 'active').length})</p>
+              <p className="text-sm font-semibold text-gray-700">Active ({roster.filter(r => r.status === 'active').length})</p>
               {roster.length === 0 ? (
                 <p className="text-gray-400 text-sm text-center py-4">No enrolled students</p>
               ) : (
