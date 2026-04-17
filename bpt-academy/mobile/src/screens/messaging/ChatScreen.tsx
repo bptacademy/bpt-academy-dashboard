@@ -205,7 +205,7 @@ export default function ChatScreen({ route, navigation }: any) {
   );
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingBottom: 48 + insets.bottom }]}>
       <BackHeader title={title ?? 'Chat'} />
 
       {isDivisionGroup && (
@@ -216,7 +216,7 @@ export default function ChatScreen({ route, navigation }: any) {
         </View>
       )}
 
-      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'} keyboardVerticalOffset={Platform.OS === 'ios' ? 48 + insets.bottom : 0}>
+      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'} keyboardVerticalOffset={0}>
         <FlatList
           ref={flatListRef}
           data={messages}
@@ -235,7 +235,7 @@ export default function ChatScreen({ route, navigation }: any) {
           }
         />
 
-        <View style={[styles.inputRow, { paddingBottom: Math.max(insets.bottom + 8, 16) }]}>
+        <View style={styles.inputRow}>
           <TextInput
             style={styles.input}
             value={text}
@@ -285,7 +285,7 @@ const styles = StyleSheet.create({
   empty: { alignItems: 'center', paddingTop: 60 },
   emptyIcon: { fontSize: 48, marginBottom: 12 },
   emptyText: { color: '#9CA3AF', fontSize: 15 },
-  inputRow: { flexDirection: 'row', alignItems: 'flex-end', paddingHorizontal: 12, paddingTop: 10, paddingBottom: 8, gap: 10, backgroundColor: 'rgba(11,22,40,0.97)', borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.10)' },
+  inputRow: { flexDirection: 'row', alignItems: 'flex-end', paddingHorizontal: 12, paddingVertical: 10, gap: 10, backgroundColor: 'rgba(11,22,40,0.97)', borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.10)' },
   input: { flex: 1, borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', borderRadius: 22, paddingHorizontal: 16, paddingVertical: 10, fontSize: 15, color: '#F0F6FC', maxHeight: 120, backgroundColor: 'rgba(255,255,255,0.08)' },
   sendBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#16A34A', alignItems: 'center', justifyContent: 'center' },
   sendBtnDisabled: { opacity: 0.4 },
