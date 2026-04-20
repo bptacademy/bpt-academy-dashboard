@@ -18,18 +18,21 @@ export default function ProgramsScreen({ navigation }: any) {
   const { profile } = useAuth();
   const [programs, setPrograms] = useState<Program[]>([]);
   const [enrolledIds, setEnrolledIds] = useState<string[]>([]);
+  const [pendingIds, setPendingIds] = useState<string[]>([]);
   const [activeEnrollmentExists, setActiveEnrollmentExists] = useState(false);
   const [filter, setFilter] = useState<Division | 'all'>('all');
   const [refreshing, setRefreshing] = useState(false);
 
   const fetchData = async () => {
-    const [progRes, enrollRes, activeRes] = await Promise.all([
+    const [progRes, enrollRes, activeRes, pendingRes] = await Promise.all([
       supabase.from('programs').select('*').eq('is_active', true),
       supabase.from('enrollments').select('program_id').eq('student_id', profile!.id).eq('status', 'active'),
       supabase.from('enrollments').select('id').eq('student_id', profile!.id).eq('status', 'active'),
+      supabase.from('enrollments').select('program_id').eq('student_id', profile!.id).in('status', ['pending_payment', 'pending_next_cycle']),
     ]);
     if (progRes.data) setPrograms(progRes.data);
     if (enrollRes.data) setEnrolledIds(enrollRes.data.map((e) => e.program_id));
+    if (pendingRes.data) setPendingIds(pendingRes.data.map((e) => e.program_id));
     setActiveEnrollmentExists((activeRes.data?.length ?? 0) > 0);
   };
 
@@ -83,6 +86,7 @@ export default function ProgramsScreen({ navigation }: any) {
         <View style={styles.list}>
           {filtered.map((program) => {
             const enrolled = enrolledIds.includes(program.id);
+            const isPending = pendingIds.includes(program.id);
             return (
               <TouchableOpacity
                 key={program.id}
@@ -108,6 +112,11 @@ export default function ProgramsScreen({ navigation }: any) {
                       <Text style={styles.enrolledText}>✓ Enrolled</Text>
                     </View>
                   )}
+                  {isPending && !enrolled && (
+                    <View style={styles.pendingBadge}>
+                      <Text style={styles.pendingBadgeText}>⏳ Pending</Text>
+                    </View>
+                  )}
                 </View>
 
                 <Text style={styles.cardTitle}>{program.title}</Text>
@@ -123,7 +132,7 @@ export default function ProgramsScreen({ navigation }: any) {
                   }
                 </View>
 
-                {!enrolled && (
+                {!enrolled && !isPending && (
                   <TouchableOpacity
                     style={[styles.enrollButton, activeEnrollmentExists && styles.enrollButtonLocked]}
                     onPress={() => handleEnrollPress(program.id)}
@@ -167,6 +176,8 @@ const styles = StyleSheet.create({
   levelText: { fontSize: 12, fontWeight: '600', textTransform: 'capitalize' },
   enrolledBadge: { backgroundColor: '#ECFDF5', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
   enrolledText: { fontSize: 12, fontWeight: '600', color: '#16A34A' },
+  pendingBadge: { backgroundColor: '#FEF3C7', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
+  pendingBadgeText: { fontSize: 12, fontWeight: '600', color: '#D97706' },
   cardTitle: { fontSize: 17, fontWeight: '700', color: '#111827', marginBottom: 6 },
   cardDesc: { fontSize: 14, color: '#6B7280', lineHeight: 20, marginBottom: 12 },
   cardFooter: { flexDirection: 'row', gap: 16, marginBottom: 12 },

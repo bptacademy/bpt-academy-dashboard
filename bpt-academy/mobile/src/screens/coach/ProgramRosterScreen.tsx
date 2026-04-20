@@ -94,21 +94,25 @@ export default function ProgramRosterScreen({ route, navigation }: any) {
               .eq('id', programId)
               .single();
 
+            // If program has a next cycle date → pending_next_cycle
+            // If program is already running (no next cycle set) → go straight to active
+            const newStatus = prog?.next_cycle_start_date ? 'pending_next_cycle' : 'active';
+
             await supabase.from('enrollments').update({
-              status: 'pending_next_cycle',
+              status: newStatus,
               payment_confirmed: true,
               payment_status: 'paid',
             }).eq('id', enrollment.id);
 
             const startMsg = prog?.next_cycle_start_date
               ? `Your sessions start on ${new Date(prog.next_cycle_start_date + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}.`
-              : 'Your coach will confirm your start date soon.';
+              : 'You are now enrolled and can access your sessions immediately.';
 
             await supabase.from('notifications').insert({
               recipient_id: enrollment.student.id,
               title: '✅ Payment Confirmed!',
               body: `Your enrollment in ${prog?.title ?? 'the program'} is confirmed. ${startMsg}`,
-              type: 'enrollment',
+              type: 'enrollment_confirmed',
               data: { program_id: programId },
             });
 
