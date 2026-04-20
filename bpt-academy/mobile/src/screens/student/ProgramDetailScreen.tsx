@@ -283,6 +283,17 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
           </View>
           <Text style={styles.progressSub}>{completedCount} of {modules.length} modules complete</Text>
         </View>
+      ) : enrollmentStatus === 'pending_payment' ? (
+        <View style={styles.awaitingCard}>
+          <Text style={styles.awaitingIcon}>⏳</Text>
+          <Text style={styles.awaitingTitle}>Awaiting Confirmation</Text>
+          <Text style={styles.awaitingBody}>
+            Your payment is being verified by a coach. You’ll be notified once confirmed.
+          </Text>
+          <View style={styles.awaitingBtn}>
+            <Text style={styles.awaitingBtnText}>Awaiting Confirmation…</Text>
+          </View>
+        </View>
       ) : hasActiveEnrollment ? (
         <View style={styles.blockedCard}>
           <Text style={styles.blockedIcon}>🔒</Text>
@@ -368,15 +379,7 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
         </View>
       )}
 
-      {enrollmentStatus === 'pending_payment' && (
-        <View style={styles.pendingPaymentBanner}>
-          <Text style={styles.pendingCycleIcon}>⏳</Text>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.pendingCycleTitle}>Payment pending confirmation</Text>
-            <Text style={styles.pendingCycleBody}>Your coach is verifying your bank transfer. You'll be notified once confirmed.</Text>
-          </View>
-        </View>
-      )}
+      {/* pending_payment state is handled in enroll card block above */}
 
       {/* Modules */}
       {modules.length > 0 && (
@@ -462,7 +465,13 @@ const styles = StyleSheet.create({
   blockedIcon: { fontSize: 36, marginBottom: 10 },
   blockedTitle: { fontSize: 16, fontWeight: '700', color: '#92400E', marginBottom: 6 },
   blockedText: { fontSize: 13, color: '#78350F', textAlign: 'center', lineHeight: 20 },
-  enrollCard: { margin: 16, backgroundColor: '#ECFDF5', borderRadius: 14, padding: 20, borderWidth: 1, borderColor: '#BBF7D0' },
+  awaitingCard: { margin: 16, backgroundColor: 'rgba(245,158,11,0.10)', borderRadius: 14, padding: 20, borderWidth: 1, borderColor: 'rgba(245,158,11,0.35)', alignItems: 'center' },
+  awaitingIcon: { fontSize: 36, marginBottom: 8 },
+  awaitingTitle: { fontSize: 17, fontWeight: '700', color: '#FCD34D', marginBottom: 6 },
+  awaitingBody: { fontSize: 13, color: '#7A8FA6', textAlign: 'center', lineHeight: 20, marginBottom: 16 },
+  awaitingBtn: { backgroundColor: 'rgba(245,158,11,0.18)', borderRadius: 10, paddingVertical: 14, paddingHorizontal: 24, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(245,158,11,0.40)', width: '100%' },
+  awaitingBtnText: { color: '#FCD34D', fontWeight: '700', fontSize: 15 },
+  enrollCard: { margin: 16, backgroundColor: 'rgba(17,30,51,0.85)', borderRadius: 14, padding: 20, borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)' },
   priceRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
   priceLabel: { fontSize: 14, color: '#F0F6FC', fontWeight: '600' },
   priceValue: { fontSize: 22, fontWeight: '800', color: '#F0F6FC' },
