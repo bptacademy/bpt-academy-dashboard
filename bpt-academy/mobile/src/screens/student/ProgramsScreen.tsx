@@ -27,7 +27,8 @@ export default function ProgramsScreen({ navigation }: any) {
     const [progRes, enrollRes, activeRes, pendingRes] = await Promise.all([
       supabase.from('programs').select('*').eq('is_active', true),
       supabase.from('enrollments').select('program_id').eq('student_id', profile!.id).eq('status', 'active'),
-      supabase.from('enrollments').select('id').eq('student_id', profile!.id).eq('status', 'active'),
+      // Lock button if student has ANY active/pending enrollment
+      supabase.from('enrollments').select('id').eq('student_id', profile!.id).in('status', ['pending_payment', 'pending_next_cycle', 'active']),
       supabase.from('enrollments').select('program_id').eq('student_id', profile!.id).in('status', ['pending_payment', 'pending_next_cycle']),
     ]);
     if (progRes.data) setPrograms(progRes.data);
@@ -133,14 +134,18 @@ export default function ProgramsScreen({ navigation }: any) {
                 </View>
 
                 {!enrolled && !isPending && (
-                  <TouchableOpacity
-                    style={[styles.enrollButton, activeEnrollmentExists && styles.enrollButtonLocked]}
-                    onPress={() => handleEnrollPress(program.id)}
-                  >
-                    <Text style={styles.enrollButtonText}>
-                      {activeEnrollmentExists ? '🔒 View Program' : 'Pay & Enroll'}
-                    </Text>
-                  </TouchableOpacity>
+                  activeEnrollmentExists ? (
+                    <View style={[styles.enrollButton, styles.enrollButtonLocked]}>
+                      <Text style={styles.enrollButtonLockedText}>🔒 Already enrolled in a program</Text>
+                    </View>
+                  ) : (
+                    <TouchableOpacity
+                      style={styles.enrollButton}
+                      onPress={() => handleEnrollPress(program.id)}
+                    >
+                      <Text style={styles.enrollButtonText}>Pay & Enroll</Text>
+                    </TouchableOpacity>
+                  )
                 )}
               </TouchableOpacity>
             );
@@ -187,6 +192,7 @@ const styles = StyleSheet.create({
   enrollButton: { backgroundColor: '#16A34A', borderRadius: 8, padding: 12, alignItems: 'center' },
   enrollButtonLocked: { backgroundColor: '#9CA3AF' },
   enrollButtonText: { color: '#FFFFFF', fontWeight: '700', fontSize: 14 },
+  enrollButtonLockedText: { color: '#FFFFFF', fontWeight: '600', fontSize: 13 },
   empty: { alignItems: 'center', paddingVertical: 40 },
   emptyText: { color: '#9CA3AF', fontSize: 15 },
 });
