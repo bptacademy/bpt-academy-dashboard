@@ -37,7 +37,8 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
       supabase.from('modules').select('*').eq('program_id', programId).order('order_index'),
       supabase.from('program_sessions').select('*').eq('program_id', programId).gte('scheduled_at', new Date().toISOString()).order('scheduled_at'),
       supabase.from('enrollments').select('id, status').eq('student_id', profile!.id).eq('program_id', programId).neq('status', 'cancelled').maybeSingle(),
-      supabase.from('enrollments').select('id').eq('student_id', profile!.id).eq('status', 'active'),
+      // Lock enrollment on other programs if student has pending_payment, pending_next_cycle, or active enrollment
+      supabase.from('enrollments').select('id').eq('student_id', profile!.id).in('status', ['pending_payment', 'pending_next_cycle', 'active']),
       supabase.from('program_coaches').select('coach:profiles!coach_id(id, full_name, avatar_url)').eq('program_id', programId),
     ]);
 
@@ -288,7 +289,7 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
           <Text style={styles.awaitingIcon}>⏳</Text>
           <Text style={styles.awaitingTitle}>Awaiting Confirmation</Text>
           <Text style={styles.awaitingBody}>
-            Your payment is being verified by a coach. You’ll be notified once confirmed.
+            Your payment is being verified by a coach. You'll be notified once confirmed.
           </Text>
           <View style={styles.awaitingBtn}>
             <Text style={styles.awaitingBtnText}>Awaiting Confirmation…</Text>
