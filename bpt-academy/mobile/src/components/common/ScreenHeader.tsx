@@ -4,6 +4,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useNotifications } from '../../hooks/useNotifications';
 
+const BELL_ICON = require('../../../assets/icons/notification.png');
+
 interface Props {
   title: string;
   dark?: boolean;
@@ -80,7 +82,7 @@ export default function ScreenHeader({
           </View>
         </TouchableOpacity>
 
-        {/* Right: role pill + bell */}
+        {/* Right: role pill + bell (PNG icon) */}
         <View style={styles.homeRight}>
           {rolePill && (
             <View style={styles.rolePill}>
@@ -92,7 +94,7 @@ export default function ScreenHeader({
             onPress={() => navigation.navigate('Notifications')}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
-            <Text style={styles.bellIcon}>🔔</Text>
+            <Image source={BELL_ICON} style={styles.bellIconImg} />
             {unreadCount > 0 && (
               <View style={styles.badge}>
                 <Text style={styles.badgeText}>{badgeLabel}</Text>
@@ -107,41 +109,32 @@ export default function ScreenHeader({
   // ── Default header ─────────────────────────────────────────────────────────
   return (
     <View style={[styles.header, dark && styles.headerDark, { paddingTop: insets.top + 10 }]}>
-      {/* Left: back arrow when deep, logo at tab root */}
-      {canGoBack ? (
-        <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-          <Text style={[styles.backIcon, dark && styles.backIconDark]}>‹</Text>
-        </TouchableOpacity>
-      ) : (
-        <TouchableOpacity onPress={handleLogoPress} style={styles.logoBtn}>
-          <Image
-            source={require('../../../assets/logo.png')}
-            style={styles.logo}
-            resizeMode="contain"
-          />
-        </TouchableOpacity>
-      )}
+      {/* Left: ‹ Back always (goes back if deep, navigates to first tab if at root) */}
+      <TouchableOpacity
+        style={styles.backBtn}
+        onPress={() => (canGoBack ? navigation.goBack() : handleLogoPress())}
+        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+      >
+        <Text style={[styles.backIcon, dark && styles.backIconDark]}>‹</Text>
+        <Text style={[styles.backLabel, dark && styles.backLabelDark]}>Back</Text>
+      </TouchableOpacity>
 
       {/* Title */}
       <Text style={[styles.title, dark && styles.titleDark]} numberOfLines={1}>{title}</Text>
 
-      {/* Right: bell at tab root, placeholder when deep */}
-      {canGoBack ? (
-        <View style={styles.rightPlaceholderSmall} />
-      ) : (
-        <TouchableOpacity
-          style={styles.bellBtn}
-          onPress={() => navigation.navigate('Notifications')}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-        >
-          <Text style={styles.bellIcon}>🔔</Text>
-          {unreadCount > 0 && (
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>{badgeLabel}</Text>
-            </View>
-          )}
-        </TouchableOpacity>
-      )}
+      {/* Right: bell (PNG icon) always visible */}
+      <TouchableOpacity
+        style={styles.bellBtn}
+        onPress={() => navigation.navigate('Notifications')}
+        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+      >
+        <Image source={BELL_ICON} style={styles.bellIconImg} />
+        {unreadCount > 0 && (
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>{badgeLabel}</Text>
+          </View>
+        )}
+      </TouchableOpacity>
     </View>
   );
 }
@@ -154,14 +147,12 @@ const styles = StyleSheet.create({
   },
   headerDark: { backgroundColor: '#111827', borderBottomColor: '#1F2937' },
 
-  // Logo (tab root)
-  logoBtn: { width: 88, height: 72, justifyContent: 'center' },
-  logo: { width: 88, height: 72 },
-
-  // Back arrow (deep in stack)
-  backBtn: { width: 44, height: 44, justifyContent: 'center' },
-  backIcon: { fontSize: 34, color: '#F0F6FC', lineHeight: 40 },
+  // Back button (all states)
+  backBtn: { flexDirection: 'row', alignItems: 'center', width: 64, height: 44, justifyContent: 'flex-start' },
+  backIcon: { fontSize: 28, color: '#F0F6FC', lineHeight: 34, marginRight: 2 },
   backIconDark: { color: '#FFFFFF' },
+  backLabel: { fontSize: 14, fontWeight: '600', color: '#F0F6FC' },
+  backLabelDark: { color: '#FFFFFF' },
 
   title: {
     flex: 1, fontSize: 17, fontWeight: '700', color: '#F0F6FC',
@@ -169,14 +160,11 @@ const styles = StyleSheet.create({
   },
   titleDark: { color: '#FFFFFF' },
 
-  // Balancing placeholder — matches left element width
-  rightPlaceholderSmall: { width: 44 },
-
-  // Bell button (tab root, matches logo width for balance)
+  // Bell button (default header)
   bellBtn: {
-    width: 88, height: 72, justifyContent: 'center', alignItems: 'center',
+    width: 64, height: 44, justifyContent: 'center', alignItems: 'center',
   },
-  bellIcon: { fontSize: 22 },
+  bellIconImg: { width: 24, height: 24, tintColor: '#F0F6FC' },
   badge: {
     position: 'absolute', top: -4, right: -6,
     minWidth: 18, height: 18, borderRadius: 9,
