@@ -1,26 +1,26 @@
 import React, { useEffect, useState } from 'react';
 import {
-  View, Text, ScrollView, StyleSheet, ActivityIndicator, RefreshControl, Image, Dimensions} from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+  View, Text, ScrollView, StyleSheet, ActivityIndicator, RefreshControl, Image, Dimensions,
+} from 'react-native';
 import { useTabBarPadding } from '../../hooks/useTabBarPadding';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { CoachNote } from '../../types';
 import ScreenHeader from '../../components/common/ScreenHeader';
 
+const { width: SW, height: SH } = Dimensions.get('window');
+
 interface NoteWithCoach extends CoachNote {
   coach?: { full_name: string } | null;
 }
 
 export default function MyCoachNotesScreen() {
-  const insets = useSafeAreaInsets();
   const tabBarPadding = useTabBarPadding();
   const { profile } = useAuth();
   const [notes, setNotes] = useState<NoteWithCoach[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  // Only students have coach notes
   const isStudent = profile?.role === 'student';
 
   const fetchNotes = async () => {
@@ -51,12 +51,10 @@ export default function MyCoachNotesScreen() {
   const formatDate = (iso: string) =>
     new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
 
-  // Non-students shouldn't see this screen
   if (!isStudent) {
     return (
-      <View style={styles.container}>
-      <Image source={require('../../../assets/bg.png')} style={styles.bgImage} resizeMode="cover" />
-
+      <View style={styles.root}>
+        <Image source={require('../../../assets/bg.png')} style={styles.bgImage} resizeMode="cover" />
         <ScreenHeader title="Coach Notes" />
         <View style={styles.emptyCard}>
           <Text style={styles.emptyIcon}>🎾</Text>
@@ -68,15 +66,25 @@ export default function MyCoachNotesScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={styles.root}>
+      {/* Dark background — same as all other screens */}
+      <Image source={require('../../../assets/bg.png')} style={styles.bgImage} resizeMode="cover" />
+
       <ScreenHeader title="Coach Notes" />
+
       <ScrollView
         contentContainerStyle={[styles.content, { paddingBottom: tabBarPadding }]}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor="#22C55E"
+          />
+        }
         showsVerticalScrollIndicator={false}
       >
         {loading ? (
-          <ActivityIndicator size="large" color="#16A34A" style={styles.loader} />
+          <ActivityIndicator size="large" color="#22C55E" style={styles.loader} />
         ) : notes.length === 0 ? (
           <View style={styles.emptyCard}>
             <Text style={styles.emptyIcon}>📝</Text>
@@ -113,32 +121,34 @@ export default function MyCoachNotesScreen() {
 }
 
 const styles = StyleSheet.create({
-  bgImage: { position: 'absolute', top: 0, left: 0, width: Dimensions.get('window').width, height: Dimensions.get('window').height },
-  container: { flex: 1, backgroundColor: '#F9FAFB' },
-  content: { padding: 20, paddingBottom: 72 },
-  loader: { marginTop: 60 },
+  root:    { flex: 1, backgroundColor: '#0B1628' },
+  bgImage: { position: 'absolute', top: 0, left: 0, width: SW, height: SH },
+  content: { padding: 20 },
+  loader:  { marginTop: 60 },
+
   emptyCard: {
-    backgroundColor: '#FFFFFF', borderRadius: 14, padding: 40,
-    alignItems: 'center', borderWidth: 1, borderColor: '#E5E7EB', margin: 20,
+    backgroundColor: 'rgba(17,30,51,0.85)', borderRadius: 14, padding: 40,
+    alignItems: 'center', borderWidth: 1, borderColor: '#1E3050', margin: 20,
   },
-  emptyIcon: { fontSize: 48, marginBottom: 12 },
+  emptyIcon:  { fontSize: 48, marginBottom: 12 },
   emptyTitle: { fontSize: 17, fontWeight: '700', color: '#F0F6FC', marginBottom: 6 },
-  emptyText: { fontSize: 13, color: '#7A8FA6', textAlign: 'center' },
-  countLabel: { fontSize: 13, color: '#6B7280', marginBottom: 14 },
+  emptyText:  { fontSize: 13, color: '#7A8FA6', textAlign: 'center' },
+
+  countLabel: { fontSize: 13, color: '#7A8FA6', marginBottom: 14 },
+
   noteCard: {
-    backgroundColor: '#FFFFFF', borderRadius: 14, padding: 18,
-    marginBottom: 14, borderWidth: 1, borderColor: '#E5E7EB',
-    shadowColor: '#000', shadowOpacity: 0.03, shadowRadius: 4, shadowOffset: { width: 0, height: 1 },
+    backgroundColor: 'rgba(17,30,51,0.85)', borderRadius: 14, padding: 18,
+    marginBottom: 14, borderWidth: 1, borderColor: '#1E3050',
   },
-  noteHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 14 },
+  noteHeader:     { flexDirection: 'row', alignItems: 'center', marginBottom: 14 },
   coachBadge: {
     width: 42, height: 42, borderRadius: 21, backgroundColor: '#16A34A',
     alignItems: 'center', justifyContent: 'center', marginRight: 12,
   },
-  coachInitial: { fontSize: 18, fontWeight: '800', color: '#FFFFFF' },
+  coachInitial:   { fontSize: 18, fontWeight: '800', color: '#FFFFFF' },
   noteHeaderText: { flex: 1 },
-  coachName: { fontSize: 15, fontWeight: '700', color: '#111827' },
-  noteDate: { fontSize: 12, color: '#9CA3AF', marginTop: 2 },
-  noteBody: { fontSize: 14, color: '#374151', lineHeight: 22 },
-  editedLabel: { fontSize: 11, color: '#9CA3AF', marginTop: 10, fontStyle: 'italic' },
+  coachName:      { fontSize: 15, fontWeight: '700', color: '#F0F6FC' },
+  noteDate:       { fontSize: 12, color: '#7A8FA6', marginTop: 2 },
+  noteBody:       { fontSize: 14, color: '#CBD5E1', lineHeight: 22 },
+  editedLabel:    { fontSize: 11, color: '#7A8FA6', marginTop: 10, fontStyle: 'italic' },
 });
