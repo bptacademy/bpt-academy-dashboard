@@ -12,6 +12,7 @@ import { Enrollment } from '../../types';
 import { useNotifications } from '../../hooks/useNotifications';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+const BELL_ICON = require('../../../assets/icons/notification.png');
 
 // Calendar geometry
 const DAY_CELL_WIDTH = 52;
@@ -248,7 +249,7 @@ export default function HomeScreen({ navigation }: any) {
               onPress={() => navigation.navigate('Notifications')}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
-              <Text style={styles.bellIcon}>🔔</Text>
+              <Image source={BELL_ICON} style={styles.bellIcon} />
               {unreadCount > 0 && (
                 <View style={styles.bellBadge}>
                   <Text style={styles.bellBadgeText}>{unreadCount > 9 ? '9+' : String(unreadCount)}</Text>
@@ -436,7 +437,7 @@ const styles = StyleSheet.create({
   },
   rolePillText:   { fontSize: 11, fontWeight: '600', color: 'rgba(255,255,255,0.7)', fontFamily: 'TTOctosquaresCond-Light' },
   bellWrap:       { padding: 4 },
-  bellIcon:       { fontSize: 20 },
+  bellIcon:       { width: 22, height: 22, tintColor: '#F0F6FC' },
   bellBadge: {
     position: 'absolute', top: 0, right: 0,
     minWidth: 16, height: 16, borderRadius: 8,
