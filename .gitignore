@@ -2,3 +2,5 @@ MEMORY.md
 memory/
 node_modules/
 bpt-academy/mobile/node_modules/
+apply_migration.sh
+*.sh
