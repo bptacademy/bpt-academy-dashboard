@@ -184,6 +184,8 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
 
   const toggleModule = async (module: Module & { progress?: StudentProgress }) => {
     if (!enrolled) { Alert.alert('Not enrolled', 'Enroll in this program to track progress.'); return; }
+    // Students cannot un-complete a module that has already been marked as attended
+    if (module.progress?.completed) { return; }
     const isCompleted = module.progress?.completed ?? false;
     if (module.progress) {
       await supabase.from('student_progress')
@@ -387,7 +389,12 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>📚 Modules</Text>
           {modules.map((m, i) => (
-            <TouchableOpacity key={m.id} style={styles.moduleCard} onPress={() => toggleModule(m)}>
+            <TouchableOpacity
+              key={m.id}
+              style={styles.moduleCard}
+              onPress={() => toggleModule(m)}
+              activeOpacity={m.progress?.completed ? 1 : 0.7}
+            >
               <View style={[styles.moduleCheck, m.progress?.completed && styles.moduleCheckDone]}>
                 {m.progress?.completed
                   ? <Text style={styles.checkMark}>✓</Text>
