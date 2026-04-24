@@ -26,16 +26,16 @@ interface StudentGoalItem {
 }
 
 const GOAL_CATEGORIES: { key: GoalCategory; label: string; emoji: string; color: string }[] = [
-  { key: 'technical', label: 'Technical',  emoji: '🎯', color: '#2563EB' },
-  { key: 'tactical',  label: 'Tactical',   emoji: '🧠', color: '#7C3AED' },
-  { key: 'physical',  label: 'Physical',   emoji: '💪', color: '#EA580C' },
-  { key: 'mindset',   label: 'Mindset',    emoji: '🧘', color: '#0891B2' },
+  { key: 'technical', label: 'Technical',  emoji: '🎯', color: '#60A5FA' },
+  { key: 'tactical',  label: 'Tactical',   emoji: '🧠', color: '#A78BFA' },
+  { key: 'physical',  label: 'Physical',   emoji: '💪', color: '#FB923C' },
+  { key: 'mindset',   label: 'Mindset',    emoji: '🧘', color: '#22D3EE' },
 ];
 
 const GOAL_STATUSES: Record<GoalStatus, { label: string; color: string; bg: string }> = {
-  active:      { label: 'Active',       color: '#2563EB', bg: '#EFF6FF' },
-  in_progress: { label: 'In Progress',  color: '#D97706', bg: '#FFF7ED' },
-  achieved:    { label: 'Achieved ✓',   color: '#16A34A', bg: '#ECFDF5' },
+  active:      { label: 'Active',       color: '#60A5FA', bg: 'rgba(96,165,250,0.15)' },
+  in_progress: { label: 'In Progress',  color: '#FBBF24', bg: 'rgba(251,191,36,0.15)' },
+  achieved:    { label: 'Achieved ✓',   color: '#16A34A', bg: 'rgba(22,163,74,0.15)' },
 };
 
 // ─── Types ────────────────────────────────────────────────────
@@ -90,22 +90,13 @@ export default function ProgressScreen() {
   const [tab, setTab] = useState<Tab>('overview');
   const [refreshing, setRefreshing] = useState(false);
 
-  // Overview state
   const [programs, setPrograms] = useState<ProgramWithProgress[]>([]);
-
-  // Attendance state
   const [cycle, setCycle] = useState<PromotionCycle | null>(null);
   const [attendanceStat, setAttendanceStat] = useState<AttendanceStat>({ attended: 0, total: 0, pct: 0 });
   const [cycleLoading, setCycleLoading] = useState(true);
-
-  // Badges state
   const [badges, setBadges] = useState<Badge[]>([]);
   const [badgesLoading, setBadgesLoading] = useState(true);
-
-  // Module detail modal
   const [selectedModule, setSelectedModule] = useState<(Module & { progress?: StudentProgress }) | null>(null);
-
-  // Goals state
   const [goals, setGoals] = useState<StudentGoalItem[]>([]);
   const [goalsLoading, setGoalsLoading] = useState(false);
 
@@ -256,48 +247,12 @@ export default function ProgressScreen() {
     const hasPromoReady = (promotedCycles ?? []).length > 0;
 
     setBadges([
-      {
-        id: 'first_session',
-        emoji: '🎾',
-        label: 'First Session',
-        description: 'Attended your first training session',
-        earned: attended >= 1,
-      },
-      {
-        id: 'on_fire',
-        emoji: '🔥',
-        label: 'On Fire',
-        description: 'Attended 5 or more sessions',
-        earned: attended >= 5,
-      },
-      {
-        id: 'month_one',
-        emoji: '📅',
-        label: 'Month One',
-        description: 'Completed your first month at the academy',
-        earned: daysSinceJoin >= 30,
-      },
-      {
-        id: 'halfway',
-        emoji: '⭐',
-        label: '50% There',
-        description: 'Reached 50% attendance in a promotion cycle',
-        earned: attendanceStat.pct >= 50,
-      },
-      {
-        id: 'promotion_ready',
-        emoji: '🏆',
-        label: 'Promotion Ready',
-        description: 'Achieved 80% attendance in a cycle',
-        earned: hasPromoReady,
-      },
-      {
-        id: 'tournament_podium',
-        emoji: '🥇',
-        label: 'Tournament Podium',
-        description: 'Placed in the top 3 at a BPT tournament',
-        earned: hasTournamentPodium,
-      },
+      { id: 'first_session', emoji: '🎾', label: 'First Session', description: 'Attended your first training session', earned: attended >= 1 },
+      { id: 'on_fire', emoji: '🔥', label: 'On Fire', description: 'Attended 5 or more sessions', earned: attended >= 5 },
+      { id: 'month_one', emoji: '📅', label: 'Month One', description: 'Completed your first month at the academy', earned: daysSinceJoin >= 30 },
+      { id: 'halfway', emoji: '⭐', label: '50% There', description: 'Reached 50% attendance in a promotion cycle', earned: attendanceStat.pct >= 50 },
+      { id: 'promotion_ready', emoji: '🏆', label: 'Promotion Ready', description: 'Achieved 80% attendance in a cycle', earned: hasPromoReady },
+      { id: 'tournament_podium', emoji: '🥇', label: 'Tournament Podium', description: 'Placed in the top 3 at a BPT tournament', earned: hasTournamentPodium },
     ]);
 
     setBadgesLoading(false);
@@ -324,11 +279,7 @@ export default function ProgressScreen() {
   useEffect(() => { if (tab === 'badges') fetchBadges(); }, [tab, fetchBadges]);
   useEffect(() => { if (tab === 'goals') fetchGoals(); }, [tab, fetchGoals]);
 
-  useFocusEffect(
-    useCallback(() => {
-      refreshProfile();
-    }, [refreshProfile])
-  );
+  useFocusEffect(useCallback(() => { refreshProfile(); }, [refreshProfile]));
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -389,7 +340,6 @@ export default function ProgressScreen() {
         {/* ── OVERVIEW TAB ─────────────────────────────────── */}
         {tab === 'overview' && (
           <>
-            {/* Current level card */}
             <View style={[styles.levelCard, { backgroundColor: divColor }]}>
               <Text style={styles.levelLabel}>Current Level</Text>
               <Text style={styles.levelValue}>
@@ -527,7 +477,7 @@ export default function ProgressScreen() {
                       <Text style={styles.promoAlertTitle}>You're eligible for promotion!</Text>
                       <Text style={styles.promoAlertSub}>
                         {cycle.requires_coach_approval
-                          ? 'Your coach is reviewing your progress. You\'ll be notified once approved.'
+                          ? "Your coach is reviewing your progress. You'll be notified once approved."
                           : 'Great work — your promotion is being processed!'}
                       </Text>
                     </View>
@@ -695,7 +645,7 @@ export default function ProgressScreen() {
                       done: (cycle.active_weeks_so_far ?? 0) >= (cycle.min_active_weeks ?? 8)
                         && (cycle.attendance_pct ?? 0) >= 80
                         && (cycle.performance_pct ?? 0) >= 80,
-                      icon: '⭐', text: 'You\'re flagged as eligible — your coach is notified',
+                      icon: '⭐', text: "You're flagged as eligible — your coach is notified",
                     },
                     {
                       done: cycle.status === 'approved' || cycle.status === 'promoted',
@@ -822,7 +772,7 @@ export default function ProgressScreen() {
 
       </ScrollView>
 
-      {/* Module detail modal */}
+      {/* Module detail modal — stays light theme (system sheet) */}
       <Modal
         visible={!!selectedModule}
         animationType="slide"
@@ -886,17 +836,17 @@ export default function ProgressScreen() {
 // ─── Styles ───────────────────────────────────────────────────
 const styles = StyleSheet.create({
   bgImage: { position: 'absolute', top: 0, left: 0, width: Dimensions.get('window').width, height: Dimensions.get('window').height },
-  container: { flex: 1, backgroundColor: '#F9FAFB' },
+  container: { flex: 1, backgroundColor: '#0B1628' },
+
   tabs: {
-    flexDirection: 'row', backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1, borderBottomColor: '#E5E7EB',
+    flexDirection: 'row', backgroundColor: 'rgba(17,30,51,0.95)',
+    borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)',
   },
   tab: {
     flex: 1, paddingVertical: 11, alignItems: 'center', justifyContent: 'center',
-    borderBottomWidth: 2, borderBottomColor: 'transparent',
-    paddingHorizontal: 4,
+    borderBottomWidth: 2, borderBottomColor: 'transparent', paddingHorizontal: 4,
   },
-  tabText: { fontSize: 11, fontWeight: '700', color: '#6B7280', textAlign: 'center' },
+  tabText: { fontSize: 11, fontWeight: '700', color: '#7A8FA6', textAlign: 'center' },
   scroll: { flex: 1 },
   content: { padding: 16, paddingBottom: 72 },
   loader: { marginTop: 60 },
@@ -907,8 +857,8 @@ const styles = StyleSheet.create({
   levelPoints: { color: 'rgba(255,255,255,0.75)', fontSize: 13, marginTop: 4 },
 
   sectionCard: {
-    backgroundColor: '#FFFFFF', borderRadius: 14, padding: 16,
-    marginBottom: 14, borderWidth: 1, borderColor: '#E5E7EB',
+    backgroundColor: 'rgba(17,30,51,0.85)', borderRadius: 14, padding: 16,
+    marginBottom: 14, borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)',
   },
   sectionTitle: { fontSize: 15, fontWeight: '700', color: '#F0F6FC', marginBottom: 14 },
 
@@ -916,62 +866,44 @@ const styles = StyleSheet.create({
   journeyStep: { alignItems: 'center', width: 56 },
   journeyDot: {
     width: 28, height: 28, borderRadius: 14,
-    borderWidth: 2, borderColor: '#D1D5DB', backgroundColor: '#FFFFFF',
+    borderWidth: 2, borderColor: 'rgba(255,255,255,0.20)', backgroundColor: 'rgba(255,255,255,0.06)',
     alignItems: 'center', justifyContent: 'center', marginBottom: 6,
   },
   journeyCheck: { color: '#FFFFFF', fontSize: 12, fontWeight: '800' },
   journeyDotInner: { color: '#FFFFFF', fontSize: 10 },
-  journeyLine: { flex: 1, height: 2, backgroundColor: '#E5E7EB', marginBottom: 20 },
-  journeyLabel: { fontSize: 10, fontWeight: '600', color: '#9CA3AF', textAlign: 'center' },
+  journeyLine: { flex: 1, height: 2, backgroundColor: 'rgba(255,255,255,0.12)', marginBottom: 20 },
+  journeyLabel: { fontSize: 10, fontWeight: '600', color: '#7A8FA6', textAlign: 'center' },
 
   overallRow: { flexDirection: 'row', alignItems: 'baseline', gap: 8, marginBottom: 8 },
-  overallPct: { fontSize: 36, fontWeight: '800', color: '#111827' },
-  overallSub: { fontSize: 14, color: '#6B7280' },
-  progressBar: { height: 10, backgroundColor: '#E5E7EB', borderRadius: 5, marginBottom: 16 },
+  overallPct: { fontSize: 36, fontWeight: '800', color: '#F0F6FC' },
+  overallSub: { fontSize: 14, color: '#7A8FA6' },
+  progressBar: { height: 10, backgroundColor: 'rgba(255,255,255,0.10)', borderRadius: 5, marginBottom: 16 },
   progressFill: { height: '100%', borderRadius: 5 },
-  programRow: { marginBottom: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: '#F3F4F6' },
+  programRow: { marginBottom: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.08)' },
   programRowTop: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 },
-  programTitle: { fontSize: 14, fontWeight: '600', color: '#374151', flex: 1, marginRight: 8 },
+  programTitle: { fontSize: 14, fontWeight: '600', color: '#F0F6FC', flex: 1, marginRight: 8 },
   programPct: { fontSize: 14, fontWeight: '700' },
-  miniBar: { height: 6, backgroundColor: '#E5E7EB', borderRadius: 3, marginBottom: 4 },
+  miniBar: { height: 6, backgroundColor: 'rgba(255,255,255,0.10)', borderRadius: 3, marginBottom: 4 },
   miniBarFill: { height: '100%', borderRadius: 3 },
-  miniCount: { fontSize: 11, color: '#9CA3AF' },
-  emptyNote: { color: '#9CA3AF', fontSize: 13, textAlign: 'center', paddingVertical: 20 },
+  miniCount: { fontSize: 11, color: '#7A8FA6' },
+  emptyNote: { color: '#7A8FA6', fontSize: 13, textAlign: 'center', paddingVertical: 20 },
 
   cycleCard: {
-    backgroundColor: '#FFFFFF', borderRadius: 14, padding: 16,
+    backgroundColor: 'rgba(17,30,51,0.85)', borderRadius: 14, padding: 16,
     marginBottom: 14, borderWidth: 2,
   },
   cycleHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
-  cycleFrom: { fontSize: 14, color: '#6B7280', fontWeight: '600' },
-  cycleArrow: { fontSize: 18, color: '#D1D5DB', marginVertical: 2 },
+  cycleFrom: { fontSize: 14, color: '#F0F6FC', fontWeight: '600' },
+  cycleArrow: { fontSize: 18, color: 'rgba(255,255,255,0.25)', marginVertical: 2 },
   cycleTo: { fontSize: 18, fontWeight: '800' },
   cycleDays: { alignItems: 'center' },
-  cycleDaysNum: { fontSize: 32, fontWeight: '800', color: '#111827' },
-  cycleDaysLabel: { fontSize: 11, color: '#9CA3AF' },
-  cycleDates: { fontSize: 12, color: '#9CA3AF' },
-
-  attRow: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 10 },
-  attPct: { fontSize: 42, fontWeight: '800' },
-  attTarget: { fontSize: 13, color: '#6B7280' },
-  attBarBg: { height: 16, backgroundColor: '#E5E7EB', borderRadius: 8, marginBottom: 16, overflow: 'hidden', position: 'relative' },
-  attBarFill: { height: '100%', borderRadius: 8 },
-  attMarkerLabel: { fontSize: 11, color: '#6B7280', textAlign: 'right', marginTop: 2, marginBottom: 8 },
-  attStats: { flexDirection: 'row', justifyContent: 'space-around' },
-  attStat: { alignItems: 'center' },
-  attStatNum: { fontSize: 22, fontWeight: '800', color: '#111827' },
-  attStatLabel: { fontSize: 11, color: '#9CA3AF', marginTop: 2 },
-
-  statusBanner: {
-    borderRadius: 12, padding: 14, marginBottom: 14,
-    flexDirection: 'row', alignItems: 'center', gap: 10,
-  },
-  statusBannerIcon: { fontSize: 24 },
-  statusBannerText: { flex: 1, fontSize: 14, fontWeight: '600', color: '#374151' },
+  cycleDaysNum: { fontSize: 32, fontWeight: '800', color: '#F0F6FC' },
+  cycleDaysLabel: { fontSize: 11, color: '#7A8FA6' },
+  cycleDates: { fontSize: 12, color: '#7A8FA6' },
 
   emptyCard: {
-    backgroundColor: '#FFFFFF', borderRadius: 14, padding: 40,
-    alignItems: 'center', borderWidth: 1, borderColor: '#E5E7EB', marginTop: 20,
+    backgroundColor: 'rgba(17,30,51,0.85)', borderRadius: 14, padding: 40,
+    alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)', marginTop: 20,
   },
   emptyIcon: { fontSize: 48, marginBottom: 12 },
   emptyTitle: { fontSize: 17, fontWeight: '700', color: '#F0F6FC', marginBottom: 6 },
@@ -988,14 +920,14 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5, marginBottom: 8,
   },
   goalRow: {
-    backgroundColor: '#FFFFFF', borderRadius: 12, padding: 12, marginBottom: 6,
-    borderWidth: 1, borderColor: '#E5E7EB',
+    backgroundColor: 'rgba(17,30,51,0.85)', borderRadius: 12, padding: 12, marginBottom: 6,
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)',
     flexDirection: 'row', alignItems: 'center', gap: 10,
   },
-  goalRowAchieved: { backgroundColor: '#F0FDF4', borderColor: '#BBF7D0' },
+  goalRowAchieved: { backgroundColor: 'rgba(22,163,74,0.10)', borderColor: 'rgba(22,163,74,0.25)' },
   goalDot: { width: 8, height: 8, borderRadius: 4, flexShrink: 0 },
   goalRowContent: { flex: 1 },
-  goalRowTitle: { fontSize: 14, fontWeight: '600', color: '#111827' },
+  goalRowTitle: { fontSize: 14, fontWeight: '600', color: '#F0F6FC' },
   goalRowDate: { fontSize: 11, color: '#16A34A', marginTop: 2 },
   goalRowBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 10, flexShrink: 0 },
   goalRowBadgeText: { fontSize: 11, fontWeight: '700' },
@@ -1004,18 +936,18 @@ const styles = StyleSheet.create({
   moduleRow: {
     flexDirection: 'row', alignItems: 'center', gap: 10,
     paddingVertical: 8, paddingHorizontal: 10,
-    backgroundColor: '#F9FAFB', borderRadius: 8,
-    borderWidth: 1, borderColor: '#F3F4F6',
+    backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 8,
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)',
   },
-  moduleRowDone: { backgroundColor: '#F0FDF4', borderColor: '#BBF7D0' },
+  moduleRowDone: { backgroundColor: 'rgba(22,163,74,0.10)', borderColor: 'rgba(22,163,74,0.25)' },
   moduleDot: {
     width: 24, height: 24, borderRadius: 12,
-    borderWidth: 1.5, borderColor: '#D1D5DB', backgroundColor: '#FFFFFF',
+    borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.20)', backgroundColor: 'rgba(255,255,255,0.06)',
     alignItems: 'center', justifyContent: 'center',
   },
   moduleDotCheck: { color: '#FFFFFF', fontSize: 11, fontWeight: '800' },
-  moduleDotNum: { color: '#9CA3AF', fontSize: 10, fontWeight: '700' },
-  moduleRowTitle: { flex: 1, fontSize: 13, fontWeight: '600', color: '#374151' },
+  moduleDotNum: { color: '#7A8FA6', fontSize: 10, fontWeight: '700' },
+  moduleRowTitle: { flex: 1, fontSize: 13, fontWeight: '600', color: '#F0F6FC' },
   moduleInfoIcon: { fontSize: 14 },
 
   modModal: { flex: 1, backgroundColor: '#FFFFFF', borderTopLeftRadius: 20, borderTopRightRadius: 20 },
@@ -1044,16 +976,16 @@ const styles = StyleSheet.create({
 
   badgesGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
   badgeCard: {
-    width: '47%', backgroundColor: '#FFFFFF', borderRadius: 14,
-    padding: 16, alignItems: 'center', borderWidth: 1, borderColor: '#E5E7EB',
+    width: '47%', backgroundColor: 'rgba(17,30,51,0.85)', borderRadius: 14,
+    padding: 16, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)',
     position: 'relative',
   },
-  badgeCardLocked: { backgroundColor: '#F9FAFB', borderColor: '#F3F4F6' },
+  badgeCardLocked: { backgroundColor: 'rgba(255,255,255,0.03)', borderColor: 'rgba(255,255,255,0.06)' },
   badgeEmoji: { fontSize: 32, marginBottom: 8 },
-  badgeEmojiLocked: { opacity: 0.4 },
-  badgeLabel: { fontSize: 13, fontWeight: '700', color: '#111827', textAlign: 'center', marginBottom: 4 },
-  badgeLabelLocked: { color: '#9CA3AF' },
-  badgeDesc: { fontSize: 11, color: '#9CA3AF', textAlign: 'center', lineHeight: 15 },
+  badgeEmojiLocked: { opacity: 0.3 },
+  badgeLabel: { fontSize: 13, fontWeight: '700', color: '#F0F6FC', textAlign: 'center', marginBottom: 4 },
+  badgeLabelLocked: { color: '#7A8FA6' },
+  badgeDesc: { fontSize: 11, color: '#7A8FA6', textAlign: 'center', lineHeight: 15 },
   badgeEarnedDot: {
     position: 'absolute', top: 10, right: 10,
     width: 8, height: 8, borderRadius: 4,
@@ -1061,63 +993,63 @@ const styles = StyleSheet.create({
 
   promoAlertEligible: {
     flexDirection: 'row', alignItems: 'flex-start', gap: 12,
-    backgroundColor: '#FEF9C3', borderRadius: 14, padding: 14,
-    marginBottom: 14, borderWidth: 1, borderColor: '#FDE68A',
+    backgroundColor: 'rgba(251,191,36,0.12)', borderRadius: 14, padding: 14,
+    marginBottom: 14, borderWidth: 1, borderColor: 'rgba(251,191,36,0.30)',
   },
   promoAlertApproved: {
     flexDirection: 'row', alignItems: 'flex-start', gap: 12,
-    backgroundColor: '#DCFCE7', borderRadius: 14, padding: 14,
-    marginBottom: 14, borderWidth: 1, borderColor: '#BBF7D0',
+    backgroundColor: 'rgba(22,163,74,0.12)', borderRadius: 14, padding: 14,
+    marginBottom: 14, borderWidth: 1, borderColor: 'rgba(22,163,74,0.30)',
   },
   promoAlertActive: {
     flexDirection: 'row', alignItems: 'flex-start', gap: 12,
-    backgroundColor: '#FFFFFF', borderRadius: 14, padding: 14,
+    backgroundColor: 'rgba(17,30,51,0.85)', borderRadius: 14, padding: 14,
     marginBottom: 14, borderWidth: 1.5,
   },
   promoAlertIcon: { fontSize: 24 },
   promoAlertBody: { flex: 1 },
-  promoAlertTitle: { fontSize: 15, fontWeight: '700', color: '#111827', marginBottom: 2 },
-  promoAlertSub: { fontSize: 13, color: '#6B7280', lineHeight: 18 },
+  promoAlertTitle: { fontSize: 15, fontWeight: '700', color: '#F0F6FC', marginBottom: 2 },
+  promoAlertSub: { fontSize: 13, color: '#7A8FA6', lineHeight: 18 },
 
-  cycleFromLabel: { fontSize: 10, color: '#9CA3AF', fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
-  cycleToLabel:   { fontSize: 10, color: '#9CA3AF', fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 6 },
+  cycleFromLabel: { fontSize: 10, color: '#7A8FA6', fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
+  cycleToLabel:   { fontSize: 10, color: '#7A8FA6', fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 6 },
   cycleLevels: { flex: 1 },
-  approvalNote: { marginTop: 10, backgroundColor: '#FEF9C3', borderRadius: 8, padding: 8 },
-  approvalNoteText: { fontSize: 12, color: '#92400E', fontWeight: '600' },
+  approvalNote: { marginTop: 10, backgroundColor: 'rgba(251,191,36,0.12)', borderRadius: 8, padding: 8, borderWidth: 1, borderColor: 'rgba(251,191,36,0.25)' },
+  approvalNoteText: { fontSize: 12, color: '#FBBF24', fontWeight: '600' },
 
-  criteriaSubtitle: { fontSize: 12, color: '#9CA3AF', marginBottom: 16, marginTop: -8 },
+  criteriaSubtitle: { fontSize: 12, color: '#7A8FA6', marginBottom: 16, marginTop: -8 },
   criterionBlock: { marginBottom: 18 },
   criterionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
   criterionLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 },
   criterionEmoji: { fontSize: 22 },
-  criterionLabel: { fontSize: 14, fontWeight: '700', color: '#111827' },
-  criterionHint:  { fontSize: 11, color: '#9CA3AF', marginTop: 1 },
+  criterionLabel: { fontSize: 14, fontWeight: '700', color: '#F0F6FC' },
+  criterionHint:  { fontSize: 11, color: '#7A8FA6', marginTop: 1 },
   criterionValueRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   criterionValue: { fontSize: 18, fontWeight: '800', color: '#3B82F6' },
   criterionValueMet: { color: '#16A34A' },
-  criterionTarget: { fontSize: 12, color: '#9CA3AF', fontWeight: '400' },
+  criterionTarget: { fontSize: 12, color: '#7A8FA6', fontWeight: '400' },
   criterionCheck: { fontSize: 16, fontWeight: '800' },
   checkMet: { color: '#16A34A' },
   checkNo:  { color: '#EF4444' },
   criterionBarBg: {
-    height: 10, backgroundColor: '#E5E7EB', borderRadius: 5,
+    height: 10, backgroundColor: 'rgba(255,255,255,0.10)', borderRadius: 5,
     overflow: 'hidden', position: 'relative',
   },
   criterionBarFill: { height: '100%', borderRadius: 5 },
   criterionMarker: {
     position: 'absolute', left: '80%', top: 0, bottom: 0,
-    width: 2, backgroundColor: 'rgba(0,0,0,0.2)',
+    width: 2, backgroundColor: 'rgba(255,255,255,0.20)',
   },
-  lastUpdated: { fontSize: 11, color: '#9CA3AF', textAlign: 'right', marginTop: 4 },
+  lastUpdated: { fontSize: 11, color: '#7A8FA6', textAlign: 'right', marginTop: 4 },
 
   nextStep: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, marginBottom: 14 },
   nextStepDot: {
     width: 28, height: 28, borderRadius: 14,
-    backgroundColor: '#E5E7EB', alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.10)', alignItems: 'center',
     justifyContent: 'center', flexShrink: 0,
   },
   nextStepDotDone: { backgroundColor: '#16A34A' },
   nextStepDotText: { fontSize: 12, fontWeight: '700', color: '#FFFFFF' },
-  nextStepText: { flex: 1, fontSize: 14, color: '#374151', lineHeight: 20, paddingTop: 4 },
+  nextStepText: { flex: 1, fontSize: 14, color: '#F0F6FC', lineHeight: 20, paddingTop: 4 },
   nextStepTextDone: { color: '#16A34A', textDecorationLine: 'line-through' },
 });

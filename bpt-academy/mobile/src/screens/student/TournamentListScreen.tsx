@@ -9,7 +9,6 @@ import { supabase } from '../../lib/supabase';
 import { Tournament, Division, DIVISION_LABELS, DIVISION_COLORS } from '../../types';
 import BackHeader from '../../components/common/BackHeader';
 import LTASection from '../../components/common/LTASection';
-import BackButton from '../../components/common/BackButton';
 
 const ALL_DIVISIONS: Division[] = ['amateur', 'semi_pro', 'pro', 'junior_9_11', 'junior_12_15', 'junior_15_18'];
 
@@ -72,8 +71,6 @@ export default function TournamentListScreen({ navigation }: { navigation: any }
 
   return (
     <View style={styles.container}>
-      <BackButton />
-
       <Image source={require('../../../assets/bg.png')} style={styles.bgImage} resizeMode="cover" />
 
       <BackHeader title="Tournaments" />
@@ -186,10 +183,10 @@ export default function TournamentListScreen({ navigation }: { navigation: any }
 
 const styles = StyleSheet.create({
   bgImage: { position: 'absolute', top: 0, left: 0, width: Dimensions.get('window').width, height: Dimensions.get('window').height },
-  container: { flex: 1, backgroundColor: '#F9FAFB' },
+  container: { flex: 1, backgroundColor: '#0B1628' },
   academyHeader: { padding: 16, paddingBottom: 4 },
   academyTitle: { fontSize: 16, fontWeight: '700', color: '#F0F6FC' },
-  filterRow: { paddingHorizontal: 16, paddingVertical: 12, gap: 8, paddingBottom: 80,},
+  filterRow: { paddingHorizontal: 16, paddingVertical: 12, gap: 8, paddingBottom: 80 },
   filterChip: { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.10)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', marginRight: 8 },
   filterChipActive: { backgroundColor: '#16A34A' },
   filterText: { fontSize: 13, fontWeight: '600', color: '#F0F6FC' },
@@ -200,7 +197,7 @@ const styles = StyleSheet.create({
   list: { padding: 16, gap: 14 },
   card: {
     backgroundColor: 'rgba(17,30,51,0.85)', borderRadius: 14, padding: 18,
-    borderWidth: 1, borderColor: '#E5E7EB',
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)',
     shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 6, shadowOffset: { width: 0, height: 2 },
   },
   cardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 },
@@ -211,10 +208,10 @@ const styles = StyleSheet.create({
   divisionRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 10 },
   divChip: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10 },
   divText: { fontSize: 11, fontWeight: '600' },
-  registeredBtn: { marginTop: 12, borderRadius: 10, paddingVertical: 12, alignItems: 'center', backgroundColor: '#DCFCE7', borderWidth: 1, borderColor: '#A7F3D0' },
+  registeredBtn: { marginTop: 12, borderRadius: 10, paddingVertical: 12, alignItems: 'center', backgroundColor: 'rgba(22,163,74,0.15)', borderWidth: 1, borderColor: '#16A34A' },
   registeredBtnText: { color: '#16A34A', fontSize: 15, fontWeight: '700' },
-  pendingBtn: { marginTop: 12, borderRadius: 10, paddingVertical: 12, alignItems: 'center', backgroundColor: '#FFF7ED', borderWidth: 1, borderColor: '#FED7AA' },
-  pendingBtnText: { color: '#D97706', fontSize: 15, fontWeight: '600' },
+  pendingBtn: { marginTop: 12, borderRadius: 10, paddingVertical: 12, alignItems: 'center', backgroundColor: 'rgba(245,158,11,0.10)', borderWidth: 1, borderColor: '#F59E0B' },
+  pendingBtnText: { color: '#F59E0B', fontSize: 15, fontWeight: '600' },
   registerBtn: { marginTop: 14, backgroundColor: '#16A34A', borderRadius: 10, paddingVertical: 12, alignItems: 'center' },
   registerBtnText: { color: '#FFFFFF', fontSize: 15, fontWeight: '700' },
 });

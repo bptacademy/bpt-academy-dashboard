@@ -203,7 +203,7 @@ export default function LeaderboardScreen() {
           style={[styles.mainTab, mainTab === 'bpt' && styles.mainTabActiveBPT]}
           onPress={() => setMainTab('bpt')}
         >
-          <Text style={[styles.mainTabText, mainTab === 'bpt' && styles.mainTabTextActive]}>
+          <Text style={[styles.mainTabText, mainTab === 'bpt' && styles.mainTabTextActiveBPT]}>
             🎾 BPT Pathway
           </Text>
         </TouchableOpacity>
@@ -409,8 +409,8 @@ export default function LeaderboardScreen() {
                 <>
                   <View style={[styles.sectionHeader, { marginTop: 16 }]}>
                     <Text style={styles.sectionHeaderText}>🎯 Tournament Participants</Text>
-                    <View style={[styles.sectionHeaderBadge, { backgroundColor: '#E5E7EB' }]}>
-                      <Text style={[styles.sectionHeaderBadgeText, { color: '#374151' }]}>{participantList.length}</Text>
+                    <View style={[styles.sectionHeaderBadge, { backgroundColor: 'rgba(255,255,255,0.15)' }]}>
+                      <Text style={[styles.sectionHeaderBadgeText, { color: '#F0F6FC' }]}>{participantList.length}</Text>
                     </View>
                   </View>
                   <View style={styles.listCard}>
@@ -454,11 +454,11 @@ export default function LeaderboardScreen() {
 // ─── Styles ───────────────────────────────────────────────────
 const styles = StyleSheet.create({
   bgImage: { position: 'absolute', top: 0, left: 0, width: Dimensions.get('window').width, height: Dimensions.get('window').height },
-  container: { flex: 1, backgroundColor: '#F9FAFB' },
+  container: { flex: 1, backgroundColor: '#0B1628' },
 
   mainTabs: {
-    flexDirection: 'row', backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1, borderBottomColor: '#E5E7EB',
+    flexDirection: 'row', backgroundColor: 'rgba(17,30,51,0.95)',
+    borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)',
   },
   mainTab: {
     flex: 1, paddingVertical: 13, alignItems: 'center',
@@ -466,21 +466,22 @@ const styles = StyleSheet.create({
   },
   mainTabActive: { borderBottomColor: '#16A34A' },
   mainTabActiveBPT: { borderBottomColor: '#F59E0B' },
-  mainTabText: { fontSize: 14, fontWeight: '600', color: '#6B7280' },
-  mainTabTextActive: { color: '#111827' },
+  mainTabText: { fontSize: 14, fontWeight: '600', color: '#7A8FA6' },
+  mainTabTextActive: { color: '#F0F6FC' },
+  mainTabTextActiveBPT: { color: '#F59E0B' },
 
-  divTabsContainer: { flexGrow: 0, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
+  divTabsContainer: { flexGrow: 0, backgroundColor: 'rgba(17,30,51,0.90)', borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)' },
   divTabs: { paddingHorizontal: 16, paddingVertical: 10, gap: 8 },
-  divTab: { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20, backgroundColor: '#F3F4F6', marginRight: 8 },
-  divTabText: { fontSize: 13, fontWeight: '600', color: '#374151' },
+  divTab: { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.08)', marginRight: 8 },
+  divTabText: { fontSize: 13, fontWeight: '600', color: '#F0F6FC' },
   divTabTextActive: { color: '#FFFFFF' },
 
   content: { padding: 16, paddingBottom: 72 },
   loader: { marginTop: 60 },
 
   emptyCard: {
-    backgroundColor: '#FFFFFF', borderRadius: 14, padding: 40,
-    alignItems: 'center', borderWidth: 1, borderColor: '#E5E7EB', marginTop: 8,
+    backgroundColor: 'rgba(17,30,51,0.85)', borderRadius: 14, padding: 40,
+    alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)', marginTop: 8,
   },
   emptyIcon: { fontSize: 48, marginBottom: 12 },
   emptyTitle: { fontSize: 17, fontWeight: '700', color: '#F0F6FC', marginBottom: 6 },
@@ -492,65 +493,66 @@ const styles = StyleSheet.create({
   },
   podiumItem: { alignItems: 'center', flex: 1 },
   podiumMedal: { fontSize: 24, marginBottom: 4 },
-  podiumName: { fontSize: 12, fontWeight: '700', color: '#111827', marginBottom: 2, maxWidth: 80 },
-  podiumPoints: { fontSize: 11, color: '#6B7280', marginBottom: 4 },
+  podiumName: { fontSize: 12, fontWeight: '700', color: '#F0F6FC', marginBottom: 2, maxWidth: 80 },
+  podiumPoints: { fontSize: 11, color: '#7A8FA6', marginBottom: 4 },
   podiumBlock: { width: '80%', borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
   podiumRank: { fontSize: 18, fontWeight: '800', color: '#FFFFFF' },
 
-  listCard: { backgroundColor: '#FFFFFF', borderRadius: 14, borderWidth: 1, borderColor: '#E5E7EB', overflow: 'hidden', marginBottom: 14 },
+  listCard: { backgroundColor: 'rgba(17,30,51,0.85)', borderRadius: 14, borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)', overflow: 'hidden', marginBottom: 14 },
   row: {
     flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 14,
-    borderBottomWidth: 1, borderBottomColor: '#F3F4F6', gap: 12,
+    borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)', gap: 12,
   },
   rowLast: { borderBottomWidth: 0 },
-  rowMe: { backgroundColor: '#F0FDF4' },
-  rowRank: { fontSize: 14, fontWeight: '700', color: '#374151', minWidth: 28, textAlign: 'center' },
+  rowMe: { backgroundColor: 'rgba(22,163,74,0.12)' },
+  rowRank: { fontSize: 14, fontWeight: '700', color: '#F0F6FC', minWidth: 28, textAlign: 'center' },
   avatar: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
-  avatarText: { fontSize: 15, fontWeight: '700', color: '#374151' },
+  avatarText: { fontSize: 15, fontWeight: '700', color: '#F0F6FC' },
   rowInfo: { flex: 1 },
-  rowName: { fontSize: 14, fontWeight: '600', color: '#111827' },
+  rowName: { fontSize: 14, fontWeight: '600', color: '#F0F6FC' },
   rowSub: { fontSize: 12, fontWeight: '600', marginTop: 2 },
   rowPoints: { fontSize: 18, fontWeight: '800', color: '#16A34A' },
-  rowPtsLabel: { fontSize: 11, color: '#9CA3AF' },
+  rowPtsLabel: { fontSize: 11, color: '#7A8FA6' },
 
   bptRow: {
     flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 14,
-    borderBottomWidth: 1, borderBottomColor: '#F3F4F6', gap: 12,
+    borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)', gap: 12,
   },
-  bptResultBadge: { backgroundColor: '#DCFCE7', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10 },
-  bptResultText: { fontSize: 12, fontWeight: '700', color: '#15803D' },
+  bptResultBadge: { backgroundColor: 'rgba(22,163,74,0.15)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10, borderWidth: 1, borderColor: 'rgba(22,163,74,0.30)' },
+  bptResultText: { fontSize: 12, fontWeight: '700', color: '#16A34A' },
 
   pointsKey: {
-    backgroundColor: '#FFFFFF', borderRadius: 14, padding: 16,
-    borderWidth: 1, borderColor: '#E5E7EB', marginBottom: 14,
+    backgroundColor: 'rgba(17,30,51,0.85)', borderRadius: 14, padding: 16,
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)', marginBottom: 14,
   },
-  pointsKeyTitle: { fontSize: 13, fontWeight: '700', color: '#6B7280', marginBottom: 10, textTransform: 'uppercase', letterSpacing: 0.5 },
+  pointsKeyTitle: { fontSize: 13, fontWeight: '700', color: '#7A8FA6', marginBottom: 10, textTransform: 'uppercase', letterSpacing: 0.5 },
   pointsKeyRow: { flexDirection: 'row', gap: 12, marginBottom: 6 },
-  pointsKeyItem: { flex: 1, fontSize: 13, color: '#374151' },
+  pointsKeyItem: { flex: 1, fontSize: 13, color: '#F0F6FC' },
 
   bptBanner: {
-    backgroundColor: '#111827', borderRadius: 14, padding: 18, marginBottom: 14,
+    backgroundColor: 'rgba(17,30,51,0.90)', borderRadius: 14, padding: 18, marginBottom: 14,
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)',
   },
-  bptBannerTitle: { fontSize: 17, fontWeight: '800', color: '#FFFFFF', marginBottom: 8 },
-  bptBannerText: { fontSize: 13, color: '#9CA3AF', lineHeight: 20 },
+  bptBannerTitle: { fontSize: 17, fontWeight: '800', color: '#F0F6FC', marginBottom: 8 },
+  bptBannerText: { fontSize: 13, color: '#7A8FA6', lineHeight: 20 },
 
   qualifyCard: {
-    backgroundColor: '#FFFFFF', borderRadius: 14, padding: 16,
-    borderWidth: 1, borderColor: '#E5E7EB', marginBottom: 14,
+    backgroundColor: 'rgba(17,30,51,0.85)', borderRadius: 14, padding: 16,
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)', marginBottom: 14,
   },
-  qualifyTitle: { fontSize: 15, fontWeight: '700', color: '#111827', marginBottom: 12 },
+  qualifyTitle: { fontSize: 15, fontWeight: '700', color: '#F0F6FC', marginBottom: 12 },
   qualifyStep: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, marginBottom: 10 },
   qualifyStepNum: {
     width: 24, height: 24, borderRadius: 12, backgroundColor: '#16A34A',
     color: '#FFFFFF', fontSize: 13, fontWeight: '800', textAlign: 'center', lineHeight: 24,
   },
-  qualifyStepText: { flex: 1, fontSize: 14, color: '#374151', lineHeight: 20 },
-  bold: { fontWeight: '700', color: '#111827' },
+  qualifyStepText: { flex: 1, fontSize: 14, color: '#7A8FA6', lineHeight: 20 },
+  bold: { fontWeight: '700', color: '#F0F6FC' },
 
   sectionHeader: {
     flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8,
   },
-  sectionHeaderText: { fontSize: 15, fontWeight: '700', color: '#111827' },
+  sectionHeaderText: { fontSize: 15, fontWeight: '700', color: '#F0F6FC' },
   sectionHeaderBadge: {
     backgroundColor: '#16A34A', borderRadius: 10, paddingHorizontal: 8, paddingVertical: 2,
   },

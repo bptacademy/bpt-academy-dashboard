@@ -29,7 +29,6 @@ export default function ProfileScreen({ navigation }: any) {
   const isStaffOrAdmin = ['super_admin', 'admin', 'coach'].includes(profile?.role ?? '');
   const isViewingAsStudent = effectiveRole === 'student';
 
-  // Edit form state
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
@@ -55,7 +54,6 @@ export default function ProfileScreen({ navigation }: any) {
     division: (profile?.division ?? 'amateur') as Division,
   });
 
-  // Sync form state when profile loads (handles case where profile was null on first render)
   useEffect(() => {
     if (!profile) return;
     setDobDate(parseDob(profile.date_of_birth));
@@ -283,7 +281,7 @@ export default function ProfileScreen({ navigation }: any) {
           )}
         </View>
 
-        {/* Admin Tools — coaches, admins and super admins */}
+        {/* Admin Tools */}
         {isStaffOrAdmin && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Admin Tools</Text>
@@ -325,7 +323,7 @@ export default function ProfileScreen({ navigation }: any) {
           </View>
         </View>
 
-        {/* Developer (admin/coach only) */}
+        {/* Developer */}
         {isActualAdmin && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Developer</Text>
@@ -389,10 +387,10 @@ export default function ProfileScreen({ navigation }: any) {
               <DateTimePicker
                 value={dobDate}
                 mode="date"
-                display={Platform.OS==='ios'?'spinner':'default'}
+                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                 maximumDate={new Date()}
                 minimumDate={new Date(1920, 0, 1)}
-                onChange={(_event, date) => { if(Platform.OS==='android')setShowDatePicker(false); if(date)setDobDate(date); }}
+                onChange={(_event, date) => { if (Platform.OS === 'android') setShowDatePicker(false); if (date) setDobDate(date); }}
                 themeVariant="light"
                 textColor="#111827"
                 style={{ width: '100%', height: 200, backgroundColor: '#FFFFFF' }}
@@ -437,7 +435,7 @@ function Field({ label, value, editing, onChangeText, placeholder, keyboardType 
       <Text style={fieldStyles.label}>{label}</Text>
       {editing ? (
         <TextInput style={fieldStyles.input} value={value} onChangeText={onChangeText}
-          placeholder={placeholder} placeholderTextColor="#9CA3AF" keyboardType={keyboardType ?? 'default'} />
+          placeholder={placeholder} placeholderTextColor="#7A8FA6" keyboardType={keyboardType ?? 'default'} />
       ) : (
         <Text style={fieldStyles.value}>{value || '—'}</Text>
       )}
@@ -448,57 +446,57 @@ function Field({ label, value, editing, onChangeText, placeholder, keyboardType 
 const fieldStyles = StyleSheet.create({
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, minHeight: 54 },
   label: { fontSize: 15, color: '#F0F6FC', flex: 1 },
-  value: { fontSize: 15, color: '#6B7280', flex: 1.5, textAlign: 'right' },
-  input: { fontSize: 15, color: '#111827', flex: 1.5, textAlign: 'right' },
+  value: { fontSize: 15, color: '#7A8FA6', flex: 1.5, textAlign: 'right' },
+  input: { fontSize: 15, color: '#F0F6FC', flex: 1.5, textAlign: 'right' },
 });
 
 const styles = StyleSheet.create({
   bgImage: { position: 'absolute', top: 0, left: 0, width: Dimensions.get('window').width, height: Dimensions.get('window').height },
   container: { flex: 1, backgroundColor: 'transparent' },
-  header: { backgroundColor: '#FFFFFF', alignItems: 'center', paddingBottom: 24, borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
+  header: { backgroundColor: 'rgba(17,30,51,0.90)', alignItems: 'center', paddingVertical: 24, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)' },
   avatarWrapper: { position: 'relative', marginBottom: 14 },
   avatarCircle: { width: 90, height: 90, borderRadius: 45, backgroundColor: '#16A34A', alignItems: 'center', justifyContent: 'center' },
   avatarImage: { width: 90, height: 90, borderRadius: 45 },
   avatarInitials: { fontSize: 32, fontWeight: '700', color: '#FFFFFF' },
-  cameraBtn: { position: 'absolute', bottom: 0, right: 0, backgroundColor: '#FFFFFF', borderRadius: 14, width: 28, height: 28, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#E5E7EB' },
+  cameraBtn: { position: 'absolute', bottom: 0, right: 0, backgroundColor: 'rgba(17,30,51,0.90)', borderRadius: 14, width: 28, height: 28, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.20)' },
   cameraIcon: { fontSize: 14 },
-  name: { fontSize: 22, fontWeight: '700', color: '#111827' },
-  role: { fontSize: 14, color: '#6B7280', marginTop: 4, textTransform: 'capitalize' },
+  name: { fontSize: 22, fontWeight: '700', color: '#F0F6FC' },
+  role: { fontSize: 14, color: '#7A8FA6', marginTop: 4, textTransform: 'capitalize' },
   skillBadge: { marginTop: 8, paddingHorizontal: 14, paddingVertical: 5, borderRadius: 14 },
   skillBadgeText: { fontSize: 13, fontWeight: '600' },
   editToggleRow: { flexDirection: 'row', gap: 10, padding: 16 },
-  editBtn: { flex: 1, backgroundColor: '#FFFFFF', borderRadius: 10, padding: 14, alignItems: 'center', borderWidth: 1, borderColor: '#E5E7EB' },
-  editBtnText: { fontSize: 15, fontWeight: '600', color: '#374151' },
-  cancelEditBtn: { flex: 1, backgroundColor: '#F3F4F6', borderRadius: 10, padding: 14, alignItems: 'center' },
-  cancelEditText: { fontSize: 15, fontWeight: '600', color: '#6B7280' },
+  editBtn: { flex: 1, backgroundColor: 'rgba(17,30,51,0.85)', borderRadius: 10, padding: 14, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)' },
+  editBtnText: { fontSize: 15, fontWeight: '600', color: '#F0F6FC' },
+  cancelEditBtn: { flex: 1, backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 10, padding: 14, alignItems: 'center' },
+  cancelEditText: { fontSize: 15, fontWeight: '600', color: '#7A8FA6' },
   saveEditBtn: { flex: 2, backgroundColor: '#16A34A', borderRadius: 10, padding: 14, alignItems: 'center' },
   saveEditText: { fontSize: 15, fontWeight: '700', color: '#FFFFFF' },
-  section: { padding: 16 },
-  sectionTitle: { fontSize: 13, fontWeight: '700', color: '#6B7280', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 },
-  card: { backgroundColor: '#FFFFFF', borderRadius: 14, borderWidth: 1, borderColor: '#E5E7EB', overflow: 'hidden' },
+  section: { paddingHorizontal: 16, paddingBottom: 4, paddingTop: 12 },
+  sectionTitle: { fontSize: 13, fontWeight: '700', color: '#7A8FA6', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 },
+  card: { backgroundColor: 'rgba(17,30,51,0.85)', borderRadius: 14, borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)', overflow: 'hidden' },
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16 },
-  rowLabel: { fontSize: 15, color: '#374151' },
-  rowHint: { fontSize: 12, color: '#9CA3AF', marginTop: 2 },
-  chevron: { fontSize: 20, color: '#D1D5DB' },
-  divider: { height: 1, backgroundColor: '#F3F4F6', marginHorizontal: 16 },
+  rowLabel: { fontSize: 15, color: '#F0F6FC' },
+  rowHint: { fontSize: 12, color: '#7A8FA6', marginTop: 2 },
+  chevron: { fontSize: 20, color: '#7A8FA6' },
+  divider: { height: 1, backgroundColor: 'rgba(255,255,255,0.08)', marginHorizontal: 16 },
   skillGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-  skillChip: { borderWidth: 1.5, borderColor: '#E5E7EB', borderRadius: 20, paddingHorizontal: 18, paddingVertical: 9, backgroundColor: '#FFFFFF' },
-  skillChipText: { fontSize: 14, color: '#374151', fontWeight: '500' },
+  skillChip: { borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.20)', borderRadius: 20, paddingHorizontal: 18, paddingVertical: 9, backgroundColor: 'rgba(255,255,255,0.06)' },
+  skillChipText: { fontSize: 14, color: '#F0F6FC', fontWeight: '500' },
   skillChipTextActive: { color: '#FFFFFF', fontWeight: '700' },
-  signOutBtn: { backgroundColor: '#FEE2E2', borderRadius: 12, padding: 16, alignItems: 'center', marginBottom: 10 },
-  signOutText: { color: '#DC2626', fontWeight: '700', fontSize: 15 },
-  version: { textAlign: 'center', color: '#9CA3AF', fontSize: 12, marginBottom: 32 },
+  signOutBtn: { backgroundColor: 'rgba(220,38,38,0.15)', borderRadius: 12, padding: 16, alignItems: 'center', marginBottom: 10, borderWidth: 1, borderColor: 'rgba(220,38,38,0.30)' },
+  signOutText: { color: '#EF4444', fontWeight: '700', fontSize: 15 },
+  version: { textAlign: 'center', color: '#7A8FA6', fontSize: 12, marginBottom: 32 },
   modal: { flex: 1, backgroundColor: '#FFFFFF' },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
   modalTitle: { fontSize: 17, fontWeight: '700', color: '#111827' },
   modalCancel: { fontSize: 16, color: '#6B7280' },
   modalSave: { fontSize: 16, color: '#16A34A', fontWeight: '700' },
   modalBody: { padding: 24 },
-  fieldLabel: { fontSize: 14, fontWeight: '600', color: '#F0F6FC', marginBottom: 8 },
+  fieldLabel: { fontSize: 14, fontWeight: '600', color: '#111827', marginBottom: 8 },
   input: { borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 10, padding: 14, fontSize: 16, color: '#111827', marginBottom: 20, backgroundColor: '#F9FAFB' },
   dobRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, minHeight: 54 },
-  dobLabel: { fontSize: 15, color: '#374151', flex: 1 },
-  dobValue: { fontSize: 15, color: '#6B7280' },
+  dobLabel: { fontSize: 15, color: '#F0F6FC', flex: 1 },
+  dobValue: { fontSize: 15, color: '#7A8FA6' },
   dobPickerBtn: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   dobPickerText: { fontSize: 15, color: '#16A34A', fontWeight: '500' },
   dobCalIcon: { fontSize: 16 },
