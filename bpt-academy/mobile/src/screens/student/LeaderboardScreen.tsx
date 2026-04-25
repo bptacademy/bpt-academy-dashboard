@@ -471,7 +471,7 @@ const styles = StyleSheet.create({
   mainTabTextActiveBPT: { color: '#F59E0B' },
 
   divTabsContainer: { flexGrow: 0, backgroundColor: 'rgba(17,30,51,0.90)', borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)' },
-  divTabs: { paddingHorizontal: 16, paddingVertical: 10, gap: 8 },
+  divTabs: { flexDirection: 'row', flexGrow: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 10, gap: 8 },
   divTab: { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.08)', marginRight: 8 },
   divTabText: { fontSize: 13, fontWeight: '600', color: '#F0F6FC' },
   divTabTextActive: { color: '#FFFFFF' },

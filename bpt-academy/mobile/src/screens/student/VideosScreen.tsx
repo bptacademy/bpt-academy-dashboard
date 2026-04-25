@@ -69,107 +69,105 @@ export default function VideosScreen({ navigation }: any) {
   };
 
   return (
-    <ScrollView
-      contentContainerStyle={{ paddingBottom: tabBarPadding }}
-      style={styles.container}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-    >
-      <ScreenHeader title="Videos" />
+    <View style={styles.root}>
+      <Image source={require('../../../assets/bg.png')} style={styles.bgImage} resizeMode="cover" />
+      <ScrollView
+        contentContainerStyle={{ paddingBottom: tabBarPadding }}
+        style={styles.container}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#7A8FA6" />}
+      >
+        <ScreenHeader title="Videos" />
 
-      <View style={styles.searchContainer}>
-        <TextInput
-          style={styles.searchInput}
-          placeholder="🔍 Search videos, drills, skills..."
-          placeholderTextColor="#9CA3AF"
-          value={search}
-          onChangeText={setSearch}
-        />
-      </View>
+        <View style={styles.searchContainer}>
+          <TextInput
+            style={styles.searchInput}
+            placeholder="🔍 Search videos, drills, skills..."
+            placeholderTextColor="#7A8FA6"
+            value={search}
+            onChangeText={setSearch}
+          />
+        </View>
 
-      <View style={styles.list}>
-        {filtered.map((video) => {
-          const bookmarked = bookmarkedIds.includes(video.id);
-          return (
-            <TouchableOpacity
-              key={video.id}
-              style={styles.card}
-              onPress={() => navigation.navigate('VideoPlayer', { video })}
-            >
-              {/* Thumbnail placeholder */}
-              <View style={styles.thumbnail}>
-                <Text style={styles.thumbnailIcon}>🎬</Text>
-                {video.duration_seconds && (
-                  <View style={styles.duration}>
-                    <Text style={styles.durationText}>{formatDuration(video.duration_seconds)}</Text>
+        <View style={styles.list}>
+          {filtered.map((video) => {
+            const bookmarked = bookmarkedIds.includes(video.id);
+            return (
+              <TouchableOpacity
+                key={video.id}
+                style={styles.card}
+                onPress={() => navigation.navigate('VideoPlayer', { video })}
+              >
+                <View style={styles.thumbnail}>
+                  <Text style={styles.thumbnailIcon}>🎬</Text>
+                  {video.duration_seconds && (
+                    <View style={styles.duration}>
+                      <Text style={styles.durationText}>{formatDuration(video.duration_seconds)}</Text>
+                    </View>
+                  )}
+                </View>
+
+                <View style={styles.cardBody}>
+                  <View style={styles.cardTop}>
+                    <Text style={styles.cardTitle} numberOfLines={2}>{video.title}</Text>
+                    <TouchableOpacity onPress={() => toggleBookmark(video.id)}>
+                      <Text style={styles.bookmark}>{bookmarked ? '🔖' : '🏷️'}</Text>
+                    </TouchableOpacity>
                   </View>
-                )}
-              </View>
 
-              <View style={styles.cardBody}>
-                <View style={styles.cardTop}>
-                  <Text style={styles.cardTitle} numberOfLines={2}>{video.title}</Text>
-                  <TouchableOpacity onPress={() => toggleBookmark(video.id)}>
-                    <Text style={styles.bookmark}>{bookmarked ? '🔖' : '🏷️'}</Text>
-                  </TouchableOpacity>
+                  <View style={styles.tags}>
+                    {video.drill_type && (
+                      <View style={styles.tag}>
+                        <Text style={styles.tagText}>{video.drill_type}</Text>
+                      </View>
+                    )}
+                    {video.skill_focus && (
+                      <View style={[styles.tag, styles.tagGreen]}>
+                        <Text style={[styles.tagText, styles.tagTextGreen]}>{video.skill_focus}</Text>
+                      </View>
+                    )}
+                  </View>
+
+                  <Text style={styles.uploader}>by BPT Academy</Text>
                 </View>
+              </TouchableOpacity>
+            );
+          })}
 
-                <View style={styles.tags}>
-                  {video.drill_type && (
-                    <View style={styles.tag}>
-                      <Text style={styles.tagText}>{video.drill_type}</Text>
-                    </View>
-                  )}
-                  {video.skill_focus && (
-                    <View style={[styles.tag, styles.tagGreen]}>
-                      <Text style={[styles.tagText, styles.tagTextGreen]}>{video.skill_focus}</Text>
-                    </View>
-                  )}
-                </View>
-
-                <Text style={styles.uploader}>
-                  by BPT Academy
-                </Text>
-              </View>
-            </TouchableOpacity>
-          );
-        })}
-
-        {filtered.length === 0 && (
-          <View style={styles.empty}>
-            <Text style={styles.emptyIcon}>🎬</Text>
-            <Text style={styles.emptyText}>No videos found.</Text>
-          </View>
-        )}
-      </View>
-    </ScrollView>
+          {filtered.length === 0 && (
+            <View style={styles.empty}>
+              <Text style={styles.emptyIcon}>🎬</Text>
+              <Text style={styles.emptyText}>No videos found.</Text>
+            </View>
+          )}
+        </View>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  root: { flex: 1, backgroundColor: '#0B1628' },
   bgImage: { position: 'absolute', top: 0, left: 0, width: Dimensions.get('window').width, height: Dimensions.get('window').height },
-  container: { flex: 1, backgroundColor: '#F9FAFB' },
-  header: { padding: 24, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
-  title: { fontSize: 26, fontWeight: '700', color: '#111827' },
-  subtitle: { fontSize: 14, color: '#6B7280', marginTop: 2 },
-  searchContainer: { padding: 16, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
-  searchInput: { backgroundColor: '#F3F4F6', borderRadius: 10, padding: 12, fontSize: 15, color: '#111827' },
-  list: { padding: 16, paddingBottom: 80,},
-  card: { backgroundColor: '#FFFFFF', borderRadius: 14, marginBottom: 14, borderWidth: 1, borderColor: '#E5E7EB', overflow: 'hidden' },
-  thumbnail: { height: 160, backgroundColor: '#111827', alignItems: 'center', justifyContent: 'center' },
+  container: { flex: 1 },
+  searchContainer: { padding: 16, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)' },
+  searchInput: { backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 10, padding: 12, fontSize: 15, color: '#F0F6FC', borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)' },
+  list: { padding: 16, paddingBottom: 80 },
+  card: { backgroundColor: 'rgba(17,30,51,0.90)', borderRadius: 14, marginBottom: 14, borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)', overflow: 'hidden' },
+  thumbnail: { height: 160, backgroundColor: '#0B1628', alignItems: 'center', justifyContent: 'center' },
   thumbnailIcon: { fontSize: 48 },
   duration: { position: 'absolute', bottom: 8, right: 8, backgroundColor: 'rgba(0,0,0,0.7)', borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2 },
   durationText: { color: '#FFFFFF', fontSize: 12, fontWeight: '600' },
   cardBody: { padding: 14 },
   cardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 },
-  cardTitle: { fontSize: 15, fontWeight: '700', color: '#111827', flex: 1, marginRight: 8 },
+  cardTitle: { fontSize: 15, fontWeight: '700', color: '#F0F6FC', flex: 1, marginRight: 8 },
   bookmark: { fontSize: 20 },
   tags: { flexDirection: 'row', gap: 6, marginBottom: 8 },
-  tag: { backgroundColor: '#F3F4F6', borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4 },
-  tagGreen: { backgroundColor: '#ECFDF5' },
-  tagText: { fontSize: 12, color: '#374151' },
-  tagTextGreen: { color: '#16A34A' },
-  uploader: { fontSize: 12, color: '#9CA3AF' },
+  tag: { backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4 },
+  tagGreen: { backgroundColor: 'rgba(22,163,74,0.15)' },
+  tagText: { fontSize: 12, color: '#F0F6FC' },
+  tagTextGreen: { color: '#4ADE80' },
+  uploader: { fontSize: 12, color: '#7A8FA6' },
   empty: { alignItems: 'center', paddingVertical: 60 },
   emptyIcon: { fontSize: 48, marginBottom: 12 },
-  emptyText: { color: '#9CA3AF', fontSize: 15 },
+  emptyText: { color: '#7A8FA6', fontSize: 15 },
 });
