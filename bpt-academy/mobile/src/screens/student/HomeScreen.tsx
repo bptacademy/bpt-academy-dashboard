@@ -87,6 +87,7 @@ export default function HomeScreen({ navigation }: any) {
   const tabBarPadding = useTabBarPadding();
   const { unreadCount } = useNotifications();
   const [enrollments, setEnrollments] = useState<EnrollmentWithProgress[]>([]);
+  const [pendingNextCycle, setPendingNextCycle] = useState<any[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [days, setDays] = useState(buildDays);
   const [leaderTop, setLeaderTop] = useState<LeaderEntry | null>(null);
@@ -96,14 +97,16 @@ export default function HomeScreen({ navigation }: any) {
   const fetchData = async () => {
     if (!profile) return;
 
-    const [enrollRes] = await Promise.all([
+    const [enrollRes, pendingRes] = await Promise.all([
       supabase
         .from('enrollments')
         .select('*, program:programs(*)')
         .eq('student_id', profile.id)
         .eq('status', 'active')
         .limit(3),
+      supabase.from('enrollments').select('*, program:programs(*)').eq('student_id', profile.id).eq('status', 'pending_next_cycle'),
     ]);
+    if (arguments[1]?.data) setPendingNextCycle(arguments[1].data);
 
     let programIds: string[] = [];
     if (enrollRes.data) {
@@ -316,6 +319,29 @@ export default function HomeScreen({ navigation }: any) {
             </TouchableOpacity>
           </View>
 
+
+          {/* Pending next cycle banner */}
+          {pendingNextCycle.map((e) => (
+            <TouchableOpacity
+              key={e.id}
+              onPress={() => navigation.navigate('ProgramDetail', { programId: e.program_id })}
+              activeOpacity={0.85}
+              style={{ marginBottom: 12 }}
+            >
+              <View style={styles.pendingCycleCard}>
+                <Text style={styles.pendingCycleIcon}>📅</Text>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.pendingCycleTitle}>{(e.program as any)?.title}</Text>
+                  <Text style={styles.pendingCycleBody}>
+                    {(e.program as any)?.next_cycle_start_date
+                      ? `Enrolled for next cycle · starts ${new Date((e.program as any).next_cycle_start_date + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'long' })}`
+                      : "You're enrolled for the next cycle"}
+                  </Text>
+                </View>
+                <Text style={styles.programChevron}>›</Text>
+              </View>
+            </TouchableOpacity>
+          ))}
           {enrollments.length === 0 ? (
             <TouchableOpacity style={styles.emptyCard} onPress={goToPrograms}>
               <Text style={styles.emptyText}>No active programs yet</Text>
@@ -477,6 +503,15 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(17,30,51,0.85)', borderRadius: 14, padding: 20, alignItems: 'center',
     borderWidth: 1, borderColor: BORDER,
   },
+
+  pendingCycleCard: {
+    flexDirection: 'row', alignItems: 'center', gap: 12,
+    backgroundColor: 'rgba(59,130,246,0.12)', borderRadius: 14, padding: 14,
+    borderWidth: 1, borderColor: 'rgba(59,130,246,0.30)',
+  },
+  pendingCycleIcon: { fontSize: 24 },
+  pendingCycleTitle: { fontSize: 14, fontWeight: '700', color: '#F0F6FC', marginBottom: 2 },
+  pendingCycleBody: { fontSize: 12, color: '#7A8FA6' },
   emptyText: { color: SUBTEXT, fontSize: 14, marginBottom: 6 },
   emptyLink: { color: GREEN2, fontWeight: '600', fontSize: 13 },
   programCard: {

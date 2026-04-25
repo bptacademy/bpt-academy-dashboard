@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  @font-face {
+    font-family: 'TTOctosquares';
+    src: url('TTOctosquaresCond-Bold.ttf') format('truetype');
+    font-weight: bold;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    width: 2048px;
+    height: 1000px;
+    overflow: hidden;
+    background: #0B1628;
+    font-family: 'TTOctosquares', Arial, sans-serif;
+  }
+
+  .bg { position: absolute; inset: 0; background: #0B1628; }
+
+  .grid {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+    background-size: 80px 80px;
+  }
+
+  .glow-blue {
+    position: absolute; width: 800px; height: 800px;
+    background: radial-gradient(circle, rgba(59,130,246,0.18) 0%, transparent 70%);
+    top: -200px; left: -160px;
+  }
+
+  .glow-red {
+    position: absolute; width: 700px; height: 700px;
+    background: radial-gradient(circle, rgba(220,38,38,0.12) 0%, transparent 70%);
+    bottom: -200px; right: 400px;
+  }
+
+  .left {
+    position: absolute; left: 0; top: 0; width: 800px; height: 1000px;
+    display: flex; flex-direction: column; justify-content: center;
+    padding: 100px 80px 100px 120px;
+  }
+
+  .logo-wrap { margin-bottom: 56px; }
+
+  .logo-img {
+    width: 280px;
+    height: 280px;
+    object-fit: contain;
+  }
+
+  .accent-bar {
+    width: 120px; height: 8px; background: #DC2626;
+    border-radius: 4px; margin-bottom: 44px;
+  }
+
+  .tagline {
+    font-family: 'TTOctosquares', Arial, sans-serif;
+    font-size: 60px; font-weight: bold; color: #F0F6FC;
+    line-height: 1.2; margin-bottom: 40px;
+    text-transform: uppercase; letter-spacing: 2px;
+  }
+
+  .tagline span { color: #3B82F6; }
+
+  .sub {
+    font-family: Arial, sans-serif;
+    font-size: 26px; color: #7A8FA6; line-height: 1.8;
+  }
+
+  .divider {
+    position: absolute; left: 800px; top: 80px; bottom: 80px; width: 2px;
+    background: linear-gradient(to bottom, transparent, rgba(59,130,246,0.3) 30%, rgba(59,130,246,0.3) 70%, transparent);
+  }
+
+  .right {
+    position: absolute; left: 820px; top: 0; right: 0; height: 1000px;
+    display: flex; align-items: flex-end; justify-content: center;
+    gap: 28px; overflow: hidden;
+  }
+
+  .phone {
+    border-radius: 40px; border: 3px solid rgba(59,130,246,0.3);
+    overflow: hidden; flex-shrink: 0;
+    box-shadow: 0 16px 64px rgba(0,0,0,0.7); background: #111E33;
+  }
+
+  .phone img {
+    display: block; width: 100%; height: 100%;
+    object-fit: cover; object-position: top center;
+  }
+
+  .phone-main  { width: 320px; height: 747px; margin-bottom: 0; }
+  .phone-side  { width: 284px; height: 663px; margin-bottom: 60px; opacity: 0.9; }
+  .phone-back  { width: 252px; height: 589px; margin-bottom: 120px; opacity: 0.65; }
+
+  .badge {
+    position: absolute; bottom: 44px; left: 120px;
+    display: flex; align-items: center; gap: 16px;
+    background: rgba(59,130,246,0.1); border: 2px solid rgba(59,130,246,0.25);
+    border-radius: 40px; padding: 12px 32px;
+  }
+
+  .badge-dot {
+    width: 14px; height: 14px; background: #3B82F6;
+    border-radius: 50%; flex-shrink: 0;
+  }
+
+  .badge-text {
+    font-family: Arial, sans-serif; font-size: 22px; color: #7A8FA6;
+    letter-spacing: 3px; text-transform: uppercase; white-space: nowrap;
+  }
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<div class="grid"></div>
+<div class="glow-blue"></div>
+<div class="glow-red"></div>
+
+<div class="left">
+  <div class="logo-wrap">
+    <img class="logo-img" src="logo-fixed.png" alt="BPT Academy Logo">
+  </div>
+  <div class="accent-bar"></div>
+  <div class="tagline">Your padel journey,<br><span>all in one place.</span></div>
+  <div class="sub">Programs · Progress · Coaching<br>Tournaments · Messaging</div>
+</div>
+
+<div class="divider"></div>
+
+<div class="right">
+  <div class="phone phone-back">
+    <img src="screen-progress.jpeg" alt="Progress">
+  </div>
+  <div class="phone phone-side">
+    <img src="screen-programs.jpeg" alt="Programs">
+  </div>
+  <div class="phone phone-main">
+    <img src="screen-home.jpeg" alt="Home">
+  </div>
+</div>
+
+<div class="badge">
+  <div class="badge-dot"></div>
+  <div class="badge-text">British Padel Training Academy</div>
+</div>
+
+</body>
+</html>

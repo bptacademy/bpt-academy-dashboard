@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html><body style="margin:0;background:#000">
+<canvas id="c" width="300" height="300"></canvas>
+<img id="img" src="logo.png" style="display:none" crossorigin="anonymous">
+<script>
+  const img = document.getElementById('img');
+  img.onload = () => {
+    const ctx = document.getElementById('c').getContext('2d');
+    ctx.drawImage(img, 0, 0, 300, 300);
+  };
+</script>
+</body></html>

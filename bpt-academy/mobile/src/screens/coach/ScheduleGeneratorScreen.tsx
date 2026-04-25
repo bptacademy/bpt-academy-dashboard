@@ -42,11 +42,13 @@ function getMonthStr(d: Date): string {
 }
 
 /**
- * Returns the first day of the month following the given date.
- * e.g. lastSession = 2026-04-28 → next cycle start = 2026-05-01
+ * Returns the first day of the month AFTER the cycle start month.
+ * e.g. cycleStart = 2026-04-10 → next cycle start = 2026-05-01
+ * e.g. cycleStart = 2026-05-04 → next cycle start = 2026-06-01
+ * This is based on the START month, not the last session date.
  */
-function firstDayOfNextMonth(d: Date): string {
-  const next = new Date(d.getFullYear(), d.getMonth() + 1, 1);
+function firstDayOfNextMonth(cycleStart: Date): string {
+  const next = new Date(cycleStart.getFullYear(), cycleStart.getMonth() + 1, 1);
   return localDateStr(next);
 }
 
@@ -159,15 +161,16 @@ export default function ScheduleGeneratorScreen({ route, navigation }: any) {
 
       // 4. Flip program to active and set cycle dates.
       // current_cycle_start_date = coach-selected start date (first session).
-      // next_cycle_start_date    = first day of the month after the last session.
-      // These drive the pending_next_cycle logic in PaymentReconciliationScreen:
-      // new students who pay mid-cycle are held until next_cycle_start_date.
+      // next_cycle_start_date    = 1st of the month AFTER the cycle start month.
+      //   e.g. coach picks May 4 → next_cycle_start_date = June 1
+      //   e.g. coach picks April 10 → next_cycle_start_date = May 1
+      // This ensures pending_next_cycle students are activated in the right month.
       await supabase.from('programs')
         .update({
           status: 'active',
           is_active: true,
           current_cycle_start_date: localDateStr(selectedStart),
-          next_cycle_start_date: firstDayOfNextMonth(lastSession),
+          next_cycle_start_date: firstDayOfNextMonth(selectedStart),
         })
         .eq('id', programId);
 
@@ -257,7 +260,7 @@ export default function ScheduleGeneratorScreen({ route, navigation }: any) {
       setGenerating(false);
       Alert.alert(
         '✅ Schedule Generated!',
-        `${sessionDates.length} sessions created. ${filledSpots} students enrolled.\n\nCycle starts: ${formatDateLabel(selectedStart)}\nNext cycle opens: ${firstDayOfNextMonth(lastSession)}`,
+        `${sessionDates.length} sessions created. ${filledSpots} students enrolled.\n\nCycle starts: ${formatDateLabel(selectedStart)}\nNext cycle opens: ${firstDayOfNextMonth(selectedStart)}`,
         [{ text: 'Done', onPress: () => navigation.goBack() }]
       );
     } catch (err: any) {
@@ -275,7 +278,6 @@ export default function ScheduleGeneratorScreen({ route, navigation }: any) {
         contentContainerStyle={[styles.content, { paddingBottom: tabBarPadding }]}
         showsVerticalScrollIndicator={false}
       >
-        {/* Program info */}
         <View style={styles.programCard}>
           <Text style={styles.programTitle}>{programTitle}</Text>
           <View style={styles.programMetaRow}>
@@ -293,7 +295,6 @@ export default function ScheduleGeneratorScreen({ route, navigation }: any) {
           </Text>
         </View>
 
-        {/* Fixed session count info */}
         <View style={styles.infoCard}>
           <Text style={styles.infoIcon}>🔒</Text>
           <View style={styles.infoText}>
@@ -304,7 +305,6 @@ export default function ScheduleGeneratorScreen({ route, navigation }: any) {
           </View>
         </View>
 
-        {/* Start date picker */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>📅 Start Date</Text>
           <Text style={styles.sectionHint}>First session of the new cycle</Text>
@@ -332,7 +332,6 @@ export default function ScheduleGeneratorScreen({ route, navigation }: any) {
           </ScrollView>
         </View>
 
-        {/* Days of week picker */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>📆 Session Days</Text>
           <Text style={styles.sectionHint}>Which days of the week do sessions run?</Text>
@@ -354,7 +353,6 @@ export default function ScheduleGeneratorScreen({ route, navigation }: any) {
           </View>
         </View>
 
-        {/* Capacity */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>👥 Capacity</Text>
           <Text style={styles.sectionHint}>Maximum number of students for this cycle</Text>
@@ -375,7 +373,6 @@ export default function ScheduleGeneratorScreen({ route, navigation }: any) {
           </View>
         </View>
 
-        {/* Preview */}
         {sessionDates.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>👁 Preview</Text>
@@ -403,7 +400,6 @@ export default function ScheduleGeneratorScreen({ route, navigation }: any) {
           </View>
         )}
 
-        {/* Generate button */}
         <TouchableOpacity
           style={[styles.generateBtn, (generating || selectedDays.length === 0) && styles.generateBtnDisabled]}
           onPress={handleGenerate}
@@ -425,86 +421,44 @@ const styles = StyleSheet.create({
   bgImage: { position: 'absolute', top: 0, left: 0, width: Dimensions.get('window').width, height: Dimensions.get('window').height },
   container: { flex: 1, backgroundColor: '#F9FAFB' },
   content: { padding: 16 },
-
-  programCard: {
-    backgroundColor: '#111827', borderRadius: 14, padding: 16, marginBottom: 12,
-  },
+  programCard: { backgroundColor: '#111827', borderRadius: 14, padding: 16, marginBottom: 12 },
   programTitle: { fontSize: 18, fontWeight: '700', color: '#FFFFFF', marginBottom: 8 },
   programMetaRow: { flexDirection: 'row', gap: 8, marginBottom: 6 },
-  programMetaBadge: {
-    backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: 8,
-    paddingHorizontal: 10, paddingVertical: 4,
-  },
+  programMetaBadge: { backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4 },
   programMetaText: { fontSize: 12, fontWeight: '600', color: '#FFFFFF' },
   programSub: { fontSize: 12, color: 'rgba(255,255,255,0.5)' },
-
-  infoCard: {
-    flexDirection: 'row', alignItems: 'flex-start', gap: 12,
-    backgroundColor: '#EFF6FF', borderRadius: 12, padding: 14,
-    borderWidth: 1, borderColor: '#BFDBFE', marginBottom: 14,
-  },
+  infoCard: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, backgroundColor: '#EFF6FF', borderRadius: 12, padding: 14, borderWidth: 1, borderColor: '#BFDBFE', marginBottom: 14 },
   infoIcon: { fontSize: 20 },
   infoText: { flex: 1 },
   infoTitle: { fontSize: 13, fontWeight: '700', color: '#1E40AF', marginBottom: 3 },
   infoBody: { fontSize: 12, color: '#3B82F6', lineHeight: 18 },
-
-  section: {
-    backgroundColor: '#FFFFFF', borderRadius: 14, padding: 16,
-    marginBottom: 14, borderWidth: 1, borderColor: '#E5E7EB',
-  },
+  section: { backgroundColor: '#FFFFFF', borderRadius: 14, padding: 16, marginBottom: 14, borderWidth: 1, borderColor: '#E5E7EB' },
   sectionTitle: { fontSize: 15, fontWeight: '700', color: '#F0F6FC', marginBottom: 4 },
   sectionHint: { fontSize: 12, color: '#9CA3AF', marginBottom: 12 },
-
   dateRow: { gap: 8, paddingBottom: 4 },
-  dateChip: {
-    width: 56, paddingVertical: 10, borderRadius: 12,
-    alignItems: 'center', backgroundColor: '#F3F4F6',
-    borderWidth: 1.5, borderColor: '#E5E7EB',
-  },
+  dateChip: { width: 56, paddingVertical: 10, borderRadius: 12, alignItems: 'center', backgroundColor: '#F3F4F6', borderWidth: 1.5, borderColor: '#E5E7EB' },
   dateChipActive: { backgroundColor: '#16A34A', borderColor: '#16A34A' },
   dateChipDay: { fontSize: 11, fontWeight: '600', color: '#6B7280' },
   dateChipNum: { fontSize: 18, fontWeight: '800', color: '#111827', marginVertical: 2 },
   dateChipMonth: { fontSize: 10, color: '#9CA3AF' },
   dateChipTextActive: { color: '#FFFFFF' },
-
   daysRow: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
-  dayChip: {
-    paddingHorizontal: 16, paddingVertical: 10, borderRadius: 20,
-    backgroundColor: '#F3F4F6', borderWidth: 1.5, borderColor: '#E5E7EB',
-  },
+  dayChip: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: 20, backgroundColor: '#F3F4F6', borderWidth: 1.5, borderColor: '#E5E7EB' },
   dayChipActive: { backgroundColor: '#16A34A', borderColor: '#16A34A' },
   dayChipText: { fontSize: 14, fontWeight: '600', color: '#374151' },
   dayChipTextActive: { color: '#FFFFFF' },
-
   previewList: { gap: 6 },
   previewRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  previewNum: {
-    width: 28, height: 28, borderRadius: 14,
-    backgroundColor: '#ECFDF5', alignItems: 'center', justifyContent: 'center',
-  },
+  previewNum: { width: 28, height: 28, borderRadius: 14, backgroundColor: '#ECFDF5', alignItems: 'center', justifyContent: 'center' },
   previewNumText: { fontSize: 12, fontWeight: '700', color: '#16A34A' },
   previewDate: { fontSize: 14, color: '#374151' },
-
-  emptyHint: {
-    backgroundColor: '#FFFBEB', borderRadius: 12, padding: 16,
-    borderWidth: 1, borderColor: '#FDE68A', marginBottom: 14,
-    alignItems: 'center',
-  },
+  emptyHint: { backgroundColor: '#FFFBEB', borderRadius: 12, padding: 16, borderWidth: 1, borderColor: '#FDE68A', marginBottom: 14, alignItems: 'center' },
   emptyHintText: { fontSize: 13, color: '#92400E', textAlign: 'center', lineHeight: 20 },
-
-  capacityRow: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 24,
-  },
-  capacityBtn: {
-    width: 44, height: 44, borderRadius: 22, backgroundColor: '#F3F4F6',
-    alignItems: 'center', justifyContent: 'center',
-    borderWidth: 1.5, borderColor: '#E5E7EB',
-  },
+  capacityRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 24 },
+  capacityBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#F3F4F6', alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: '#E5E7EB' },
   capacityBtnText: { fontSize: 22, fontWeight: '700', color: '#374151' },
   capacityValue: { fontSize: 36, fontWeight: '800', color: '#111827', minWidth: 60, textAlign: 'center' },
-  generateBtn: {
-    backgroundColor: '#16A34A', borderRadius: 14, padding: 18, alignItems: 'center',
-  },
+  generateBtn: { backgroundColor: '#16A34A', borderRadius: 14, padding: 18, alignItems: 'center' },
   generateBtnDisabled: { opacity: 0.5 },
   generateBtnText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
 });
