@@ -42,22 +42,23 @@ function getMonthStr(d: Date): string {
 }
 
 /**
- * Generate exactly `targetCount` session dates starting from `startDate`,
- * falling on `selectedDays` of the week.
- * Walks forward day-by-day until we have exactly the right number of sessions.
+ * Returns the first day of the month following the given date.
+ * e.g. lastSession = 2026-04-28 → next cycle start = 2026-05-01
  */
-// Skip weekends in date generation
-function isWeekday(d: Date): boolean {
-  const dow = d.getDay();
-  return dow !== 0 && dow !== 6;
+function firstDayOfNextMonth(d: Date): string {
+  const next = new Date(d.getFullYear(), d.getMonth() + 1, 1);
+  return localDateStr(next);
 }
 
+/**
+ * Generate exactly `targetCount` session dates starting from `startDate`,
+ * falling on `selectedDays` of the week.
+ */
 function generateSessionDates(startDate: Date, selectedDays: string[], targetCount: number): Date[] {
   if (selectedDays.length === 0 || targetCount <= 0) return [];
   const dates: Date[] = [];
   const selectedIndices = selectedDays.map((d) => DAY_INDEX[d]);
   let current = new Date(startDate);
-  // Safety cap: never walk more than 2 years forward
   const hardLimit = addDays(startDate, 730);
   while (dates.length < targetCount && current <= hardLimit) {
     if (selectedIndices.includes(current.getDay())) {
@@ -68,7 +69,6 @@ function generateSessionDates(startDate: Date, selectedDays: string[], targetCou
   return dates;
 }
 
-// Build a start-date picker — show next 30 days as options
 function buildStartOptions(): Date[] {
   const options: Date[] = [];
   const now = new Date();
@@ -84,8 +84,6 @@ export default function ScheduleGeneratorScreen({ route, navigation }: any) {
   const tabBarPadding = useTabBarPadding();
   const { profile } = useAuth();
 
-  // Derive the fixed session count from program settings
-  // Falls back to 8 (the standard amateur program count) if not set
   const sessionCount: number =
     durationWeeks && sessionsPerWeek
       ? Math.round(durationWeeks * sessionsPerWeek)
@@ -103,7 +101,6 @@ export default function ScheduleGeneratorScreen({ route, navigation }: any) {
     );
   };
 
-  // Always generate exactly sessionCount sessions
   const sessionDates = selectedDays.length > 0
     ? generateSessionDates(selectedStart, selectedDays, sessionCount)
     : [];
@@ -133,12 +130,13 @@ export default function ScheduleGeneratorScreen({ route, navigation }: any) {
     setGenerating(true);
     try {
       const month = getMonthStr(selectedStart);
+      const lastSession = sessionDates[sessionDates.length - 1];
 
       // 1. Delete ALL existing modules and sessions for this program
       await supabase.from('program_sessions').delete().eq('program_id', programId);
       await supabase.from('modules').delete().eq('program_id', programId);
 
-      // 2. Insert exactly sessionCount modules — trigger auto-creates sessions
+      // 2. Insert exactly sessionCount modules
       for (let i = 0; i < sessionDates.length; i++) {
         const { error } = await supabase.from('modules').insert({
           program_id: programId,
@@ -159,9 +157,18 @@ export default function ScheduleGeneratorScreen({ route, navigation }: any) {
         generated_by: profile!.id,
       }, { onConflict: 'program_id,month' });
 
-      // 4. Flip program to active
+      // 4. Flip program to active and set cycle dates.
+      // current_cycle_start_date = coach-selected start date (first session).
+      // next_cycle_start_date    = first day of the month after the last session.
+      // These drive the pending_next_cycle logic in PaymentReconciliationScreen:
+      // new students who pay mid-cycle are held until next_cycle_start_date.
       await supabase.from('programs')
-        .update({ status: 'active', is_active: true })
+        .update({
+          status: 'active',
+          is_active: true,
+          current_cycle_start_date: localDateStr(selectedStart),
+          next_cycle_start_date: firstDayOfNextMonth(lastSession),
+        })
         .eq('id', programId);
 
       // 5. Auto-enrollment: confirmed+paid current students first, then waiting list FIFO
@@ -219,7 +226,6 @@ export default function ScheduleGeneratorScreen({ route, navigation }: any) {
       }
 
       // 6. Set re-enrollment deadline (7 days before last session) and notify active students
-      const lastSession = sessionDates[sessionDates.length - 1];
       const deadline = addDays(lastSession, -7);
 
       const { data: active } = await supabase
@@ -251,7 +257,7 @@ export default function ScheduleGeneratorScreen({ route, navigation }: any) {
       setGenerating(false);
       Alert.alert(
         '✅ Schedule Generated!',
-        `${sessionDates.length} sessions created. ${filledSpots} students enrolled.`,
+        `${sessionDates.length} sessions created. ${filledSpots} students enrolled.\n\nCycle starts: ${formatDateLabel(selectedStart)}\nNext cycle opens: ${firstDayOfNextMonth(lastSession)}`,
         [{ text: 'Done', onPress: () => navigation.goBack() }]
       );
     } catch (err: any) {

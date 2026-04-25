@@ -19,7 +19,6 @@ export default function PaymentReconciliationScreen() {
   const insets = useSafeAreaInsets();
   const tabBarPadding = useTabBarPadding();
   const { profile } = useAuth();
-  // allPayments holds the full unfiltered list for summary stats
   const [allPayments, setAllPayments] = useState<PaymentRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -27,7 +26,6 @@ export default function PaymentReconciliationScreen() {
   const [filter, setFilter] = useState<'pending' | 'confirmed' | 'all'>('pending');
 
   const fetchPayments = async () => {
-    // Always fetch ALL payments — summary stats must never depend on the tab filter
     const { data } = await supabase
       .from('payments')
       .select('*')
@@ -59,16 +57,38 @@ export default function PaymentReconciliationScreen() {
   const onRefresh = async () => { setRefreshing(true); await fetchPayments(); setRefreshing(false); };
   useEffect(() => { load(); }, []);
 
-  // Summary stats always computed from full list
   const pendingCount = allPayments.filter(p => p.status === 'pending').length;
   const confirmedRevenue = allPayments
     .filter(p => p.status === 'confirmed')
     .reduce((s, p) => s + p.amount_gbp, 0);
 
-  // Displayed list filtered by tab
   const displayedPayments = filter === 'all'
     ? allPayments
     : allPayments.filter(p => p.status === filter);
+
+  // Determine correct enrollment status on payment confirmation.
+  // If the program's current cycle has already started (today > current_cycle_start_date),
+  // hold the student in pending_next_cycle so they start fresh on the 1st of next month
+  // together with everyone else. Only activate immediately if the cycle hasn't started yet.
+  const resolveEnrollmentStatus = async (
+    programId: string | undefined,
+    confirmed: boolean
+  ): Promise<'active' | 'pending_next_cycle' | 'cancelled'> => {
+    if (!confirmed) return 'cancelled';
+    if (!programId) return 'active';
+    const { data: prog } = await supabase
+      .from('programs')
+      .select('current_cycle_start_date')
+      .eq('id', programId)
+      .single();
+    if (!prog?.current_cycle_start_date) return 'active';
+    const cycleStart = new Date(prog.current_cycle_start_date);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    cycleStart.setHours(0, 0, 0, 0);
+    // Cycle already started → hold until next cycle
+    return today > cycleStart ? 'pending_next_cycle' : 'active';
+  };
 
   const updateStatus = async (payment: PaymentRow, newStatus: 'confirmed' | 'failed') => {
     Alert.alert(
@@ -87,20 +107,25 @@ export default function PaymentReconciliationScreen() {
               confirmed_at: new Date().toISOString(),
             }).eq('id', payment.id);
 
+            const enrollmentStatus = await resolveEnrollmentStatus(
+              payment.program_id,
+              newStatus === 'confirmed'
+            );
+
             if (payment.enrollment_id) {
               await supabase.from('enrollments')
                 .update({
                   payment_status: newStatus,
-                  status: newStatus === 'confirmed' ? 'active' : 'cancelled',
+                  status: enrollmentStatus,
                 })
                 .eq('id', payment.enrollment_id);
             } else if (newStatus === 'confirmed' && payment.program_id) {
-              // No enrollment_id on payment — find and activate by student + program
+              // No enrollment_id on payment — find and update by student + program
               await supabase.from('enrollments')
-                .update({ status: 'active' })
+                .update({ status: enrollmentStatus })
                 .eq('student_id', payment.student_id)
                 .eq('program_id', payment.program_id)
-                .in('status', ['cancelled', 'waitlisted', 'pending']);
+                .in('status', ['cancelled', 'waitlisted', 'pending', 'pending_payment']);
             }
 
             if (payment.tournament_id && newStatus === 'confirmed') {
@@ -111,12 +136,17 @@ export default function PaymentReconciliationScreen() {
                 .eq('status', 'pending');
             }
 
+            // Notify the student with appropriate message based on enrollment status
+            const notificationBody = newStatus === 'confirmed'
+              ? enrollmentStatus === 'pending_next_cycle'
+                ? `Your payment of £${payment.amount_gbp} has been confirmed. You'll be enrolled from the 1st of next month — Session 1 starts then!`
+                : `Your payment of £${payment.amount_gbp} has been confirmed. Welcome aboard!`
+              : `There was an issue with your payment of £${payment.amount_gbp}. Please contact us.`;
+
             await supabase.from('notifications').insert({
               recipient_id: payment.student_id,
               title: newStatus === 'confirmed' ? '✅ Payment Confirmed' : '❌ Payment Issue',
-              body: newStatus === 'confirmed'
-                ? `Your payment of £${payment.amount_gbp} has been confirmed. Welcome aboard!`
-                : `There was an issue with your payment of £${payment.amount_gbp}. Please contact us.`,
+              body: notificationBody,
               type: 'payment',
             });
 
@@ -139,7 +169,7 @@ export default function PaymentReconciliationScreen() {
     >
       <ScreenHeader title="Payments" />
 
-      {/* Summary — always shows totals across ALL payments */}
+      {/* Summary */}
       <View style={styles.summary}>
         <View style={styles.summaryItem}>
           <Text style={styles.summaryNum}>{pendingCount}</Text>
@@ -151,7 +181,7 @@ export default function PaymentReconciliationScreen() {
         </View>
       </View>
 
-      {/* Filter tabs — only affects the transaction list below */}
+      {/* Filter tabs */}
       <View style={styles.filters}>
         {(['pending', 'confirmed', 'all'] as const).map(f => (
           <TouchableOpacity
@@ -240,7 +270,7 @@ const styles = StyleSheet.create({
   filterChipActive: { backgroundColor: '#16A34A', borderColor: '#16A34A' },
   filterText: { fontSize: 13, color: '#374151', fontWeight: '500' },
   filterTextActive: { color: '#FFFFFF', fontWeight: '700' },
-  list: { padding: 16, gap: 12, paddingBottom: 80,},
+  list: { padding: 16, gap: 12, paddingBottom: 80 },
   card: { backgroundColor: '#FFFFFF', borderRadius: 14, padding: 16, borderWidth: 1, borderColor: '#E5E7EB' },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
   studentName: { fontSize: 16, fontWeight: '700', color: '#111827' },
