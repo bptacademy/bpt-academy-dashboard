@@ -1,2 +1,12 @@
-node_modules/react-native/ReactCommon/react/test_utils/ios/Memory/RCTMemoryUtils.h
-node_modules/react-native/ReactCommon/react/test_utils/ios/Memory/RCTMemoryUtils.m
+node_modules/
+.expo/
+.git/
+android/
+ios/
+dist/
+web-build/
+*.orig.*
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+.DS_Store
