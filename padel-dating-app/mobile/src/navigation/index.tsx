@@ -2,7 +2,8 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Text } from 'react-native';
+import { Text, Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext';
 
 // Auth / Onboarding screens
@@ -82,21 +83,37 @@ function ProfileNavigator() {
 }
 
 function MainTabs() {
+  const insets = useSafeAreaInsets();
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarStyle: { backgroundColor: '#0D1B2A', borderTopColor: '#1A2C42', height: 60 },
+        tabBarStyle: {
+          backgroundColor: '#0D1B2A',
+          borderTopColor: '#1A2C42',
+          borderTopWidth: 1,
+          height: 60 + insets.bottom,
+          paddingBottom: insets.bottom,
+          paddingTop: 8,
+        },
         tabBarActiveTintColor: '#E63F6B',
         tabBarInactiveTintColor: '#4A6080',
-        tabBarLabel: ({ color }) => {
-          const labels: Record<string, string> = {
-            Connect: '💘', Play: '🎾', Messages: '💬', Profile: '👤',
-          };
-          return <Text style={{ fontSize: 20 }}>{labels[route.name]}</Text>;
-        },
         tabBarShowLabel: true,
-        tabBarIcon: () => null,
+        tabBarLabel: () => null,
+        tabBarIcon: ({ focused }) => {
+          const icons: Record<string, string> = {
+            Connect: '💘',
+            Play: '🎾',
+            Messages: '💬',
+            Profile: '👤',
+          };
+          return (
+            <Text style={{ fontSize: 26, opacity: focused ? 1 : 0.45 }}>
+              {icons[route.name]}
+            </Text>
+          );
+        },
       })}
     >
       <Tab.Screen name="Connect" component={ConnectNavigator} />
@@ -107,7 +124,6 @@ function MainTabs() {
   );
 }
 
-// Onboarding stack — used when logged in but profile not complete
 function OnboardingNavigator() {
   return (
     <RootStack.Navigator screenOptions={{ headerShown: false }}>
@@ -130,7 +146,6 @@ export default function Navigation() {
 
   if (loading) return null;
 
-  // Not logged in → show welcome + email signup
   if (!session) {
     return (
       <NavigationContainer>
@@ -152,7 +167,6 @@ export default function Navigation() {
     );
   }
 
-  // Logged in but profile not complete → onboarding
   if (!user?.profile_complete) {
     return (
       <NavigationContainer>
@@ -161,7 +175,6 @@ export default function Navigation() {
     );
   }
 
-  // Fully onboarded → main app
   return (
     <NavigationContainer>
       <RootStack.Navigator screenOptions={{ headerShown: false }}>
