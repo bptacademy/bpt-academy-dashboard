@@ -1,0 +1,1189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Volpair — Product Specification</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+
+  :root {
+    --accent: #E84B8A;
+    --accent2: #7C3AED;
+    --dark: #0D0D1A;
+    --surface: #13131F;
+    --surface2: #1A1A2E;
+    --border: rgba(255,255,255,0.10);
+    --text: #F0F0FF;
+    --subtext: #8B8BAE;
+    --green: #22C55E;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--dark);
+    color: var(--text);
+    line-height: 1.75;
+    font-size: 15px;
+  }
+
+  /* Cover page */
+  .cover {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #0D0D1A 0%, #1A0D2E 50%, #0D1A1A 100%);
+    padding: 60px 40px;
+    text-align: center;
+    page-break-after: always;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .cover::before {
+    content: '';
+    position: absolute;
+    width: 600px; height: 600px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(232,75,138,0.15) 0%, transparent 70%);
+    top: -100px; right: -100px;
+  }
+
+  .cover::after {
+    content: '';
+    position: absolute;
+    width: 400px; height: 400px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(124,58,237,0.12) 0%, transparent 70%);
+    bottom: -80px; left: -80px;
+  }
+
+  .cover-logo {
+    font-size: 72px;
+    font-weight: 800;
+    letter-spacing: -2px;
+    background: linear-gradient(135deg, #E84B8A, #7C3AED);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 16px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .cover-tagline {
+    font-size: 22px;
+    color: var(--subtext);
+    font-weight: 300;
+    margin-bottom: 48px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .cover-divider {
+    width: 80px;
+    height: 3px;
+    background: linear-gradient(90deg, #E84B8A, #7C3AED);
+    border-radius: 2px;
+    margin: 0 auto 48px;
+  }
+
+  .cover-meta {
+    display: flex;
+    gap: 48px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .cover-meta-item {
+    text-align: center;
+  }
+
+  .cover-meta-num {
+    font-size: 36px;
+    font-weight: 800;
+    color: var(--accent);
+  }
+
+  .cover-meta-label {
+    font-size: 13px;
+    color: var(--subtext);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .cover-date {
+    position: absolute;
+    bottom: 40px;
+    font-size: 13px;
+    color: var(--subtext);
+    z-index: 1;
+  }
+
+  /* Content */
+  .content {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 60px 40px;
+  }
+
+  h1 {
+    font-size: 36px;
+    font-weight: 800;
+    background: linear-gradient(135deg, #E84B8A, #7C3AED);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin: 60px 0 8px;
+    letter-spacing: -0.5px;
+  }
+
+  h2 {
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--text);
+    margin: 48px 0 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  h2::before {
+    content: '';
+    display: inline-block;
+    width: 4px;
+    height: 26px;
+    background: linear-gradient(180deg, #E84B8A, #7C3AED);
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+
+  h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #C4B5FD;
+    margin: 32px 0 12px;
+  }
+
+  h4 {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--accent);
+    margin: 24px 0 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 12px;
+  }
+
+  p {
+    margin-bottom: 14px;
+    color: #D0D0E8;
+  }
+
+  strong { color: var(--text); font-weight: 700; }
+  em { color: #C4B5FD; font-style: normal; font-weight: 500; }
+
+  code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    background: rgba(124,58,237,0.15);
+    color: #C4B5FD;
+    padding: 2px 6px;
+    border-radius: 4px;
+    border: 1px solid rgba(124,58,237,0.25);
+  }
+
+  pre {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    margin: 20px 0;
+    overflow-x: auto;
+  }
+
+  pre code {
+    background: none;
+    border: none;
+    padding: 0;
+    color: #A5F3FC;
+    font-size: 13px;
+    line-height: 1.7;
+  }
+
+  /* Tables */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+
+  th {
+    background: linear-gradient(135deg, rgba(232,75,138,0.15), rgba(124,58,237,0.15));
+    color: var(--text);
+    font-weight: 700;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 14px 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+
+  td {
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    color: #D0D0E8;
+    font-size: 14px;
+    vertical-align: top;
+  }
+
+  tr:last-child td { border-bottom: none; }
+  tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+
+  /* Lists */
+  ul, ol {
+    margin: 12px 0 16px 0;
+    padding-left: 0;
+    list-style: none;
+  }
+
+  ul li {
+    padding: 4px 0 4px 20px;
+    position: relative;
+    color: #D0D0E8;
+  }
+
+  ul li::before {
+    content: '▸';
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+    font-size: 12px;
+    top: 5px;
+  }
+
+  ol { counter-reset: item; }
+  ol li {
+    padding: 6px 0 6px 28px;
+    position: relative;
+    color: #D0D0E8;
+    counter-increment: item;
+  }
+  ol li::before {
+    content: counter(item);
+    position: absolute;
+    left: 0;
+    width: 20px;
+    height: 20px;
+    background: linear-gradient(135deg, #E84B8A, #7C3AED);
+    border-radius: 50%;
+    font-size: 11px;
+    font-weight: 700;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    top: 7px;
+  }
+
+  .checklist li {
+    padding: 6px 0 6px 4px;
+    list-style: none;
+  }
+
+  .checklist li::before { display: none; }
+
+  .unchecked { color: var(--subtext); }
+  .checked { color: var(--green); }
+
+  hr {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 40px 0;
+  }
+
+  /* Section break styling */
+  .section-break {
+    page-break-before: always;
+  }
+
+  @media print {
+    body { background: white; color: #111; }
+    .cover { background: linear-gradient(135deg, #1a0030, #000d1a); }
+    pre { background: #f5f5f5; }
+    h2, h3 { color: #111; }
+    p, td, li { color: #333; }
+  }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="cover-logo">Volpair</div>
+  <div class="cover-tagline">The court is where it starts.</div>
+  <div class="cover-divider"></div>
+  <div class="cover-meta">
+    <div class="cover-meta-item">
+      <div class="cover-meta-num">7</div>
+      <div class="cover-meta-label">Sections</div>
+    </div>
+    <div class="cover-meta-item">
+      <div class="cover-meta-num">37</div>
+      <div class="cover-meta-label">Screens</div>
+    </div>
+    <div class="cover-meta-item">
+      <div class="cover-meta-num">8</div>
+      <div class="cover-meta-label">DB Tables</div>
+    </div>
+    <div class="cover-meta-item">
+      <div class="cover-meta-num">3</div>
+      <div class="cover-meta-label">Platforms</div>
+    </div>
+  </div>
+  <div class="cover-date">Product Specification · April 2026 · Confidential</div>
+</div>
+
+<div class="content">
+<h1>Volpair — Product Specification</h1>
+
+<em>Last updated: 2026-04-30</em>
+<em>Status: In progress — Sections 1–3</em>
+
+<hr>
+
+<h2>Section 1 — Product Vision & Core Concept</h2>
+
+<h3>What is Volpair?</h3>
+
+<p>Volpair is a dating app for padel players. It uses the sport as the context, the icebreaker, and the filter — so that by the time two people connect romantically, they already have something real in common.</p>
+
+<p>The court is where it starts. Volpair makes sure it doesn't have to end there.</p>
+
+<h3>The Core Insight</h3>
+
+<p>Padel creates natural chemistry. You play with someone for 90 minutes, you read their energy, you see how they handle pressure, you share the post-match moment. That's more intimacy than most first dates. Volpair captures that and turns it into connection.</p>
+
+<p>The sport is the vehicle. Dating is the destination.</p>
+
+<h3>The Two Modes</h3>
+
+<strong>💘 Connect Mode</strong> <em>(primary — this is the dating app)</em>
+<ul>
+<li>Discover players you've shared a court with — or who are in your padel circle</li>
+<li>The romantic layer is always present, never forced</li>
+<li>Mutual signals only — nobody knows you're interested until they are too</li>
+<li>Available from day one</li>
+</ul>
+
+<strong>🎾 Play Mode</strong> <em>(secondary — find a match partner)</em>
+<ul>
+<li>Find someone to play with for a specific game</li>
+<li>Useful, but not the reason people download Volpair</li>
+<li>Playtomic already does court booking — we do the human layer</li>
+</ul>
+
+<h3>The Four Questions (mandatory on onboarding)</h3>
+
+<p>After connecting their booking platform, every new user answers exactly 4 questions:</p>
+
+<ol>
+<li>📍 <strong>Where are you based?</strong> — home city / area</li>
+<li>🎯 <strong>What are you looking for?</strong> — <em>A date / A doubles partner / Both / Just exploring for now</em></li>
+<li>👀 <strong>Who do you want to be seen by?</strong> — <em>Everyone / Women only / Men only / No preference</em></li>
+<li>🗣️ <strong>One line about yourself</strong> — free text, optional but encouraged</li>
+</ol>
+
+<p>Everything else — skill level, play style, reliability, favourite clubs, availability — is inferred automatically from match history.</p>
+
+<h3>The Three Rules</h3>
+
+<ol>
+<li><strong>No manual data entry</strong> — your profile is built from real match history</li>
+<li><strong>Mutual only</strong> — romantic signals are invisible until both people send one</li>
+<li><strong>No mindless swiping</strong> — every action is intentional (the Serve mechanic)</li>
+</ol>
+
+<h3>Who Is This For?</h3>
+
+<strong>Primary:</strong> padel players 22–45 who play regularly, are single or open to meeting people, and want to meet someone who genuinely shares their lifestyle — not just their interests on paper.
+
+<strong>Secondary:</strong> players looking for a compatible doubles partner for recreational matches.
+
+<strong>Not for:</strong> complete beginners with no match history, or people with no interest in the social/dating layer.
+
+<h3>Why Now?</h3>
+
+<ul>
+<li>Padel is the fastest-growing sport in the world — 25M players, doubling every 3 years</li>
+<li>Spain, UK, Sweden, Italy, UAE, US all exploding simultaneously</li>
+<li>Zero dedicated dating app for padel players exists</li>
+<li>Playtomic data gives us real behavioural proof of compatibility that no generic dating app can replicate</li>
+</ul>
+
+<hr>
+
+<h2>Section 2 — User Flows</h2>
+
+<h3>Flow 1 — Onboarding</h3>
+
+<strong>Entry point:</strong> User downloads Volpair, opens for the first time.
+
+<strong>Step 1 — Welcome screen</strong>
+<p>Single screen. No signup form. Just:</p>
+<ul>
+<li>Volpair logo + tagline</li>
+<li>One button: <strong>"Connect with Playtomic"</strong></li>
+<li>Small text link: <em>"Don't have Playtomic? You can use a different platform"</em></li>
+</ul>
+
+<strong>Step 2 — Platform connect</strong>
+<ul>
+<li>User selects their booking platform (Playtomic, Matchi, On the Court, other)</li>
+<li>Enters credentials for that platform</li>
+<li>Volpair authenticates and pulls: match history, skill level, level confidence, clubs played at</li>
+<li>Loading screen: <em>"Building your profile from your match history…"</em> — 5–7 seconds (real data collection in progress)</li>
+</ul>
+
+<strong>Step 3 — Profile preview</strong>
+<p>One screen showing what we've inferred:</p>
+<ul>
+<li>Name (from platform)</li>
+<li>Skill level (e.g. "4.7 — Advanced Competitive")</li>
+<li>Matches played + win rate</li>
+<li>Top clubs</li>
+<li><em>"Does this look right?"</em> → Yes / Something's wrong</li>
+</ul>
+
+<strong>Step 4 — The 4 Questions</strong>
+<p>One question per screen, clean and fast. Cannot be skipped.</p>
+
+<ul>
+<li><em>"Where are you based?"</em> → city search</li>
+<li><em>"What are you looking for?"</em> → Date / Doubles partner / Both / Just exploring</li>
+<li><em>"Who do you want to be seen by?"</em> → Everyone / Women only / Men only / No preference</li>
+<li><em>"One line about yourself"</em> → free text, "Skip" available on this one only</li>
+</ul>
+
+<strong>Step 5 — Photos</strong>
+<ul>
+<li><strong>Free users:</strong> upload 1–3 photos (minimum 1 required)</li>
+<li><strong>Premium users:</strong> unlimited photos + short video clips (court highlights, rally footage)</li>
+<li>No photo = profile not visible to others</li>
+<li>Can add more later from profile settings</li>
+</ul>
+
+<strong>Step 6 — Done</strong>
+<ul>
+<li><em>"You're in. Your first match is waiting."</em></li>
+<li>Lands on Connect Mode home screen</li>
+</ul>
+
+<strong>Total time: under 2 minutes.</strong>
+
+<hr>
+
+<h3>Flow 2 — Connect Mode (Dating — Primary)</h3>
+
+<strong>Home screen — three discovery layers:</strong>
+
+<strong>Layer 1: People you've played with</strong>
+<ul>
+<li>Players from your match history on connected platform</li>
+<li>Strongest signal — you already know if there was something there</li>
+<li>Sorted by recency + Volpair Score</li>
+<li>Shows: name, photo, level, last played together, mutual clubs</li>
+</ul>
+
+<strong>Layer 2: Friends of your court</strong>
+<ul>
+<li>Players who've shared a court with people you've played with</li>
+<li>Two degrees of court separation — not strangers</li>
+<li>Adjacent to your real padel world</li>
+</ul>
+
+<strong>Layer 3: Nearby players</strong>
+<ul>
+<li>Opted-in users within your area at compatible level</li>
+<li>Only shown after layers 1 + 2 are exhausted</li>
+</ul>
+
+<strong>Player card shows:</strong>
+<ul>
+<li>Photo(s)</li>
+<li>Name + age</li>
+<li>Level badge (e.g. 4.7)</li>
+<li>Shared court history (<em>"You played together at Carbon Padel, March 15"</em>)</li>
+<li>Volpair Score (0–100)</li>
+<li>Mutual connections (<em>"3 players you know also played with them"</em>)</li>
+<li>Premium badge + highlighted card border (premium users only)</li>
+</ul>
+
+<strong>The three actions (no swiping):</strong>
+<ul>
+<li>🎾 <strong>Play again</strong> — sport intent, zero romantic pressure, always safe to send</li>
+<li>👋 <strong>Connect</strong> — social, open-ended, friendly</li>
+<li>💘 <strong>Volley</strong> — romantic signal, invisible to the other person until they send one back</li>
+</ul>
+
+<strong>Mutual Volley → Match</strong>
+<p>When both users send a Volley, both are notified simultaneously:</p>
+<em>"You and [Name] both sent a Volley. The court is yours."</em>
+<p>→ Opens directly into a conversation with the Serve prompt</p>
+
+<hr>
+
+<h3>Flow 3 — The Serve (First Message)</h3>
+
+<p>Replaces the blank chat box. When a connection happens, one person sends a <strong>Serve</strong> — a short intentional opener:</p>
+
+<ul>
+<li>A challenge: <em>"Rematch Saturday?"</em></li>
+<li>An intro: <em>"Good game last week — always looking for strong players at your level"</em></li>
+<li>A stat compliment: <em>"That win rate though 👀"</em></li>
+</ul>
+
+<p>The other person <strong>returns the serve</strong> or lets it drop. No reply = expires after 72 hours. No ghosting by design.</p>
+
+<strong>Free users:</strong> 5 Serves per day
+<strong>Premium users:</strong> unlimited Serves
+
+<hr>
+
+<h3>Flow 4 — Play Mode (Find a Partner — Secondary)</h3>
+
+<p>Accessed via mode toggle on home screen.</p>
+
+<strong>Home shows:</strong>
+
+<strong>1. Open Courts</strong>
+<p>Live games near you needing players. Card shows:</p>
+<ul>
+<li>Club name + distance</li>
+<li>Date and time</li>
+<li>Level needed</li>
+<li>Spots left (1, 2, or 3)</li>
+<li>Host name + reliability score</li>
+<li>One tap → send a Serve to join</li>
+</ul>
+
+<strong>2. Find a Partner</strong>
+<p>Compatible players sorted by Volpair Score, sport-intent framing.</p>
+
+<hr>
+
+<h3>Flow 5 — Post-Match Prompt</h3>
+
+<p>24 hours after a logged match, both players receive a notification:</p>
+<em>"You played with 3 people yesterday. Want to connect with any of them?"</em>
+
+<p>Simple cards: <strong>Yes / Maybe / Not really</strong></p>
+
+<ul>
+<li>Both Yes → connected, Serve prompt opens</li>
+<li>One Yes + one Maybe → gentle nudge to the Maybe</li>
+<li>Romantic matching also happens here — after shared experience, never cold</li>
+</ul>
+
+<hr>
+
+<h3>Flow 6 — Notifications</h3>
+
+<ul>
+<li>💘 Mutual Volley match</li>
+<li>🎾 Someone sent you a Play again</li>
+<li>👋 Someone sent you a Connect</li>
+<li>📬 New Serve received</li>
+<li>📅 Post-match prompt (24h after a game)</li>
+<li>🔄 Platform sync complete (new matches imported)</li>
+<li>⭐ Premium: you were Volleyed (see who without sending one back)</li>
+</ul>
+
+<hr>
+
+<h3>Freemium Model</h3>
+
+<strong>Free</strong>
+<ul>
+<li>3 photos</li>
+<li>5 Serves per day</li>
+<li>Connect + Play modes</li>
+<li>Standard profile card</li>
+<li>See Volley matches only when mutual</li>
+</ul>
+
+<strong>Premium (~€9.99/month)</strong>
+<ul>
+<li>Unlimited photos + video clips</li>
+<li>Unlimited Serves</li>
+<li>Profile highlighted with premium badge + gold border</li>
+<li>See who sent you a Volley before sending one back</li>
+<li>Priority placement in all discovery layers</li>
+<li>Advanced filters (level range, club, availability, looking for)</li>
+<li>24h Boost (appear at top of nearby)</li>
+<li>Read receipts on Serves</li>
+</ul>
+
+<hr>
+
+<h2>Section 3 — Data Model</h2>
+
+<h3>Core Entities</h3>
+
+<hr>
+
+<h4><code>users</code></h4>
+<p>Volpair's own user record (separate from Playtomic).</p>
+
+<table><tr><th>Field</th><th>Type</th><th>Notes</th></tr><tr><td>id</td><td>uuid</td><td>Primary key</td></tr><tr><td>email</td><td>text</td><td>From Playtomic auth</td></tr><tr><td>full<em>name</td><td>text</td><td>From platform</td></tr><tr><td>date</em>of<em>birth</td><td>date</td><td>For age display</td></tr><tr><td>gender</td><td>text</td><td>male / female / other</td></tr><tr><td>bio</td><td>text</td><td>The one line (question 4)</td></tr><tr><td>looking</em>for</td><td>text</td><td>date / partner / both / exploring</td></tr><tr><td>visible<em>to</td><td>text</td><td>everyone / women / men / no</em>preference</td></tr><tr><td>city</td><td>text</td><td>From question 1</td></tr><tr><td>location<em>lat</td><td>float</td><td>For proximity calculation</td></tr><tr><td>location</em>lon</td><td>float</td><td>For proximity calculation</td></tr><tr><td>is<em>premium</td><td>boolean</td><td></td></tr><tr><td>premium</em>expires<em>at</td><td>timestamp</td><td></td></tr><tr><td>profile</em>complete</td><td>boolean</td><td>All 4 questions answered + photo</td></tr><tr><td>created<em>at</td><td>timestamp</td><td></td></tr><tr><td>last</em>active_at</td><td>timestamp</td><td></td></tr></table>
+
+<hr>
+
+<h4><code>platform_connections</code></h4>
+<p>Links a Volpair user to their booking platform account.</p>
+
+<table><tr><th>Field</th><th>Type</th><th>Notes</th></tr><tr><td>id</td><td>uuid</td><td></td></tr><tr><td>user<em>id</td><td>uuid</td><td>FK → users</td></tr><tr><td>platform</td><td>text</td><td>playtomic / matchi / on</em>the<em>court</td></tr><tr><td>platform</em>user<em>id</td><td>text</td><td>e.g. "4987425"</td></tr><tr><td>access</em>token</td><td>text</td><td>Encrypted</td></tr><tr><td>refresh<em>token</td><td>text</td><td>Encrypted</td></tr><tr><td>token</em>expires<em>at</td><td>timestamp</td><td></td></tr><tr><td>last</em>synced<em>at</td><td>timestamp</td><td></td></tr><tr><td>created</em>at</td><td>timestamp</td><td></td></tr></table>
+
+<hr>
+
+<h4><code>player_stats</code></h4>
+<p>Derived stats calculated from match history. Recalculated on each sync.</p>
+
+<table><tr><th>Field</th><th>Type</th><th>Notes</th></tr><tr><td>id</td><td>uuid</td><td></td></tr><tr><td>user<em>id</td><td>uuid</td><td>FK → users</td></tr><tr><td>platform</td><td>text</td><td></td></tr><tr><td>level</em>value</td><td>float</td><td>e.g. 4.68</td></tr><tr><td>level<em>confidence</td><td>float</td><td>0–1</td></tr><tr><td>total</em>matches</td><td>int</td><td></td></tr><tr><td>wins</td><td>int</td><td></td></tr><tr><td>losses</td><td>int</td><td></td></tr><tr><td>win<em>rate</td><td>float</td><td>0–1</td></tr><tr><td>avg</em>set<em>score</em>for</td><td>float</td><td>Average sets won per match</td></tr><tr><td>avg<em>set</em>score<em>against</td><td>float</td><td></td></tr><tr><td>play</em>style</td><td>text</td><td>aggressive / defensive / balanced / net-dominant</td></tr><tr><td>preferred<em>time</em>of<em>day</td><td>text</td><td>morning / afternoon / evening</td></tr><tr><td>preferred</em>days</td><td>text[]</td><td>[monday, thursday, saturday]</td></tr><tr><td>top<em>clubs</td><td>jsonb</td><td>[{club</em>id, club<em>name, play</em>count}]</td></tr><tr><td>updated_at</td><td>timestamp</td><td></td></tr></table>
+
+<hr>
+
+<h4><code>matches</code></h4>
+<p>Every match imported from a booking platform.</p>
+
+<table><tr><th>Field</th><th>Type</th><th>Notes</th></tr><tr><td>id</td><td>uuid</td><td></td></tr><tr><td>platform</td><td>text</td><td></td></tr><tr><td>platform<em>match</em>id</td><td>text</td><td>e.g. "603c94ef-..."</td></tr><tr><td>tenant<em>id</td><td>text</td><td>Club ID on the platform</td></tr><tr><td>tenant</em>name</td><td>text</td><td>Club name</td></tr><tr><td>court<em>name</td><td>text</td><td></td></tr><tr><td>city</td><td>text</td><td></td></tr><tr><td>country</em>code</td><td>text</td><td></td></tr><tr><td>lat</td><td>float</td><td></td></tr><tr><td>lon</td><td>float</td><td></td></tr><tr><td>played<em>at</td><td>timestamp</td><td></td></tr><tr><td>duration</em>minutes</td><td>int</td><td></td></tr><tr><td>match<em>type</td><td>text</td><td>competitive / casual</td></tr><tr><td>surface</em>type</td><td>text</td><td>panoramic / crystal / wall / outdoor</td></tr><tr><td>result<em>confirmed</td><td>boolean</td><td></td></tr><tr><td>created</em>at</td><td>timestamp</td><td></td></tr></table>
+
+<hr>
+
+<h4><code>match_players</code></h4>
+<p>Junction: which Volpair users (and platform-only players) participated in each match.</p>
+
+<table><tr><th>Field</th><th>Type</th><th>Notes</th></tr><tr><td>id</td><td>uuid</td><td></td></tr><tr><td>match<em>id</td><td>uuid</td><td>FK → matches</td></tr><tr><td>user</em>id</td><td>uuid</td><td>FK → users (null if not on Volpair yet)</td></tr><tr><td>platform<em>user</em>id</td><td>text</td><td>Always present</td></tr><tr><td>platform<em>name</td><td>text</td><td>Name from platform</td></tr><tr><td>team</em>id</td><td>text</td><td>"0" or "1"</td></tr><tr><td>result</td><td>text</td><td>won / lost / unconfirmed</td></tr><tr><td>level<em>value</td><td>float</td><td>At time of match</td></tr><tr><td>level</em>confidence</td><td>float</td><td></td></tr></table>
+
+<hr>
+
+<h4><code>volpair_scores</code></h4>
+<p>Calculated compatibility score between two users. Recalculated on sync.</p>
+
+<table><tr><th>Field</th><th>Type</th><th>Notes</th></tr><tr><td>id</td><td>uuid</td><td></td></tr><tr><td>user<em>a</em>id</td><td>uuid</td><td>FK → users</td></tr><tr><td>user<em>b</em>id</td><td>uuid</td><td>FK → users</td></tr><tr><td>total<em>score</td><td>int</td><td>0–100</td></tr><tr><td>skill</em>score</td><td>int</td><td>0–25</td></tr><tr><td>style<em>score</td><td>int</td><td>0–20</td></tr><tr><td>availability</em>score</td><td>int</td><td>0–20</td></tr><tr><td>location<em>score</td><td>int</td><td>0–15</td></tr><tr><td>chemistry</em>score</td><td>int</td><td>0–10</td></tr><tr><td>proximity<em>score</td><td>int</td><td>0–10</td></tr><tr><td>matches</em>together</td><td>int</td><td>Times played together</td></tr><tr><td>last<em>played</em>together</td><td>timestamp</td><td></td></tr><tr><td>calculated_at</td><td>timestamp</td><td></td></tr></table>
+
+<hr>
+
+<h4><code>connections</code></h4>
+<p>All actions between users (play again, connect, volley).</p>
+
+<table><tr><th>Field</th><th>Type</th><th>Notes</th></tr><tr><td>id</td><td>uuid</td><td></td></tr><tr><td>sender<em>id</td><td>uuid</td><td>FK → users</td></tr><tr><td>receiver</em>id</td><td>uuid</td><td>FK → users</td></tr><tr><td>action<em>type</td><td>text</td><td>play</em>again / connect / volley</td></tr><tr><td>status</td><td>text</td><td>pending / accepted / declined / expired</td></tr><tr><td>matched<em>at</td><td>timestamp</td><td>When mutual volley fired</td></tr><tr><td>created</em>at</td><td>timestamp</td><td></td></tr><tr><td>expires_at</td><td>timestamp</td><td>72h for serves</td></tr></table>
+
+<hr>
+
+<h4><code>serves</code> (conversations)</h4>
+<p>The Serve mechanic — messages between matched/connected users.</p>
+
+<table><tr><th>Field</th><th>Type</th><th>Notes</th></tr><tr><td>id</td><td>uuid</td><td></td></tr><tr><td>connection<em>id</td><td>uuid</td><td>FK → connections</td></tr><tr><td>sender</em>id</td><td>uuid</td><td>FK → users</td></tr><tr><td>body</td><td>text</td><td></td></tr><tr><td>read<em>at</td><td>timestamp</td><td>null if unread</td></tr><tr><td>created</em>at</td><td>timestamp</td><td></td></tr></table>
+
+<hr>
+
+<h4><code>clubs</code></h4>
+<p>Padel clubs imported from platforms or added manually.</p>
+
+<table><tr><th>Field</th><th>Type</th><th>Notes</th></tr><tr><td>id</td><td>uuid</td><td></td></tr><tr><td>platform</td><td>text</td><td></td></tr><tr><td>platform<em>tenant</em>id</td><td>text</td><td></td></tr><tr><td>name</td><td>text</td><td></td></tr><tr><td>city</td><td>text</td><td></td></tr><tr><td>country<em>code</td><td>text</td><td></td></tr><tr><td>lat</td><td>float</td><td></td></tr><tr><td>lon</td><td>float</td><td></td></tr><tr><td>surface</em>types</td><td>text[]</td><td></td></tr><tr><td>court<em>count</td><td>int</td><td></td></tr><tr><td>is</em>partner</td><td>boolean</td><td>Volpair partner club</td></tr><tr><td>created_at</td><td>timestamp</td><td></td></tr></table>
+
+<hr>
+
+<h3>Key Relationships</h3>
+
+<pre><code>users
+<p>├── platform_connections (1 user → many platforms)</p>
+<p>├── player_stats (1 per platform)</p>
+<p>├── match_players → matches (all matches ever played)</p>
+<p>├── volpair_scores (pairs, recalculated on sync)</p>
+<p>├── connections (actions sent/received)</p>
+<p>└── serves (messages within connections)</p>
+
+<p>matches</p>
+<p>├── match_players (4 per match)</p>
+<p>└── clubs (where it was played)</p>
+</code></pre>
+
+<hr>
+
+<h3>Score Calculation Logic</h3>
+
+<p>Runs as a background job on every platform sync for every user pair with any court history overlap.</p>
+
+<pre><code>skill<em>score     = max(0, 25 - (level</em>delta / 0.08))          // 25pts at 0 delta, 0pts at 2.0 delta
+<p>style<em>score     = compatibility</em>matrix[style<em>a][style</em>b]      // lookup table 0–20</p>
+<p>availability    = (overlapping<em>time</em>slots / total_slots) * 20 // time pattern overlap</p>
+<p>location<em>score  = max(0, 15 - (distance</em>km / 6.67))          // 15pts at 0km, 0pts at 100km</p>
+<p>chemistry<em>score = min(10, matches</em>together <em> 2 + rematch<em>bonus + post</em>match_yes </em> 3)</p>
+<p>proximity<em>score = min(10, mutual</em>connections * 2)             // shared padel circle</p>
+</code></pre>
+
+<hr>
+
+<hr>
+
+<h2>Section 4 — Screen Inventory</h2>
+
+<h3>Auth & Onboarding</h3>
+
+<table><tr><th>#</th><th>Screen</th><th>What it shows</th><th>Actions</th></tr><tr><td>1</td><td>Welcome</td><td>Logo, tagline, connect button</td><td>Connect with Playtomic / Choose different platform</td></tr><tr><td>2</td><td>Platform Select</td><td>List of supported platforms</td><td>Select platform</td></tr><tr><td>3</td><td>Platform Login</td><td>Email + password fields</td><td>Submit credentials, loading state</td></tr><tr><td>4</td><td>Syncing Profile</td><td>Animated loading (5–7s)</td><td>None — passive</td></tr><tr><td>5</td><td>Profile Preview</td><td>Inferred name, level, matches, win rate, top clubs</td><td>Confirm / Something's wrong</td></tr><tr><td>6</td><td>Question 1 — Location</td><td>City search field</td><td>Search + select city</td></tr><tr><td>7</td><td>Question 2 — Intent</td><td>4 option cards</td><td>Select one</td></tr><tr><td>8</td><td>Question 3 — Visibility</td><td>4 option cards</td><td>Select one</td></tr><tr><td>9</td><td>Question 4 — Bio</td><td>Free text field</td><td>Type / Skip</td></tr><tr><td>10</td><td>Photo Upload</td><td>Camera + gallery picker</td><td>Upload 1–3 photos (premium: unlimited + video)</td></tr><tr><td>11</td><td>Onboarding Complete</td><td>"You're in" screen</td><td>Enter app</td></tr></table>
+
+<h3>Connect Mode (Dating — Primary)</h3>
+
+<table><tr><th>#</th><th>Screen</th><th>What it shows</th><th>Actions</th></tr><tr><td>12</td><td>Connect Home</td><td>Three discovery layers, player cards</td><td>Scroll, tap card, send Play again / Connect / Volley</td></tr><tr><td>13</td><td>Player Profile</td><td>Full profile: photos, level, stats, shared history, Volpair Score, mutual connections</td><td>Play again / Connect / Volley / Report</td></tr><tr><td>14</td><td>Mutual Volley Match</td><td>Full-screen match moment: both names, confetti, "The court is yours"</td><td>Send first Serve / Maybe later</td></tr><tr><td>15</td><td>Connections List</td><td>All active connections sorted by last activity</td><td>Tap to open conversation</td></tr><tr><td>16</td><td>Conversation</td><td>Serve thread between two matched users</td><td>Type + send Serve, view read receipt (premium)</td></tr><tr><td>17</td><td>Post-Match Prompt</td><td>Cards for each player from yesterday's match</td><td>Yes / Maybe / Not really per player</td></tr></table>
+
+<h3>Play Mode (Secondary)</h3>
+
+<table><tr><th>#</th><th>Screen</th><th>What it shows</th><th>Actions</th></tr><tr><td>18</td><td>Play Home</td><td>Open Courts feed + Find a Partner list</td><td>Toggle between two sub-views</td></tr><tr><td>19</td><td>Open Court Detail</td><td>Club, date/time, level range, host info, spots left, all 4 player slots</td><td>Send a Serve to join</td></tr><tr><td>20</td><td>Create Open Court</td><td>Form: club search, date/time picker, level range, spots available</td><td>Publish court</td></tr><tr><td>21</td><td>Find a Partner</td><td>Player cards sorted by Volpair Score, sport-intent framing</td><td>Send Play again / Connect</td></tr></table>
+
+<h3>Profile</h3>
+
+<table><tr><th>#</th><th>Screen</th><th>What it shows</th><th>Actions</th></tr><tr><td>22</td><td>My Profile</td><td>Photos, bio, level badge, stats, top clubs</td><td>Edit profile</td></tr><tr><td>23</td><td>Edit Profile</td><td>Edit bio, photos, visibility settings, intent</td><td>Save changes</td></tr><tr><td>24</td><td>My Stats</td><td>Full match history, win rate, level history chart, play style breakdown, top partners</td><td>View only</td></tr><tr><td>25</td><td>Platform Sync</td><td>Connected platforms, last synced, sync status</td><td>Force re-sync, connect new platform, disconnect</td></tr><tr><td>26</td><td>Premium Upgrade</td><td>Feature comparison free vs premium, pricing</td><td>Subscribe / Restore purchase</td></tr></table>
+
+<h3>Notifications & Settings</h3>
+
+<table><tr><th>#</th><th>Screen</th><th>What it shows</th><th>Actions</th></tr><tr><td>27</td><td>Notifications</td><td>All alerts: volleys, serves, post-match prompts, syncs</td><td>Tap to navigate to relevant screen</td></tr><tr><td>28</td><td>Settings</td><td>Account, notifications, privacy, visibility, blocked users, delete account</td><td>Toggle switches, navigate to sub-screens</td></tr><tr><td>29</td><td>Blocked Users</td><td>List of blocked users</td><td>Unblock</td></tr><tr><td>30</td><td>Delete Account</td><td>Confirmation flow</td><td>Confirm deletion</td></tr></table>
+
+<h3>Discovery & Clubs</h3>
+
+<table><tr><th>#</th><th>Screen</th><th>What it shows</th><th>Actions</th></tr><tr><td>31</td><td>Club Profile</td><td>Club name, location, courts, surface types, photos, players you know who play there</td><td>Navigate, share</td></tr><tr><td>32</td><td>Nearby Players Map</td><td>Map view of opted-in players near you</td><td>Tap pin → mini player card → view full profile</td></tr></table>
+
+<h3>Modals & Overlays</h3>
+
+<table><tr><th>#</th><th>Screen</th><th>What it shows</th><th>Actions</th></tr><tr><td>33</td><td>Report User</td><td>Reason selection</td><td>Submit report</td></tr><tr><td>34</td><td>Volpair Score Breakdown</td><td>Radar chart showing all 6 score dimensions for a pair</td><td>View only</td></tr><tr><td>35</td><td>Level Explainer</td><td>What the level number means, how it's calculated</td><td>Dismiss</td></tr><tr><td>36</td><td>Premium Paywall</td><td>Triggered when free user hits a premium feature</td><td>Upgrade / Not now</td></tr><tr><td>37</td><td>Boost Confirm</td><td>"Your profile will be boosted for 24h"</td><td>Confirm / Cancel</td></tr></table>
+
+<strong>Total: 37 screens</strong>
+
+<h3>Navigation Architecture</h3>
+
+<pre><code>Bottom Tab Bar (4 tabs):
+<p>├── 💘 Connect     → Connect Home (12)</p>
+<p>├── 🎾 Play        → Play Home (18)</p>
+<p>├── 💬 Messages    → Connections List (15)</p>
+<p>└── 👤 Profile     → My Profile (22)</p>
+
+<p>Notification bell → Notifications (27)</p>
+<p>Settings gear    → Settings (28)</p>
+</code></pre>
+
+<strong>Stack flows:</strong>
+<ul>
+<li>Connect Home → Player Profile → Mutual Volley Match → Conversation</li>
+<li>Play Home → Open Court Detail / Create Open Court / Find a Partner</li>
+<li>My Profile → Edit Profile / My Stats / Platform Sync / Premium Upgrade</li>
+<li>Notifications → any screen via deep link</li>
+</ul>
+
+<hr>
+
+<hr>
+
+<h2>Section 5 — MVP Definition</h2>
+
+<p>The MVP has one job: <strong>prove the core loop works with real users.</strong></p>
+
+<p>The core loop is:</p>
+<p>> Connect booking platform → see people you've played with → send a Volley → match → have a conversation</p>
+
+<p>Everything else is a distraction until that loop is validated.</p>
+
+<hr>
+
+<h3>✅ MVP — v1.0 (Ship This)</h3>
+
+<strong>Onboarding (screens 1–11)</strong>
+<p>Complete onboarding including all 4 questions, profile preview, and photo upload. First impression is non-negotiable.</p>
+
+<strong>Platform Connections</strong>
+<ul>
+<li>Playtomic ✅</li>
+<li>Matchi ✅</li>
+<li>On the Court ✅</li>
+</ul>
+
+<strong>Connect Mode — full (screens 12–17)</strong>
+<ul>
+<li>Connect Home with all 3 discovery layers (played with, friends of court, nearby)</li>
+<li>Player Profile with stats + shared history</li>
+<li>Mutual Volley match screen</li>
+<li>Connections List</li>
+<li>Conversation (text Serves)</li>
+<li>Post-match prompt (24h after a game)</li>
+</ul>
+
+<strong>Play Mode — Find a Partner (screens 18, 21)</strong>
+<ul>
+<li>Play Home</li>
+<li>Find a Partner sorted by Volpair Score</li>
+<li>No Open Courts yet — that's a later feature</li>
+</ul>
+
+<strong>Profile (screens 22, 23, 24, 25)</strong>
+<ul>
+<li>View + edit profile</li>
+<li>My Stats (match history, win rate, play style)</li>
+<li>Platform Sync screen (connect / disconnect / re-sync)</li>
+</ul>
+
+<strong>Notifications (screens 27)</strong>
+<ul>
+<li>Volley matches, new Serves, post-match prompts, sync complete</li>
+</ul>
+
+<strong>Settings + Safety (screens 28, 29, 30, 33)</strong>
+<ul>
+<li>Settings, blocked users, delete account, report user</li>
+</ul>
+
+<strong>Modals (screens 34, 35)</strong>
+<ul>
+<li>Volpair Score Breakdown radar chart</li>
+<li>Level explainer</li>
+</ul>
+
+<strong>Free tier only</strong>
+<p>No premium for v1.0 — validate the product first, monetise once retention is proven.</p>
+
+<hr>
+
+<h3>🔜 v1.1 — Premium + Growth</h3>
+
+<ul>
+<li>Premium tier + paywall (screens 26, 36, 37)</li>
+<li>Boost feature</li>
+<li>Read receipts on Serves</li>
+<li>See who Volleyed you (premium)</li>
+<li>Priority placement in discovery</li>
+<li>Unlimited photos + video clips (premium)</li>
+<li>Advanced filters</li>
+</ul>
+
+<hr>
+
+<h3>🔮 v2.0 — Scale</h3>
+
+<ul>
+<li>Play Mode — Open Courts (screens 19, 20)</li>
+<li>Nearby Players Map (screen 32)</li>
+<li>Club Profiles + partner club programme (screen 31)</li>
+<li>Additional platforms (CourtReserve, club-specific)</li>
+<li>Background sync job (hourly, server-side)</li>
+<li>League / tournament mode</li>
+<li>Club-installed Volpair dashboard</li>
+</ul>
+
+<hr>
+
+<h3>MVP Build Order</h3>
+
+<ol>
+<li>Supabase schema (all 8 tables from Section 3)</li>
+<li>Platform auth + sync service (Playtomic, Matchi, On the Court)</li>
+<li>Volpair Score calculation engine</li>
+<li>Onboarding screens (1–11)</li>
+<li>Connect Home — all 3 layers</li>
+<li>Player Profile screen</li>
+<li>Volley / Connect / Play again actions</li>
+<li>Mutual Volley match screen</li>
+<li>Conversations (Serve mechanic)</li>
+<li>Post-match prompt</li>
+<li>Play Mode — Find a Partner</li>
+<li>My Profile + Edit Profile + My Stats + Platform Sync</li>
+<li>Notifications (in-app + push)</li>
+<li>Settings, block, report, delete account</li>
+<li>Volpair Score Breakdown modal</li>
+<li>Internal testing (TestFlight + Expo Go)</li>
+</ol>
+
+<strong>Total MVP screens: 32</strong>
+<strong>Total MVP DB tables: 8</strong>
+
+<hr>
+
+<hr>
+
+<h2>Section 6 — Technical Architecture</h2>
+
+<h3>Stack</h3>
+
+<table><tr><th>Layer</th><th>Technology</th><th>Why</th></tr><tr><td>Mobile</td><td>React Native + Expo SDK 54</td><td>Cross-platform iOS + Android, same stack as BPT Academy, fast iteration</td></tr><tr><td>Backend</td><td>Supabase</td><td>Postgres + Auth + Realtime + Storage + Edge Functions in one</td></tr><tr><td>Auth</td><td>Supabase Auth</td><td>Volpair account separate from platform credentials</td></tr><tr><td>Platform sync</td><td>Edge Functions</td><td>Server-side API calls — platform credentials never exposed to client</td></tr><tr><td>Real-time</td><td>Supabase Realtime</td><td>Live conversation updates, instant Volley match notifications</td></tr><tr><td>Storage</td><td>Supabase Storage</td><td>Profile photos, video clips</td></tr><tr><td>Push notifications</td><td>Expo Notifications + APNs/FCM</td><td>Match alerts, new Serves, post-match prompts</td></tr><tr><td>Score engine</td><td>Postgres functions + Edge Functions</td><td>Volpair Score calculated server-side on every sync</td></tr><tr><td>Payments (v1.1)</td><td>RevenueCat</td><td>Handles App Store + Play Store subscriptions cleanly</td></tr></table>
+
+<hr>
+
+<h3>Auth Flow</h3>
+
+<p>Two separate auth layers that never conflict:</p>
+
+<strong>Layer 1 — Volpair account (Supabase Auth)</strong>
+<ul>
+<li>User creates a Volpair account with email + password</li>
+<li>Standard Supabase JWT session</li>
+<li>This is the user's identity inside Volpair</li>
+</ul>
+
+<strong>Layer 2 — Platform credentials (encrypted, stored server-side)</strong>
+<ul>
+<li>User enters their Playtomic/Matchi/OTC email + password during onboarding</li>
+<li>Credentials sent to a Supabase Edge Function — never touch the client again</li>
+<li>Edge Function authenticates with the platform, stores encrypted tokens in <code>platform_connections</code></li>
+<li>All subsequent platform API calls go through Edge Functions only</li>
+</ul>
+
+<pre><code>Mobile App
+<p>│</p>
+<p>├── Supabase Auth (Volpair JWT) ──────── all app requests</p>
+<p>│</p>
+<p>└── Edge Function: platform-sync</p>
+<p>│</p>
+<p>├── Playtomic API (v1/v3)</p>
+<p>├── Matchi API</p>
+<p>└── On the Court API</p>
+</code></pre>
+
+<hr>
+
+<h3>Platform Sync Flow</h3>
+
+<p>Triggered on:</p>
+<ol>
+<li>First connect (onboarding)</li>
+<li>Manual re-sync (user taps sync button)</li>
+<li>App foreground after >6h (v1.1: background job)</li>
+</ol>
+
+<strong>Sync steps (Edge Function):</strong>
+<ol>
+<li>Refresh platform access token if expired</li>
+<li>Fetch last N matches from platform API</li>
+<li>Upsert into <code>matches</code> + <code>match_players</code> (idempotent — safe to re-run)</li>
+<li>Recalculate <code>player_stats</code> for this user</li>
+<li>Identify other Volpair users in those matches → link via <code>platform<em>user</em>id</code></li>
+<li>Recalculate <code>volpair_scores</code> for all newly linked pairs</li>
+<li>Update <code>platform<em>connections.last</em>synced_at</code></li>
+<li>Trigger notification if new matches found</li>
+</ol>
+
+<strong>Idempotency:</strong> every match has a <code>platform<em>match</em>id</code>. Upsert on conflict — no duplicates ever.
+
+<hr>
+
+<h3>Volpair Score Engine</h3>
+
+<p>Runs as a Postgres function <code>calculate<em>volpair</em>score(user<em>a</em>id, user<em>b</em>id)</code>.</p>
+<p>Called automatically via trigger after every <code>player_stats</code> update.</p>
+
+<pre><code>skill<em>score     = MAX(0, 25 - (ABS(level</em>a - level_b) / 0.08))
+<p>style<em>score     = style</em>compatibility<em>matrix[style</em>a][style_b]   -- 0–20</p>
+<p>availability    = overlap(time<em>slots</em>a, time<em>slots</em>b) * 20</p>
+<p>location<em>score  = MAX(0, 15 - (distance</em>km / 6.67))</p>
+<p>chemistry<em>score = MIN(10, matches</em>together <em> 2 + rematch<em>bonus + post</em>match_yes </em> 3)</p>
+<p>proximity<em>score = MIN(10, mutual</em>connections * 2)</p>
+
+<p>total = skill + style + availability + location + chemistry + proximity</p>
+</code></pre>
+
+<p>Stored in <code>volpair<em>scores</code>. Discovery queries ORDER BY total</em>score — no calculation at query time.</p>
+
+<hr>
+
+<h3>Discovery Query Logic</h3>
+
+<strong>Layer 1 — Played with:</strong>
+<p>Users who appear in the same matches as the current user, ordered by Volpair Score.</p>
+
+<strong>Layer 2 — Friends of court:</strong>
+<p>Users who've played with anyone in Layer 1 but haven't played with the current user directly.</p>
+
+<strong>Layer 3 — Nearby:</strong>
+<p>Opted-in users within 50km, compatible level, not already in layers 1 or 2, ordered by Volpair Score.</p>
+
+<hr>
+
+<h3>Real-time</h3>
+
+<p>Supabase Realtime subscriptions for:</p>
+<ul>
+<li><code>connections</code> table → new Volley match fires instantly on both devices</li>
+<li><code>serves</code> table → new message appears without polling</li>
+</ul>
+
+<hr>
+
+<h3>Storage Structure</h3>
+
+<pre><code>Supabase Storage:
+
+<p>avatars/</p>
+<p>{user_id}/</p>
+<p>photo_1.jpg</p>
+<p>photo_2.jpg</p>
+
+<p>clips/  (premium only)</p>
+<p>{user_id}/</p>
+<p>clip_1.mp4</p>
+</code></pre>
+
+<p>All files served via signed URLs. Public access disabled.</p>
+
+<hr>
+
+<h3>Edge Functions</h3>
+
+<table><tr><th>Function</th><th>Trigger</th><th>Does</th></tr><tr><td><code>platform-auth</code></td><td>Onboarding</td><td>First-time credential validation + token storage</td></tr><tr><td><code>platform-sync</code></td><td>Manual / on open / scheduled</td><td>Full platform data pull + score recalc</td></tr><tr><td><code>calculate-scores</code></td><td>After player_stats update</td><td>Recalculates Volpair scores for all pairs</td></tr><tr><td><code>post-match-prompt</code></td><td>Scheduled (daily)</td><td>Sends prompts 24h after matches</td></tr><tr><td><code>send-notification</code></td><td>Various triggers</td><td>Wraps Expo push notification API</td></tr></table>
+
+<hr>
+
+<h3>Key Technical Decisions</h3>
+
+<ul>
+<li><strong>No client-side platform API calls</strong> — all through Edge Functions. Credentials stay server-side always.</li>
+<li><strong>Pre-calculated scores</strong> — discovery is instant because scores are never computed at query time.</li>
+<li><strong>Idempotent sync</strong> — safe to run multiple times, no duplicate data ever.</li>
+<li><strong>platform<em>user</em>id as the bridge</strong> — links platform-only players to Volpair users the moment they sign up, retroactively populating shared history.</li>
+<li><strong>RevenueCat for subscriptions</strong> — avoids building your own receipt validation for App Store and Play Store.</li>
+<li><strong>PostGIS for location</strong> — enables efficient radius queries for Layer 3 discovery.</li>
+</ul>
+
+<hr>
+
+<hr>
+
+<h2>Section 7 — Launch Strategy</h2>
+
+<h3>The Cold Start Problem</h3>
+
+<p>Every social app faces this: the app is useless until there are users, but users won't join until the app is useful. Volpair has a natural advantage — <strong>the data exists before the users do.</strong></p>
+
+<p>When someone signs up, we immediately import their full match history. They can see everyone they've ever played with who's also on Volpair — on day one. The value is instant, even with a small user base.</p>
+
+<p>The strategy: get 200–300 real padel players in one city to sign up in the same week. Critical mass in a small pond before expanding.</p>
+
+<hr>
+
+<h3>Launch Market: United Kingdom 🇬🇧</h3>
+
+<strong>Why UK first:</strong>
+<ul>
+<li>Existing connections and influencers in the UK padel scene — this is the single biggest advantage</li>
+<li>Fastest-growing padel market in Europe — new clubs opening every month</li>
+<li>English-speaking → easier content creation, press coverage, App Store reviews</li>
+<li>London alone has 50+ padel clubs on Playtomic and growing fast</li>
+<li>Strong social padel culture — post-match drinks, active WhatsApp communities, weekend leagues</li>
+</ul>
+
+<strong>Launch city: London</strong>
+<p>Highest club density, young professional demographic (25–40), high disposable income, massive appetite for social sport apps. The padel scene is tight-knit enough to create word-of-mouth fast but large enough to scale.</p>
+
+<strong>Second city (month 2–3): Manchester</strong>
+<p>Second largest padel scene in the UK, strong club network, younger demographic.</p>
+
+<strong>Third city (month 3–4): Birmingham / Leeds / Bristol</strong>
+<p>Expand to other major UK cities as London reaches critical mass.</p>
+
+<strong>Spain launch (month 4–6): Barcelona + Madrid</strong>
+<p>Once the product is proven in English, localise and expand to the world's largest padel market with a validated product and real testimonials.</p>
+
+<hr>
+
+<h3>Getting the First 1,000 Users</h3>
+
+<strong>Phase 1 — Seeding (before public launch)</strong>
+<ul>
+<li>Leverage existing UK connections directly — personal intros to club managers and coaches carry more weight than cold outreach</li>
+<li>Identify the 10–15 most active padel clubs in London on Playtomic (Carbon Padel, Padel Social Club, Destination Padel, etc.)</li>
+<li>Reach out to club managers — offer "Volpair Partner Club" status</li>
+</ul>
+<p>- Free: club gets a profile page, featured placement, analytics</p>
+<p>- In return: they promote Volpair to members (WhatsApp groups, noticeboards, front desk)</p>
+<ul>
+<li>Activate UK padel influencers and coaches from existing network — they play 5x/week with dozens of different people and have real audiences</li>
+<li>Private beta: invite-only, 100–200 players from existing network, gather feedback before public launch</li>
+</ul>
+
+<strong>Phase 2 — Launch week</strong>
+<ul>
+<li>Simultaneous club activations across London — QR codes at courts, locker rooms, reception desks</li>
+<li>Short-form video content: "We analysed your Playtomic history and built your dating profile" — shocking, shareable, true</li>
+<li>TikTok + Instagram Reels showing the onboarding flow — the 5–7s "analysing your matches" screen is genuinely compelling content</li>
+<li>UK padel influencers post genuine product demos launch week — no paid ads, real players, real reactions</li>
+<li>PR angle: "The first dating app built for padel players" — sports media + lifestyle press</li>
+</ul>
+
+<strong>Phase 3 — Organic growth loop</strong>
+<ul>
+<li>Post-match prompt fires 24h after every game → drives re-engagement</li>
+<li>Every connection creates a shareable story ("we met on Volpair, played together 6 months ago")</li>
+<li>Referral mechanic: invite a friend → both get 7 days premium free</li>
+<li>Club partnership programme scales — each new partner club brings their member base</li>
+<li>Target padel leagues and social tournaments in London as activation events</li>
+</ul>
+
+<hr>
+
+<h3>The Playtomic Partnership Conversation</h3>
+
+<p>Right now we're reverse-engineering their API — grey area, works for MVP, not sustainable long-term.</p>
+
+<strong>The pitch to Playtomic:</strong>
+<ul>
+<li>We drive more bookings to their platform (Volpair users book courts to meet matches)</li>
+<li>We make their data more valuable (players stay engaged with Playtomic because Volpair uses it)</li>
+<li>We're not a competitor — we're a social layer on top of their booking infrastructure</li>
+<li>Offer: revenue share on premium subscriptions driven by Playtomic-connected users</li>
+</ul>
+
+<strong>When to have this conversation:</strong> after 5,000 active users. Before that you have no leverage.
+
+<strong>If they say no:</strong> credential-connect continues to work. Build Matchi and On the Court partnerships in parallel to reduce dependency.
+
+<hr>
+
+<h3>Key Metrics to Track from Day 1</h3>
+
+<table><tr><th>Metric</th><th>Target (end of month 1)</th><th>Why it matters</th></tr><tr><td>Signups</td><td>500</td><td>Baseline</td></tr><tr><td>Profile complete rate</td><td>>70%</td><td>Onboarding quality</td></tr><tr><td>Day 7 retention</td><td>>40%</td><td>Product is working</td></tr><tr><td>Volleys sent per user (week 1)</td><td>>3</td><td>Core action happening</td></tr><tr><td>Mutual Volley rate</td><td>>15%</td><td>Signal quality is good</td></tr><tr><td>Conversations started</td><td>>50% of matches</td><td>The loop closes</td></tr><tr><td>Organic referrals</td><td>>20% of signups</td><td>Word-of-mouth is working</td></tr></table>
+
+<strong>The one metric that matters most:</strong> Day 7 retention. If people are still opening the app 7 days after signing up, the product works. Everything else is noise until that number is solid.
+
+<hr>
+
+<h3>Pre-Launch Checklist</h3>
+
+<ul class="checklist">
+<li class="check unchecked">☐ App Store listing ready (EN + ES)</li>
+<li class="check unchecked">☐ Google Play listing ready (EN + ES)</li>
+<li class="check unchecked">☐ Privacy policy live (GDPR compliant — dating app = sensitive data category)</li>
+<li class="check unchecked">☐ Age verification flow (18+ minimum)</li>
+<li class="check unchecked">☐ Terms of service live</li>
+<li class="check unchecked">☐ volpair.com landing page live (email capture pre-launch)</li>
+<li class="check unchecked">☐ @volpair handles secured on Instagram, TikTok, X, LinkedIn, YouTube</li>
+<li class="check unchecked">☐ 5 partner clubs confirmed in London</li>
+<li class="check unchecked">☐ 2–3 padel influencers confirmed for launch week</li>
+<li class="check unchecked">☐ Playtomic sync tested with 50+ real accounts</li>
+<li class="check unchecked">☐ Matchi + On the Court sync tested</li>
+<li class="check unchecked">☐ Push notifications working on iOS + Android</li>
+<li class="check unchecked">☐ Moderation plan in place (report flow, response time SLA)</li>
+</ul>
+
+<hr>
+
+<em>SPEC.md complete as of 2026-04-30. Next: begin implementation.</em>
+
+</div>
+
+</body>
+</html>
