@@ -1,6 +1,8 @@
 import { supabase } from './supabase';
 
-const FUNCTIONS_URL = process.env.EXPO_PUBLIC_SUPABASE_URL + '/functions/v1';
+// Hardcoded to avoid env var timing issues in Expo Go
+const SUPABASE_URL = 'https://qmdewocktouqoibbqurh.supabase.co';
+const FUNCTIONS_URL = `${SUPABASE_URL}/functions/v1`;
 
 async function getAuthHeaders() {
   const { data: { session } } = await supabase.auth.getSession();
@@ -11,7 +13,6 @@ async function getAuthHeaders() {
   };
 }
 
-// ─── Connect a platform (called during onboarding) ────────────────────────────
 export async function connectPlatform(
   platform: string,
   email: string,
@@ -29,7 +30,6 @@ export async function connectPlatform(
   return data;
 }
 
-// ─── Sync match history (called after connect + on demand) ───────────────────
 export async function syncPlatform(): Promise<{
   matches_imported: number;
   wins: number;

@@ -9,6 +9,7 @@ import { theme } from '../lib/theme';
 
 import WelcomeScreen from '../screens/auth/WelcomeScreen';
 import EmailSignupScreen from '../screens/auth/EmailSignupScreen';
+import OnboardingResumeScreen from '../screens/auth/OnboardingResumeScreen';
 import PlatformSelectScreen from '../screens/auth/PlatformSelectScreen';
 import PlatformLoginScreen from '../screens/auth/PlatformLoginScreen';
 import SyncingProfileScreen from '../screens/auth/SyncingProfileScreen';
@@ -35,7 +36,6 @@ import MyStatsScreen from '../screens/profile/MyStatsScreen';
 import PlatformSyncScreen from '../screens/profile/PlatformSyncScreen';
 
 import NotificationsScreen from '../screens/notifications/NotificationsScreen';
-
 import SettingsScreen from '../screens/settings/SettingsScreen';
 import BlockedUsersScreen from '../screens/settings/BlockedUsersScreen';
 import DeleteAccountScreen from '../screens/settings/DeleteAccountScreen';
@@ -46,6 +46,21 @@ const ConnectStack = createNativeStackNavigator();
 const PlayStack = createNativeStackNavigator();
 const MessagesStack = createNativeStackNavigator();
 const ProfileStack = createNativeStackNavigator();
+
+const ONBOARDING_SCREENS = (Stack: any) => (
+  <>
+    <Stack.Screen name="PlatformSelect" component={PlatformSelectScreen} />
+    <Stack.Screen name="PlatformLogin" component={PlatformLoginScreen} />
+    <Stack.Screen name="SyncingProfile" component={SyncingProfileScreen} />
+    <Stack.Screen name="ProfilePreview" component={ProfilePreviewScreen} />
+    <Stack.Screen name="Question1Location" component={Question1LocationScreen} />
+    <Stack.Screen name="Question2Intent" component={Question2IntentScreen} />
+    <Stack.Screen name="Question3Visibility" component={Question3VisibilityScreen} />
+    <Stack.Screen name="Question4Bio" component={Question4BioScreen} />
+    <Stack.Screen name="PhotoUpload" component={PhotoUploadScreen} />
+    <Stack.Screen name="OnboardingComplete" component={OnboardingCompleteScreen} />
+  </>
+);
 
 function ConnectNavigator() {
   return (
@@ -128,42 +143,6 @@ function MainTabs() {
   );
 }
 
-function OnboardingStack() {
-  return (
-    <RootStack.Navigator screenOptions={{ headerShown: false }}>
-      <RootStack.Screen name="PlatformSelect" component={PlatformSelectScreen} />
-      <RootStack.Screen name="PlatformLogin" component={PlatformLoginScreen} />
-      <RootStack.Screen name="SyncingProfile" component={SyncingProfileScreen} />
-      <RootStack.Screen name="ProfilePreview" component={ProfilePreviewScreen} />
-      <RootStack.Screen name="Question1Location" component={Question1LocationScreen} />
-      <RootStack.Screen name="Question2Intent" component={Question2IntentScreen} />
-      <RootStack.Screen name="Question3Visibility" component={Question3VisibilityScreen} />
-      <RootStack.Screen name="Question4Bio" component={Question4BioScreen} />
-      <RootStack.Screen name="PhotoUpload" component={PhotoUploadScreen} />
-      <RootStack.Screen name="OnboardingComplete" component={OnboardingCompleteScreen} />
-    </RootStack.Navigator>
-  );
-}
-
-function AuthStack() {
-  return (
-    <RootStack.Navigator screenOptions={{ headerShown: false }}>
-      <RootStack.Screen name="Welcome" component={WelcomeScreen} />
-      <RootStack.Screen name="EmailSignup" component={EmailSignupScreen} />
-      <RootStack.Screen name="PlatformSelect" component={PlatformSelectScreen} />
-      <RootStack.Screen name="PlatformLogin" component={PlatformLoginScreen} />
-      <RootStack.Screen name="SyncingProfile" component={SyncingProfileScreen} />
-      <RootStack.Screen name="ProfilePreview" component={ProfilePreviewScreen} />
-      <RootStack.Screen name="Question1Location" component={Question1LocationScreen} />
-      <RootStack.Screen name="Question2Intent" component={Question2IntentScreen} />
-      <RootStack.Screen name="Question3Visibility" component={Question3VisibilityScreen} />
-      <RootStack.Screen name="Question4Bio" component={Question4BioScreen} />
-      <RootStack.Screen name="PhotoUpload" component={PhotoUploadScreen} />
-      <RootStack.Screen name="OnboardingComplete" component={OnboardingCompleteScreen} />
-    </RootStack.Navigator>
-  );
-}
-
 export default function Navigation() {
   const { session, user, loading } = useAuth();
   if (loading) return null;
@@ -171,10 +150,20 @@ export default function Navigation() {
   return (
     <NavigationContainer>
       {!session ? (
-        <AuthStack />
+        // Not logged in → Welcome + sign up + full onboarding
+        <RootStack.Navigator screenOptions={{ headerShown: false }}>
+          <RootStack.Screen name="Welcome" component={WelcomeScreen} />
+          <RootStack.Screen name="EmailSignup" component={EmailSignupScreen} />
+          {ONBOARDING_SCREENS(RootStack)}
+        </RootStack.Navigator>
       ) : !user?.profile_complete ? (
-        <OnboardingStack />
+        // Logged in but not finished — resume from the right step
+        <RootStack.Navigator screenOptions={{ headerShown: false }}>
+          <RootStack.Screen name="OnboardingResume" component={OnboardingResumeScreen} />
+          {ONBOARDING_SCREENS(RootStack)}
+        </RootStack.Navigator>
       ) : (
+        // Fully onboarded → main app
         <RootStack.Navigator screenOptions={{ headerShown: false }}>
           <RootStack.Screen name="MainTabs" component={MainTabs} />
         </RootStack.Navigator>

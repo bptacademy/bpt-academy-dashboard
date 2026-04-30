@@ -13,43 +13,36 @@ const STEPS = [
 ];
 
 export default function SyncingProfileScreen({ route, navigation }: any) {
-  const { platform, platformEmail, platformPassword } = route.params ?? {};
+  const { platform, platformEmail, platformPassword, skipAuth } = route.params ?? {};
   const insets = useSafeAreaInsets();
   const [stepIndex, setStepIndex] = useState(0);
-  const [error, setError] = useState<string | null>(null);
   const spinAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     Animated.loop(
       Animated.timing(spinAnim, { toValue: 1, duration: 1200, useNativeDriver: true })
     ).start();
-  }, []);
-
-  useEffect(() => {
     runSync();
   }, []);
 
   const runSync = async () => {
     try {
-      // Step 1–2: Authenticate with Playtomic + store tokens
-      setStepIndex(0);
-      await connectPlatform(platform ?? 'playtomic', platformEmail, platformPassword);
+      if (!skipAuth) {
+        // Step 1: Authenticate with Playtomic + store tokens
+        setStepIndex(0);
+        await connectPlatform(platform ?? 'playtomic', platformEmail, platformPassword);
+      }
 
-      // Step 3–4: Pull match history + calculate stats
+      // Step 2–4: Pull match history + calculate stats
       setStepIndex(1);
       const result = await syncPlatform();
 
       setStepIndex(4);
-      await new Promise(r => setTimeout(r, 800)); // brief pause on "Building your profile"
+      await new Promise(r => setTimeout(r, 600));
 
-      // Navigate to profile preview with real data
-      navigation.replace('ProfilePreview', {
-        platform,
-        syncResult: result,
-      });
+      navigation.replace('ProfilePreview', { platform, syncResult: result });
     } catch (err: any) {
       const msg = err?.message ?? 'Could not connect to Playtomic.';
-      setError(msg);
       Alert.alert(
         'Connection failed',
         msg + '\n\nPlease check your Playtomic credentials and try again.',
@@ -63,24 +56,18 @@ export default function SyncingProfileScreen({ route, navigation }: any) {
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <StatusBar barStyle="light-content" backgroundColor={theme.bg} />
-
       <View style={styles.center}>
         <Animated.Text style={[styles.spinner, { transform: [{ rotate: spin }] }]}>
           🎾
         </Animated.Text>
-
         <Text style={styles.title}>Hang tight…</Text>
-        <Text style={styles.step}>{error ? '❌ ' + error : STEPS[stepIndex]}</Text>
-
-        {!error && (
-          <View style={styles.dotsRow}>
-            {STEPS.map((_, i) => (
-              <View key={i} style={[styles.dot, i <= stepIndex && styles.dotActive]} />
-            ))}
-          </View>
-        )}
+        <Text style={styles.step}>{STEPS[stepIndex]}</Text>
+        <View style={styles.dotsRow}>
+          {STEPS.map((_, i) => (
+            <View key={i} style={[styles.dot, i <= stepIndex && styles.dotActive]} />
+          ))}
+        </View>
       </View>
-
       <Text style={styles.footer}>
         Building your profile from your real match history.{'\n'}No questionnaires. No guessing.
       </Text>
