@@ -25,11 +25,15 @@ import PlayerProfileScreen from '../screens/connect/PlayerProfileScreen';
 import MutualVolleyMatchScreen from '../screens/connect/MutualVolleyMatchScreen';
 import ConversationScreen from '../screens/connect/ConversationScreen';
 import ConnectionsListScreen from '../screens/connect/ConnectionsListScreen';
+import PostMatchPromptScreen from '../screens/connect/PostMatchPromptScreen';
+
 import PlayHomeScreen from '../screens/play/PlayHomeScreen';
+
 import MyProfileScreen from '../screens/profile/MyProfileScreen';
 import EditProfileScreen from '../screens/profile/EditProfileScreen';
 import MyStatsScreen from '../screens/profile/MyStatsScreen';
 import PlatformSyncScreen from '../screens/profile/PlatformSyncScreen';
+
 import NotificationsScreen from '../screens/notifications/NotificationsScreen';
 import SettingsScreen from '../screens/settings/SettingsScreen';
 
@@ -47,6 +51,7 @@ function ConnectNavigator() {
       <ConnectStack.Screen name="PlayerProfile" component={PlayerProfileScreen} />
       <ConnectStack.Screen name="MutualVolleyMatch" component={MutualVolleyMatchScreen} />
       <ConnectStack.Screen name="Conversation" component={ConversationScreen} />
+      <ConnectStack.Screen name="PostMatchPrompt" component={PostMatchPromptScreen} />
     </ConnectStack.Navigator>
   );
 }
