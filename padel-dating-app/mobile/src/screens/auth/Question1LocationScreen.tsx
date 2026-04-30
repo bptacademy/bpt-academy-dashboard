@@ -72,26 +72,26 @@ export default function Question1LocationScreen({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0D1B2A', paddingHorizontal: 24 },
+  container: { flex: 1, backgroundColor: theme.bg, paddingHorizontal: 24 },
   inner: { flex: 1, paddingTop: 24 },
-  question: { fontSize: 26, fontWeight: '800', color: '#FFFFFF', marginBottom: 8 },
-  subtitle: { fontSize: 15, color: '#4A6080', marginBottom: 28, lineHeight: 22 },
+  question: { fontSize: 26, fontWeight: '800', color: theme.textPrimary, marginBottom: 8 },
+  subtitle: { fontSize: 15, color: theme.textMuted, marginBottom: 28, lineHeight: 22 },
   input: {
-    backgroundColor: '#111E2E', borderRadius: 14, padding: 16,
-    fontSize: 17, color: '#FFFFFF', borderWidth: 1.5, borderColor: '#1A2C42',
+    backgroundColor: theme.bgCard, borderRadius: 14, padding: 16,
+    fontSize: 17, color: theme.textPrimary, borderWidth: 1.5, borderColor: theme.border,
   },
   suggestions: {
-    backgroundColor: '#111E2E', borderRadius: 14, marginTop: 4,
-    borderWidth: 1, borderColor: '#1A2C42', maxHeight: 200,
+    backgroundColor: theme.bgCard, borderRadius: 14, marginTop: 4,
+    borderWidth: 1, borderColor: theme.border, maxHeight: 200,
   },
-  suggestionRow: { padding: 16, borderBottomWidth: 1, borderBottomColor: '#1A2C42' },
-  suggestionText: { color: '#FFFFFF', fontSize: 16 },
+  suggestionRow: { padding: 16, borderBottomWidth: 1, borderBottomColor: theme.border },
+  suggestionText: { color: theme.textPrimary, fontSize: 16 },
   bottom: { paddingBottom: 12 },
   nextBtn: {
-    backgroundColor: '#E63F6B', borderRadius: 16, padding: 18, alignItems: 'center',
-    shadowColor: '#E63F6B', shadowOffset: { width: 0, height: 4 },
+    backgroundColor: theme.primary, borderRadius: 16, padding: 18, alignItems: 'center',
+    shadowColor: theme.primary, shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3, shadowRadius: 10, elevation: 5,
   },
   nextBtnDisabled: { opacity: 0.4 },
-  nextBtnText: { color: '#FFFFFF', fontSize: 17, fontWeight: '700' },
+  nextBtnText: { color: theme.textPrimary, fontSize: 17, fontWeight: '700' },
 });

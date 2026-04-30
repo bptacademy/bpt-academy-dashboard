@@ -76,16 +76,16 @@ export default function SyncingProfileScreen({ route, navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0D1B2A', paddingHorizontal: 32 },
+  container: { flex: 1, backgroundColor: theme.bg, paddingHorizontal: 32 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 16 },
   spinner: { fontSize: 56, marginBottom: 16 },
-  title: { fontSize: 26, fontWeight: '800', color: '#FFFFFF' },
-  step: { fontSize: 15, color: '#4A6080', textAlign: 'center' },
+  title: { fontSize: 26, fontWeight: '800', color: theme.textPrimary },
+  step: { fontSize: 15, color: theme.textMuted, textAlign: 'center' },
   dotsRow: { flexDirection: 'row', gap: 8, marginTop: 8 },
-  dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#1A2C42' },
-  dotActive: { backgroundColor: '#E63F6B' },
+  dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: theme.border },
+  dotActive: { backgroundColor: theme.primary },
   footer: {
-    fontSize: 13, color: '#2A3C52', textAlign: 'center',
+    fontSize: 13, color: theme.textDim, textAlign: 'center',
     lineHeight: 20, paddingBottom: 48,
   },
 });

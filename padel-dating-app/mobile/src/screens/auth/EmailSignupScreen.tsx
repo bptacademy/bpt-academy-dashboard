@@ -103,24 +103,24 @@ export default function EmailSignupScreen({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0D1B2A', paddingHorizontal: 24 },
+  container: { flex: 1, backgroundColor: theme.bg, paddingHorizontal: 24 },
   backBtn: { paddingVertical: 16 },
-  backText: { color: '#7A9CC0', fontSize: 16 },
+  backText: { color: theme.textSecondary, fontSize: 16 },
   content: { flex: 1, paddingTop: 16 },
-  title: { fontSize: 28, fontWeight: '800', color: '#FFFFFF', marginBottom: 10 },
-  subtitle: { fontSize: 15, color: '#4A6080', lineHeight: 22, marginBottom: 32 },
+  title: { fontSize: 28, fontWeight: '800', color: theme.textPrimary, marginBottom: 10 },
+  subtitle: { fontSize: 15, color: theme.textMuted, lineHeight: 22, marginBottom: 32 },
   input: {
-    backgroundColor: '#111E2E', borderRadius: 14, padding: 18,
-    fontSize: 18, color: '#FFFFFF', borderWidth: 1.5, borderColor: '#1A2C42',
+    backgroundColor: theme.bgCard, borderRadius: 14, padding: 18,
+    fontSize: 18, color: theme.textPrimary, borderWidth: 1.5, borderColor: theme.border,
     marginBottom: 16,
   },
-  note: { fontSize: 13, color: '#2A3C52' },
+  note: { fontSize: 13, color: theme.textDim },
   bottom: { paddingBottom: 12 },
   btn: {
-    backgroundColor: '#E63F6B', borderRadius: 16, padding: 18, alignItems: 'center',
-    shadowColor: '#E63F6B', shadowOffset: { width: 0, height: 4 },
+    backgroundColor: theme.primary, borderRadius: 16, padding: 18, alignItems: 'center',
+    shadowColor: theme.primary, shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3, shadowRadius: 10, elevation: 5,
   },
   btnDisabled: { opacity: 0.4 },
-  btnText: { color: '#FFFFFF', fontSize: 17, fontWeight: '700' },
+  btnText: { color: theme.textPrimary, fontSize: 17, fontWeight: '700' },
 });

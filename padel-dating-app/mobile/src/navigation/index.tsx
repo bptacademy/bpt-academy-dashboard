@@ -2,11 +2,11 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Text, Platform } from 'react-native';
+import { Text } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext';
+import { theme } from '../lib/theme';
 
-// Auth / Onboarding screens
 import WelcomeScreen from '../screens/auth/WelcomeScreen';
 import EmailSignupScreen from '../screens/auth/EmailSignupScreen';
 import PlatformSelectScreen from '../screens/auth/PlatformSelectScreen';
@@ -20,7 +20,6 @@ import Question4BioScreen from '../screens/auth/Question4BioScreen';
 import PhotoUploadScreen from '../screens/auth/PhotoUploadScreen';
 import OnboardingCompleteScreen from '../screens/auth/OnboardingCompleteScreen';
 
-// Main app screens
 import ConnectHomeScreen from '../screens/connect/ConnectHomeScreen';
 import PlayerProfileScreen from '../screens/connect/PlayerProfileScreen';
 import MutualVolleyMatchScreen from '../screens/connect/MutualVolleyMatchScreen';
@@ -84,32 +83,27 @@ function ProfileNavigator() {
 
 function MainTabs() {
   const insets = useSafeAreaInsets();
-
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: '#0D1B2A',
-          borderTopColor: '#1A2C42',
+          backgroundColor: theme.bgCard,
+          borderTopColor: theme.border,
           borderTopWidth: 1,
-          height: 60 + insets.bottom,
+          height: 58 + insets.bottom,
           paddingBottom: insets.bottom,
           paddingTop: 8,
         },
-        tabBarActiveTintColor: '#E63F6B',
-        tabBarInactiveTintColor: '#4A6080',
-        tabBarShowLabel: true,
-        tabBarLabel: () => null,
+        tabBarActiveTintColor: theme.tabActive,
+        tabBarInactiveTintColor: theme.tabInactive,
+        tabBarShowLabel: false,
         tabBarIcon: ({ focused }) => {
           const icons: Record<string, string> = {
-            Connect: '💘',
-            Play: '🎾',
-            Messages: '💬',
-            Profile: '👤',
+            Connect: '💘', Play: '🎾', Messages: '💬', Profile: '👤',
           };
           return (
-            <Text style={{ fontSize: 26, opacity: focused ? 1 : 0.45 }}>
+            <Text style={{ fontSize: 26, opacity: focused ? 1 : 0.4 }}>
               {icons[route.name]}
             </Text>
           );
@@ -124,7 +118,7 @@ function MainTabs() {
   );
 }
 
-function OnboardingNavigator() {
+function OnboardingStack() {
   return (
     <RootStack.Navigator screenOptions={{ headerShown: false }}>
       <RootStack.Screen name="PlatformSelect" component={PlatformSelectScreen} />
@@ -141,45 +135,40 @@ function OnboardingNavigator() {
   );
 }
 
+function AuthStack() {
+  return (
+    <RootStack.Navigator screenOptions={{ headerShown: false }}>
+      <RootStack.Screen name="Welcome" component={WelcomeScreen} />
+      <RootStack.Screen name="EmailSignup" component={EmailSignupScreen} />
+      <RootStack.Screen name="PlatformSelect" component={PlatformSelectScreen} />
+      <RootStack.Screen name="PlatformLogin" component={PlatformLoginScreen} />
+      <RootStack.Screen name="SyncingProfile" component={SyncingProfileScreen} />
+      <RootStack.Screen name="ProfilePreview" component={ProfilePreviewScreen} />
+      <RootStack.Screen name="Question1Location" component={Question1LocationScreen} />
+      <RootStack.Screen name="Question2Intent" component={Question2IntentScreen} />
+      <RootStack.Screen name="Question3Visibility" component={Question3VisibilityScreen} />
+      <RootStack.Screen name="Question4Bio" component={Question4BioScreen} />
+      <RootStack.Screen name="PhotoUpload" component={PhotoUploadScreen} />
+      <RootStack.Screen name="OnboardingComplete" component={OnboardingCompleteScreen} />
+    </RootStack.Navigator>
+  );
+}
+
 export default function Navigation() {
   const { session, user, loading } = useAuth();
-
   if (loading) return null;
-
-  if (!session) {
-    return (
-      <NavigationContainer>
-        <RootStack.Navigator screenOptions={{ headerShown: false }}>
-          <RootStack.Screen name="Welcome" component={WelcomeScreen} />
-          <RootStack.Screen name="EmailSignup" component={EmailSignupScreen} />
-          <RootStack.Screen name="PlatformSelect" component={PlatformSelectScreen} />
-          <RootStack.Screen name="PlatformLogin" component={PlatformLoginScreen} />
-          <RootStack.Screen name="SyncingProfile" component={SyncingProfileScreen} />
-          <RootStack.Screen name="ProfilePreview" component={ProfilePreviewScreen} />
-          <RootStack.Screen name="Question1Location" component={Question1LocationScreen} />
-          <RootStack.Screen name="Question2Intent" component={Question2IntentScreen} />
-          <RootStack.Screen name="Question3Visibility" component={Question3VisibilityScreen} />
-          <RootStack.Screen name="Question4Bio" component={Question4BioScreen} />
-          <RootStack.Screen name="PhotoUpload" component={PhotoUploadScreen} />
-          <RootStack.Screen name="OnboardingComplete" component={OnboardingCompleteScreen} />
-        </RootStack.Navigator>
-      </NavigationContainer>
-    );
-  }
-
-  if (!user?.profile_complete) {
-    return (
-      <NavigationContainer>
-        <OnboardingNavigator />
-      </NavigationContainer>
-    );
-  }
 
   return (
     <NavigationContainer>
-      <RootStack.Navigator screenOptions={{ headerShown: false }}>
-        <RootStack.Screen name="MainTabs" component={MainTabs} />
-      </RootStack.Navigator>
+      {!session ? (
+        <AuthStack />
+      ) : !user?.profile_complete ? (
+        <OnboardingStack />
+      ) : (
+        <RootStack.Navigator screenOptions={{ headerShown: false }}>
+          <RootStack.Screen name="MainTabs" component={MainTabs} />
+        </RootStack.Navigator>
+      )}
     </NavigationContainer>
   );
 }

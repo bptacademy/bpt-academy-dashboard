@@ -72,31 +72,31 @@ export default function Question4BioScreen({ route, navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0D1B2A', paddingHorizontal: 24 },
+  container: { flex: 1, backgroundColor: theme.bg, paddingHorizontal: 24 },
   inner: { flex: 1, paddingTop: 24 },
-  question: { fontSize: 26, fontWeight: '800', color: '#FFFFFF', marginBottom: 8 },
-  subtitle: { fontSize: 15, color: '#4A6080', marginBottom: 24, lineHeight: 22 },
+  question: { fontSize: 26, fontWeight: '800', color: theme.textPrimary, marginBottom: 8 },
+  subtitle: { fontSize: 15, color: theme.textMuted, marginBottom: 24, lineHeight: 22 },
   inputWrapper: { position: 'relative', marginBottom: 28 },
   input: {
-    backgroundColor: '#111E2E', borderRadius: 14, padding: 16,
-    fontSize: 16, color: '#FFFFFF', borderWidth: 1.5, borderColor: '#1A2C42',
+    backgroundColor: theme.bgCard, borderRadius: 14, padding: 16,
+    fontSize: 16, color: theme.textPrimary, borderWidth: 1.5, borderColor: theme.border,
     minHeight: 100,
   },
   charCount: {
     position: 'absolute', bottom: 10, right: 14,
-    fontSize: 11, color: '#2A3C52',
+    fontSize: 11, color: theme.textDim,
   },
-  examplesTitle: { fontSize: 13, fontWeight: '600', color: '#4A6080', marginBottom: 10 },
+  examplesTitle: { fontSize: 13, fontWeight: '600', color: theme.textMuted, marginBottom: 10 },
   example: {
-    fontSize: 13, color: '#7A9CC0', fontStyle: 'italic',
+    fontSize: 13, color: theme.textSecondary, fontStyle: 'italic',
     marginBottom: 10, lineHeight: 20,
   },
   bottom: { paddingBottom: 12, gap: 10 },
   nextBtn: {
-    backgroundColor: '#E63F6B', borderRadius: 16, padding: 18, alignItems: 'center',
-    shadowColor: '#E63F6B', shadowOffset: { width: 0, height: 4 },
+    backgroundColor: theme.primary, borderRadius: 16, padding: 18, alignItems: 'center',
+    shadowColor: theme.primary, shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3, shadowRadius: 10, elevation: 5,
   },
-  nextBtnText: { color: '#FFFFFF', fontSize: 17, fontWeight: '700' },
-  skipLink: { color: '#2A3C52', fontSize: 14, textAlign: 'center', paddingVertical: 4 },
+  nextBtnText: { color: theme.textPrimary, fontSize: 17, fontWeight: '700' },
+  skipLink: { color: theme.textDim, fontSize: 14, textAlign: 'center', paddingVertical: 4 },
 });
