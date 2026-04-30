@@ -14,13 +14,12 @@ export default function MyProfileScreen({ navigation }: any) {
     ? user.full_name.split(' ').map((n: string) => n[0]).join('').toUpperCase()
     : user?.email?.[0]?.toUpperCase() ?? '?';
 
-  // In production this comes from platform_connections.last_synced_at
-  const lastSynced: string | null = null; // null = never synced
+  const lastSynced: string | null = null;
 
   const MENU_ITEMS = [
     { icon: '✏️', label: 'Edit Profile', screen: 'EditProfile' },
     { icon: '📊', label: 'My Stats', screen: 'MyStats' },
-    { icon: '🔄', label: 'Platform Sync', screen: 'PlatformSync' },
+    { icon: '🔗', label: 'Connected Platforms', screen: 'PlatformSync' },
     { icon: '🔔', label: 'Notifications', screen: 'Notifications' },
     { icon: '⚙️', label: 'Settings', screen: 'Settings' },
   ];
@@ -35,7 +34,6 @@ export default function MyProfileScreen({ navigation }: any) {
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
 
-        {/* Profile card */}
         <View style={styles.profileCard}>
           <View style={styles.avatarCircle}>
             <Text style={styles.avatarInitials}>{initials}</Text>
@@ -61,7 +59,6 @@ export default function MyProfileScreen({ navigation }: any) {
           {user?.bio && <Text style={styles.bio}>"{user.bio}"</Text>}
         </View>
 
-        {/* Stats */}
         <View style={styles.statsCard}>
           <View style={styles.statBox}>
             <Text style={styles.statValue}>—</Text>
@@ -79,9 +76,7 @@ export default function MyProfileScreen({ navigation }: any) {
           </View>
         </View>
 
-        {/* Sync status card — contextual based on sync state */}
         {lastSynced === null ? (
-          // Never synced — prompt to run first import
           <TouchableOpacity
             style={styles.syncCtaNever}
             onPress={() => navigation.navigate('PlatformSync')}
@@ -91,13 +86,12 @@ export default function MyProfileScreen({ navigation }: any) {
             <View style={styles.syncCtaText}>
               <Text style={styles.syncCtaTitle}>Import your match history</Text>
               <Text style={styles.syncCtaSub}>
-                Tap to sync Playtomic — unlocks your stats, level, and Volpair score
+                Sync Playtomic to unlock your stats, level, and Volpair score
               </Text>
             </View>
             <Text style={styles.syncCtaArrow}>›</Text>
           </TouchableOpacity>
         ) : (
-          // Already synced — show status
           <TouchableOpacity
             style={styles.syncCtaSynced}
             onPress={() => navigation.navigate('PlatformSync')}
@@ -112,7 +106,6 @@ export default function MyProfileScreen({ navigation }: any) {
           </TouchableOpacity>
         )}
 
-        {/* Menu */}
         <View style={styles.menuCard}>
           {MENU_ITEMS.map((item, i) => (
             <TouchableOpacity
@@ -146,7 +139,6 @@ const styles = StyleSheet.create({
   },
   headerTitle: { fontSize: 26, fontWeight: '800', color: theme.textPrimary },
   scroll: { paddingHorizontal: 16, paddingTop: 20 },
-
   profileCard: {
     backgroundColor: theme.bgCard, borderRadius: 20, padding: 24,
     alignItems: 'center', borderWidth: 1, borderColor: theme.border, marginBottom: 12,
@@ -162,14 +154,12 @@ const styles = StyleSheet.create({
   badgeRow: { flexDirection: 'row', gap: 8, marginBottom: 12, flexWrap: 'wrap', justifyContent: 'center' },
   badge: {
     backgroundColor: theme.bgDeep, borderRadius: 10,
-    paddingHorizontal: 12, paddingVertical: 5,
-    borderWidth: 1, borderColor: theme.border,
+    paddingHorizontal: 12, paddingVertical: 5, borderWidth: 1, borderColor: theme.border,
   },
   badgePrimary: { backgroundColor: theme.primaryDim, borderColor: theme.primaryBorder },
   badgeText: { fontSize: 13, color: theme.textSecondary, fontWeight: '600' },
   badgePrimaryText: { color: theme.primary },
   bio: { fontSize: 14, color: theme.textSecondary, fontStyle: 'italic', textAlign: 'center', lineHeight: 20 },
-
   statsCard: {
     flexDirection: 'row', backgroundColor: theme.bgCard, borderRadius: 16,
     padding: 20, marginBottom: 12, borderWidth: 1, borderColor: theme.border,
@@ -178,14 +168,11 @@ const styles = StyleSheet.create({
   statValue: { fontSize: 22, fontWeight: '800', color: theme.textPrimary, marginBottom: 4 },
   statLabel: { fontSize: 11, color: theme.textMuted, fontWeight: '600' },
   statDivider: { width: 1, backgroundColor: theme.border },
-
-  // Never synced — turquoise, prominent
   syncCtaNever: {
     flexDirection: 'row', alignItems: 'center', gap: 12,
     backgroundColor: theme.primaryDim, borderRadius: 16, padding: 16,
     borderWidth: 1.5, borderColor: theme.primaryBorder, marginBottom: 12,
   },
-  // Already synced — subtle
   syncCtaSynced: {
     flexDirection: 'row', alignItems: 'center', gap: 12,
     backgroundColor: theme.bgCard, borderRadius: 16, padding: 16,
@@ -197,19 +184,15 @@ const styles = StyleSheet.create({
   syncCtaTitleSynced: { fontSize: 15, fontWeight: '700', color: theme.textPrimary, marginBottom: 3 },
   syncCtaSub: { fontSize: 12, color: theme.textMuted, lineHeight: 18 },
   syncCtaArrow: { fontSize: 22, color: theme.textMuted },
-
   menuCard: {
     backgroundColor: theme.bgCard, borderRadius: 16,
     borderWidth: 1, borderColor: theme.border, marginBottom: 12, overflow: 'hidden',
   },
-  menuRow: {
-    flexDirection: 'row', alignItems: 'center', gap: 14, padding: 16,
-  },
+  menuRow: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 16 },
   menuRowBorder: { borderBottomWidth: 1, borderBottomColor: theme.border },
   menuIcon: { fontSize: 20, width: 28 },
   menuLabel: { flex: 1, fontSize: 15, color: theme.textPrimary, fontWeight: '500' },
   menuArrow: { fontSize: 20, color: theme.textMuted },
-
   signOutBtn: {
     backgroundColor: theme.bgCard, borderRadius: 14, padding: 16,
     alignItems: 'center', borderWidth: 1, borderColor: theme.border,
