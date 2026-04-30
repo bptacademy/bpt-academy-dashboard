@@ -14,6 +14,9 @@ export default function MyProfileScreen({ navigation }: any) {
     ? user.full_name.split(' ').map((n: string) => n[0]).join('').toUpperCase()
     : user?.email?.[0]?.toUpperCase() ?? '?';
 
+  // In production this comes from platform_connections.last_synced_at
+  const lastSynced: string | null = null; // null = never synced
+
   const MENU_ITEMS = [
     { icon: '✏️', label: 'Edit Profile', screen: 'EditProfile' },
     { icon: '📊', label: 'My Stats', screen: 'MyStats' },
@@ -40,9 +43,7 @@ export default function MyProfileScreen({ navigation }: any) {
           <Text style={styles.profileName}>
             {user?.full_name ?? user?.email?.split('@')[0] ?? 'Player'}
           </Text>
-          {user?.city && (
-            <Text style={styles.profileCity}>📍 {user.city}</Text>
-          )}
+          {user?.city && <Text style={styles.profileCity}>📍 {user.city}</Text>}
           <View style={styles.badgeRow}>
             {user?.looking_for && (
               <View style={styles.badge}>
@@ -57,12 +58,10 @@ export default function MyProfileScreen({ navigation }: any) {
               <Text style={[styles.badgeText, styles.badgePrimaryText]}>Level TBD</Text>
             </View>
           </View>
-          {user?.bio && (
-            <Text style={styles.bio}>"{user.bio}"</Text>
-          )}
+          {user?.bio && <Text style={styles.bio}>"{user.bio}"</Text>}
         </View>
 
-        {/* Stats preview */}
+        {/* Stats */}
         <View style={styles.statsCard}>
           <View style={styles.statBox}>
             <Text style={styles.statValue}>—</Text>
@@ -80,19 +79,38 @@ export default function MyProfileScreen({ navigation }: any) {
           </View>
         </View>
 
-        {/* Sync CTA */}
-        <TouchableOpacity
-          style={styles.syncCta}
-          onPress={() => navigation.navigate('PlatformSync')}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.syncCtaIcon}>🔄</Text>
-          <View style={styles.syncCtaText}>
-            <Text style={styles.syncCtaTitle}>Connect Playtomic</Text>
-            <Text style={styles.syncCtaSub}>Import your match history to unlock your stats</Text>
-          </View>
-          <Text style={styles.syncCtaArrow}>›</Text>
-        </TouchableOpacity>
+        {/* Sync status card — contextual based on sync state */}
+        {lastSynced === null ? (
+          // Never synced — prompt to run first import
+          <TouchableOpacity
+            style={styles.syncCtaNever}
+            onPress={() => navigation.navigate('PlatformSync')}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.syncCtaIcon}>⚡</Text>
+            <View style={styles.syncCtaText}>
+              <Text style={styles.syncCtaTitle}>Import your match history</Text>
+              <Text style={styles.syncCtaSub}>
+                Tap to sync Playtomic — unlocks your stats, level, and Volpair score
+              </Text>
+            </View>
+            <Text style={styles.syncCtaArrow}>›</Text>
+          </TouchableOpacity>
+        ) : (
+          // Already synced — show status
+          <TouchableOpacity
+            style={styles.syncCtaSynced}
+            onPress={() => navigation.navigate('PlatformSync')}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.syncCtaIcon}>✅</Text>
+            <View style={styles.syncCtaText}>
+              <Text style={styles.syncCtaTitleSynced}>Playtomic synced</Text>
+              <Text style={styles.syncCtaSub}>Last synced {lastSynced} · tap to re-sync</Text>
+            </View>
+            <Text style={styles.syncCtaArrow}>›</Text>
+          </TouchableOpacity>
+        )}
 
         {/* Menu */}
         <View style={styles.menuCard}>
@@ -110,7 +128,6 @@ export default function MyProfileScreen({ navigation }: any) {
           ))}
         </View>
 
-        {/* Sign out */}
         <TouchableOpacity style={styles.signOutBtn} onPress={signOut} activeOpacity={0.7}>
           <Text style={styles.signOutText}>Sign out</Text>
         </TouchableOpacity>
@@ -148,9 +165,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12, paddingVertical: 5,
     borderWidth: 1, borderColor: theme.border,
   },
-  badgePrimary: {
-    backgroundColor: theme.primaryDim, borderColor: theme.primaryBorder,
-  },
+  badgePrimary: { backgroundColor: theme.primaryDim, borderColor: theme.primaryBorder },
   badgeText: { fontSize: 13, color: theme.textSecondary, fontWeight: '600' },
   badgePrimaryText: { color: theme.primary },
   bio: { fontSize: 14, color: theme.textSecondary, fontStyle: 'italic', textAlign: 'center', lineHeight: 20 },
@@ -164,16 +179,24 @@ const styles = StyleSheet.create({
   statLabel: { fontSize: 11, color: theme.textMuted, fontWeight: '600' },
   statDivider: { width: 1, backgroundColor: theme.border },
 
-  syncCta: {
+  // Never synced — turquoise, prominent
+  syncCtaNever: {
     flexDirection: 'row', alignItems: 'center', gap: 12,
     backgroundColor: theme.primaryDim, borderRadius: 16, padding: 16,
-    borderWidth: 1, borderColor: theme.primaryBorder, marginBottom: 12,
+    borderWidth: 1.5, borderColor: theme.primaryBorder, marginBottom: 12,
   },
-  syncCtaIcon: { fontSize: 26 },
+  // Already synced — subtle
+  syncCtaSynced: {
+    flexDirection: 'row', alignItems: 'center', gap: 12,
+    backgroundColor: theme.bgCard, borderRadius: 16, padding: 16,
+    borderWidth: 1, borderColor: theme.border, marginBottom: 12,
+  },
+  syncCtaIcon: { fontSize: 24 },
   syncCtaText: { flex: 1 },
   syncCtaTitle: { fontSize: 15, fontWeight: '700', color: theme.primary, marginBottom: 3 },
+  syncCtaTitleSynced: { fontSize: 15, fontWeight: '700', color: theme.textPrimary, marginBottom: 3 },
   syncCtaSub: { fontSize: 12, color: theme.textMuted, lineHeight: 18 },
-  syncCtaArrow: { fontSize: 22, color: theme.primary },
+  syncCtaArrow: { fontSize: 22, color: theme.textMuted },
 
   menuCard: {
     backgroundColor: theme.bgCard, borderRadius: 16,
