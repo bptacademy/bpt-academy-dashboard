@@ -120,7 +120,7 @@ export default function ScheduleGeneratorScreen({ route, navigation }: any) {
     const lastDate = sessionDates[sessionDates.length - 1];
     Alert.alert(
       'Generate Schedule',
-      `This will create exactly ${sessionDates.length} sessions for ${programTitle}.\n\nFirst: ${formatDateLabel(selectedStart)}\nLast: ${formatDateLabel(lastDate)}\n\nAny existing sessions/modules will be replaced. Continue?`,
+      `This will set up ${sessionDates.length} calendar sessions for ${programTitle}.\n\nFirst: ${formatDateLabel(selectedStart)}\nLast: ${formatDateLabel(lastDate)}\n\nExisting modules are not affected. Continue?`,
       [
         { text: 'Cancel', style: 'cancel' },
         { text: 'Generate', onPress: doGenerate },
@@ -134,24 +134,11 @@ export default function ScheduleGeneratorScreen({ route, navigation }: any) {
       const month = getMonthStr(selectedStart);
       const lastSession = sessionDates[sessionDates.length - 1];
 
-      // 1. Delete ALL existing modules and sessions for this program
+      // 1. Clear and recreate calendar entries (program_sessions) only.
+      // Modules are NOT touched here — use "Generate Modules" in the Modules screen.
       await supabase.from('program_sessions').delete().eq('program_id', programId);
-      await supabase.from('modules').delete().eq('program_id', programId);
 
-      // 2. Insert exactly sessionCount modules
-      for (let i = 0; i < sessionDates.length; i++) {
-        const { error } = await supabase.from('modules').insert({
-          program_id: programId,
-          title: `Module ${i + 1}`,
-          description: 'Schedule generated module',
-          order_index: i + 1,
-          session_date: localDateStr(sessionDates[i]),
-          is_published: true,
-        });
-        if (error) throw error;
-      }
-
-      // 3. Record the schedule
+      // 2. Record the schedule
       await supabase.from('program_schedules').upsert({
         program_id: programId, month,
         start_date: localDateStr(selectedStart),
@@ -159,7 +146,7 @@ export default function ScheduleGeneratorScreen({ route, navigation }: any) {
         generated_by: profile!.id,
       }, { onConflict: 'program_id,month' });
 
-      // 4. Flip program to active and set cycle dates.
+      // 3. Flip program to active and set cycle dates.
       // current_cycle_start_date = coach-selected start date (first session).
       // next_cycle_start_date    = 1st of the month AFTER the cycle start month.
       //   e.g. coach picks May 4 → next_cycle_start_date = June 1
@@ -174,7 +161,7 @@ export default function ScheduleGeneratorScreen({ route, navigation }: any) {
         })
         .eq('id', programId);
 
-      // 5. Auto-enrollment: confirmed+paid current students first, then waiting list FIFO
+      // 4. Auto-enrollment: confirmed+paid current students first, then waiting list FIFO
       const maxSpots = parseInt(capacity, 10) || 10;
       await supabase.from('programs').update({ max_students: maxSpots }).eq('id', programId);
 
@@ -228,7 +215,7 @@ export default function ScheduleGeneratorScreen({ route, navigation }: any) {
         }
       }
 
-      // 6. Set re-enrollment deadline (7 days before last session) and notify active students
+      // 5. Set re-enrollment deadline (7 days before last session) and notify active students
       const deadline = addDays(lastSession, -7);
 
       const { data: active } = await supabase
@@ -253,14 +240,14 @@ export default function ScheduleGeneratorScreen({ route, navigation }: any) {
         });
       }
 
-      // 7. Reset waiting list for this month
+      // 6. Reset waiting list for this month
       await supabase.from('program_waiting_list').delete()
         .eq('program_id', programId).eq('month', month);
 
       setGenerating(false);
       Alert.alert(
         '✅ Schedule Generated!',
-        `${sessionDates.length} sessions created. ${filledSpots} students enrolled.\n\nCycle starts: ${formatDateLabel(selectedStart)}\nNext cycle opens: ${firstDayOfNextMonth(selectedStart)}`,
+        `${sessionDates.length} sessions created. ${filledSpots} students enrolled.\n\nCycle starts: ${formatDateLabel(selectedStart)}\nNext cycle opens: ${firstDayOfNextMonth(selectedStart)}\n\nTip: Go to Modules to generate or edit session modules.`,
         [{ text: 'Done', onPress: () => navigation.goBack() }]
       );
     } catch (err: any) {
@@ -296,11 +283,11 @@ export default function ScheduleGeneratorScreen({ route, navigation }: any) {
         </View>
 
         <View style={styles.infoCard}>
-          <Text style={styles.infoIcon}>🔒</Text>
+          <Text style={styles.infoIcon}>📅</Text>
           <View style={styles.infoText}>
-            <Text style={styles.infoTitle}>Fixed session count</Text>
+            <Text style={styles.infoTitle}>Calendar only — modules not affected</Text>
             <Text style={styles.infoBody}>
-              This program always runs {sessionCount} sessions. Pick a start date and days — the schedule will always generate exactly {sessionCount} sessions from there.
+              This sets up {sessionCount} calendar sessions. To generate or update modules, go to the Modules screen after generating the schedule.
             </Text>
           </View>
         </View>

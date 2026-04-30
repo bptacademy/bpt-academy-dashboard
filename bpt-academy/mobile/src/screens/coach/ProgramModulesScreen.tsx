@@ -17,6 +17,7 @@ export default function ProgramModulesScreen({ route }: any) {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [generatingModules, setGeneratingModules] = useState(false);
 
   // Modal state — used for both add and edit
   const [modalVisible, setModalVisible] = useState(false);
@@ -118,6 +119,108 @@ export default function ProgramModulesScreen({ route }: any) {
     );
   };
 
+  /**
+   * Auto-generate modules from the program's existing schedule.
+   * Fetches session dates from program_schedules / program_sessions and creates
+   * one module per session. Replaces ALL existing modules for a clean slate.
+   */
+  const handleGenerateModules = () => {
+    const action = modules.length > 0
+      ? Alert.alert(
+          'Replace Existing Modules?',
+          `This will delete all ${modules.length} existing module(s) and generate fresh ones from the current schedule. Any custom titles or descriptions will be lost.\n\nContinue?`,
+          [
+            { text: 'Cancel', style: 'cancel' },
+            { text: 'Replace & Generate', style: 'destructive', onPress: doGenerateModules },
+          ]
+        )
+      : doGenerateModules();
+  };
+
+  const doGenerateModules = async () => {
+    setGeneratingModules(true);
+    try {
+      // Fetch the schedule to get ordered session dates
+      const { data: scheduleData } = await supabase
+        .from('program_schedules')
+        .select('start_date, days_of_week')
+        .eq('program_id', programId)
+        .order('start_date', { ascending: false })
+        .limit(1)
+        .single();
+
+      // Also try to get dates directly from program itself
+      const { data: programData } = await supabase
+        .from('programs')
+        .select('duration_weeks, sessions_per_week, current_cycle_start_date')
+        .eq('id', programId)
+        .single();
+
+      // Build session dates from schedule
+      let sessionDates: string[] = [];
+
+      if (scheduleData?.start_date && scheduleData?.days_of_week) {
+        const DAY_INDEX: Record<string, number> = {
+          monday: 1, tuesday: 2, wednesday: 3, thursday: 4, friday: 5,
+        };
+        const startDate = new Date(scheduleData.start_date);
+        const durationWeeks = programData?.duration_weeks ?? 4;
+        const sessionsPerWeek = programData?.sessions_per_week ?? 2;
+        const targetCount = Math.round(durationWeeks * sessionsPerWeek);
+        const selectedIndices = (scheduleData.days_of_week as string[]).map(d => DAY_INDEX[d]);
+
+        let current = new Date(startDate);
+        const hardLimit = new Date(startDate);
+        hardLimit.setDate(hardLimit.getDate() + 730);
+
+        while (sessionDates.length < targetCount && current <= hardLimit) {
+          if (selectedIndices.includes(current.getDay())) {
+            const y = current.getFullYear();
+            const m = String(current.getMonth() + 1).padStart(2, '0');
+            const d = String(current.getDate()).padStart(2, '0');
+            sessionDates.push(`${y}-${m}-${d}`);
+          }
+          current.setDate(current.getDate() + 1);
+        }
+      }
+
+      if (sessionDates.length === 0) {
+        Alert.alert(
+          'No Schedule Found',
+          'This program does not have a generated schedule yet. Please generate the schedule first, then come back to generate modules.',
+        );
+        setGeneratingModules(false);
+        return;
+      }
+
+      // Delete existing modules
+      await supabase.from('modules').delete().eq('program_id', programId);
+
+      // Insert one module per session date
+      for (let i = 0; i < sessionDates.length; i++) {
+        const { error } = await supabase.from('modules').insert({
+          program_id: programId,
+          title: `Module ${i + 1}`,
+          description: null,
+          order_index: i + 1,
+          session_date: sessionDates[i],
+          is_published: true,
+        });
+        if (error) throw error;
+      }
+
+      await fetchModules();
+      setGeneratingModules(false);
+      Alert.alert(
+        '✅ Modules Generated!',
+        `${sessionDates.length} modules created. Tap any module to add a title and goal description.`,
+      );
+    } catch (err: any) {
+      setGeneratingModules(false);
+      Alert.alert('Error', err?.message ?? 'Failed to generate modules');
+    }
+  };
+
   if (loading) {
     return (
       <View style={styles.container}>
@@ -133,6 +236,8 @@ export default function ProgramModulesScreen({ route }: any) {
 
   return (
     <View style={styles.container}>
+      <Image source={require('../../../assets/bg.png')} style={styles.bgImage} resizeMode="cover" />
+
       <BackHeader title={`${programTitle ?? 'Program'} — Modules`} />
 
       <ScrollView
@@ -141,8 +246,26 @@ export default function ProgramModulesScreen({ route }: any) {
         showsVerticalScrollIndicator={false}
       >
         <Text style={styles.hint}>
-          Tap a module to edit it. Long press to delete. Use the + button to add new modules.
+          Tap a module to edit it. Long press to delete. Use the + button to add modules manually.
         </Text>
+
+        {/* Generate Modules button — always visible */}
+        <TouchableOpacity
+          style={[styles.generateModulesBtn, generatingModules && styles.generateModulesBtnDisabled]}
+          onPress={handleGenerateModules}
+          disabled={generatingModules}
+        >
+          {generatingModules ? (
+            <ActivityIndicator color="#FFFFFF" size="small" />
+          ) : (
+            <>
+              <Text style={styles.generateModulesBtnIcon}>⚡</Text>
+              <Text style={styles.generateModulesBtnText}>
+                {modules.length > 0 ? 'Re-generate Modules from Schedule' : 'Generate Modules from Schedule'}
+              </Text>
+            </>
+          )}
+        </TouchableOpacity>
 
         {modules.map((mod, idx) => {
           const hasDesc = !!mod.description;
@@ -179,7 +302,7 @@ export default function ProgramModulesScreen({ route }: any) {
             <Text style={styles.emptyIcon}>📋</Text>
             <Text style={styles.emptyTitle}>No modules yet</Text>
             <Text style={styles.emptyNote}>
-              Tap the + button below to add your first module.
+              Hit "Generate Modules from Schedule" above to auto-create one module per session, or tap + to add manually.
             </Text>
           </View>
         )}
@@ -269,13 +392,21 @@ const styles = StyleSheet.create({
   bgImage: { position: 'absolute', top: 0, left: 0, width: Dimensions.get('window').width, height: Dimensions.get('window').height },
   container: { flex: 1, backgroundColor: '#F9FAFB' },
   loader: { marginTop: 60 },
-  content: { padding: 16, paddingBottom: 80,},
+  content: { padding: 16, paddingBottom: 80 },
 
   hint: {
-    fontSize: 13, color: '#6B7280', marginBottom: 16,
+    fontSize: 13, color: '#6B7280', marginBottom: 12,
     backgroundColor: '#EFF6FF', borderRadius: 10, padding: 12,
     borderWidth: 1, borderColor: '#DBEAFE',
   },
+
+  generateModulesBtn: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
+    backgroundColor: '#1D4ED8', borderRadius: 12, padding: 14, marginBottom: 16,
+  },
+  generateModulesBtnDisabled: { opacity: 0.5 },
+  generateModulesBtnIcon: { fontSize: 16 },
+  generateModulesBtnText: { color: '#FFFFFF', fontSize: 14, fontWeight: '700' },
 
   moduleCard: {
     backgroundColor: '#FFFFFF', borderRadius: 12, padding: 14,
