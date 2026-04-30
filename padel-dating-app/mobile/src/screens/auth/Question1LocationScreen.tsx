@@ -1,74 +1,107 @@
-import { theme } from '../../lib/theme';
-import React, { useState } from 'react';
+import React, { useRef } from 'react';
 import {
-  View, Text, TextInput, TouchableOpacity, StyleSheet,
-  StatusBar, ScrollView,
+  View, Text, StyleSheet, StatusBar, KeyboardAvoidingView, Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
+import { theme } from '../../lib/theme';
 import OnboardingProgress from '../../components/common/OnboardingProgress';
 
-const SUGGESTED_CITIES = [
-  'London', 'Manchester', 'Birmingham', 'Barcelona', 'Madrid',
-  'Stockholm', 'Dubai', 'New York', 'Milan', 'Paris',
-];
+const GOOGLE_KEY = process.env.EXPO_PUBLIC_GOOGLE_PLACES_KEY!;
 
 export default function Question1LocationScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
-  const [city, setCity] = useState('');
-  const filtered = city.length > 0
-    ? SUGGESTED_CITIES.filter(c => c.toLowerCase().startsWith(city.toLowerCase()))
-    : [];
+  const ref = useRef<any>(null);
 
-  const handleContinue = () => {
-    if (!city.trim()) return;
-    navigation.navigate('Question2Intent', { city: city.trim() });
+  const handleSelect = (data: any, details: any) => {
+    // Extract city name — prefer locality, fallback to the main description text
+    const cityComponent = details?.address_components?.find((c: any) =>
+      c.types.includes('locality') || c.types.includes('postal_town')
+    );
+    const city = cityComponent?.long_name ?? data.structured_formatting?.main_text ?? data.description;
+    navigation.navigate('Question2Intent', { city });
   };
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
-      <StatusBar barStyle="light-content" backgroundColor="#0D1B2A" />
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
+      <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
+        <StatusBar barStyle="light-content" backgroundColor={theme.bg} />
 
-      <View style={styles.inner}>
-        <OnboardingProgress total={4} current={1} />
+        <View style={styles.inner}>
+          <OnboardingProgress total={4} current={1} />
+          <Text style={styles.question}>📍 Where are you based?</Text>
+          <Text style={styles.subtitle}>{"We'll show you players in your area."}</Text>
 
-        <Text style={styles.question}>📍 Where are you based?</Text>
-        <Text style={styles.subtitle}>We'll show you players in your area.</Text>
-
-        <TextInput
-          style={styles.input}
-          value={city}
-          onChangeText={setCity}
-          placeholder="Search your city…"
-          placeholderTextColor="#2A3C52"
-          autoFocus
-          autoCorrect={false}
-        />
-
-        {filtered.length > 0 && (
-          <ScrollView style={styles.suggestions} keyboardShouldPersistTaps="handled">
-            {filtered.map((c) => (
-              <TouchableOpacity
-                key={c}
-                style={styles.suggestionRow}
-                onPress={() => setCity(c)}
-              >
-                <Text style={styles.suggestionText}>{c}</Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        )}
+          <GooglePlacesAutocomplete
+            ref={ref}
+            placeholder="Search your city…"
+            fetchDetails
+            onPress={handleSelect}
+            query={{
+              key: GOOGLE_KEY,
+              language: 'en',
+              types: '(cities)',
+            }}
+            styles={{
+              container: { flex: 0 },
+              textInput: {
+                backgroundColor: theme.bgCard,
+                color: theme.textPrimary,
+                fontSize: 17,
+                borderRadius: 14,
+                borderWidth: 1.5,
+                borderColor: theme.border,
+                paddingHorizontal: 16,
+                height: 52,
+              },
+              textInputContainer: {
+                backgroundColor: 'transparent',
+              },
+              listView: {
+                backgroundColor: theme.bgCard,
+                borderRadius: 14,
+                borderWidth: 1,
+                borderColor: theme.border,
+                marginTop: 4,
+                overflow: 'hidden',
+              },
+              row: {
+                backgroundColor: theme.bgCard,
+                paddingVertical: 14,
+                paddingHorizontal: 16,
+                borderBottomWidth: 1,
+                borderBottomColor: theme.border,
+              },
+              description: {
+                color: theme.textPrimary,
+                fontSize: 15,
+              },
+              predefinedPlacesDescription: {
+                color: theme.primary,
+              },
+              poweredContainer: {
+                backgroundColor: theme.bgDeep,
+                borderTopWidth: 1,
+                borderTopColor: theme.border,
+                paddingVertical: 6,
+              },
+              powered: {
+                opacity: 0.3,
+              },
+            }}
+            enablePoweredByContainer={false}
+            textInputProps={{
+              placeholderTextColor: theme.textDim,
+              autoFocus: true,
+            }}
+            keyboardShouldPersistTaps="handled"
+          />
+        </View>
       </View>
-
-      <View style={styles.bottom}>
-        <TouchableOpacity
-          style={[styles.nextBtn, !city.trim() && styles.nextBtnDisabled]}
-          onPress={handleContinue}
-          disabled={!city.trim()}
-        >
-          <Text style={styles.nextBtnText}>Continue →</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -77,22 +110,4 @@ const styles = StyleSheet.create({
   inner: { flex: 1, paddingTop: 24 },
   question: { fontSize: 26, fontWeight: '800', color: theme.textPrimary, marginBottom: 8 },
   subtitle: { fontSize: 15, color: theme.textMuted, marginBottom: 28, lineHeight: 22 },
-  input: {
-    backgroundColor: theme.bgCard, borderRadius: 14, padding: 16,
-    fontSize: 17, color: theme.textPrimary, borderWidth: 1.5, borderColor: theme.border,
-  },
-  suggestions: {
-    backgroundColor: theme.bgCard, borderRadius: 14, marginTop: 4,
-    borderWidth: 1, borderColor: theme.border, maxHeight: 200,
-  },
-  suggestionRow: { padding: 16, borderBottomWidth: 1, borderBottomColor: theme.border },
-  suggestionText: { color: theme.textPrimary, fontSize: 16 },
-  bottom: { paddingBottom: 12 },
-  nextBtn: {
-    backgroundColor: theme.primary, borderRadius: 16, padding: 18, alignItems: 'center',
-    shadowColor: theme.primary, shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3, shadowRadius: 10, elevation: 5,
-  },
-  nextBtnDisabled: { opacity: 0.4 },
-  nextBtnText: { color: theme.textPrimary, fontSize: 17, fontWeight: '700' },
 });

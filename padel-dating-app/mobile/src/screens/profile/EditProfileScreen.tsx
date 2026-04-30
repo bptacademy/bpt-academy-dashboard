@@ -5,9 +5,12 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
+import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 import { theme } from '../../lib/theme';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
+
+const GOOGLE_KEY = process.env.EXPO_PUBLIC_GOOGLE_PLACES_KEY!;
 
 const INTENT_OPTIONS = [
   { id: 'date', label: '💘 A date' },
@@ -102,8 +105,8 @@ export default function EditProfileScreen({ navigation }: any) {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scroll}
         keyboardShouldPersistTaps="handled"
+        nestedScrollEnabled
       >
-
         {/* Photos */}
         <Text style={styles.fieldLabel}>📸 Photos ({photos.length}/{MAX_PHOTOS})</Text>
         <Text style={styles.fieldHint}>Your first photo is your main profile photo.</Text>
@@ -129,15 +132,44 @@ export default function EditProfileScreen({ navigation }: any) {
           )}
         </View>
 
-        {/* City */}
+        {/* City — Google Places */}
         <Text style={styles.fieldLabel}>📍 City</Text>
-        <TextInput
-          style={styles.input}
-          value={city}
-          onChangeText={setCity}
-          placeholder="e.g. London"
-          placeholderTextColor={theme.textDim}
-          autoCorrect={false}
+        <GooglePlacesAutocomplete
+          placeholder={city || 'Search your city…'}
+          fetchDetails
+          onPress={(data, details) => {
+            const comp = details?.address_components?.find((c: any) =>
+              c.types.includes('locality') || c.types.includes('postal_town')
+            );
+            setCity(comp?.long_name ?? data.structured_formatting?.main_text ?? data.description);
+          }}
+          query={{ key: GOOGLE_KEY, language: 'en', types: '(cities)' }}
+          styles={{
+            container: { flex: 0, marginBottom: 4 },
+            textInput: {
+              backgroundColor: theme.bgCard, color: theme.textPrimary,
+              fontSize: 15, borderRadius: 14, borderWidth: 1,
+              borderColor: theme.border, paddingHorizontal: 16, height: 50,
+            },
+            textInputContainer: { backgroundColor: 'transparent' },
+            listView: {
+              backgroundColor: theme.bgCard, borderRadius: 14,
+              borderWidth: 1, borderColor: theme.border, marginTop: 4,
+            },
+            row: {
+              backgroundColor: theme.bgCard, paddingVertical: 13,
+              paddingHorizontal: 16, borderBottomWidth: 1, borderBottomColor: theme.border,
+            },
+            description: { color: theme.textPrimary, fontSize: 14 },
+            poweredContainer: { display: 'none' },
+          }}
+          enablePoweredByContainer={false}
+          textInputProps={{
+            placeholderTextColor: theme.textDim,
+            value: city,
+            onChangeText: setCity,
+          }}
+          keyboardShouldPersistTaps="handled"
         />
 
         {/* Bio */}
@@ -205,10 +237,8 @@ const styles = StyleSheet.create({
   cancelText: { fontSize: 16, color: theme.textMuted },
   saveText: { fontSize: 16, color: theme.primary, fontWeight: '700' },
   scroll: { padding: 20 },
-
   fieldLabel: { fontSize: 13, fontWeight: '600', color: theme.textSecondary, marginBottom: 6, marginTop: 24 },
   fieldHint: { fontSize: 12, color: theme.textMuted, marginBottom: 12 },
-
   photoGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   photoSlot: { width: '30%', aspectRatio: 4 / 5, position: 'relative' },
   photo: { width: '100%', height: '100%', borderRadius: 14 },
@@ -232,7 +262,6 @@ const styles = StyleSheet.create({
   },
   addIcon: { fontSize: 26, color: theme.textDim },
   addLabel: { fontSize: 11, color: theme.textDim, fontWeight: '600' },
-
   input: {
     backgroundColor: theme.bgCard, borderRadius: 14, padding: 16,
     fontSize: 15, color: theme.textPrimary, borderWidth: 1, borderColor: theme.border,
@@ -240,7 +269,6 @@ const styles = StyleSheet.create({
   bioWrapper: { position: 'relative' },
   bioInput: { minHeight: 90, textAlignVertical: 'top' },
   charCount: { position: 'absolute', bottom: 10, right: 14, fontSize: 11, color: theme.textDim },
-
   optionGrid: { gap: 8 },
   optionBtn: {
     padding: 14, borderRadius: 14, borderWidth: 1, borderColor: theme.border,
