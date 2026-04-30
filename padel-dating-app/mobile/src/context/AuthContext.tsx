@@ -25,12 +25,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const fetchUser = async (userId: string) => {
-    const { data } = await supabase
-      .from('users')
-      .select('*')
-      .eq('id', userId)
-      .single();
-    if (data) setUser(data as User);
+    try {
+      const { data } = await supabase
+        .from('users')
+        .select('*')
+        .eq('auth_id', userId)
+        .maybeSingle(); // use maybeSingle so it doesn't throw if no row yet
+      if (data) setUser(data as User);
+      else setUser(null);
+    } catch {
+      setUser(null);
+    }
   };
 
   const refreshUser = async () => {
@@ -46,8 +51,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
-      if (session?.user?.id) fetchUser(session.user.id).finally(() => setLoading(false));
-      else setLoading(false);
+      if (session?.user?.id) {
+        fetchUser(session.user.id).finally(() => setLoading(false));
+      } else {
+        setLoading(false);
+      }
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {

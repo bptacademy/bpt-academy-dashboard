@@ -7,6 +7,12 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
 
+// A deterministic Volpair password derived from platform email
+// In production this would be replaced by proper OAuth / magic link
+function volpairPassword(email: string): string {
+  return `vp_${email.split('@')[0]}_2026`;
+}
+
 export default function PlatformLoginScreen({ route, navigation }: any) {
   const { platform, label } = route.params;
   const insets = useSafeAreaInsets();
@@ -22,30 +28,39 @@ export default function PlatformLoginScreen({ route, navigation }: any) {
 
     setLoading(true);
     try {
-      // Step 1: Create a Volpair account (or sign in if already exists)
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: email.trim().toLowerCase(),
-        password: `volpair_${Date.now()}`, // temp — will be replaced by proper auth later
-        options: { data: { platform_email: email.trim().toLowerCase() } },
+      const volpairEmail = email.trim().toLowerCase();
+      const volpairPass = volpairPassword(volpairEmail);
+
+      // Try to sign in first (returning user)
+      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+        email: volpairEmail,
+        password: volpairPass,
       });
 
-      // If user already exists, sign them in instead
-      if (authError && authError.message.includes('already registered')) {
-        const { error: signInError } = await supabase.auth.signInWithPassword({
-          email: email.trim().toLowerCase(),
-          password: `volpair_${Date.now()}`,
+      if (signInData?.session) {
+        // Existing user — go straight to syncing
+        navigation.navigate('SyncingProfile', {
+          platform,
+          platformEmail: volpairEmail,
+          platformPassword: password,
         });
-        if (signInError) throw new Error('Account exists. Please use the same credentials.');
-      } else if (authError) {
-        throw authError;
+        return;
       }
 
-      // Step 2: Store platform credentials (server will validate + pull data)
-      // In production this goes through an Edge Function — for MVP we store directly
-      // and trigger sync from the next screen
+      // New user — sign up
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+        email: volpairEmail,
+        password: volpairPass,
+      });
+
+      if (signUpError) throw signUpError;
+      if (!signUpData?.session && !signUpData?.user) {
+        throw new Error('Could not create account. Please try again.');
+      }
+
       navigation.navigate('SyncingProfile', {
         platform,
-        platformEmail: email.trim().toLowerCase(),
+        platformEmail: volpairEmail,
         platformPassword: password,
       });
     } catch (err: any) {

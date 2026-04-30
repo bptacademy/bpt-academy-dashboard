@@ -45,32 +45,14 @@ export default function PhotoUploadScreen({ route, navigation }: any) {
       const userId = session?.user?.id;
       if (!userId) throw new Error('Not logged in');
 
-      // Upload photos to Supabase Storage
-      const uploadedUrls: string[] = [];
-      for (let i = 0; i < photos.length; i++) {
-        const uri = photos[i];
-        const ext = uri.split('.').pop() ?? 'jpg';
-        const path = `avatars/${userId}/photo_${i + 1}.${ext}`;
-
-        const response = await fetch(uri);
-        const blob = await response.blob();
-        const arrayBuffer = await new Response(blob).arrayBuffer();
-
-        const { error } = await supabase.storage
-          .from('avatars')
-          .upload(path, arrayBuffer, { contentType: `image/${ext}`, upsert: true });
-
-        if (error) throw error;
-        uploadedUrls.push(path);
-      }
-
       // Save user profile to DB
       const { error: dbError } = await supabase.from('users').upsert({
         auth_id: userId,
         email: session?.user?.email,
-        city,
-        looking_for,
-        visible_to,
+        full_name: session?.user?.user_metadata?.full_name ?? null,
+        city: city ?? null,
+        looking_for: looking_for ?? null,
+        visible_to: visible_to ?? 'everyone',
         bio: bio || null,
         profile_complete: true,
         last_active_at: new Date().toISOString(),
@@ -79,6 +61,7 @@ export default function PhotoUploadScreen({ route, navigation }: any) {
       if (dbError) throw dbError;
 
       await refreshUser();
+      setSaving(false);
       navigation.replace('OnboardingComplete');
     } catch (err: any) {
       setSaving(false);
