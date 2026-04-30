@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
-  StatusBar, ScrollView, Alert, ActivityIndicator,
+  StatusBar, ScrollView, Alert, ActivityIndicator, Image,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import * as ImagePicker from 'expo-image-picker';
 import { theme } from '../../lib/theme';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
@@ -22,6 +23,9 @@ const VISIBILITY_OPTIONS = [
   { id: 'no_preference', label: '🤝 No preference' },
 ];
 
+const MAX_PHOTOS = 3;
+const MAX_BIO = 120;
+
 export default function EditProfileScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
   const { user, refreshUser } = useAuth();
@@ -29,8 +33,31 @@ export default function EditProfileScreen({ navigation }: any) {
   const [city, setCity] = useState(user?.city ?? '');
   const [lookingFor, setLookingFor] = useState(user?.looking_for ?? 'exploring');
   const [visibleTo, setVisibleTo] = useState(user?.visible_to ?? 'everyone');
+  const [photos, setPhotos] = useState<string[]>(user?.photos ?? []);
   const [saving, setSaving] = useState(false);
-  const MAX_BIO = 120;
+
+  const pickPhoto = async () => {
+    if (photos.length >= MAX_PHOTOS) {
+      Alert.alert('Maximum photos', `You can upload up to ${MAX_PHOTOS} photos.`);
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 5],
+      quality: 0.85,
+    });
+    if (!result.canceled && result.assets[0]) {
+      setPhotos(prev => [...prev, result.assets[0].uri]);
+    }
+  };
+
+  const removePhoto = (index: number) => {
+    Alert.alert('Remove photo?', '', [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Remove', style: 'destructive', onPress: () => setPhotos(prev => prev.filter((_, i) => i !== index)) },
+    ]);
+  };
 
   const handleSave = async () => {
     setSaving(true);
@@ -71,8 +98,38 @@ export default function EditProfileScreen({ navigation }: any) {
         </TouchableOpacity>
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scroll}
+        keyboardShouldPersistTaps="handled"
+      >
 
+        {/* Photos */}
+        <Text style={styles.fieldLabel}>📸 Photos ({photos.length}/{MAX_PHOTOS})</Text>
+        <Text style={styles.fieldHint}>Your first photo is your main profile photo.</Text>
+        <View style={styles.photoGrid}>
+          {photos.map((uri, i) => (
+            <TouchableOpacity key={i} style={styles.photoSlot} onPress={() => removePhoto(i)} activeOpacity={0.8}>
+              <Image source={{ uri }} style={styles.photo} />
+              <View style={styles.removeOverlay}>
+                <Text style={styles.removeIcon}>✕</Text>
+              </View>
+              {i === 0 && (
+                <View style={styles.mainBadge}>
+                  <Text style={styles.mainBadgeText}>Main</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+          ))}
+          {photos.length < MAX_PHOTOS && (
+            <TouchableOpacity style={styles.addSlot} onPress={pickPhoto} activeOpacity={0.7}>
+              <Text style={styles.addIcon}>+</Text>
+              <Text style={styles.addLabel}>Add photo</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+
+        {/* City */}
         <Text style={styles.fieldLabel}>📍 City</Text>
         <TextInput
           style={styles.input}
@@ -83,6 +140,7 @@ export default function EditProfileScreen({ navigation }: any) {
           autoCorrect={false}
         />
 
+        {/* Bio */}
         <Text style={styles.fieldLabel}>🗣️ One line about yourself</Text>
         <View style={styles.bioWrapper}>
           <TextInput
@@ -98,6 +156,7 @@ export default function EditProfileScreen({ navigation }: any) {
           <Text style={styles.charCount}>{bio.length}/{MAX_BIO}</Text>
         </View>
 
+        {/* Intent */}
         <Text style={styles.fieldLabel}>🎯 What are you looking for?</Text>
         <View style={styles.optionGrid}>
           {INTENT_OPTIONS.map(o => (
@@ -113,6 +172,7 @@ export default function EditProfileScreen({ navigation }: any) {
           ))}
         </View>
 
+        {/* Visibility */}
         <Text style={styles.fieldLabel}>👀 Who can see you?</Text>
         <View style={styles.optionGrid}>
           {VISIBILITY_OPTIONS.map(o => (
@@ -145,7 +205,34 @@ const styles = StyleSheet.create({
   cancelText: { fontSize: 16, color: theme.textMuted },
   saveText: { fontSize: 16, color: theme.primary, fontWeight: '700' },
   scroll: { padding: 20 },
-  fieldLabel: { fontSize: 13, fontWeight: '600', color: theme.textSecondary, marginBottom: 8, marginTop: 20 },
+
+  fieldLabel: { fontSize: 13, fontWeight: '600', color: theme.textSecondary, marginBottom: 6, marginTop: 24 },
+  fieldHint: { fontSize: 12, color: theme.textMuted, marginBottom: 12 },
+
+  photoGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+  photoSlot: { width: '30%', aspectRatio: 4 / 5, position: 'relative' },
+  photo: { width: '100%', height: '100%', borderRadius: 14 },
+  removeOverlay: {
+    position: 'absolute', top: 6, right: 6,
+    width: 24, height: 24, borderRadius: 12,
+    backgroundColor: 'rgba(0,0,0,0.65)', alignItems: 'center', justifyContent: 'center',
+  },
+  removeIcon: { color: '#FFFFFF', fontSize: 12, fontWeight: '700' },
+  mainBadge: {
+    position: 'absolute', bottom: 6, left: 6,
+    backgroundColor: theme.primary, borderRadius: 6,
+    paddingHorizontal: 7, paddingVertical: 2,
+  },
+  mainBadgeText: { color: theme.bg, fontSize: 10, fontWeight: '800' },
+  addSlot: {
+    width: '30%', aspectRatio: 4 / 5,
+    backgroundColor: theme.bgCard, borderRadius: 14,
+    borderWidth: 1.5, borderColor: theme.border, borderStyle: 'dashed',
+    alignItems: 'center', justifyContent: 'center', gap: 4,
+  },
+  addIcon: { fontSize: 26, color: theme.textDim },
+  addLabel: { fontSize: 11, color: theme.textDim, fontWeight: '600' },
+
   input: {
     backgroundColor: theme.bgCard, borderRadius: 14, padding: 16,
     fontSize: 15, color: theme.textPrimary, borderWidth: 1, borderColor: theme.border,
@@ -153,6 +240,7 @@ const styles = StyleSheet.create({
   bioWrapper: { position: 'relative' },
   bioInput: { minHeight: 90, textAlignVertical: 'top' },
   charCount: { position: 'absolute', bottom: 10, right: 14, fontSize: 11, color: theme.textDim },
+
   optionGrid: { gap: 8 },
   optionBtn: {
     padding: 14, borderRadius: 14, borderWidth: 1, borderColor: theme.border,
