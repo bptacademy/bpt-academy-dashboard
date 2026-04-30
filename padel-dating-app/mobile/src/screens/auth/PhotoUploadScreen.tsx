@@ -4,6 +4,7 @@ import {
   Alert, ActivityIndicator, Image, ScrollView,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { theme } from '../../lib/theme';
 import * as ImagePicker from 'expo-image-picker';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';

@@ -5,6 +5,7 @@ import {
   Platform, ScrollView,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { theme } from '../../lib/theme';
 
 export default function PlatformLoginScreen({ route, navigation }: any) {
   const { platform, label } = route.params;

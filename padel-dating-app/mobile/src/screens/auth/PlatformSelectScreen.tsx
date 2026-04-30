@@ -1,3 +1,4 @@
+import { theme } from '../../lib/theme';
 import React from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet, StatusBar,

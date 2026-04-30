@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, StatusBar } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { theme } from '../../lib/theme';
 import OnboardingProgress from '../../components/common/OnboardingProgress';
 
 const OPTIONS = [

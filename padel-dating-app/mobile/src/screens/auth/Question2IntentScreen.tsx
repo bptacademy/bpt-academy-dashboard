@@ -1,3 +1,4 @@
+import { theme } from '../../lib/theme';
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, StatusBar } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';

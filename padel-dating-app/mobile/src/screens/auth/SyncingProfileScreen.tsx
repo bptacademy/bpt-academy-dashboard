@@ -1,3 +1,4 @@
+import { theme } from '../../lib/theme';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   View, Text, StyleSheet, Animated, StatusBar,
