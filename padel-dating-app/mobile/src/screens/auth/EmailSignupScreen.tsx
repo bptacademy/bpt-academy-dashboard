@@ -1,10 +1,10 @@
-import { theme } from '../../lib/theme';
 import React, { useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   StatusBar, Alert, ActivityIndicator, KeyboardAvoidingView, Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { theme } from '../../lib/theme';
 import { supabase } from '../../lib/supabase';
 
 export default function EmailSignupScreen({ navigation }: any) {
@@ -28,24 +28,31 @@ export default function EmailSignupScreen({ navigation }: any) {
       });
 
       if (signInData?.session) {
-        // Returning user — skip onboarding if profile complete
         navigation.navigate('PlatformSelect');
         return;
       }
 
-      // New user — sign up (email confirmation is disabled)
+      // New user — sign up
       const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email: trimmed,
         password: `volpair_${trimmed}_mvp`,
       });
 
       if (signUpError) throw signUpError;
+      if (!signUpData?.session) throw new Error('Account created but no session returned. Please try again.');
 
-      if (signUpData?.session) {
-        navigation.navigate('PlatformSelect');
-      } else {
-        throw new Error('Account created but no session returned. Please try again.');
-      }
+      // Create the users row immediately so Edge Functions can find it
+      const { error: insertError } = await supabase.from('users').upsert({
+        auth_id: signUpData.session.user.id,
+        email: trimmed,
+        profile_complete: false,
+        created_at: new Date().toISOString(),
+        last_active_at: new Date().toISOString(),
+      }, { onConflict: 'auth_id' });
+
+      if (insertError) console.warn('users insert error (non-fatal):', insertError.message);
+
+      navigation.navigate('PlatformSelect');
     } catch (err: any) {
       setLoading(false);
       Alert.alert('Error', err?.message ?? 'Something went wrong. Please try again.');
@@ -55,14 +62,14 @@ export default function EmailSignupScreen({ navigation }: any) {
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
-        <StatusBar barStyle="light-content" backgroundColor="#0D1B2A" />
+        <StatusBar barStyle="light-content" backgroundColor={theme.bg} />
 
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
           <Text style={styles.backText}>← Back</Text>
         </TouchableOpacity>
 
         <View style={styles.content}>
-          <Text style={styles.title}>What's your email?</Text>
+          <Text style={styles.title}>{"What's your email?"}</Text>
           <Text style={styles.subtitle}>
             This is your Volpair account. We'll use it to save your profile and send you matches.
           </Text>
@@ -72,7 +79,7 @@ export default function EmailSignupScreen({ navigation }: any) {
             value={email}
             onChangeText={setEmail}
             placeholder="your@email.com"
-            placeholderTextColor="#2A3C52"
+            placeholderTextColor={theme.textDim}
             keyboardType="email-address"
             autoCapitalize="none"
             autoCorrect={false}
@@ -81,9 +88,7 @@ export default function EmailSignupScreen({ navigation }: any) {
             onSubmitEditing={handleContinue}
           />
 
-          <Text style={styles.note}>
-            No spam. No marketing. Just your matches.
-          </Text>
+          <Text style={styles.note}>No spam. No marketing. Just your matches.</Text>
         </View>
 
         <View style={styles.bottom}>
@@ -93,7 +98,7 @@ export default function EmailSignupScreen({ navigation }: any) {
             disabled={!email.trim() || loading}
           >
             {loading
-              ? <ActivityIndicator color="#FFFFFF" />
+              ? <ActivityIndicator color={theme.bg} />
               : <Text style={styles.btnText}>Continue →</Text>
             }
           </TouchableOpacity>
@@ -123,5 +128,5 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3, shadowRadius: 10, elevation: 5,
   },
   btnDisabled: { opacity: 0.4 },
-  btnText: { color: theme.textPrimary, fontSize: 17, fontWeight: '700' },
+  btnText: { color: theme.bg, fontSize: 17, fontWeight: '800' },
 });

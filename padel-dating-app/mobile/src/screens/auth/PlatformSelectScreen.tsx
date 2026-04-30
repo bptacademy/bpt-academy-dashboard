@@ -1,9 +1,9 @@
-import { theme } from '../../lib/theme';
 import React from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet, StatusBar,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { theme } from '../../lib/theme';
 
 const PLATFORMS = [
   {
@@ -31,19 +31,23 @@ const PLATFORMS = [
 
 export default function PlatformSelectScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
+  // canGoBack is false when this is the root screen (OnboardingStack)
+  const canGoBack = navigation.canGoBack();
 
   return (
     <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
-      <StatusBar barStyle="light-content" backgroundColor="#0D1B2A" />
+      <StatusBar barStyle="light-content" backgroundColor={theme.bg} />
 
-      <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-        <Text style={styles.backText}>← Back</Text>
-      </TouchableOpacity>
+      {canGoBack && (
+        <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
+          <Text style={styles.backText}>← Back</Text>
+        </TouchableOpacity>
+      )}
 
-      <View style={styles.header}>
-        <Text style={styles.title}>Choose your platform</Text>
+      <View style={[styles.header, !canGoBack && styles.headerNoBack]}>
+        <Text style={styles.title}>Connect your platform</Text>
         <Text style={styles.subtitle}>
-          We'll import your match history to build your profile automatically.
+          {"We'll import your match history to build your profile automatically."}
         </Text>
       </View>
 
@@ -55,7 +59,7 @@ export default function PlatformSelectScreen({ navigation }: any) {
             onPress={() => p.available && navigation.navigate('PlatformLogin', { platform: p.id, label: p.label })}
             activeOpacity={p.available ? 0.75 : 1}
           >
-            <View style={styles.platformIcon}>
+            <View style={[styles.platformIcon, p.available && styles.platformIconActive]}>
               <Text style={styles.platformEmoji}>{p.emoji}</Text>
             </View>
             <View style={styles.platformInfo}>
@@ -64,13 +68,10 @@ export default function PlatformSelectScreen({ navigation }: any) {
               </Text>
               <Text style={styles.platformDesc}>{p.desc}</Text>
             </View>
-            {p.available ? (
-              <Text style={styles.arrow}>›</Text>
-            ) : (
-              <View style={styles.comingSoonBadge}>
-                <Text style={styles.comingSoonText}>Soon</Text>
-              </View>
-            )}
+            {p.available
+              ? <Text style={styles.arrow}>›</Text>
+              : <View style={styles.comingSoonBadge}><Text style={styles.comingSoonText}>Soon</Text></View>
+            }
           </TouchableOpacity>
         ))}
       </View>
@@ -83,6 +84,7 @@ const styles = StyleSheet.create({
   backBtn: { paddingVertical: 16 },
   backText: { color: theme.textSecondary, fontSize: 16 },
   header: { marginBottom: 32 },
+  headerNoBack: { paddingTop: 24 },
   title: { fontSize: 28, fontWeight: '800', color: theme.textPrimary, marginBottom: 10 },
   subtitle: { fontSize: 15, color: theme.textMuted, lineHeight: 22 },
   list: { gap: 12 },
@@ -94,16 +96,21 @@ const styles = StyleSheet.create({
   platformCardDisabled: { opacity: 0.45 },
   platformIcon: {
     width: 48, height: 48, borderRadius: 14,
-    backgroundColor: 'rgba(230,63,107,0.1)', alignItems: 'center', justifyContent: 'center',
+    backgroundColor: theme.bgDeep, alignItems: 'center', justifyContent: 'center',
+    borderWidth: 1, borderColor: theme.border,
+  },
+  platformIconActive: {
+    backgroundColor: theme.primaryDim, borderColor: theme.primaryBorder,
   },
   platformEmoji: { fontSize: 24 },
   platformInfo: { flex: 1 },
   platformLabel: { fontSize: 17, fontWeight: '700', color: theme.textPrimary, marginBottom: 3 },
   platformLabelDisabled: { color: theme.textMuted },
   platformDesc: { fontSize: 13, color: theme.textMuted },
-  arrow: { fontSize: 24, color: theme.primary, fontWeight: '300' },
+  arrow: { fontSize: 24, color: theme.primary },
   comingSoonBadge: {
-    backgroundColor: theme.border, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4,
+    backgroundColor: theme.bgDeep, borderRadius: 8,
+    paddingHorizontal: 10, paddingVertical: 4, borderWidth: 1, borderColor: theme.border,
   },
   comingSoonText: { color: theme.textMuted, fontSize: 11, fontWeight: '600' },
 });
