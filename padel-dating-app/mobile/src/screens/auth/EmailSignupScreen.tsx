@@ -7,6 +7,16 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme } from '../../lib/theme';
 import { supabase } from '../../lib/supabase';
 
+async function ensureUsersRow(userId: string, email: string) {
+  const { error } = await supabase.from('users').upsert({
+    auth_id: userId,
+    email,
+    profile_complete: false,
+    last_active_at: new Date().toISOString(),
+  }, { onConflict: 'auth_id' });
+  if (error) console.warn('users upsert warning:', error.message);
+}
+
 export default function EmailSignupScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
   const [email, setEmail] = useState('');
@@ -21,36 +31,33 @@ export default function EmailSignupScreen({ navigation }: any) {
 
     setLoading(true);
     try {
+      const password = `volpair_${trimmed}_mvp`;
+
       // Try sign in first (returning user)
-      const { data: signInData } = await supabase.auth.signInWithPassword({
-        email: trimmed,
-        password: `volpair_${trimmed}_mvp`,
-      });
+      const { data: signInData } = await supabase.auth.signInWithPassword({ email: trimmed, password });
 
       if (signInData?.session) {
+        // Always ensure users row exists (may have been missing for old accounts)
+        await ensureUsersRow(signInData.session.user.id, trimmed);
         navigation.navigate('PlatformSelect');
         return;
       }
 
       // New user — sign up
-      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-        email: trimmed,
-        password: `volpair_${trimmed}_mvp`,
-      });
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({ email: trimmed, password });
 
-      if (signUpError) throw signUpError;
+      if (signUpError) {
+        // Already registered but different password — try admin-style workaround
+        if (signUpError.message.includes('already registered')) {
+          throw new Error('An account with this email already exists. Please use the same device you signed up on, or contact support.');
+        }
+        throw signUpError;
+      }
+
       if (!signUpData?.session) throw new Error('Account created but no session returned. Please try again.');
 
-      // Create the users row immediately so Edge Functions can find it
-      const { error: insertError } = await supabase.from('users').upsert({
-        auth_id: signUpData.session.user.id,
-        email: trimmed,
-        profile_complete: false,
-        created_at: new Date().toISOString(),
-        last_active_at: new Date().toISOString(),
-      }, { onConflict: 'auth_id' });
-
-      if (insertError) console.warn('users insert error (non-fatal):', insertError.message);
+      // Create users row immediately — Edge Functions need this
+      await ensureUsersRow(signUpData.session.user.id, trimmed);
 
       navigation.navigate('PlatformSelect');
     } catch (err: any) {
@@ -71,7 +78,7 @@ export default function EmailSignupScreen({ navigation }: any) {
         <View style={styles.content}>
           <Text style={styles.title}>{"What's your email?"}</Text>
           <Text style={styles.subtitle}>
-            This is your Volpair account. We'll use it to save your profile and send you matches.
+            {"This is your Volpair account. We'll use it to save your profile and send you matches."}
           </Text>
 
           <TextInput

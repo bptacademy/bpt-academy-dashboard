@@ -11,8 +11,6 @@ const CORS = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// ─── Playtomic Auth ───────────────────────────────────────────────────────────
-
 async function playtomicLogin(email: string, password: string) {
   const res = await fetch('https://api.playtomic.io/v3/auth/login', {
     method: 'POST',
@@ -22,7 +20,7 @@ async function playtomicLogin(email: string, password: string) {
 
   if (!res.ok) {
     const err = await res.text();
-    throw new Error(`Playtomic auth failed: ${res.status} — ${err}`);
+    throw new Error(`Playtomic login failed (${res.status}). Please check your Playtomic email and password.`);
   }
 
   const data = await res.json();
@@ -30,11 +28,9 @@ async function playtomicLogin(email: string, password: string) {
     accessToken: data.access_token as string,
     refreshToken: data.refresh_token as string,
     platformUserId: data.user_id as string,
-    expiresAt: new Date(Date.now() + 3600 * 1000).toISOString(), // 1h
+    expiresAt: new Date(Date.now() + 3600 * 1000).toISOString(),
   };
 }
-
-// ─── Main handler ─────────────────────────────────────────────────────────────
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS });
@@ -48,7 +44,6 @@ serve(async (req) => {
       });
     }
 
-    // Get the calling user's ID from their Volpair JWT
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
       return new Response(JSON.stringify({ error: 'Missing Authorization header' }), {
@@ -61,7 +56,7 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
     );
 
-    // Verify the Volpair JWT and get the auth user
+    // Verify the Volpair JWT
     const token = authHeader.replace('Bearer ', '');
     const { data: { user: authUser }, error: authError } = await supabase.auth.getUser(token);
     if (authError || !authUser) {
@@ -70,37 +65,52 @@ serve(async (req) => {
       });
     }
 
-    // Get the Volpair user record
-    const { data: volpairUser, error: userError } = await supabase
+    // Get or create the Volpair user record
+    // The mobile app should have created this already, but we upsert here as a safety net
+    let { data: volpairUser } = await supabase
       .from('users')
       .select('id')
       .eq('auth_id', authUser.id)
       .maybeSingle();
 
-    if (userError || !volpairUser) {
-      return new Response(JSON.stringify({ error: 'Volpair user not found' }), {
-        status: 404, headers: { ...CORS, 'Content-Type': 'application/json' },
-      });
+    if (!volpairUser) {
+      // Create it now — this handles race conditions and edge cases
+      const { data: newUser, error: insertError } = await supabase
+        .from('users')
+        .upsert({
+          auth_id: authUser.id,
+          email: authUser.email ?? email,
+          profile_complete: false,
+          last_active_at: new Date().toISOString(),
+        }, { onConflict: 'auth_id' })
+        .select('id')
+        .maybeSingle();
+
+      if (insertError || !newUser) {
+        return new Response(JSON.stringify({ error: `Could not create user record: ${insertError?.message}` }), {
+          status: 500, headers: { ...CORS, 'Content-Type': 'application/json' },
+        });
+      }
+      volpairUser = newUser;
     }
 
     // Authenticate with the platform
-    let tokens;
-    if (platform === 'playtomic') {
-      tokens = await playtomicLogin(email, password);
-    } else {
+    if (platform !== 'playtomic') {
       return new Response(JSON.stringify({ error: `Platform ${platform} not yet supported` }), {
         status: 400, headers: { ...CORS, 'Content-Type': 'application/json' },
       });
     }
 
-    // Store the connection (upsert — safe to reconnect)
+    const tokens = await playtomicLogin(email, password);
+
+    // Store the connection
     const { error: upsertError } = await supabase
       .from('platform_connections')
       .upsert({
         user_id: volpairUser.id,
         platform,
         platform_user_id: tokens.platformUserId,
-        access_token: tokens.accessToken,   // In production: encrypt these
+        access_token: tokens.accessToken,
         refresh_token: tokens.refreshToken,
         token_expires_at: tokens.expiresAt,
         last_synced_at: null,
