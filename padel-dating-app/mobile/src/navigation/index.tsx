@@ -35,7 +35,10 @@ import MyStatsScreen from '../screens/profile/MyStatsScreen';
 import PlatformSyncScreen from '../screens/profile/PlatformSyncScreen';
 
 import NotificationsScreen from '../screens/notifications/NotificationsScreen';
+
 import SettingsScreen from '../screens/settings/SettingsScreen';
+import BlockedUsersScreen from '../screens/settings/BlockedUsersScreen';
+import DeleteAccountScreen from '../screens/settings/DeleteAccountScreen';
 
 const RootStack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -82,6 +85,8 @@ function ProfileNavigator() {
       <ProfileStack.Screen name="PlatformSync" component={PlatformSyncScreen} />
       <ProfileStack.Screen name="Notifications" component={NotificationsScreen} />
       <ProfileStack.Screen name="Settings" component={SettingsScreen} />
+      <ProfileStack.Screen name="BlockedUsers" component={BlockedUsersScreen} />
+      <ProfileStack.Screen name="DeleteAccount" component={DeleteAccountScreen} />
     </ProfileStack.Navigator>
   );
 }
