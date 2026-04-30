@@ -1,17 +1,10 @@
 import React, { useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
-  StatusBar, Alert, ActivityIndicator, KeyboardAvoidingView,
+  StatusBar, ActivityIndicator, KeyboardAvoidingView,
   Platform, ScrollView,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { supabase } from '../../lib/supabase';
-
-// A deterministic Volpair password derived from platform email
-// In production this would be replaced by proper OAuth / magic link
-function volpairPassword(email: string): string {
-  return `vp_${email.split('@')[0]}_2026`;
-}
 
 export default function PlatformLoginScreen({ route, navigation }: any) {
   const { platform, label } = route.params;
@@ -20,63 +13,21 @@ export default function PlatformLoginScreen({ route, navigation }: any) {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleConnect = async () => {
-    if (!email.trim() || !password.trim()) {
-      Alert.alert('Missing details', 'Please enter your email and password.');
-      return;
-    }
-
+  const handleConnect = () => {
+    if (!email.trim() || !password.trim()) return;
     setLoading(true);
-    try {
-      const volpairEmail = email.trim().toLowerCase();
-      const volpairPass = volpairPassword(volpairEmail);
-
-      // Try to sign in first (returning user)
-      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-        email: volpairEmail,
-        password: volpairPass,
-      });
-
-      if (signInData?.session) {
-        // Existing user — go straight to syncing
-        navigation.navigate('SyncingProfile', {
-          platform,
-          platformEmail: volpairEmail,
-          platformPassword: password,
-        });
-        return;
-      }
-
-      // New user — sign up
-      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-        email: volpairEmail,
-        password: volpairPass,
-      });
-
-      if (signUpError) throw signUpError;
-      if (!signUpData?.session && !signUpData?.user) {
-        throw new Error('Could not create account. Please try again.');
-      }
-
-      navigation.navigate('SyncingProfile', {
-        platform,
-        platformEmail: volpairEmail,
-        platformPassword: password,
-      });
-    } catch (err: any) {
-      setLoading(false);
-      Alert.alert('Connection failed', err?.message ?? 'Could not connect. Please check your credentials.');
-    }
+    // Navigate to syncing — the actual Playtomic API call happens there
+    navigation.navigate('SyncingProfile', {
+      platform,
+      platformEmail: email.trim().toLowerCase(),
+      platformPassword: password,
+    });
   };
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
         <StatusBar barStyle="light-content" backgroundColor="#0D1B2A" />
-
         <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
           <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
             <Text style={styles.backText}>← Back</Text>
@@ -88,7 +39,7 @@ export default function PlatformLoginScreen({ route, navigation }: any) {
             </View>
             <Text style={styles.title}>Connect your account</Text>
             <Text style={styles.subtitle}>
-              Enter your {label} credentials. We use them to import your match history — we never store them in plain text.
+              Enter your {label} credentials so we can import your match history.
             </Text>
           </View>
 
@@ -104,7 +55,6 @@ export default function PlatformLoginScreen({ route, navigation }: any) {
               autoCapitalize="none"
               autoCorrect={false}
             />
-
             <Text style={styles.fieldLabel}>{label} password</Text>
             <TextInput
               style={styles.input}
@@ -114,19 +64,18 @@ export default function PlatformLoginScreen({ route, navigation }: any) {
               placeholderTextColor="#2A3C52"
               secureTextEntry
             />
-
             <View style={styles.securityNote}>
               <Text style={styles.securityIcon}>🔒</Text>
               <Text style={styles.securityText}>
-                Your credentials are only used to import your match data. They are encrypted and never shared.
+                Used only to import your match data. Never stored in plain text.
               </Text>
             </View>
           </View>
 
           <TouchableOpacity
-            style={[styles.connectBtn, loading && styles.connectBtnDisabled]}
+            style={[styles.connectBtn, (!email.trim() || !password.trim() || loading) && styles.connectBtnDisabled]}
             onPress={handleConnect}
-            disabled={loading}
+            disabled={!email.trim() || !password.trim() || loading}
           >
             {loading
               ? <ActivityIndicator color="#FFFFFF" />
