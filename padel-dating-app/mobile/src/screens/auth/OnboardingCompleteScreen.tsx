@@ -3,6 +3,12 @@ import { View, Text, TouchableOpacity, StyleSheet, StatusBar, Animated } from 'r
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme } from '../../lib/theme';
 
+const HIGHLIGHTS = [
+  { icon: '💘', text: "Discover players you've shared a court with", color: '#A78BFA' },
+  { icon: '🎾', text: 'Find a doubles partner at your level', color: '#00D4C8' },
+  { icon: '⚡', text: 'Your Volpair score builds with every match', color: '#00D4C8' },
+];
+
 export default function OnboardingCompleteScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
   const scaleAnim = useRef(new Animated.Value(0.5)).current;
@@ -23,14 +29,10 @@ export default function OnboardingCompleteScreen({ navigation }: any) {
           <Text style={styles.emoji}>🎾</Text>
         </Animated.View>
         <Animated.View style={{ opacity: fadeAnim, alignItems: 'center' }}>
-          <Text style={styles.title}>You're in.</Text>
+          <Text style={styles.title}>{"You're in."}</Text>
           <Text style={styles.subtitle}>Your first match is waiting.</Text>
           <View style={styles.highlights}>
-            {[
-              { icon: '💘', text: 'Discover players you've shared a court with', color: '#A78BFA' },
-              { icon: '🎾', text: 'Find a doubles partner at your level', color: theme.primary },
-              { icon: '⚡', text: 'Your Volpair score builds with every match', color: theme.primary },
-            ].map((item, i) => (
+            {HIGHLIGHTS.map((item, i) => (
               <View key={i} style={styles.highlight}>
                 <Text style={styles.highlightIcon}>{item.icon}</Text>
                 <Text style={[styles.highlightText, { color: item.color }]}>{item.text}</Text>
