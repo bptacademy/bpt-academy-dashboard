@@ -51,6 +51,15 @@ export default function WelcomeScreen({ navigation }: any) {
         >
           <Text style={styles.primaryBtnText}>Get started</Text>
         </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.secondaryBtn}
+          onPress={() => navigation.navigate('EmailSignup')}
+          activeOpacity={0.75}
+        >
+          <Text style={styles.secondaryBtnText}>Sign in</Text>
+        </TouchableOpacity>
+
         <Text style={styles.legalNote}>
           By continuing you agree to our Terms of Service and Privacy Policy
         </Text>
@@ -96,5 +105,11 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.4, shadowRadius: 14, elevation: 6,
   },
   primaryBtnText: { color: '#0D1B2A', fontSize: 17, fontWeight: '800', letterSpacing: 0.2 },
+  secondaryBtn: {
+    borderRadius: 16, padding: 18, alignItems: 'center',
+    borderWidth: 1.5, borderColor: theme.primaryBorder,
+    backgroundColor: theme.primaryDim,
+  },
+  secondaryBtnText: { color: theme.primary, fontSize: 17, fontWeight: '700' },
   legalNote: { fontSize: 11, color: theme.textDim, textAlign: 'center', lineHeight: 16 },
 });
