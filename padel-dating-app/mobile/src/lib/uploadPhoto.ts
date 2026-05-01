@@ -1,21 +1,20 @@
 /**
  * uploadPhoto — uploads a local image URI to Supabase Storage (photos bucket)
  *
- * Uses expo-file-system to read the file as base64, then decodes to ArrayBuffer
- * for upload. Required on iOS — fetch(localUri) returns an empty blob.
+ * Uses FormData + direct fetch to Supabase Storage REST API.
+ * This is the proven approach that works on iOS (same as BPT Academy).
  */
 
-import * as FileSystem from 'expo-file-system';
 import { supabase } from './supabase';
 
 const SUPABASE_URL = 'https://qmdewocktouqoibbqurh.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_KwkQawb1Kv2jOk1Wud0xUg_mPQxPqmL';
 
 export async function uploadPhoto(
   localUri: string,
   authUid: string,
   index: number,
 ): Promise<string> {
-  // Derive mime type from extension
   const ext = localUri.split('.').pop()?.toLowerCase() ?? 'jpg';
   const validExt = ['jpg', 'jpeg', 'png', 'webp'].includes(ext) ? ext : 'jpg';
   const mimeType = validExt === 'png' ? 'image/png'
@@ -24,26 +23,35 @@ export async function uploadPhoto(
 
   const fileName = `${authUid}/${Date.now()}_${index}.${validExt}`;
 
-  // Read file as base64 using expo-file-system (works correctly on iOS)
-  const base64 = await FileSystem.readAsStringAsync(localUri, {
-    encoding: FileSystem.EncodingType.Base64,
-  });
+  // Get current session token
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session?.access_token) throw new Error('Not logged in');
 
-  // Decode base64 → Uint8Array
-  const binaryStr = atob(base64);
-  const bytes = new Uint8Array(binaryStr.length);
-  for (let i = 0; i < binaryStr.length; i++) {
-    bytes[i] = binaryStr.charCodeAt(i);
+  // Build FormData — works reliably on iOS
+  const formData = new FormData();
+  formData.append('file', {
+    uri: localUri,
+    name: fileName,
+    type: mimeType,
+  } as any);
+
+  const res = await fetch(
+    `${SUPABASE_URL}/storage/v1/object/photos/${fileName}`,
+    {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${session.access_token}`,
+        'apikey': SUPABASE_ANON_KEY,
+        'x-upsert': 'true',
+      },
+      body: formData,
+    }
+  );
+
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`Upload failed: ${err}`);
   }
-
-  const { error } = await supabase.storage
-    .from('photos')
-    .upload(fileName, bytes, {
-      contentType: mimeType,
-      upsert: true,
-    });
-
-  if (error) throw new Error(`Upload failed: ${error.message}`);
 
   return `${SUPABASE_URL}/storage/v1/object/public/photos/${fileName}`;
 }
