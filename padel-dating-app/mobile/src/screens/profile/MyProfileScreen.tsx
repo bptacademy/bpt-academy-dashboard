@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  View, Text, ScrollView, StyleSheet, TouchableOpacity, StatusBar,
+  View, Text, ScrollView, StyleSheet, TouchableOpacity, StatusBar, Image,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme } from '../../lib/theme';
@@ -14,6 +14,7 @@ export default function MyProfileScreen({ navigation }: any) {
     ? user.full_name.split(' ').map((n: string) => n[0]).join('').toUpperCase()
     : user?.email?.[0]?.toUpperCase() ?? '?';
 
+  const mainPhoto = user?.photos?.[0] ?? null;
   const lastSynced: string | null = null;
 
   const MENU_ITEMS = [
@@ -35,9 +36,13 @@ export default function MyProfileScreen({ navigation }: any) {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
 
         <View style={styles.profileCard}>
-          <View style={styles.avatarCircle}>
-            <Text style={styles.avatarInitials}>{initials}</Text>
-          </View>
+          {mainPhoto ? (
+            <Image source={{ uri: mainPhoto }} style={styles.avatarPhoto} />
+          ) : (
+            <View style={styles.avatarCircle}>
+              <Text style={styles.avatarInitials}>{initials}</Text>
+            </View>
+          )}
           <Text style={styles.profileName}>
             {user?.full_name ?? user?.email?.split('@')[0] ?? 'Player'}
           </Text>
@@ -59,60 +64,50 @@ export default function MyProfileScreen({ navigation }: any) {
           {user?.bio && <Text style={styles.bio}>"{user.bio}"</Text>}
         </View>
 
+        {/* Stats card */}
         <View style={styles.statsCard}>
           <View style={styles.statBox}>
             <Text style={styles.statValue}>—</Text>
-            <Text style={styles.statLabel}>Matches</Text>
+            <Text style={styles.statLabel}>MATCHES</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statBox}>
             <Text style={styles.statValue}>—</Text>
-            <Text style={styles.statLabel}>Win rate</Text>
+            <Text style={styles.statLabel}>WIN RATE</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statBox}>
             <Text style={styles.statValue}>—</Text>
-            <Text style={styles.statLabel}>Volpair score</Text>
+            <Text style={styles.statLabel}>LEVEL</Text>
           </View>
         </View>
 
-        {lastSynced === null ? (
-          <TouchableOpacity
-            style={styles.syncCtaNever}
-            onPress={() => navigation.navigate('PlatformSync')}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.syncCtaIcon}>⚡</Text>
-            <View style={styles.syncCtaText}>
-              <Text style={styles.syncCtaTitle}>Import your match history</Text>
-              <Text style={styles.syncCtaSub}>
-                Sync Playtomic to unlock your stats, level, and Volpair score
-              </Text>
-            </View>
-            <Text style={styles.syncCtaArrow}>›</Text>
-          </TouchableOpacity>
-        ) : (
-          <TouchableOpacity
-            style={styles.syncCtaSynced}
-            onPress={() => navigation.navigate('PlatformSync')}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.syncCtaIcon}>✅</Text>
-            <View style={styles.syncCtaText}>
-              <Text style={styles.syncCtaTitleSynced}>Playtomic synced</Text>
-              <Text style={styles.syncCtaSub}>Last synced {lastSynced} · tap to re-sync</Text>
-            </View>
-            <Text style={styles.syncCtaArrow}>›</Text>
-          </TouchableOpacity>
-        )}
+        {/* Sync CTA */}
+        <TouchableOpacity
+          style={lastSynced ? styles.syncCtaSynced : styles.syncCtaNever}
+          onPress={() => navigation.navigate('PlatformSync')}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.syncCtaIcon}>🎾</Text>
+          <View style={styles.syncCtaText}>
+            <Text style={lastSynced ? styles.syncCtaTitleSynced : styles.syncCtaTitle}>
+              {lastSynced ? 'Playtomic connected' : 'Connect Playtomic'}
+            </Text>
+            <Text style={styles.syncCtaSub}>
+              {lastSynced ? `Last synced ${lastSynced}` : 'Import your match history and get your Volpair score'}
+            </Text>
+          </View>
+          <Text style={styles.syncCtaArrow}>›</Text>
+        </TouchableOpacity>
 
+        {/* Menu */}
         <View style={styles.menuCard}>
           {MENU_ITEMS.map((item, i) => (
             <TouchableOpacity
               key={item.screen}
               style={[styles.menuRow, i < MENU_ITEMS.length - 1 && styles.menuRowBorder]}
               onPress={() => navigation.navigate(item.screen)}
-              activeOpacity={0.7}
+              activeOpacity={0.75}
             >
               <Text style={styles.menuIcon}>{item.icon}</Text>
               <Text style={styles.menuLabel}>{item.label}</Text>
@@ -121,7 +116,11 @@ export default function MyProfileScreen({ navigation }: any) {
           ))}
         </View>
 
-        <TouchableOpacity style={styles.signOutBtn} onPress={signOut} activeOpacity={0.7}>
+        <TouchableOpacity
+          style={styles.signOutBtn}
+          onPress={() => signOut()}
+          activeOpacity={0.8}
+        >
           <Text style={styles.signOutText}>Sign out</Text>
         </TouchableOpacity>
 
@@ -143,12 +142,16 @@ const styles = StyleSheet.create({
     backgroundColor: theme.bgCard, borderRadius: 20, padding: 24,
     alignItems: 'center', borderWidth: 1, borderColor: theme.border, marginBottom: 12,
   },
+  avatarPhoto: {
+    width: 90, height: 90, borderRadius: 45,
+    marginBottom: 14, borderWidth: 2.5, borderColor: theme.primaryBorder,
+  },
   avatarCircle: {
-    width: 80, height: 80, borderRadius: 40,
+    width: 90, height: 90, borderRadius: 45,
     backgroundColor: theme.primaryDim, alignItems: 'center', justifyContent: 'center',
     borderWidth: 2.5, borderColor: theme.primaryBorder, marginBottom: 14,
   },
-  avatarInitials: { fontSize: 30, fontWeight: '800', color: theme.primary },
+  avatarInitials: { fontSize: 32, fontWeight: '800', color: theme.primary },
   profileName: { fontSize: 22, fontWeight: '800', color: theme.textPrimary, marginBottom: 4 },
   profileCity: { fontSize: 13, color: theme.textMuted, marginBottom: 12 },
   badgeRow: { flexDirection: 'row', gap: 8, marginBottom: 12, flexWrap: 'wrap', justifyContent: 'center' },
@@ -197,5 +200,5 @@ const styles = StyleSheet.create({
     backgroundColor: theme.bgCard, borderRadius: 14, padding: 16,
     alignItems: 'center', borderWidth: 1, borderColor: theme.border,
   },
-  signOutText: { color: '#F87171', fontSize: 15, fontWeight: '600' },
+  signOutText: { fontSize: 15, color: '#EF4444', fontWeight: '600' },
 });

@@ -8,6 +8,7 @@ import { theme } from '../../lib/theme';
 import * as ImagePicker from 'expo-image-picker';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
+import { uploadPhotos } from '../../lib/uploadPhoto';
 
 const MAX_PHOTOS = 3;
 
@@ -17,6 +18,7 @@ export default function PhotoUploadScreen({ route, navigation }: any) {
   const { session, refreshUser } = useAuth();
   const [photos, setPhotos] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState('');
 
   const pickPhoto = async () => {
     if (photos.length >= MAX_PHOTOS) return;
@@ -27,12 +29,12 @@ export default function PhotoUploadScreen({ route, navigation }: any) {
       quality: 0.85,
     });
     if (!result.canceled && result.assets[0]) {
-      setPhotos((prev) => [...prev, result.assets[0].uri]);
+      setPhotos(prev => [...prev, result.assets[0].uri]);
     }
   };
 
   const removePhoto = (index: number) => {
-    setPhotos((prev) => prev.filter((_, i) => i !== index));
+    setPhotos(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleFinish = async () => {
@@ -46,7 +48,12 @@ export default function PhotoUploadScreen({ route, navigation }: any) {
       const userId = session?.user?.id;
       if (!userId) throw new Error('Not logged in');
 
-      // Save user profile to DB
+      // Upload all photos to Supabase Storage
+      setUploadProgress('Uploading photos…');
+      const photoUrls = await uploadPhotos(photos, userId);
+
+      // Save profile to DB including photo URLs
+      setUploadProgress('Saving profile…');
       const { error: dbError } = await supabase.from('users').upsert({
         auth_id: userId,
         email: session?.user?.email,
@@ -55,6 +62,7 @@ export default function PhotoUploadScreen({ route, navigation }: any) {
         looking_for: looking_for ?? null,
         visible_to: visible_to ?? 'everyone',
         bio: bio || null,
+        photos: photoUrls,
         profile_complete: true,
         last_active_at: new Date().toISOString(),
       }, { onConflict: 'auth_id' });
@@ -62,10 +70,10 @@ export default function PhotoUploadScreen({ route, navigation }: any) {
       if (dbError) throw dbError;
 
       await refreshUser();
-      setSaving(false);
       navigation.replace('OnboardingComplete');
     } catch (err: any) {
       setSaving(false);
+      setUploadProgress('');
       Alert.alert('Error', err?.message ?? 'Could not save your profile. Please try again.');
     }
   };
@@ -86,6 +94,11 @@ export default function PhotoUploadScreen({ route, navigation }: any) {
           {photos.map((uri, i) => (
             <View key={i} style={styles.photoSlot}>
               <Image source={{ uri }} style={styles.photo} />
+              {i === 0 && (
+                <View style={styles.mainBadge}>
+                  <Text style={styles.mainBadgeText}>Main</Text>
+                </View>
+              )}
               <TouchableOpacity style={styles.removeBtn} onPress={() => removePhoto(i)}>
                 <Text style={styles.removeBtnText}>✕</Text>
               </TouchableOpacity>
@@ -115,7 +128,12 @@ export default function PhotoUploadScreen({ route, navigation }: any) {
           disabled={saving || photos.length === 0}
         >
           {saving
-            ? <ActivityIndicator color="#FFFFFF" />
+            ? (
+              <View style={styles.savingRow}>
+                <ActivityIndicator color="#FFFFFF" size="small" />
+                <Text style={styles.finishBtnText}>{uploadProgress || 'Saving…'}</Text>
+              </View>
+            )
             : <Text style={styles.finishBtnText}>Finish setup →</Text>
           }
         </TouchableOpacity>
@@ -132,6 +150,12 @@ const styles = StyleSheet.create({
   photoGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 24 },
   photoSlot: { position: 'relative', width: '47%', aspectRatio: 4 / 5 },
   photo: { width: '100%', height: '100%', borderRadius: 16 },
+  mainBadge: {
+    position: 'absolute', bottom: 8, left: 8,
+    backgroundColor: theme.primary, borderRadius: 6,
+    paddingHorizontal: 8, paddingVertical: 3,
+  },
+  mainBadgeText: { color: theme.bg, fontSize: 10, fontWeight: '800' },
   removeBtn: {
     position: 'absolute', top: 8, right: 8,
     width: 28, height: 28, borderRadius: 14,
@@ -160,4 +184,5 @@ const styles = StyleSheet.create({
   },
   finishBtnDisabled: { opacity: 0.4 },
   finishBtnText: { color: theme.textPrimary, fontSize: 17, fontWeight: '700' },
+  savingRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
 });

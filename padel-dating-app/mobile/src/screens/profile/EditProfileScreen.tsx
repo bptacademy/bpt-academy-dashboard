@@ -9,6 +9,7 @@ import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplet
 import { theme } from '../../lib/theme';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
+import { uploadPhotos } from '../../lib/uploadPhoto';
 
 const GOOGLE_KEY = process.env.EXPO_PUBLIC_GOOGLE_PLACES_KEY!;
 
@@ -31,7 +32,7 @@ const MAX_BIO = 120;
 
 export default function EditProfileScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
-  const { user, refreshUser } = useAuth();
+  const { user, session, refreshUser } = useAuth();
   const [bio, setBio] = useState(user?.bio ?? '');
   const [city, setCity] = useState(user?.city ?? '');
   const [lookingFor, setLookingFor] = useState<'date' | 'partner' | 'both' | 'exploring'>(
@@ -69,6 +70,11 @@ export default function EditProfileScreen({ navigation }: any) {
   const handleSave = async () => {
     setSaving(true);
     try {
+      const authUid = session?.user?.id ?? user?.id ?? '';
+
+      // Upload any new local photos to Storage
+      const photoUrls = await uploadPhotos(photos, authUid);
+
       const { error } = await supabase
         .from('users')
         .update({
@@ -76,6 +82,7 @@ export default function EditProfileScreen({ navigation }: any) {
           city: city.trim() || null,
           looking_for: lookingFor,
           visible_to: visibleTo,
+          photos: photoUrls,
         })
         .eq('id', user?.id ?? '');
 
