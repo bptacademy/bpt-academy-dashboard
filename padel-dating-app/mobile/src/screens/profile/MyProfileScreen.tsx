@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity, StatusBar, Image,
 } from 'react-native';
@@ -11,6 +11,7 @@ export default function MyProfileScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
   const { user, signOut, refreshUser } = useAuth();
   const isFocused = useIsFocused();
+  const [imgStatus, setImgStatus] = useState<'idle' | 'loaded' | 'error'>('idle');
 
   useEffect(() => {
     if (isFocused) refreshUser();
@@ -34,24 +35,46 @@ export default function MyProfileScreen({ navigation }: any) {
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <StatusBar barStyle="light-content" backgroundColor={theme.bg} />
-
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Profile</Text>
       </View>
-
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
         <View style={styles.profileCard}>
+
+          {/* ── DIAGNOSTIC BLOCK — remove once photo works ── */}
+          <View style={styles.debugBox}>
+            <Text style={styles.debugText}>
+              photos array: {mainPhoto ? '✅ has URL' : '❌ empty/null'}
+            </Text>
+            {mainPhoto && (
+              <Text style={styles.debugText} numberOfLines={1} ellipsizeMode="middle">
+                {mainPhoto}
+              </Text>
+            )}
+            {mainPhoto && (
+              <Text style={styles.debugText}>
+                img status: {imgStatus}
+              </Text>
+            )}
+          </View>
+          {/* ── END DIAGNOSTIC ── */}
+
           {mainPhoto ? (
-            <Image
-              source={{ uri: mainPhoto }}
-              style={styles.avatarPhoto}
-              resizeMode="cover"
-            />
+            <View style={styles.avatarWrapper}>
+              <Image
+                source={{ uri: mainPhoto }}
+                style={styles.avatarPhoto}
+                resizeMode="cover"
+                onLoad={() => setImgStatus('loaded')}
+                onError={(e) => setImgStatus('error: ' + e.nativeEvent.error as any)}
+              />
+            </View>
           ) : (
             <View style={styles.avatarCircle}>
               <Text style={styles.avatarInitials}>{initials}</Text>
             </View>
           )}
+
           <Text style={styles.profileName}>
             {user?.full_name ?? user?.email?.split('@')[0] ?? 'Player'}
           </Text>
@@ -101,7 +124,9 @@ export default function MyProfileScreen({ navigation }: any) {
               {lastSynced ? 'Playtomic connected' : 'Connect Playtomic'}
             </Text>
             <Text style={styles.syncCtaSub}>
-              {lastSynced ? `Last synced ${lastSynced}` : 'Import your match history and get your Volpair score'}
+              {lastSynced
+                ? `Last synced ${lastSynced}`
+                : 'Import your match history and get your Volpair score'}
             </Text>
           </View>
           <Text style={styles.syncCtaArrow}>›</Text>
@@ -144,12 +169,16 @@ const styles = StyleSheet.create({
     backgroundColor: theme.bgCard, borderRadius: 20, padding: 24,
     alignItems: 'center', borderWidth: 1, borderColor: theme.border, marginBottom: 12,
   },
-  // Explicit pixel dimensions — required for RN Image to render remote URLs
-  avatarPhoto: {
-    width: 90, height: 90, borderRadius: 45,
-    marginBottom: 14, borderWidth: 2.5, borderColor: theme.primaryBorder,
-    overflow: 'hidden',
+  debugBox: {
+    width: '100%', backgroundColor: '#1a1a2e', borderRadius: 8, padding: 10, marginBottom: 12,
+    borderWidth: 1, borderColor: '#333',
   },
+  debugText: { fontSize: 11, color: '#00ff88', fontFamily: 'monospace', marginBottom: 2 },
+  avatarWrapper: {
+    width: 90, height: 90, borderRadius: 45, marginBottom: 14,
+    borderWidth: 2.5, borderColor: theme.primaryBorder, overflow: 'hidden',
+  },
+  avatarPhoto: { width: 90, height: 90 },
   avatarCircle: {
     width: 90, height: 90, borderRadius: 45,
     backgroundColor: theme.primaryDim, alignItems: 'center', justifyContent: 'center',
