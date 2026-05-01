@@ -13,7 +13,6 @@ import { uploadPhotos } from '../../lib/uploadPhoto';
 
 const GOOGLE_KEY = process.env.EXPO_PUBLIC_GOOGLE_PLACES_KEY!;
 const SCREEN_WIDTH = Dimensions.get('window').width;
-// 20px padding each side, 10px gap between 3 slots → slot width in pixels
 const SLOT_WIDTH = Math.floor((SCREEN_WIDTH - 40 - 20) / 3);
 const SLOT_HEIGHT = Math.floor(SLOT_WIDTH * (5 / 4));
 
@@ -37,6 +36,7 @@ const MAX_BIO = 120;
 export default function EditProfileScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
   const { user, session, refreshUser } = useAuth();
+  const [fullName, setFullName] = useState(user?.full_name ?? '');
   const [bio, setBio] = useState(user?.bio ?? '');
   const [city, setCity] = useState(user?.city ?? '');
   const [lookingFor, setLookingFor] = useState<'date' | 'partner' | 'both' | 'exploring'>(
@@ -72,6 +72,10 @@ export default function EditProfileScreen({ navigation }: any) {
   };
 
   const handleSave = async () => {
+    if (!fullName.trim()) {
+      Alert.alert('Name required', 'Please enter your name.');
+      return;
+    }
     setSaving(true);
     try {
       const authUid = session?.user?.id ?? user?.id ?? '';
@@ -80,6 +84,7 @@ export default function EditProfileScreen({ navigation }: any) {
       const { error } = await supabase
         .from('users')
         .update({
+          full_name: fullName.trim(),
           bio: bio.trim() || null,
           city: city.trim() || null,
           looking_for: lookingFor,
@@ -114,12 +119,24 @@ export default function EditProfileScreen({ navigation }: any) {
         </TouchableOpacity>
       </View>
 
-      {/* Use plain View + FlatList-style manual layout to avoid nested ScrollView warning from GooglePlaces */}
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scroll}
         keyboardShouldPersistTaps="handled"
       >
+        {/* Name */}
+        <Text style={styles.fieldLabel}>👤 Your name</Text>
+        <TextInput
+          style={styles.input}
+          value={fullName}
+          onChangeText={setFullName}
+          placeholder="First and last name"
+          placeholderTextColor={theme.textDim}
+          autoCapitalize="words"
+          autoCorrect={false}
+          returnKeyType="done"
+        />
+
         {/* Photos */}
         <Text style={styles.fieldLabel}>📸 Photos ({photos.length}/{MAX_PHOTOS})</Text>
         <Text style={styles.fieldHint}>Your first photo is your main profile photo.</Text>
@@ -153,7 +170,7 @@ export default function EditProfileScreen({ navigation }: any) {
           )}
         </View>
 
-        {/* City — wrap GooglePlacesAutocomplete outside ScrollView nesting issue */}
+        {/* City */}
         <Text style={styles.fieldLabel}>📍 City</Text>
         <View style={styles.placesWrapper}>
           <GooglePlacesAutocomplete
