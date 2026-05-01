@@ -83,7 +83,7 @@ async function registerForPushNotifications(userId: string) {
 
     // Get Expo push token
     const tokenData = await Notifications.getExpoPushTokenAsync({
-      projectId: 'a661965b-f384-43fa-8441-f9e5f78a0c3a', // Volpair EAS project ID (reuse BPT for now — update when Volpair EAS is set up)
+      projectId: '402b07e4-ccc8-4ceb-8b83-5e94a3f6327f', // Volpair EAS project ID (reuse BPT for now — update when Volpair EAS is set up)
     });
 
     const token = tokenData.data;

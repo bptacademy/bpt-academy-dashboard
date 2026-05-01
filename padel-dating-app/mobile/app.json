@@ -3,6 +3,9 @@
     "name": "Volpair",
     "slug": "volpair",
     "version": "1.0.0",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
@@ -21,7 +24,10 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0D1B2A"
       },
-      "package": "com.volpair.app"
+      "package": "com.volpair.app",
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -44,9 +50,15 @@
         "expo-notifications",
         {
           "icon": "./assets/icon.png",
-          "color": "#E63F6B"
+          "color": "#00D4C8"
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "402b07e4-ccc8-4ceb-8b83-5e94a3f6327f"
+      }
+    },
+    "owner": "bptacademyuk"
   }
 }
