@@ -1,14 +1,22 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity, StatusBar, Image,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useIsFocused } from '@react-navigation/native';
 import { theme } from '../../lib/theme';
 import { useAuth } from '../../context/AuthContext';
 
 export default function MyProfileScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
-  const { user, signOut } = useAuth();
+  const { user, signOut, refreshUser } = useAuth();
+  const isFocused = useIsFocused();
+
+  // Refresh user data every time this screen comes into focus
+  // (catches updates from EditProfile, PlatformSync, etc.)
+  useEffect(() => {
+    if (isFocused) refreshUser();
+  }, [isFocused]);
 
   const initials = user?.full_name
     ? user.full_name.split(' ').map((n: string) => n[0]).join('').toUpperCase()
