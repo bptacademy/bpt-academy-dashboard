@@ -1,13 +1,12 @@
 /**
  * AnimatedRing — clean animated circular ring with glow effect
  *
- * Uses the rotating half-mask technique correctly:
- * - A full ring border is revealed by rotating two half-circle masks
- * - A glow pulse animates simultaneously for the "charging" feel
+ * Draws clockwise from the bottom (6 o'clock position), completing a full circle.
+ * Glow pulses during the draw then settles.
  */
 
 import React, { useEffect, useRef } from 'react';
-import { View, Animated, StyleSheet } from 'react-native';
+import { View, Animated } from 'react-native';
 
 interface Props {
   size: number;
@@ -21,15 +20,13 @@ export default function AnimatedRing({
   size,
   thickness,
   color,
-  duration = 1400,
+  duration = 2200,
   children,
 }: Props) {
   const half = size / 2;
   const innerSize = size - thickness * 2;
 
-  // Progress: 0 → 1 over full duration
   const progress = useRef(new Animated.Value(0)).current;
-  // Glow pulse
   const glow = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -37,60 +34,56 @@ export default function AnimatedRing({
     glow.setValue(0);
 
     Animated.parallel([
-      // Draw the ring
       Animated.timing(progress, {
         toValue: 1,
         duration,
         useNativeDriver: true,
       }),
-      // Glow: fade in during draw, then settle
       Animated.sequence([
         Animated.timing(glow, {
           toValue: 1,
-          duration: duration * 0.6,
+          duration: duration * 0.5,
           useNativeDriver: true,
         }),
         Animated.timing(glow, {
-          toValue: 0.4,
-          duration: duration * 0.4,
+          toValue: 0.35,
+          duration: duration * 0.5,
           useNativeDriver: true,
         }),
       ]),
     ]).start();
-  }, [color]);
+  }, []); // runs once on mount — parent remounts with key prop to re-trigger
 
-  // First half rotates 0→180° (covers right side)
+  // Right half: sweeps from bottom-right to top (first 50%)
   const rotateRight = progress.interpolate({
     inputRange: [0, 0.5, 1],
     outputRange: ['0deg', '180deg', '180deg'],
   });
 
-  // Second half rotates 0→180° but only starts at 50% progress
+  // Left half: sweeps from top to bottom-left (second 50%)
   const rotateLeft = progress.interpolate({
     inputRange: [0, 0.5, 1],
     outputRange: ['0deg', '0deg', '180deg'],
   });
 
-  const glowOpacity = glow;
-
   return (
     <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
 
-      {/* Glow halo behind the ring */}
+      {/* Glow halo */}
       <Animated.View
         style={{
           position: 'absolute',
-          width: size + 12,
-          height: size + 12,
-          borderRadius: (size + 12) / 2,
+          width: size + 16,
+          height: size + 16,
+          borderRadius: (size + 16) / 2,
+          top: -8,
+          left: -8,
           backgroundColor: color,
-          opacity: Animated.multiply(glowOpacity, 0.25),
-          top: -6,
-          left: -6,
+          opacity: Animated.multiply(glow, 0.2),
         }}
       />
 
-      {/* Base ring (faint track) */}
+      {/* Faint track ring */}
       <View style={{
         position: 'absolute',
         width: size,
@@ -100,7 +93,7 @@ export default function AnimatedRing({
         borderColor: 'rgba(255,255,255,0.06)',
       }} />
 
-      {/* RIGHT half — reveals first 180° */}
+      {/* RIGHT half mask — reveals bottom→top clockwise */}
       <View style={{
         position: 'absolute',
         width: half,
@@ -118,6 +111,7 @@ export default function AnimatedRing({
           borderColor: color,
           borderLeftColor: 'transparent',
           borderTopColor: 'transparent',
+          // Start at 6 o'clock: rotate -90° to position, then animate
           transform: [
             { translateX: half },
             { rotate: '-90deg' },
@@ -127,7 +121,7 @@ export default function AnimatedRing({
         }} />
       </View>
 
-      {/* LEFT half — reveals second 180° */}
+      {/* LEFT half mask — reveals top→bottom clockwise */}
       <View style={{
         position: 'absolute',
         width: half,
@@ -154,7 +148,7 @@ export default function AnimatedRing({
         }} />
       </View>
 
-      {/* Inner content */}
+      {/* Avatar content */}
       <View style={{
         width: innerSize,
         height: innerSize,

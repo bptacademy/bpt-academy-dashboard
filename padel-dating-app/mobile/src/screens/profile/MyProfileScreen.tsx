@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity, StatusBar, Image,
 } from 'react-native';
@@ -15,9 +15,14 @@ export default function MyProfileScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
   const { user, signOut, refreshUser } = useAuth();
   const isFocused = useIsFocused();
+  // Increment key every time screen is focused → forces AnimatedRing to remount + replay
+  const [ringKey, setRingKey] = useState(0);
 
   useEffect(() => {
-    if (isFocused) refreshUser();
+    if (isFocused) {
+      refreshUser();
+      setRingKey(k => k + 1);
+    }
   }, [isFocused]);
 
   const initials = user?.full_name
@@ -27,10 +32,10 @@ export default function MyProfileScreen({ navigation }: any) {
   const mainPhoto = user?.photos?.[0] ?? null;
   const lastSynced: string | null = null;
 
-  // Ring color based on gender
-  const ringColor = user?.gender === 'female' ? '#A78BFA'   // violet for women
-    : user?.gender === 'male' ? theme.primary               // turquoise for men
-    : theme.primary;                                         // default turquoise
+  const ringColor = user?.gender === 'female' ? '#A78BFA'
+    : theme.primary;
+
+  const innerSize = AVATAR_SIZE - RING_THICKNESS * 2;
 
   const MENU_ITEMS = [
     { icon: '✏️', label: 'Edit Profile', screen: 'EditProfile' },
@@ -38,8 +43,6 @@ export default function MyProfileScreen({ navigation }: any) {
     { icon: '🔔', label: 'Notifications', screen: 'Notifications' },
     { icon: '⚙️', label: 'Settings', screen: 'Settings' },
   ];
-
-  const innerSize = AVATAR_SIZE - RING_THICKNESS * 2;
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -50,12 +53,13 @@ export default function MyProfileScreen({ navigation }: any) {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
         <View style={styles.profileCard}>
 
-          {/* Animated ring avatar */}
+          {/* key prop forces remount → animation replays on every focus */}
           <AnimatedRing
+            key={ringKey}
             size={AVATAR_SIZE}
             thickness={RING_THICKNESS}
             color={ringColor}
-            duration={1400}
+            duration={2200}
           >
             {mainPhoto ? (
               <Image
