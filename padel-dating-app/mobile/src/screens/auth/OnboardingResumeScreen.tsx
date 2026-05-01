@@ -11,14 +11,13 @@ export default function OnboardingResumeScreen({ navigation }: any) {
   }, []);
 
   const resume = async () => {
-    // Get the auth user ID from the live session
     const authId = session?.user?.id;
     if (!authId) {
       navigation.replace('PlatformSelect');
       return;
     }
 
-    // Always fetch fresh from DB — don't rely on cached AuthContext user
+    // Always fetch fresh from DB
     const { data: freshUser } = await supabase
       .from('users')
       .select('id, profile_complete, city, looking_for, visible_to, bio')
@@ -30,9 +29,9 @@ export default function OnboardingResumeScreen({ navigation }: any) {
       return;
     }
 
-    // Profile already complete — go straight to the app
+    // Profile complete — do nothing, Navigation component will switch to MainTabs
+    // automatically once AuthContext has the updated user (profile_complete=true)
     if (freshUser.profile_complete) {
-      navigation.replace('MainTabs');
       return;
     }
 
