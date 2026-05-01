@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
-  StatusBar, ScrollView, Alert, ActivityIndicator,
+  StatusBar, ScrollView, Alert, ActivityIndicator, Image, Dimensions,
 } from 'react-native';
-import { Image } from 'expo-image';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
@@ -13,6 +12,10 @@ import { supabase } from '../../lib/supabase';
 import { uploadPhotos } from '../../lib/uploadPhoto';
 
 const GOOGLE_KEY = process.env.EXPO_PUBLIC_GOOGLE_PLACES_KEY!;
+const SCREEN_WIDTH = Dimensions.get('window').width;
+// 20px padding each side, 10px gap between 3 slots → slot width in pixels
+const SLOT_WIDTH = Math.floor((SCREEN_WIDTH - 40 - 20) / 3);
+const SLOT_HEIGHT = Math.floor(SLOT_WIDTH * (5 / 4));
 
 const INTENT_OPTIONS: { id: 'date' | 'partner' | 'both' | 'exploring'; label: string }[] = [
   { id: 'date', label: '💘 A date' },
@@ -111,81 +114,88 @@ export default function EditProfileScreen({ navigation }: any) {
         </TouchableOpacity>
       </View>
 
+      {/* Use plain View + FlatList-style manual layout to avoid nested ScrollView warning from GooglePlaces */}
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scroll}
         keyboardShouldPersistTaps="handled"
-        nestedScrollEnabled
       >
         {/* Photos */}
         <Text style={styles.fieldLabel}>📸 Photos ({photos.length}/{MAX_PHOTOS})</Text>
         <Text style={styles.fieldHint}>Your first photo is your main profile photo.</Text>
         <View style={styles.photoGrid}>
           {photos.map((uri, i) => (
-            <TouchableOpacity key={i} style={styles.photoSlot} onPress={() => removePhoto(i)} activeOpacity={0.8}>
-              <Image
-                source={{ uri }}
-                style={styles.photo}
-                contentFit="cover"
-                cachePolicy="memory-disk"
-              />
-              <View style={styles.removeOverlay}>
-                <Text style={styles.removeIcon}>✕</Text>
-              </View>
-              {i === 0 && (
-                <View style={styles.mainBadge}>
-                  <Text style={styles.mainBadgeText}>Main</Text>
+            <TouchableOpacity key={i} onPress={() => removePhoto(i)} activeOpacity={0.8}>
+              <View style={styles.photoSlot}>
+                <Image
+                  source={{ uri }}
+                  style={{ width: SLOT_WIDTH, height: SLOT_HEIGHT, borderRadius: 14 }}
+                  resizeMode="cover"
+                />
+                <View style={styles.removeOverlay}>
+                  <Text style={styles.removeIcon}>✕</Text>
                 </View>
-              )}
+                {i === 0 && (
+                  <View style={styles.mainBadge}>
+                    <Text style={styles.mainBadgeText}>Main</Text>
+                  </View>
+                )}
+              </View>
             </TouchableOpacity>
           ))}
           {photos.length < MAX_PHOTOS && (
-            <TouchableOpacity style={styles.addSlot} onPress={pickPhoto} activeOpacity={0.7}>
-              <Text style={styles.addIcon}>+</Text>
-              <Text style={styles.addLabel}>Add photo</Text>
+            <TouchableOpacity onPress={pickPhoto} activeOpacity={0.7}>
+              <View style={[styles.photoSlot, styles.addSlot]}>
+                <Text style={styles.addIcon}>+</Text>
+                <Text style={styles.addLabel}>Add photo</Text>
+              </View>
             </TouchableOpacity>
           )}
         </View>
 
-        {/* City */}
+        {/* City — wrap GooglePlacesAutocomplete outside ScrollView nesting issue */}
         <Text style={styles.fieldLabel}>📍 City</Text>
-        <GooglePlacesAutocomplete
-          placeholder={city || 'Search your city…'}
-          fetchDetails
-          onPress={(data, details) => {
-            const comp = details?.address_components?.find((c: any) =>
-              c.types.includes('locality') || c.types.includes('postal_town')
-            );
-            setCity(comp?.long_name ?? data.structured_formatting?.main_text ?? data.description);
-          }}
-          query={{ key: GOOGLE_KEY, language: 'en', types: '(cities)' }}
-          styles={{
-            container: { flex: 0, marginBottom: 4 },
-            textInput: {
-              backgroundColor: theme.bgCard, color: theme.textPrimary,
-              fontSize: 15, borderRadius: 14, borderWidth: 1,
-              borderColor: theme.border, paddingHorizontal: 16, height: 50,
-            },
-            textInputContainer: { backgroundColor: 'transparent' },
-            listView: {
-              backgroundColor: theme.bgCard, borderRadius: 14,
-              borderWidth: 1, borderColor: theme.border, marginTop: 4,
-            },
-            row: {
-              backgroundColor: theme.bgCard, paddingVertical: 13,
-              paddingHorizontal: 16, borderBottomWidth: 1, borderBottomColor: theme.border,
-            },
-            description: { color: theme.textPrimary, fontSize: 14 },
-            poweredContainer: { display: 'none' },
-          }}
-          enablePoweredByContainer={false}
-          textInputProps={{
-            placeholderTextColor: theme.textDim,
-            value: city,
-            onChangeText: setCity,
-          }}
-          keyboardShouldPersistTaps="handled"
-        />
+        <View style={styles.placesWrapper}>
+          <GooglePlacesAutocomplete
+            placeholder={city || 'Search your city…'}
+            fetchDetails
+            onPress={(data, details) => {
+              const comp = details?.address_components?.find((c: any) =>
+                c.types.includes('locality') || c.types.includes('postal_town')
+              );
+              setCity(comp?.long_name ?? data.structured_formatting?.main_text ?? data.description);
+            }}
+            query={{ key: GOOGLE_KEY, language: 'en', types: '(cities)' }}
+            styles={{
+              container: { flex: 0 },
+              textInput: {
+                backgroundColor: theme.bgCard, color: theme.textPrimary,
+                fontSize: 15, borderRadius: 14, borderWidth: 1,
+                borderColor: theme.border, paddingHorizontal: 16, height: 50,
+                marginBottom: 0,
+              },
+              textInputContainer: { backgroundColor: 'transparent' },
+              listView: {
+                backgroundColor: theme.bgCard, borderRadius: 14,
+                borderWidth: 1, borderColor: theme.border, marginTop: 4,
+              },
+              row: {
+                backgroundColor: theme.bgCard, paddingVertical: 13,
+                paddingHorizontal: 16, borderBottomWidth: 1, borderBottomColor: theme.border,
+              },
+              description: { color: theme.textPrimary, fontSize: 14 },
+              poweredContainer: { display: 'none' },
+            }}
+            enablePoweredByContainer={false}
+            textInputProps={{
+              placeholderTextColor: theme.textDim,
+              value: city,
+              onChangeText: setCity,
+            }}
+            keyboardShouldPersistTaps="handled"
+            listViewDisplayed="auto"
+          />
+        </View>
 
         {/* Bio */}
         <Text style={styles.fieldLabel}>🗣️ One line about yourself</Text>
@@ -255,8 +265,10 @@ const styles = StyleSheet.create({
   fieldLabel: { fontSize: 13, fontWeight: '600', color: theme.textSecondary, marginBottom: 6, marginTop: 24 },
   fieldHint: { fontSize: 12, color: theme.textMuted, marginBottom: 12 },
   photoGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-  photoSlot: { width: '30%', aspectRatio: 4 / 5, position: 'relative' },
-  photo: { width: '100%', height: '100%', borderRadius: 14 },
+  photoSlot: {
+    width: SLOT_WIDTH, height: SLOT_HEIGHT,
+    position: 'relative', borderRadius: 14, overflow: 'hidden',
+  },
   removeOverlay: {
     position: 'absolute', top: 6, right: 6,
     width: 24, height: 24, borderRadius: 12,
@@ -270,13 +282,13 @@ const styles = StyleSheet.create({
   },
   mainBadgeText: { color: theme.bg, fontSize: 10, fontWeight: '800' },
   addSlot: {
-    width: '30%', aspectRatio: 4 / 5,
-    backgroundColor: theme.bgCard, borderRadius: 14,
+    backgroundColor: theme.bgCard,
     borderWidth: 1.5, borderColor: theme.border, borderStyle: 'dashed',
     alignItems: 'center', justifyContent: 'center', gap: 4,
   },
   addIcon: { fontSize: 26, color: theme.textDim },
   addLabel: { fontSize: 11, color: theme.textDim, fontWeight: '600' },
+  placesWrapper: { zIndex: 10 },
   input: {
     backgroundColor: theme.bgCard, borderRadius: 14, padding: 16,
     fontSize: 15, color: theme.textPrimary, borderWidth: 1, borderColor: theme.border,

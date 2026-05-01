@@ -1,8 +1,7 @@
 import React, { useEffect } from 'react';
 import {
-  View, Text, ScrollView, StyleSheet, TouchableOpacity, StatusBar,
+  View, Text, ScrollView, StyleSheet, TouchableOpacity, StatusBar, Image,
 } from 'react-native';
-import { Image } from 'expo-image';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useIsFocused } from '@react-navigation/native';
 import { theme } from '../../lib/theme';
@@ -46,8 +45,7 @@ export default function MyProfileScreen({ navigation }: any) {
             <Image
               source={{ uri: mainPhoto }}
               style={styles.avatarPhoto}
-              contentFit="cover"
-              cachePolicy="memory-disk"
+              resizeMode="cover"
             />
           ) : (
             <View style={styles.avatarCircle}>
@@ -146,9 +144,11 @@ const styles = StyleSheet.create({
     backgroundColor: theme.bgCard, borderRadius: 20, padding: 24,
     alignItems: 'center', borderWidth: 1, borderColor: theme.border, marginBottom: 12,
   },
+  // Explicit pixel dimensions — required for RN Image to render remote URLs
   avatarPhoto: {
     width: 90, height: 90, borderRadius: 45,
     marginBottom: 14, borderWidth: 2.5, borderColor: theme.primaryBorder,
+    overflow: 'hidden',
   },
   avatarCircle: {
     width: 90, height: 90, borderRadius: 45,
