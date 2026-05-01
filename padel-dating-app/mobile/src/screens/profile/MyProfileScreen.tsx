@@ -1,7 +1,8 @@
 import React, { useEffect } from 'react';
 import {
-  View, Text, ScrollView, StyleSheet, TouchableOpacity, StatusBar, Image,
+  View, Text, ScrollView, StyleSheet, TouchableOpacity, StatusBar,
 } from 'react-native';
+import { Image } from 'expo-image';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useIsFocused } from '@react-navigation/native';
 import { theme } from '../../lib/theme';
@@ -12,8 +13,6 @@ export default function MyProfileScreen({ navigation }: any) {
   const { user, signOut, refreshUser } = useAuth();
   const isFocused = useIsFocused();
 
-  // Refresh user data every time this screen comes into focus
-  // (catches updates from EditProfile, PlatformSync, etc.)
   useEffect(() => {
     if (isFocused) refreshUser();
   }, [isFocused]);
@@ -42,10 +41,14 @@ export default function MyProfileScreen({ navigation }: any) {
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
-
         <View style={styles.profileCard}>
           {mainPhoto ? (
-            <Image source={{ uri: mainPhoto }} style={styles.avatarPhoto} />
+            <Image
+              source={{ uri: mainPhoto }}
+              style={styles.avatarPhoto}
+              contentFit="cover"
+              cachePolicy="memory-disk"
+            />
           ) : (
             <View style={styles.avatarCircle}>
               <Text style={styles.avatarInitials}>{initials}</Text>
@@ -72,7 +75,6 @@ export default function MyProfileScreen({ navigation }: any) {
           {user?.bio && <Text style={styles.bio}>"{user.bio}"</Text>}
         </View>
 
-        {/* Stats card */}
         <View style={styles.statsCard}>
           <View style={styles.statBox}>
             <Text style={styles.statValue}>—</Text>
@@ -90,7 +92,6 @@ export default function MyProfileScreen({ navigation }: any) {
           </View>
         </View>
 
-        {/* Sync CTA */}
         <TouchableOpacity
           style={lastSynced ? styles.syncCtaSynced : styles.syncCtaNever}
           onPress={() => navigation.navigate('PlatformSync')}
@@ -108,7 +109,6 @@ export default function MyProfileScreen({ navigation }: any) {
           <Text style={styles.syncCtaArrow}>›</Text>
         </TouchableOpacity>
 
-        {/* Menu */}
         <View style={styles.menuCard}>
           {MENU_ITEMS.map((item, i) => (
             <TouchableOpacity
@@ -124,11 +124,7 @@ export default function MyProfileScreen({ navigation }: any) {
           ))}
         </View>
 
-        <TouchableOpacity
-          style={styles.signOutBtn}
-          onPress={() => signOut()}
-          activeOpacity={0.8}
-        >
+        <TouchableOpacity style={styles.signOutBtn} onPress={() => signOut()} activeOpacity={0.8}>
           <Text style={styles.signOutText}>Sign out</Text>
         </TouchableOpacity>
 

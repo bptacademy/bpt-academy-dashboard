@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
-  StatusBar, ScrollView, Alert, ActivityIndicator, Image,
+  StatusBar, ScrollView, Alert, ActivityIndicator,
 } from 'react-native';
+import { Image } from 'expo-image';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
@@ -71,8 +72,6 @@ export default function EditProfileScreen({ navigation }: any) {
     setSaving(true);
     try {
       const authUid = session?.user?.id ?? user?.id ?? '';
-
-      // Upload any new local photos to Storage
       const photoUrls = await uploadPhotos(photos, authUid);
 
       const { error } = await supabase
@@ -124,7 +123,12 @@ export default function EditProfileScreen({ navigation }: any) {
         <View style={styles.photoGrid}>
           {photos.map((uri, i) => (
             <TouchableOpacity key={i} style={styles.photoSlot} onPress={() => removePhoto(i)} activeOpacity={0.8}>
-              <Image source={{ uri }} style={styles.photo} />
+              <Image
+                source={{ uri }}
+                style={styles.photo}
+                contentFit="cover"
+                cachePolicy="memory-disk"
+              />
               <View style={styles.removeOverlay}>
                 <Text style={styles.removeIcon}>✕</Text>
               </View>
@@ -143,7 +147,7 @@ export default function EditProfileScreen({ navigation }: any) {
           )}
         </View>
 
-        {/* City — Google Places */}
+        {/* City */}
         <Text style={styles.fieldLabel}>📍 City</Text>
         <GooglePlacesAutocomplete
           placeholder={city || 'Search your city…'}
