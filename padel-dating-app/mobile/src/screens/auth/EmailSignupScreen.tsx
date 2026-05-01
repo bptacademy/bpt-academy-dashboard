@@ -6,6 +6,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme } from '../../lib/theme';
 import { supabase } from '../../lib/supabase';
+import { useAuth } from '../../context/AuthContext';
 
 async function ensureUsersRow(userId: string, email: string) {
   const { error } = await supabase.from('users').upsert({
@@ -19,6 +20,7 @@ async function ensureUsersRow(userId: string, email: string) {
 
 export default function EmailSignupScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
+  const { refreshUser } = useAuth();
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -37,8 +39,10 @@ export default function EmailSignupScreen({ navigation }: any) {
       const { data: signInData } = await supabase.auth.signInWithPassword({ email: trimmed, password });
 
       if (signInData?.session) {
-        await ensureUsersRow(signInData.session.user.id, trimmed);
-        navigation.navigate('OnboardingResume');
+        // Refresh AuthContext with latest user data from DB
+        await refreshUser();
+        // Navigation will switch automatically via Navigation component
+        // (session now exists → it picks the right stack based on profile_complete)
         return;
       }
 
@@ -55,7 +59,8 @@ export default function EmailSignupScreen({ navigation }: any) {
       if (!signUpData?.session) throw new Error('Account created but no session returned. Please try again.');
 
       await ensureUsersRow(signUpData.session.user.id, trimmed);
-      navigation.navigate('OnboardingResume');
+      // New user — navigate to onboarding
+      navigation.navigate('PlatformSelect');
     } catch (err: any) {
       setLoading(false);
       Alert.alert('Error', err?.message ?? 'Something went wrong. Please try again.');

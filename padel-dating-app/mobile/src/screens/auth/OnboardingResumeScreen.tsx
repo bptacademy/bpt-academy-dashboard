@@ -4,20 +4,34 @@ import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
 
 export default function OnboardingResumeScreen({ navigation }: any) {
-  const { user } = useAuth();
+  const { session } = useAuth();
 
   useEffect(() => {
     resume();
   }, []);
 
   const resume = async () => {
-    if (!user?.id) {
+    // Get the auth user ID from the live session
+    const authId = session?.user?.id;
+    if (!authId) {
+      navigation.replace('PlatformSelect');
+      return;
+    }
+
+    // Always fetch fresh from DB — don't rely on cached AuthContext user
+    const { data: freshUser } = await supabase
+      .from('users')
+      .select('id, profile_complete, city, looking_for, visible_to, bio')
+      .eq('auth_id', authId)
+      .maybeSingle();
+
+    if (!freshUser) {
       navigation.replace('PlatformSelect');
       return;
     }
 
     // Profile already complete — go straight to the app
-    if (user.profile_complete) {
+    if (freshUser.profile_complete) {
       navigation.replace('MainTabs');
       return;
     }
@@ -26,7 +40,7 @@ export default function OnboardingResumeScreen({ navigation }: any) {
     const { data: conn } = await supabase
       .from('platform_connections')
       .select('id, last_synced_at')
-      .eq('user_id', user.id)
+      .eq('user_id', freshUser.id)
       .maybeSingle();
 
     if (!conn) {
@@ -45,18 +59,18 @@ export default function OnboardingResumeScreen({ navigation }: any) {
     }
 
     // Resume at the right onboarding step
-    if (!user.city) {
+    if (!freshUser.city) {
       navigation.replace('Question1Location');
-    } else if (!user.looking_for) {
-      navigation.replace('Question2Intent', { city: user.city });
-    } else if (!user.visible_to) {
-      navigation.replace('Question3Visibility', { city: user.city, looking_for: user.looking_for });
+    } else if (!freshUser.looking_for) {
+      navigation.replace('Question2Intent', { city: freshUser.city });
+    } else if (!freshUser.visible_to) {
+      navigation.replace('Question3Visibility', { city: freshUser.city, looking_for: freshUser.looking_for });
     } else {
       navigation.replace('PhotoUpload', {
-        city: user.city,
-        looking_for: user.looking_for,
-        visible_to: user.visible_to,
-        bio: user.bio,
+        city: freshUser.city,
+        looking_for: freshUser.looking_for,
+        visible_to: freshUser.visible_to,
+        bio: freshUser.bio,
       });
     }
   };

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { Session } from '@supabase/supabase-js';
 import { User } from '../types';
@@ -24,13 +24,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Keep a ref so refreshUser always has the latest session
+  const sessionRef = useRef<Session | null>(null);
+
   const fetchUser = async (userId: string) => {
     try {
       const { data } = await supabase
         .from('users')
         .select('*')
         .eq('auth_id', userId)
-        .maybeSingle(); // use maybeSingle so it doesn't throw if no row yet
+        .maybeSingle();
       if (data) setUser(data as User);
       else setUser(null);
     } catch {
@@ -39,18 +42,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const refreshUser = async () => {
-    if (session?.user?.id) await fetchUser(session.user.id);
+    // Use live session from Supabase, not stale closure
+    const { data: { session: liveSession } } = await supabase.auth.getSession();
+    if (liveSession?.user?.id) await fetchUser(liveSession.user.id);
   };
 
   const signOut = async () => {
     await supabase.auth.signOut();
     setUser(null);
     setSession(null);
+    sessionRef.current = null;
   };
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
+      sessionRef.current = session;
       if (session?.user?.id) {
         fetchUser(session.user.id).finally(() => setLoading(false));
       } else {
@@ -60,6 +67,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
+      sessionRef.current = session;
       if (session?.user?.id) fetchUser(session.user.id);
       else setUser(null);
     });
