@@ -16,6 +16,12 @@ export default function OnboardingResumeScreen({ navigation }: any) {
       return;
     }
 
+    // Profile already complete — go straight to the app
+    if (user.profile_complete) {
+      navigation.replace('MainTabs');
+      return;
+    }
+
     // Check if platform already connected
     const { data: conn } = await supabase
       .from('platform_connections')
@@ -24,24 +30,21 @@ export default function OnboardingResumeScreen({ navigation }: any) {
       .maybeSingle();
 
     if (!conn) {
-      // No platform connected yet — start from PlatformSelect
       navigation.replace('PlatformSelect');
       return;
     }
 
     if (!conn.last_synced_at) {
-      // Connected but never synced — run the sync then go to preview
       navigation.replace('SyncingProfile', {
         platform: 'playtomic',
         platformEmail: null,
         platformPassword: null,
-        skipAuth: true, // tell SyncingProfile to skip platform-auth and go straight to sync
+        skipAuth: true,
       });
       return;
     }
 
-    // Platform connected + synced — skip to questions
-    // Figure out which question to resume at
+    // Resume at the right onboarding step
     if (!user.city) {
       navigation.replace('Question1Location');
     } else if (!user.looking_for) {

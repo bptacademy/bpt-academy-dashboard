@@ -37,9 +37,8 @@ export default function EmailSignupScreen({ navigation }: any) {
       const { data: signInData } = await supabase.auth.signInWithPassword({ email: trimmed, password });
 
       if (signInData?.session) {
-        // Always ensure users row exists (may have been missing for old accounts)
         await ensureUsersRow(signInData.session.user.id, trimmed);
-        navigation.navigate('PlatformSelect');
+        navigation.navigate('OnboardingResume');
         return;
       }
 
@@ -47,19 +46,16 @@ export default function EmailSignupScreen({ navigation }: any) {
       const { data: signUpData, error: signUpError } = await supabase.auth.signUp({ email: trimmed, password });
 
       if (signUpError) {
-        // Already registered but different password — try admin-style workaround
         if (signUpError.message.includes('already registered')) {
-          throw new Error('An account with this email already exists. Please use the same device you signed up on, or contact support.');
+          throw new Error('An account with this email already exists. Please use the same email you signed up with.');
         }
         throw signUpError;
       }
 
       if (!signUpData?.session) throw new Error('Account created but no session returned. Please try again.');
 
-      // Create users row immediately — Edge Functions need this
       await ensureUsersRow(signUpData.session.user.id, trimmed);
-
-      navigation.navigate('PlatformSelect');
+      navigation.navigate('OnboardingResume');
     } catch (err: any) {
       setLoading(false);
       Alert.alert('Error', err?.message ?? 'Something went wrong. Please try again.');
