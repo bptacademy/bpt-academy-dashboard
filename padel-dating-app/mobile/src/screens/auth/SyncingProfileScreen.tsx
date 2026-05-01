@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, StyleSheet, Animated, StatusBar, Alert } from 'react-native';
+import { View, Text, StyleSheet, Animated, StatusBar, Alert, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme } from '../../lib/theme';
 import { connectPlatform, syncPlatform } from '../../lib/platformSync';
@@ -12,36 +12,51 @@ const STEPS = [
   'Building your profile…',
 ];
 
+// Show "taking longer than expected" message after this many ms
+const SLOW_THRESHOLD_MS = 20_000;
+
 export default function SyncingProfileScreen({ route, navigation }: any) {
   const { platform, platformEmail, platformPassword, skipAuth } = route.params ?? {};
   const insets = useSafeAreaInsets();
   const [stepIndex, setStepIndex] = useState(0);
+  const [isSlow, setIsSlow] = useState(false);
   const spinAnim = useRef(new Animated.Value(0)).current;
+  const slowTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const didNavigate = useRef(false);
 
   useEffect(() => {
     Animated.loop(
       Animated.timing(spinAnim, { toValue: 1, duration: 1200, useNativeDriver: true })
     ).start();
+
+    // Show "taking longer" hint after 20s
+    slowTimer.current = setTimeout(() => setIsSlow(true), SLOW_THRESHOLD_MS);
+
     runSync();
+
+    return () => {
+      if (slowTimer.current) clearTimeout(slowTimer.current);
+    };
   }, []);
 
   const runSync = async () => {
     try {
       if (!skipAuth) {
-        // Step 1: Authenticate with Playtomic + store tokens
         setStepIndex(0);
         await connectPlatform(platform ?? 'playtomic', platformEmail, platformPassword);
       }
 
-      // Step 2–4: Pull match history + calculate stats
       setStepIndex(1);
       const result = await syncPlatform();
 
+      if (didNavigate.current) return;
+      didNavigate.current = true;
+
       setStepIndex(4);
       await new Promise(r => setTimeout(r, 600));
-
       navigation.replace('ProfilePreview', { platform, syncResult: result });
     } catch (err: any) {
+      if (didNavigate.current) return;
       const msg = err?.message ?? 'Could not connect to Playtomic.';
       Alert.alert(
         'Connection failed',
@@ -49,6 +64,13 @@ export default function SyncingProfileScreen({ route, navigation }: any) {
         [{ text: 'Go back', onPress: () => navigation.goBack() }],
       );
     }
+  };
+
+  const handleSkip = () => {
+    if (didNavigate.current) return;
+    didNavigate.current = true;
+    // Navigate forward without sync result — ProfilePreview handles missing data gracefully
+    navigation.replace('ProfilePreview', { platform, syncResult: null });
   };
 
   const spin = spinAnim.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] });
@@ -67,6 +89,17 @@ export default function SyncingProfileScreen({ route, navigation }: any) {
             <View key={i} style={[styles.dot, i <= stepIndex && styles.dotActive]} />
           ))}
         </View>
+
+        {isSlow && (
+          <View style={styles.slowBox}>
+            <Text style={styles.slowText}>
+              Still importing… Playtomic can be slow with large match histories.
+            </Text>
+            <TouchableOpacity style={styles.skipBtn} onPress={handleSkip}>
+              <Text style={styles.skipText}>Skip for now →</Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
       <Text style={styles.footer}>
         Building your profile from your real match history.{'\n'}No questionnaires. No guessing.
@@ -84,6 +117,20 @@ const styles = StyleSheet.create({
   dotsRow: { flexDirection: 'row', gap: 8, marginTop: 8 },
   dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: theme.bgCard },
   dotActive: { backgroundColor: theme.primary },
+  slowBox: {
+    marginTop: 24, alignItems: 'center', gap: 12,
+    backgroundColor: theme.bgCard, borderRadius: 16, padding: 20,
+    borderWidth: 1, borderColor: theme.border,
+  },
+  slowText: {
+    fontSize: 13, color: theme.textMuted, textAlign: 'center', lineHeight: 20,
+  },
+  skipBtn: {
+    backgroundColor: theme.primaryDim, borderRadius: 10,
+    paddingHorizontal: 20, paddingVertical: 10,
+    borderWidth: 1, borderColor: theme.primaryBorder,
+  },
+  skipText: { color: theme.primary, fontSize: 14, fontWeight: '700' },
   footer: {
     fontSize: 13, color: theme.textDim, textAlign: 'center',
     lineHeight: 20, paddingBottom: 48,
