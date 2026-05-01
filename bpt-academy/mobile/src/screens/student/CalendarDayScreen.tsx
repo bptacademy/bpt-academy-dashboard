@@ -16,6 +16,7 @@ export interface CalendarEvent {
   time?: string;
   description?: string;
   location?: string;
+  duration_minutes?: number;
 }
 
 interface RouteParams {
@@ -38,6 +39,13 @@ function formatDate(isoDate: string): string {
   return d.toLocaleDateString('en-GB', {
     weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
   });
+}
+
+// Extract program name from description field ("Program: Semi-Pro - 2" → "Semi-Pro - 2")
+function extractProgram(description?: string): string | null {
+  if (!description) return null;
+  if (description.startsWith('Program: ')) return description.replace('Program: ', '');
+  return null;
 }
 
 function EventCard({ item }: { item: CalendarEvent }) {
@@ -69,6 +77,8 @@ function EventCard({ item }: { item: CalendarEvent }) {
     );
   }
 
+  const programName = extractProgram(item.description);
+
   return (
     <View style={styles.card}>
       <View style={styles.cardLeft}>
@@ -82,8 +92,16 @@ function EventCard({ item }: { item: CalendarEvent }) {
             <Text style={[styles.typeBadgeText, { color: cfg.color }]}>{cfg.label}</Text>
           </View>
         </View>
+        {/* Program name — prominent so multiple sessions from different programs are clearly distinct */}
+        {programName && (
+          <View style={styles.programTag}>
+            <Text style={styles.programTagText}>📚 {programName}</Text>
+          </View>
+        )}
         {item.location ? <Text style={styles.cardMeta}>📍 {item.location}</Text> : null}
-        {item.description ? <Text style={styles.cardDesc} numberOfLines={3}>{item.description}</Text> : null}
+        {item.duration_minutes ? (
+          <Text style={styles.cardMeta}>⏱ {item.duration_minutes} min</Text>
+        ) : null}
       </View>
     </View>
   );
@@ -169,6 +187,15 @@ const styles = StyleSheet.create({
   cardTitle: { fontSize: 15, fontWeight: '700', color: '#F0F6FC', flex: 1 },
   typeBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8, alignSelf: 'flex-start' },
   typeBadgeText: { fontSize: 11, fontWeight: '700' },
+  programTag: {
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(59,130,246,0.15)',
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    marginBottom: 6,
+  },
+  programTagText: { fontSize: 12, fontWeight: '600', color: '#60A5FA' },
   cardMeta: { fontSize: 12, color: '#7A8FA6', marginBottom: 4 },
   cardDesc: { fontSize: 13, color: '#7A8FA6', lineHeight: 18 },
 

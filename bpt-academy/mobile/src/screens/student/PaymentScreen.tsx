@@ -27,7 +27,7 @@ export default function PaymentScreen({ navigation, route }: any) {
 
   const { profile } = useAuth();
 
-  const [tab, setTab]                         = useState<PaymentTab>('card');
+  const [tab, setTab]                         = useState<PaymentTab>('bank_transfer');
   const [bankDetails, setBankDetails]         = useState<BankDetails | null>(null);
   const [paymentLink, setPaymentLink]         = useState<string | null>(null);
   const [loadingSettings, setLoadingSettings] = useState(true);
@@ -233,14 +233,7 @@ export default function PaymentScreen({ navigation, route }: any) {
           <Text style={styles.amountValue}>£{amount.toFixed(2)}</Text>
         </View>
 
-        <View style={styles.tabRow}>
-          <TouchableOpacity style={[styles.tab, tab === 'card' && styles.tabActive]} onPress={() => setTab('card')}>
-            <Text style={[styles.tabText, tab === 'card' && styles.tabTextActive]}>💳 Card</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={[styles.tab, tab === 'bank_transfer' && styles.tabActive]} onPress={() => setTab('bank_transfer')}>
-            <Text style={[styles.tabText, tab === 'bank_transfer' && styles.tabTextActive]}>🏦 Bank Transfer</Text>
-          </TouchableOpacity>
-        </View>
+        {/* Payment tabs hidden — bank transfer only */}
 
         {/* ── CARD ── */}
         {tab === 'card' && (
