@@ -26,7 +26,7 @@ export default function MyProfileScreen({ navigation }: any) {
   const MENU_ITEMS = [
     { icon: '✏️', label: 'Edit Profile', screen: 'EditProfile' },
     { icon: '📊', label: 'My Stats', screen: 'MyStats' },
-    { icon: '🔗', label: 'Connected Platforms', screen: 'PlatformSync' },
+    { icon: '🔗', label: 'Sync History', screen: 'PlatformSync' },
     { icon: '🔔', label: 'Notifications', screen: 'Notifications' },
     { icon: '⚙️', label: 'Settings', screen: 'Settings' },
   ];
@@ -98,7 +98,7 @@ export default function MyProfileScreen({ navigation }: any) {
           <Text style={styles.syncCtaIcon}>🎾</Text>
           <View style={styles.syncCtaText}>
             <Text style={lastSynced ? styles.syncCtaTitleSynced : styles.syncCtaTitle}>
-              {lastSynced ? 'Playtomic connected' : 'Connect Playtomic'}
+              {lastSynced ? 'Playtomic connected' : 'Sync History'}
             </Text>
             <Text style={styles.syncCtaSub}>
               {lastSynced

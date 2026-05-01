@@ -81,7 +81,7 @@ export default function PlatformSyncScreen({ navigation }: any) {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Text style={styles.backText}>← Back</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Connected Platforms</Text>
+        <Text style={styles.headerTitle}>Sync History</Text>
         <View style={{ width: 60 }} />
       </View>
 
