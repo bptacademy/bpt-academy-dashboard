@@ -56,7 +56,24 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
         .in('module_id', modulesRes.data.map((m) => m.id));
 
       const progressMap = new Map(progressData?.map((p) => [p.module_id, p]) ?? []);
-      setModules(modulesRes.data.map((m) => ({ ...m, progress: progressMap.get(m.id) })));
+      const enrollStatus = enrollRes.data?.status ?? null;
+      const nextCycleStart = progRes.data?.next_cycle_start_date ?? null;
+
+      // For pending_next_cycle students: only show modules from next cycle start date onwards.
+      // For active students: only show modules from current cycle start date (hide future cycle modules).
+      // This prevents showing duplicate modules across cycles.
+      let filteredModules = modulesRes.data;
+      if (enrollStatus === 'pending_next_cycle' && nextCycleStart) {
+        filteredModules = modulesRes.data.filter((m: any) => m.session_date >= nextCycleStart);
+      } else if (enrollStatus === 'active' && progRes.data?.current_cycle_start_date) {
+        const cycleStart = progRes.data.current_cycle_start_date;
+        const cycleEnd = nextCycleStart ?? '9999-12-31';
+        filteredModules = modulesRes.data.filter((m: any) =>
+          m.session_date >= cycleStart && m.session_date < cycleEnd
+        );
+      }
+
+      setModules(filteredModules.map((m: any) => ({ ...m, progress: progressMap.get(m.id) })));
     }
     if (sessionsRes.data) setSessions(sessionsRes.data);
 

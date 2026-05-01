@@ -1,51 +1,13 @@
 import React, { useState } from 'react';
 import {
-  View, Text, ScrollView, StyleSheet, TouchableOpacity, StatusBar,
+  View, Text, ScrollView, StyleSheet, TouchableOpacity,
+  StatusBar, ActivityIndicator, RefreshControl,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme } from '../../lib/theme';
+import { useDiscovery, DiscoveredPlayer } from '../../hooks/useDiscovery';
 
-const MOCK_PLAYERS = [
-  {
-    id: '1', name: 'Sofia', age: 29, city: 'London',
-    level: 4.7, levelLabel: 'Advanced',
-    lookingFor: 'both', volpairScore: 91,
-    lastPlayed: 'Carbon Padel · 3 days ago',
-    matchesTogether: 4, winRate: 68, playStyle: 'Aggressive',
-    mutualConnections: 3, emoji: '🎾',
-  },
-  {
-    id: '2', name: 'Elena', age: 31, city: 'London',
-    level: 4.5, levelLabel: 'Competitive',
-    lookingFor: 'date', volpairScore: 83,
-    lastPlayed: 'Padel Social Club · 1 week ago',
-    matchesTogether: 2, winRate: 54, playStyle: 'Defensive',
-    mutualConnections: 5, emoji: '💫',
-  },
-  {
-    id: '3', name: 'Marta', age: 27, city: 'London',
-    level: 5.1, levelLabel: 'Advanced+',
-    lookingFor: 'partner', volpairScore: 77,
-    lastPlayed: 'Destination Padel · 2 weeks ago',
-    matchesTogether: 1, winRate: 72, playStyle: 'Net dominant',
-    mutualConnections: 2, emoji: '⚡',
-  },
-];
-
-const FRIENDS_OF_COURT = [
-  {
-    id: '4', name: 'Lucia', age: 33, city: 'London',
-    level: 4.3, levelLabel: 'Intermediate+',
-    lookingFor: 'both', volpairScore: 64,
-    mutualVia: 'Sofia', mutualConnections: 1, emoji: '🌟',
-  },
-  {
-    id: '5', name: 'Anna', age: 28, city: 'London',
-    level: 4.8, levelLabel: 'Advanced',
-    lookingFor: 'date', volpairScore: 58,
-    mutualVia: 'Elena', mutualConnections: 2, emoji: '🔥',
-  },
-];
+// ─── Score badge ──────────────────────────────────────────────────────────────
 
 function ScoreBadge({ score }: { score: number }) {
   const color = score >= 85 ? theme.scoreHigh : score >= 70 ? theme.scoreMid : theme.scoreLow;
@@ -57,7 +19,15 @@ function ScoreBadge({ score }: { score: number }) {
   );
 }
 
-function ActionButtons({ onPlayAgain, onConnect, onVolley }: any) {
+// ─── Action buttons ───────────────────────────────────────────────────────────
+
+function ActionButtons({
+  onPlayAgain, onConnect, onVolley,
+}: {
+  onPlayAgain: () => void;
+  onConnect: () => void;
+  onVolley: () => void;
+}) {
   return (
     <View style={styles.actionRow}>
       <TouchableOpacity style={styles.actionBtn} onPress={onPlayAgain} activeOpacity={0.75}>
@@ -76,24 +46,39 @@ function ActionButtons({ onPlayAgain, onConnect, onVolley }: any) {
   );
 }
 
-function PlayerCard({ player, navigation }: any) {
-  const [actioned, setActioned] = useState<string | null>(null);
+// ─── Player card ──────────────────────────────────────────────────────────────
 
-  const handle = (type: string) => setActioned(type);
+function PlayerCard({
+  player,
+  navigation,
+  onAction,
+}: {
+  player: DiscoveredPlayer;
+  navigation: any;
+  onAction: (type: 'play_again' | 'connect' | 'volley') => void;
+}) {
+  const firstName = player.fullName.split(' ')[0];
+
+  // Derive age from... we don't have DOB in the discovery type, so skip for now
+  // (PlayerProfileScreen shows full details)
 
   return (
     <TouchableOpacity
       style={styles.playerCard}
-      onPress={() => navigation.navigate('PlayerProfile', { userId: player.id })}
+      onPress={() => navigation.navigate('PlayerProfile', { userId: player.userId })}
       activeOpacity={0.92}
     >
       <View style={styles.cardHeader}>
+        {/* Avatar placeholder — show initials until we have photos */}
         <View style={styles.avatarCircle}>
-          <Text style={styles.avatarEmoji}>{player.emoji}</Text>
+          <Text style={styles.avatarInitials}>
+            {player.fullName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+          </Text>
         </View>
+
         <View style={styles.cardHeaderInfo}>
           <View style={styles.nameRow}>
-            <Text style={styles.playerName}>{player.name}, {player.age}</Text>
+            <Text style={styles.playerName}>{firstName}</Text>
             {(player.lookingFor === 'date' || player.lookingFor === 'both') && (
               <View style={styles.intentBadge}>
                 <Text style={styles.intentText}>
@@ -102,63 +87,111 @@ function PlayerCard({ player, navigation }: any) {
               </View>
             )}
           </View>
-          <Text style={styles.playerCity}>📍 {player.city}</Text>
-          <View style={styles.levelRow}>
-            <View style={styles.levelBadge}>
-              <Text style={styles.levelValue}>{player.level}</Text>
+          {player.city && (
+            <Text style={styles.playerCity}>📍 {player.city}</Text>
+          )}
+          {player.levelValue !== null && (
+            <View style={styles.levelRow}>
+              <View style={styles.levelBadge}>
+                <Text style={styles.levelValue}>{player.levelValue.toFixed(1)}</Text>
+              </View>
+              {player.levelLabel && (
+                <Text style={styles.levelLabel}>{player.levelLabel}</Text>
+              )}
             </View>
-            <Text style={styles.levelLabel}>{player.levelLabel}</Text>
-          </View>
+          )}
         </View>
+
         <ScoreBadge score={player.volpairScore} />
       </View>
 
-      {player.lastPlayed && (
+      {/* Court stats */}
+      {player.lastClubName && (
         <View style={styles.statsRow}>
           <Text style={styles.statIcon}>🏟</Text>
-          <Text style={styles.statText}>{player.lastPlayed}</Text>
+          <Text style={styles.statText}>{player.lastClubName}</Text>
         </View>
       )}
-      {player.matchesTogether && (
+      {player.matchesTogether > 0 && (
         <View style={styles.statsRow}>
           <Text style={styles.statIcon}>🤝</Text>
           <Text style={styles.statText}>
-            Together {player.matchesTogether}x · {player.winRate}% win rate
+            Together {player.matchesTogether}x
+            {player.winRate !== null ? ` · ${player.winRate}% win rate` : ''}
           </Text>
-          <Text style={styles.statIcon}>⚡</Text>
-          <Text style={styles.statText}>{player.playStyle}</Text>
+          {player.playStyle && (
+            <>
+              <Text style={styles.statIcon}>⚡</Text>
+              <Text style={styles.statText}>{player.playStyle}</Text>
+            </>
+          )}
         </View>
       )}
       {player.mutualVia && (
         <View style={styles.statsRow}>
           <Text style={styles.statIcon}>🔗</Text>
           <Text style={styles.statText}>
-            Plays with {player.mutualVia} · {player.mutualConnections} mutual
+            Plays with {player.mutualVia}
+            {player.mutualConnections > 1 ? ` · ${player.mutualConnections} shared matches` : ''}
           </Text>
         </View>
       )}
 
-      {actioned ? (
+      {/* Action row — or sent state */}
+      {player.myAction ? (
         <View style={styles.actionedRow}>
           <Text style={styles.actionedText}>
-            {actioned === 'play' ? '🎾 Play request sent!' :
-             actioned === 'connect' ? '👋 Connection sent!' :
+            {player.myAction === 'play_again' ? '🎾 Play request sent!' :
+             player.myAction === 'connect' ? '👋 Connection sent!' :
              '💘 Volley sent — fingers crossed!'}
           </Text>
         </View>
       ) : (
         <ActionButtons
-          onPlayAgain={() => handle('play')}
-          onConnect={() => handle('connect')}
-          onVolley={() => handle('volley')}
+          onPlayAgain={() => onAction('play_again')}
+          onConnect={() => onAction('connect')}
+          onVolley={() => onAction('volley')}
         />
       )}
     </TouchableOpacity>
   );
 }
 
+// ─── Empty state ──────────────────────────────────────────────────────────────
+
+function EmptyState({ message }: { message: string }) {
+  return (
+    <View style={styles.emptyBox}>
+      <Text style={styles.emptyEmoji}>🎾</Text>
+      <Text style={styles.emptyText}>{message}</Text>
+    </View>
+  );
+}
+
+// ─── Main screen ──────────────────────────────────────────────────────────────
+
 export default function ConnectHomeScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
+  const { layer1, layer2, loading, error, reload, sendAction } = useDiscovery();
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await reload();
+    setRefreshing(false);
+  };
+
+  const handleAction = async (
+    player: DiscoveredPlayer,
+    type: 'play_again' | 'connect' | 'volley',
+  ) => {
+    try {
+      await sendAction(player.userId, type);
+    } catch (e) {
+      // silently fail — user sees UI unchanged and can retry
+      console.error('sendAction error:', e);
+    }
+  };
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -169,47 +202,109 @@ export default function ConnectHomeScreen({ navigation }: any) {
           <Text style={styles.headerTitle}>Connect</Text>
           <Text style={styles.headerSub}>People you've shared a court with</Text>
         </View>
-        <TouchableOpacity style={styles.notifBtn}>
+        <TouchableOpacity
+          style={styles.notifBtn}
+          onPress={() => navigation.navigate('Notifications')}
+        >
           <Text style={styles.notifIcon}>🔔</Text>
         </TouchableOpacity>
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
-
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>🎾 People you've played with</Text>
-          <View style={styles.sectionCountBadge}>
-            <Text style={styles.sectionCount}>{MOCK_PLAYERS.length}</Text>
-          </View>
+      {loading && !refreshing ? (
+        <View style={styles.loadingBox}>
+          <ActivityIndicator size="large" color={theme.primary} />
+          <Text style={styles.loadingText}>Finding your court connections…</Text>
         </View>
-        <Text style={styles.sectionSub}>Strongest signal — you already know if there's something there</Text>
-        {MOCK_PLAYERS.map(p => <PlayerCard key={p.id} player={p} navigation={navigation} />)}
-
-        <View style={[styles.sectionHeader, { marginTop: 8 }]}>
-          <Text style={styles.sectionTitle}>🔗 Friends of your court</Text>
-          <View style={styles.sectionCountBadge}>
-            <Text style={styles.sectionCount}>{FRIENDS_OF_COURT.length}</Text>
-          </View>
-        </View>
-        <Text style={styles.sectionSub}>Players in your padel circle — not strangers</Text>
-        {FRIENDS_OF_COURT.map(p => <PlayerCard key={p.id} player={p} navigation={navigation} />)}
-
-        <View style={styles.nearbyTeaser}>
-          <Text style={styles.nearbyTeaserIcon}>📍</Text>
-          <View style={styles.nearbyTeaserText}>
-            <Text style={styles.nearbyTeaserTitle}>12 players nearby</Text>
-            <Text style={styles.nearbyTeaserSub}>Enable location to discover players in London</Text>
-          </View>
-          <TouchableOpacity style={styles.nearbyTeaserBtn}>
-            <Text style={styles.nearbyTeaserBtnText}>Enable</Text>
+      ) : error ? (
+        <View style={styles.loadingBox}>
+          <Text style={styles.errorText}>⚠️ {error}</Text>
+          <TouchableOpacity style={styles.retryBtn} onPress={reload}>
+            <Text style={styles.retryText}>Try again</Text>
           </TouchableOpacity>
         </View>
+      ) : (
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scroll}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={theme.primary}
+            />
+          }
+        >
+          {/* ── Layer 1: played together ──────────────────────────────────── */}
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>🎾 People you've played with</Text>
+            {layer1.length > 0 && (
+              <View style={styles.sectionCountBadge}>
+                <Text style={styles.sectionCount}>{layer1.length}</Text>
+              </View>
+            )}
+          </View>
+          <Text style={styles.sectionSub}>
+            Strongest signal — you already know if there's something there
+          </Text>
 
-        <View style={{ height: 24 }} />
-      </ScrollView>
+          {layer1.length === 0 ? (
+            <EmptyState message="Sync your Playtomic account to discover people you've played with" />
+          ) : (
+            layer1.map(p => (
+              <PlayerCard
+                key={p.userId}
+                player={p}
+                navigation={navigation}
+                onAction={type => handleAction(p, type)}
+              />
+            ))
+          )}
+
+          {/* ── Layer 2: friends of your court ───────────────────────────── */}
+          {layer2.length > 0 && (
+            <>
+              <View style={[styles.sectionHeader, { marginTop: 8 }]}>
+                <Text style={styles.sectionTitle}>🔗 Friends of your court</Text>
+                <View style={styles.sectionCountBadge}>
+                  <Text style={styles.sectionCount}>{layer2.length}</Text>
+                </View>
+              </View>
+              <Text style={styles.sectionSub}>
+                Players in your padel circle — not strangers
+              </Text>
+              {layer2.map(p => (
+                <PlayerCard
+                  key={p.userId}
+                  player={p}
+                  navigation={navigation}
+                  onAction={type => handleAction(p, type)}
+                />
+              ))}
+            </>
+          )}
+
+          {/* ── Layer 3: nearby teaser ────────────────────────────────────── */}
+          <View style={styles.nearbyTeaser}>
+            <Text style={styles.nearbyTeaserIcon}>📍</Text>
+            <View style={styles.nearbyTeaserText}>
+              <Text style={styles.nearbyTeaserTitle}>Players nearby</Text>
+              <Text style={styles.nearbyTeaserSub}>
+                Enable location to discover players in your city
+              </Text>
+            </View>
+            <TouchableOpacity style={styles.nearbyTeaserBtn}>
+              <Text style={styles.nearbyTeaserBtnText}>Enable</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={{ height: 24 }} />
+        </ScrollView>
+      )}
     </View>
   );
 }
+
+// ─── Styles ───────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: theme.bg },
@@ -227,16 +322,37 @@ const styles = StyleSheet.create({
   },
   notifIcon: { fontSize: 18 },
 
+  loadingBox: {
+    flex: 1, alignItems: 'center', justifyContent: 'center', gap: 14,
+  },
+  loadingText: { fontSize: 14, color: theme.textMuted },
+  errorText: { fontSize: 14, color: '#EF4444', textAlign: 'center' },
+  retryBtn: {
+    backgroundColor: theme.primaryDim, borderRadius: 10,
+    paddingHorizontal: 20, paddingVertical: 10,
+    borderWidth: 1, borderColor: theme.primaryBorder,
+  },
+  retryText: { color: theme.primary, fontWeight: '700' },
+
   scroll: { paddingHorizontal: 16, paddingTop: 16 },
 
   sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 },
   sectionTitle: { fontSize: 15, fontWeight: '700', color: theme.textPrimary, flex: 1 },
   sectionCountBadge: {
-    backgroundColor: theme.primaryDim, borderRadius: 10, paddingHorizontal: 8, paddingVertical: 3,
+    backgroundColor: theme.primaryDim, borderRadius: 10,
+    paddingHorizontal: 8, paddingVertical: 3,
     borderWidth: 1, borderColor: theme.primaryBorder,
   },
   sectionCount: { fontSize: 12, fontWeight: '700', color: theme.primary },
   sectionSub: { fontSize: 12, color: theme.textMuted, marginBottom: 14, lineHeight: 18 },
+
+  emptyBox: {
+    alignItems: 'center', paddingVertical: 32, gap: 10,
+    backgroundColor: theme.bgCard, borderRadius: 16, marginBottom: 16,
+    borderWidth: 1, borderColor: theme.border,
+  },
+  emptyEmoji: { fontSize: 36 },
+  emptyText: { fontSize: 13, color: theme.textMuted, textAlign: 'center', paddingHorizontal: 24 },
 
   playerCard: {
     backgroundColor: theme.bgCard, borderRadius: 18, padding: 16,
@@ -248,7 +364,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.primaryDim, alignItems: 'center', justifyContent: 'center',
     borderWidth: 2, borderColor: theme.primaryBorder,
   },
-  avatarEmoji: { fontSize: 24 },
+  avatarInitials: { fontSize: 18, fontWeight: '800', color: theme.primary },
   cardHeaderInfo: { flex: 1 },
   nameRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 3 },
   playerName: { fontSize: 17, fontWeight: '800', color: theme.textPrimary },
@@ -275,9 +391,7 @@ const styles = StyleSheet.create({
   scoreValue: { fontSize: 16, fontWeight: '800', lineHeight: 18 },
   scoreLabel: { fontSize: 9, fontWeight: '600', lineHeight: 11 },
 
-  statsRow: {
-    flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 5,
-  },
+  statsRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 5 },
   statIcon: { fontSize: 13 },
   statText: { fontSize: 12, color: theme.textSecondary, flex: 1 },
 
@@ -290,10 +404,7 @@ const styles = StyleSheet.create({
     gap: 5, paddingVertical: 10, borderRadius: 12,
     backgroundColor: theme.bgDeep, borderWidth: 1, borderColor: theme.border,
   },
-  volleyBtn: {
-    backgroundColor: theme.secondaryDim,
-    borderColor: theme.secondaryBorder,
-  },
+  volleyBtn: { backgroundColor: theme.secondaryDim, borderColor: theme.secondaryBorder },
   actionEmoji: { fontSize: 14 },
   actionText: { fontSize: 12, fontWeight: '600', color: theme.textSecondary },
   volleyText: { color: '#A78BFA' },

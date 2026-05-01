@@ -10,7 +10,9 @@ import BackHeader from '../../components/common/BackHeader';
 export interface CalendarEvent {
   id: string;
   title: string;
-  type: 'session' | 'tournament' | 'announcement';
+  type: 'session' | 'tournament' | 'announcement' | 'pending_session';
+  _startDate?: string;
+  _programTitle?: string;
   time?: string;
   description?: string;
   location?: string;
@@ -22,12 +24,13 @@ interface RouteParams {
 }
 
 const EVENT_TYPE_CONFIG: Record<
-  CalendarEvent['type'],
+  string,
   { label: string; color: string; bg: string; icon: string }
 > = {
-  session:      { label: 'Session',      color: '#22C55E', bg: 'rgba(34,197,94,0.15)',   icon: '🎾' },
-  tournament:   { label: 'Tournament',   color: '#F59E0B', bg: 'rgba(245,158,11,0.15)',  icon: '🏆' },
-  announcement: { label: 'Announcement', color: '#3B82F6', bg: 'rgba(59,130,246,0.15)',  icon: '📢' },
+  session:         { label: 'Session',      color: '#22C55E', bg: 'rgba(34,197,94,0.15)',   icon: '🎾' },
+  tournament:      { label: 'Tournament',   color: '#F59E0B', bg: 'rgba(245,158,11,0.15)',  icon: '🏆' },
+  announcement:    { label: 'Announcement', color: '#3B82F6', bg: 'rgba(59,130,246,0.15)',  icon: '📢' },
+  pending_session: { label: 'Coming Soon',  color: '#EF4444', bg: 'rgba(239,68,68,0.15)',   icon: '📅' },
 };
 
 function formatDate(isoDate: string): string {
@@ -39,6 +42,33 @@ function formatDate(isoDate: string): string {
 
 function EventCard({ item }: { item: CalendarEvent }) {
   const cfg = EVENT_TYPE_CONFIG[item.type] ?? EVENT_TYPE_CONFIG.session;
+
+  if (item.type === 'pending_session') {
+    const startDate = item._startDate
+      ? new Date(item._startDate + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
+      : null;
+    return (
+      <View style={[styles.card, styles.cardPending]}>
+        <View style={styles.cardLeft}>
+          <Text style={styles.cardIcon}>📅</Text>
+        </View>
+        <View style={styles.cardBody}>
+          <View style={styles.cardTitleRow}>
+            <Text style={[styles.cardTitle, { color: '#EF4444' }]} numberOfLines={2}>{item._programTitle ?? item.title}</Text>
+            <View style={[styles.typeBadge, { backgroundColor: 'rgba(239,68,68,0.15)' }]}>
+              <Text style={[styles.typeBadgeText, { color: '#EF4444' }]}>Coming Soon</Text>
+            </View>
+          </View>
+          <Text style={styles.cardDesc}>
+            {startDate
+              ? `Your program starts on ${startDate}. Sessions will become available from that date.`
+              : "Your program hasn't started yet. Sessions will be available once your cycle begins."}
+          </Text>
+        </View>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.card}>
       <View style={styles.cardLeft}>
@@ -142,6 +172,7 @@ const styles = StyleSheet.create({
   cardMeta: { fontSize: 12, color: '#7A8FA6', marginBottom: 4 },
   cardDesc: { fontSize: 13, color: '#7A8FA6', lineHeight: 18 },
 
+  cardPending: { borderColor: 'rgba(239,68,68,0.30)', borderWidth: 1 },
   emptyContainer: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 40 },
   emptyIcon: { fontSize: 52, marginBottom: 12 },
   emptyTitle: { fontSize: 18, fontWeight: '700', color: '#F0F6FC', marginBottom: 8 },

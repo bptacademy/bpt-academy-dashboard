@@ -12,14 +12,14 @@ import { supabase } from '../../lib/supabase';
 
 const GOOGLE_KEY = process.env.EXPO_PUBLIC_GOOGLE_PLACES_KEY!;
 
-const INTENT_OPTIONS = [
+const INTENT_OPTIONS: { id: 'date' | 'partner' | 'both' | 'exploring'; label: string }[] = [
   { id: 'date', label: '💘 A date' },
   { id: 'partner', label: '🎾 A doubles partner' },
   { id: 'both', label: '✨ Both' },
   { id: 'exploring', label: '👀 Just exploring' },
 ];
 
-const VISIBILITY_OPTIONS = [
+const VISIBILITY_OPTIONS: { id: 'everyone' | 'women' | 'men' | 'no_preference'; label: string }[] = [
   { id: 'everyone', label: '🌍 Everyone' },
   { id: 'women', label: '👩 Women only' },
   { id: 'men', label: '👨 Men only' },
@@ -34,8 +34,12 @@ export default function EditProfileScreen({ navigation }: any) {
   const { user, refreshUser } = useAuth();
   const [bio, setBio] = useState(user?.bio ?? '');
   const [city, setCity] = useState(user?.city ?? '');
-  const [lookingFor, setLookingFor] = useState(user?.looking_for ?? 'exploring');
-  const [visibleTo, setVisibleTo] = useState(user?.visible_to ?? 'everyone');
+  const [lookingFor, setLookingFor] = useState<'date' | 'partner' | 'both' | 'exploring'>(
+    user?.looking_for ?? 'exploring'
+  );
+  const [visibleTo, setVisibleTo] = useState<'everyone' | 'women' | 'men' | 'no_preference'>(
+    user?.visible_to ?? 'everyone'
+  );
   const [photos, setPhotos] = useState<string[]>(user?.photos ?? []);
   const [saving, setSaving] = useState(false);
 
@@ -73,7 +77,7 @@ export default function EditProfileScreen({ navigation }: any) {
           looking_for: lookingFor,
           visible_to: visibleTo,
         })
-        .eq('auth_id', user?.auth_id ?? '');
+        .eq('id', user?.id ?? '');
 
       if (error) throw error;
       await refreshUser();

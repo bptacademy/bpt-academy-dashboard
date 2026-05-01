@@ -33,11 +33,12 @@ interface PromotionCycle {
 }
 
 const STATUS_META: Record<string, { bg: string; text: string; label: string }> = {
-  active:   { bg: 'rgba(37,99,235,0.20)', text: '#60A5FA', label: 'In Progress' },
-  eligible: { bg: 'rgba(234,179,8,0.20)', text: '#FCD34D', label: '⭐ Eligible' },
-  approved: { bg: 'rgba(22,163,74,0.20)', text: '#4ADE80', label: '✅ Approved' },
-  promoted: { bg: 'rgba(21,128,61,0.20)', text: '#86EFAC', label: '🚀 Promoted' },
-  expired:  { bg: 'rgba(255,255,255,0.08)', text: '#7A8FA6', label: 'Expired' },
+  active:           { bg: 'rgba(37,99,235,0.20)', text: '#60A5FA', label: 'In Progress' },
+  eligible:         { bg: 'rgba(234,179,8,0.20)', text: '#FCD34D', label: '⭐ Eligible' },
+  approved:         { bg: 'rgba(22,163,74,0.20)', text: '#4ADE80', label: '✅ Approved' },
+  promoted:         { bg: 'rgba(21,128,61,0.20)', text: '#86EFAC', label: '🚀 Promoted' },
+  manual_override:  { bg: 'rgba(139,92,246,0.20)', text: '#C4B5FD', label: '✅ Achieved' },
+  expired:          { bg: 'rgba(255,255,255,0.08)', text: '#7A8FA6', label: 'Expired' },
 };
 
 function MetricBar({ label, value, target, suffix = '%' }: {
@@ -105,6 +106,25 @@ export default function PromotionManageScreen({ route, navigation }: any) {
       .order('created_at', { ascending: false })
       .limit(1)
       .maybeSingle();
+
+    // If no active cycle, check if most recent promoted cycle was a manual override
+    if (!active) {
+      const { data: lastOverride } = await supabase
+        .from('promotion_cycles')
+        .select('*')
+        .eq('student_id', studentId)
+        .eq('status', 'promoted')
+        .eq('rejection_note', 'manual_override')
+        .order('coach_approved_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (lastOverride) {
+        setCycle({ ...lastOverride, status: 'manual_override' } as any);
+        setLoading(false);
+        return;
+      }
+    }
 
     setCycle(active as PromotionCycle | null);
 
@@ -274,9 +294,11 @@ export default function PromotionManageScreen({ route, navigation }: any) {
                       {STATUS_META[cycle.status]?.label ?? cycle.status}
                     </Text>
                   </View>
-                  {cycle.requires_coach_approval && (
+                  {cycle.status === 'manual_override' ? (
+                    <Text style={styles.manualOverrideNote}>✋ Manually approved by coach</Text>
+                  ) : cycle.requires_coach_approval && cycle.status === 'active' ? (
                     <Text style={styles.approvalNote}>🔐 Coach approval required</Text>
-                  )}
+                  ) : null}
                 </View>
               </View>
 
@@ -324,6 +346,7 @@ export default function PromotionManageScreen({ route, navigation }: any) {
             </View>
 
             {/* ── Actions ── */}
+            {cycle.status !== 'manual_override' && (
             <View style={styles.card}>
               <Text style={styles.cardTitle}>Actions</Text>
               {actioning && <ActivityIndicator color="#16A34A" style={{ marginBottom: 12 }} />}
@@ -369,6 +392,7 @@ export default function PromotionManageScreen({ route, navigation }: any) {
               )}
             </View>
 
+            )}
             {/* ── Promotion history ── */}
             {history.length > 0 && (
               <View style={styles.card}>
@@ -475,6 +499,7 @@ const styles = StyleSheet.create({
   statusBadge: { paddingHorizontal: 12, paddingVertical: 5, borderRadius: 14 },
   statusText: { fontSize: 13, fontWeight: '700' },
   approvalNote: { fontSize: 11, color: '#92400E', fontWeight: '600' },
+  manualOverrideNote: { fontSize: 11, color: '#C4B5FD', fontWeight: '600' },
   dateRange: { fontSize: 12, color: '#4B6278' },
   lastEval: { fontSize: 11, color: '#4B6278', marginTop: 2 },
 

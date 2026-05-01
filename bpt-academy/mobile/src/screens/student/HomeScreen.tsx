@@ -106,7 +106,8 @@ export default function HomeScreen({ navigation }: any) {
         .limit(3),
       supabase.from('enrollments').select('*, program:programs(*)').eq('student_id', profile.id).eq('status', 'pending_next_cycle'),
     ]);
-    if (arguments[1]?.data) setPendingNextCycle(arguments[1].data);
+    const pendingEnrollments = pendingRes.data ?? [];
+    setPendingNextCycle(pendingEnrollments);
 
     let programIds: string[] = [];
     if (enrollRes.data) {
@@ -144,6 +145,40 @@ export default function HomeScreen({ navigation }: any) {
         .lte('scheduled_at', toDate.toISOString())
         .order('scheduled_at', { ascending: true });
 
+      // Also fetch pending_next_cycle modules for the calendar
+      const pendingEnrollmentsForCal = pendingRes.data ?? [];
+      let pendingMapped: any[] = [];
+      if (pendingEnrollmentsForCal.length > 0) {
+        const pendingProgramIds = pendingEnrollmentsForCal.map((e: any) => e.program_id);
+        const { data: pendingModules } = await supabase
+          .from('modules')
+          .select('id, title, session_date, program_id, program:programs(title, next_cycle_start_date)')
+          .in('program_id', pendingProgramIds)
+          .gte('session_date', localDateStr(fromDate))
+          .lte('session_date', localDateStr(toDate))
+          .order('session_date', { ascending: true });
+
+        if (pendingModules && pendingModules.length > 0) {
+          // Deduplicate: one "Coming Soon" card per program per day
+          const seen = new Set<string>();
+          pendingMapped = pendingModules
+            .map((m: any) => {
+              const key = `${m.program_id}-${m.session_date}`;
+              if (seen.has(key)) return null;
+              seen.add(key);
+              return {
+                id: `pending-${m.program_id}-${m.session_date}`,
+                title: (m.program as any)?.title ?? 'Upcoming Program',
+                type: 'pending_session' as const,
+                _dateStr: m.session_date,
+                _startDate: (m.program as any)?.next_cycle_start_date ?? m.session_date,
+                _programTitle: (m.program as any)?.title ?? 'Upcoming Program',
+              };
+            })
+            .filter(Boolean);
+        }
+      }
+
       if (sessions) {
         const mapped = sessions.map((s: any) => {
           const dt = new Date(s.scheduled_at);
@@ -158,9 +193,18 @@ export default function HomeScreen({ navigation }: any) {
             _dateStr: localDateStr(dt),
           };
         });
-        setDays(prev => prev.map(day => ({
+        // Build fresh days with both regular and pending events in one shot — no accumulation
+        setDays(buildDays().map(day => ({
           ...day,
-          events: mapped.filter((e: any) => e._dateStr === day.dateStr),
+          events: [
+            ...mapped.filter((e: any) => e._dateStr === day.dateStr),
+            ...pendingMapped.filter((e: any) => e._dateStr === day.dateStr),
+          ],
+        })));
+      } else if (pendingMapped.length > 0) {
+        setDays(buildDays().map(day => ({
+          ...day,
+          events: pendingMapped.filter((e: any) => e._dateStr === day.dateStr),
         })));
       }
     }
@@ -299,10 +343,15 @@ export default function HomeScreen({ navigation }: any) {
                     <Text style={[styles.dayNum, isToday && styles.dayNumToday, isPast && !isToday && styles.dayNumPast]}>
                       {day.date.getDate()}
                     </Text>
-                    <View style={hasEvents
-                      ? (isToday ? styles.eventDotToday : isPast ? styles.eventDotPast : styles.eventDot)
-                      : styles.eventDotEmpty}
-                    />
+                    <View style={
+                      day.events.some((ev: any) => ev.type === 'pending_session') && !hasEvents
+                        ? styles.eventDotPending
+                        : day.events.some((ev: any) => ev.type === 'pending_session')
+                          ? styles.eventDotPending
+                          : hasEvents
+                            ? (isToday ? styles.eventDotToday : isPast ? styles.eventDotPast : styles.eventDot)
+                            : styles.eventDotEmpty
+                    } />
                   </TouchableOpacity>
                 );
               })}
@@ -496,7 +545,8 @@ const styles = StyleSheet.create({
   eventDot:      { width: 5, height: 5, borderRadius: 2.5, backgroundColor: '#EF4444', marginTop: 4 },
   eventDotToday: { width: 5, height: 5, borderRadius: 2.5, backgroundColor: '#FFF', marginTop: 4 },
   eventDotPast:  { width: 5, height: 5, borderRadius: 2.5, backgroundColor: SUBTEXT, marginTop: 4 },
-  eventDotEmpty: { width: 5, height: 5, marginTop: 4 },
+  eventDotEmpty:   { width: 5, height: 5, marginTop: 4 },
+  eventDotPending: { width: 5, height: 5, borderRadius: 2.5, backgroundColor: '#EF4444', marginTop: 4 },
 
   // ── Programs ──
   emptyCard: {

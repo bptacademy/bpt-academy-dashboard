@@ -58,11 +58,13 @@ const ROLE_COLORS: Record<string, { bg: string; text: string }> = {
   parent:  { bg: '#FAF5FF', text: '#7C3AED' },
 };
 
-const STATUS_COLORS: Record<EnrollmentStatus, { bg: string; text: string }> = {
-  active:     { bg: '#ECFDF5', text: '#16A34A' },
-  waitlisted: { bg: '#FFFBEB', text: '#D97706' },
-  completed:  { bg: '#EFF6FF', text: '#2563EB' },
-  cancelled:  { bg: '#FEF2F2', text: '#DC2626' },
+const STATUS_COLORS: Record<string, { bg: string; text: string }> = {
+  active:             { bg: '#ECFDF5', text: '#16A34A' },
+  waitlisted:         { bg: '#FFFBEB', text: '#D97706' },
+  completed:          { bg: '#EFF6FF', text: '#2563EB' },
+  cancelled:          { bg: '#FEF2F2', text: '#DC2626' },
+  pending_payment:    { bg: '#FFF7ED', text: '#EA580C' },
+  pending_next_cycle: { bg: '#F5F3FF', text: '#7C3AED' },
 };
 
 const SKILL_COLORS: Record<string, string> = {
@@ -306,15 +308,38 @@ export default function StudentDetailScreen({ route, navigation }: any) {
         { text: 'Cancel', style: 'cancel' },
         { text: 'Confirm', onPress: async () => {
           setSavingOverride(true);
+
+          // 1. Update the student's profile division
           const update: Record<string, string | null> = { division: selectedDivision };
           update.skill_level = selectedDivision === 'amateur' ? selectedSkillLevel : null;
           await supabase.from('profiles').update(update).eq('id', student!.id);
+
+          // 2. Close any active/eligible promotion cycle — mark as manually overridden
+          const { data: activeCycle } = await supabase
+            .from('promotion_cycles')
+            .select('id')
+            .eq('student_id', student!.id)
+            .in('status', ['active', 'eligible', 'approved'])
+            .limit(1)
+            .maybeSingle();
+
+          if (activeCycle) {
+            await supabase.from('promotion_cycles').update({
+              status: 'promoted',
+              coach_approved_by: coachProfile!.id,
+              coach_approved_at: new Date().toISOString(),
+              rejection_note: 'manual_override',
+            }).eq('id', activeCycle.id);
+          }
+
+          // 3. Notify the student
           await supabase.from('notifications').insert({
             recipient_id: student!.id,
             title: '📋 Division updated',
             body: `Your division has been updated to ${DIVISION_LABELS[selectedDivision as Division]}${selectedSkillLevel && selectedDivision === 'amateur' ? ` · ${selectedSkillLevel}` : ''} by your coach.`,
             type: 'promotion_result',
           });
+
           setSavingOverride(false);
           Alert.alert('✅ Done', 'Division updated successfully.');
           fetchData();
