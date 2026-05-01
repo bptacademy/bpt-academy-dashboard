@@ -3,18 +3,17 @@
  *
  * Subscribes to the connections table. When a new volley arrives where the
  * current user is the receiver, checks if they also sent a volley to that
- * sender. If mutual → marks both accepted, calls onMatch callback.
- *
- * Mount this hook once inside MainTabs so it runs across the whole app.
+ * sender. If mutual → marks both accepted, sends match notifications, calls onMatch.
  */
 
 import { useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
+import { notifyMatch } from '../lib/notifications';
 
 export interface VolleyMatch {
-  connectionId: string;   // the accepted connection ID
-  matchedUserId: string;  // the other user's Volpair ID
+  connectionId: string;
+  matchedUserId: string;
   matchedUserName: string;
   matchedUserPhoto: string | null;
 }
@@ -39,8 +38,6 @@ export function useVolleyMatch(onMatch: (match: VolleyMatch) => void) {
         },
         async (payload) => {
           const incoming = payload.new as any;
-
-          // Only care about volleys
           if (incoming.action_type !== 'volley') return;
           if (incoming.status !== 'pending') return;
 
@@ -56,9 +53,9 @@ export function useVolleyMatch(onMatch: (match: VolleyMatch) => void) {
             .eq('status', 'pending')
             .maybeSingle();
 
-          if (!myVolley) return; // not mutual
+          if (!myVolley) return;
 
-          // It's a match! Mark both as accepted
+          // It's a match — mark both accepted
           const now = new Date().toISOString();
           await supabase
             .from('connections')
@@ -72,10 +69,15 @@ export function useVolleyMatch(onMatch: (match: VolleyMatch) => void) {
             .eq('id', senderId)
             .maybeSingle();
 
+          const matchedUserName = matchedUser?.full_name ?? 'Someone';
+
+          // Notify both users of the match
+          await notifyMatch(senderId, user.full_name ?? 'Someone', incoming.id);
+
           onMatchRef.current({
             connectionId: incoming.id,
             matchedUserId: senderId,
-            matchedUserName: matchedUser?.full_name ?? 'Someone',
+            matchedUserName,
             matchedUserPhoto: matchedUser?.photos?.[0] ?? null,
           });
         }

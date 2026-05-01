@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext';
 import { theme } from '../lib/theme';
 import { useVolleyMatch } from '../hooks/useVolleyMatch';
+import { usePushNotifications } from '../hooks/usePushNotifications';
 
 import WelcomeScreen from '../screens/auth/WelcomeScreen';
 import EmailSignupScreen from '../screens/auth/EmailSignupScreen';
@@ -107,12 +108,29 @@ function ProfileNavigator() {
   );
 }
 
-// ── MainTabs with global Volley match listener ─────────────────────────────────
-
 function MainTabs({ navRef }: { navRef: React.RefObject<NavigationContainerRef<any>> }) {
   const insets = useSafeAreaInsets();
 
-  // Global realtime Volley match listener — fires from anywhere in the app
+  // Global: register push token + handle incoming notifications
+  usePushNotifications((notification) => {
+    const data = notification.request.content.data as any;
+    // Route to correct screen based on notification type
+    if (data?.type === 'match' && data?.connectionId) {
+      navRef.current?.navigate('Connect', {
+        screen: 'MutualVolleyMatch',
+        params: { connectionId: data.connectionId },
+      });
+    } else if (data?.type === 'serve' && data?.connectionId) {
+      navRef.current?.navigate('Messages', {
+        screen: 'Conversation',
+        params: { connectionId: data.connectionId },
+      });
+    } else if (data?.type === 'volley') {
+      navRef.current?.navigate('Connect');
+    }
+  });
+
+  // Global: realtime Volley match detection
   useVolleyMatch((match) => {
     navRef.current?.navigate('Connect', {
       screen: 'MutualVolleyMatch',
@@ -159,8 +177,6 @@ function MainTabs({ navRef }: { navRef: React.RefObject<NavigationContainerRef<a
     </Tab.Navigator>
   );
 }
-
-// ── Root navigator ─────────────────────────────────────────────────────────────
 
 export default function Navigation() {
   const { session, user, loading } = useAuth();

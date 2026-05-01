@@ -1,21 +1,17 @@
 /**
  * useConversation — real-time messaging for a single connection
- *
- * - Loads existing serves from DB
- * - Subscribes to new serves via Supabase Realtime
- * - Marks unread serves as read on mount
- * - Exposes sendServe() to insert a new message
  */
 
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
+import { notifyNewServe } from '../lib/notifications';
 
 export interface Message {
   id: string;
   senderId: string;
   body: string;
-  createdAt: string; // ISO
+  createdAt: string;
   readAt: string | null;
 }
 
@@ -40,7 +36,6 @@ export function useConversation(connectionId: string | null) {
     setError(null);
 
     try {
-      // ── 1. Load connection info + other user ─────────────────────────────
       const { data: conn } = await supabase
         .from('connections')
         .select('id, sender_id, receiver_id, matched_at')
@@ -65,7 +60,6 @@ export function useConversation(connectionId: string | null) {
         matchedAt: conn.matched_at,
       });
 
-      // ── 2. Load existing serves ──────────────────────────────────────────
       const { data: serves } = await supabase
         .from('serves')
         .select('id, sender_id, body, created_at, read_at')
@@ -82,7 +76,6 @@ export function useConversation(connectionId: string | null) {
         }))
       );
 
-      // ── 3. Mark unread serves from other user as read ────────────────────
       await supabase
         .from('serves')
         .update({ read_at: new Date().toISOString() })
@@ -97,7 +90,6 @@ export function useConversation(connectionId: string | null) {
     }
   }, [connectionId, user]);
 
-  // ── Realtime subscription ────────────────────────────────────────────────
   useEffect(() => {
     if (!connectionId || !user) return;
 
@@ -115,7 +107,6 @@ export function useConversation(connectionId: string | null) {
         },
         (payload) => {
           const s = payload.new as any;
-          // Avoid duplicates (we may have inserted it ourselves)
           setMessages(prev => {
             if (prev.find(m => m.id === s.id)) return prev;
             return [...prev, {
@@ -127,7 +118,6 @@ export function useConversation(connectionId: string | null) {
             }];
           });
 
-          // Mark as read if it's from the other user
           if (s.sender_id !== user.id) {
             supabase
               .from('serves')
@@ -144,7 +134,8 @@ export function useConversation(connectionId: string | null) {
   }, [connectionId, user]);
 
   const sendServe = async (body: string): Promise<void> => {
-    if (!connectionId || !user || !body.trim()) return;
+    if (!connectionId || !user || !body.trim() || !info) return;
+
     const { error } = await supabase
       .from('serves')
       .insert({
@@ -153,6 +144,13 @@ export function useConversation(connectionId: string | null) {
         body: body.trim(),
       });
     if (error) throw error;
+
+    // Notify the other user (best-effort, non-blocking)
+    notifyNewServe(
+      info.otherUserId,
+      user.full_name ?? 'Someone',
+      connectionId,
+    );
   };
 
   return { messages, info, loading, error, sendServe };
