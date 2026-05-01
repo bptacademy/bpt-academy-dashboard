@@ -15,22 +15,6 @@ const PLAYTOMIC_BASE = 'https://api.playtomic.io';
 
 // ─── Playtomic helpers ────────────────────────────────────────────────────────
 
-async function refreshPlaytomicToken(email: string, password: string) {
-  // Playtomic refresh endpoints (v1/v3) are unreliable — we re-login instead.
-  const res = await fetch(`${PLAYTOMIC_BASE}/v3/auth/login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password }),
-  });
-  if (!res.ok) throw new Error(`Re-login failed: ${res.status}. Please reconnect your Playtomic account.`);
-  const data = await res.json();
-  return {
-    accessToken: data.access_token as string,
-    refreshToken: data.refresh_token as string,
-    expiresAt: new Date(Date.now() + 3600 * 1000).toISOString(),
-  };
-}
-
 async function fetchPlaytomicMatches(accessToken: string, userId: string, page = 0, size = 50) {
   const url = `${PLAYTOMIC_BASE}/v1/matches?user_id=${userId}&page=${page}&size=${size}`;
   const res = await fetch(url, {
@@ -142,7 +126,7 @@ serve(async (req) => {
       });
     }
 
-    // Get platform connection (Playtomic for now)
+    // Get platform connection
     const { data: conn } = await supabase
       .from('platform_connections')
       .select('*')
@@ -156,21 +140,9 @@ serve(async (req) => {
       });
     }
 
-    // ── Token handling ────────────────────────────────────────────────────────
-    // Strategy: use existing access token first. If it's clearly expired AND we
-    // have credentials stored, re-login. Otherwise just try the token as-is —
-    // Playtomic tokens tend to last much longer than their stated expiry.
-    let accessToken = conn.access_token;
-    const isExpired = conn.token_expires_at && new Date(conn.token_expires_at) < new Date();
-
-    if (isExpired && conn.refresh_token) {
-      // Try using the existing access_token first (may still work despite expiry claim)
-      // If we get a 401 on the first real API call, we'll re-login then.
-      // For now just proceed — the fetch functions will throw on 401.
-      console.log('Token appears expired, attempting to use anyway — Playtomic tokens often outlive stated expiry');
-    }
-
-    const platformUserId = conn.platform_user_id;
+    const accessToken = conn.access_token;
+    const platformUserId = conn.platform_user_id; // e.g. "4987425"
+    const volpairUserId = volpairUser.id;          // the internal UUID
 
     // ── Step 1: Fetch level ──────────────────────────────────────────────────
     let levelData: any = null;
@@ -193,7 +165,21 @@ serve(async (req) => {
 
     console.log(`Fetched ${allMatches.length} matches for user ${platformUserId}`);
 
-    // ── Step 3: Upsert clubs ─────────────────────────────────────────────────
+    // ── Step 3: Build a lookup of ALL known Volpair users by platform_user_id ─
+    // Do this ONCE up front — much more efficient than per-player queries
+    const { data: allConns } = await supabase
+      .from('platform_connections')
+      .select('user_id, platform_user_id')
+      .eq('platform', 'playtomic');
+
+    const platformToVolpairUser = new Map<string, string>();
+    for (const c of (allConns ?? []) as any[]) {
+      platformToVolpairUser.set(c.platform_user_id, c.user_id);
+    }
+    // Always include the current user (in case their connection was just created)
+    platformToVolpairUser.set(platformUserId, volpairUserId);
+
+    // ── Step 4: Upsert clubs ─────────────────────────────────────────────────
     const clubMap: Record<string, string> = {};
     const uniqueClubs = [...new Map(allMatches.map(m => [m.tenant_id, m])).values()];
 
@@ -211,7 +197,7 @@ serve(async (req) => {
       if (club) clubMap[m.tenant_id] = club.id;
     }
 
-    // ── Step 4: Upsert matches + match_players ───────────────────────────────
+    // ── Step 5: Upsert matches + match_players ───────────────────────────────
     let wins = 0, losses = 0;
 
     for (const m of allMatches) {
@@ -248,17 +234,13 @@ serve(async (req) => {
 
       for (const team of (m.teams ?? [])) {
         for (const player of (team.players ?? [])) {
-          const { data: linkedUser } = await supabase
-            .from('platform_connections')
-            .select('user_id')
-            .eq('platform', 'playtomic')
-            .eq('platform_user_id', player.user_id)
-            .maybeSingle();
+          // Use pre-built map — O(1) lookup, no extra DB query per player
+          const linkedUserId = platformToVolpairUser.get(String(player.user_id)) ?? null;
 
           await supabase.from('match_players').upsert({
             match_id: matchRow.id,
-            user_id: linkedUser?.user_id ?? null,
-            platform_user_id: player.user_id,
+            user_id: linkedUserId,
+            platform_user_id: String(player.user_id),
             platform_name: player.name ?? player.full_name ?? null,
             team_id: String(team.team_index ?? team.id ?? '0'),
             result: team.winner ? 'won' : 'lost',
@@ -269,7 +251,7 @@ serve(async (req) => {
       }
     }
 
-    // ── Step 5: Recalculate player_stats ─────────────────────────────────────
+    // ── Step 6: Recalculate player_stats ─────────────────────────────────────
     const totalMatches = allMatches.length;
     const winRate = totalMatches > 0 ? wins / totalMatches : 0;
     const playStyle = derivePlayStyle(allMatches);
@@ -278,7 +260,7 @@ serve(async (req) => {
     const topClubs = deriveTopClubs(allMatches);
 
     await supabase.from('player_stats').upsert({
-      user_id: volpairUser.id,
+      user_id: volpairUserId,
       platform: 'playtomic',
       level_value: levelData?.level_value ?? null,
       level_confidence: levelData?.level_confidence ?? null,
@@ -295,9 +277,9 @@ serve(async (req) => {
 
     await supabase.from('users').update({
       last_active_at: new Date().toISOString(),
-    }).eq('id', volpairUser.id);
+    }).eq('id', volpairUserId);
 
-    // ── Step 6: Recalculate Volpair scores ────────────────────────────────────
+    // ── Step 7: Recalculate Volpair scores ────────────────────────────────────
     const matchIdsForScores = allMatches
       .filter(m => m.match_id ?? m.id)
       .map(m => m.match_id ?? m.id)
@@ -306,19 +288,19 @@ serve(async (req) => {
     const { data: linkedPairs } = await supabase
       .from('match_players')
       .select('user_id')
-      .neq('user_id', volpairUser.id)
+      .neq('user_id', volpairUserId)
       .not('user_id', 'is', null)
       .in('match_id', matchIdsForScores);
 
     const otherUserIds = [...new Set((linkedPairs ?? []).map((r: any) => r.user_id))];
 
     for (const otherUserId of otherUserIds) {
-      const [userAId, userBId] = [volpairUser.id, otherUserId].sort();
+      const [userAId, userBId] = [volpairUserId, otherUserId].sort();
 
       const { count: matchesTogether } = await supabase
         .from('match_players')
         .select('match_id', { count: 'exact', head: true })
-        .eq('user_id', volpairUser.id)
+        .eq('user_id', volpairUserId)
         .in('match_id', (await supabase
           .from('match_players')
           .select('match_id')
@@ -358,7 +340,6 @@ serve(async (req) => {
       const proximityScore = Math.min(10, sharedClubs * 2);
 
       const locationScore = 10;
-
       const totalScore = skillScore + styleScore + availabilityScore + locationScore + chemistryScore + proximityScore;
 
       await supabase.from('volpair_scores').upsert({
@@ -376,7 +357,7 @@ serve(async (req) => {
       }, { onConflict: 'user_a_id,user_b_id' });
     }
 
-    // ── Step 7: Update last_synced_at ─────────────────────────────────────────
+    // ── Step 8: Update last_synced_at ─────────────────────────────────────────
     await supabase.from('platform_connections').update({
       last_synced_at: new Date().toISOString(),
     }).eq('id', conn.id);

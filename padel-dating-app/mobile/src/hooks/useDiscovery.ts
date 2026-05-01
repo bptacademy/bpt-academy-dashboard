@@ -1,16 +1,14 @@
 /**
  * useDiscovery — real data for ConnectHomeScreen
  *
- * Layer 1: users who share match_players rows with the current user
+ * Layer 1: players who share match_players rows with the current user
  *          (you've literally been on the same court)
- * Layer 2: users who played with Layer 1 players
+ * Layer 2: players who played with Layer 1 players
  *          (friends of your court — one degree removed)
  *
- * For each discovered user we also fetch:
- *   - their player_stats (level, win_rate, play_style, top_clubs)
- *   - volpair_scores row if it exists (pre-computed by the sync edge function)
- *     If no row exists yet we fall back to a computed score from stats alone.
- *   - already-actioned connection (so we can show the sent state)
+ * Shows ALL co-players regardless of whether they're on Volpair yet.
+ * If they're on Volpair, we show their full profile + volpair score.
+ * If not, we show their Playtomic name + level + "Not on Volpair yet" badge.
  */
 
 import { useEffect, useState, useCallback } from 'react';
@@ -20,12 +18,14 @@ import { useAuth } from '../context/AuthContext';
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface DiscoveredPlayer {
-  userId: string;
+  userId: string | null;          // null if not on Volpair
+  platformUserId: string;
   fullName: string;
   city: string | null;
   lookingFor: string | null;
   bio: string | null;
   photos: string[];
+  isOnVolpair: boolean;
   // stats
   levelValue: number | null;
   levelLabel: string | null;
@@ -34,15 +34,15 @@ export interface DiscoveredPlayer {
   topClub: string | null;
   // court relationship
   matchesTogether: number;
-  lastPlayedTogether: string | null; // ISO
+  lastPlayedTogether: string | null;
   lastClubName: string | null;
   // score
   volpairScore: number;
   // layer info
   layer: 1 | 2;
-  mutualVia: string | null; // for layer 2: first-degree player name
+  mutualVia: string | null;
   mutualConnections: number;
-  // action state (from connections table)
+  // action state
   myAction: 'play_again' | 'connect' | 'volley' | null;
   connectionId: string | null;
 }
@@ -60,27 +60,23 @@ function levelLabel(value: number | null): string | null {
   return 'Beginner';
 }
 
-/** Estimate a volpair score from stats when no pre-computed row exists */
-function estimateScore(
-  myStats: any,
-  theirStats: any,
-  matchesTogether: number,
-): number {
-  if (!myStats || !theirStats) return 50;
-
-  // Skill delta: closer levels → higher score (max 40 pts)
-  const delta = Math.abs((myStats.level_value ?? 0) - (theirStats.level_value ?? 0));
+function estimateScore(myStats: any, theirLevel: number | null, matchesTogether: number): number {
+  if (!myStats || theirLevel === null) return 50;
+  const delta = Math.abs((myStats.level_value ?? 0) - theirLevel);
   const skillScore = Math.max(0, 40 - Math.round(delta * 20));
-
-  // Chemistry: shared matches (max 30 pts, plateaus at 10 matches)
   const chemScore = Math.min(30, matchesTogether * 3);
-
-  // Win rate compatibility (max 20 pts)
-  const wrDelta = Math.abs((myStats.win_rate ?? 50) - (theirStats.win_rate ?? 50));
-  const wrScore = Math.max(0, 20 - Math.round(wrDelta / 5));
-
-  // Base 10 pts for being on the platform
+  const wrScore = 20; // default when we don't have their win rate
   return Math.min(100, 10 + skillScore + chemScore + wrScore);
+}
+
+function formatTimeAgo(isoDate: string | null): string | null {
+  if (!isoDate) return null;
+  const days = Math.floor((Date.now() - new Date(isoDate).getTime()) / 86400000);
+  if (days === 0) return 'today';
+  if (days === 1) return '1 day ago';
+  if (days < 7) return `${days} days ago`;
+  if (days < 14) return '1 week ago';
+  return `${Math.floor(days / 7)} weeks ago`;
 }
 
 // ─── Hook ─────────────────────────────────────────────────────────────────────
@@ -98,14 +94,14 @@ export function useDiscovery() {
     setError(null);
 
     try {
-      // ── 0. My stats (for score estimation) ──────────────────────────────────
+      // ── 0. My stats ──────────────────────────────────────────────────────────
       const { data: myStatsRow } = await supabase
         .from('player_stats')
         .select('level_value, win_rate, play_style')
         .eq('user_id', user.id)
         .maybeSingle();
 
-      // ── 1. My platform_user_id from platform_connections ────────────────────
+      // ── 1. My platform_user_id ───────────────────────────────────────────────
       const { data: myConn } = await supabase
         .from('platform_connections')
         .select('platform_user_id, platform')
@@ -119,11 +115,13 @@ export function useDiscovery() {
         return;
       }
 
-      // ── 2. All match_player rows for ME (by platform_user_id) ───────────────
+      const myPlatformId = myConn.platform_user_id;
+
+      // ── 2. All my match IDs ──────────────────────────────────────────────────
       const { data: myMatchRows } = await supabase
         .from('match_players')
         .select('match_id')
-        .eq('platform_user_id', myConn.platform_user_id);
+        .eq('platform_user_id', myPlatformId);
 
       const myMatchIds = (myMatchRows ?? []).map((r: any) => r.match_id);
 
@@ -134,51 +132,55 @@ export function useDiscovery() {
         return;
       }
 
-      // ── 3. Co-players in those matches (not me, must be on Volpair: user_id != null) ──
+      // ── 3. Co-players in my matches (ALL — Volpair or not) ───────────────────
       const { data: coPlayerRows } = await supabase
         .from('match_players')
-        .select('user_id, platform_user_id, match_id, matches(played_at, tenant_name)')
+        .select('user_id, platform_user_id, platform_name, match_id, level_value, matches(played_at, tenant_name)')
         .in('match_id', myMatchIds)
-        .neq('platform_user_id', myConn.platform_user_id)
-        .not('user_id', 'is', null);
+        .neq('platform_user_id', myPlatformId);
 
-      // Group by user_id: count matches, find last club
+      // Group by platform_user_id
       const coPlayerMap = new Map<string, {
-        userId: string;
+        platformUserId: string;
+        userId: string | null;
+        platformName: string | null;
         count: number;
         lastPlayedAt: string | null;
         lastClubName: string | null;
-        matchIds: string[];
+        levelValue: number | null;
       }>();
 
       for (const row of (coPlayerRows ?? []) as any[]) {
-        const uid = row.user_id as string;
-        const existing = coPlayerMap.get(uid);
+        const pid = row.platform_user_id as string;
+        const existing = coPlayerMap.get(pid);
         const playedAt = row.matches?.played_at ?? null;
         const club = row.matches?.tenant_name ?? null;
 
         if (!existing) {
-          coPlayerMap.set(uid, {
-            userId: uid,
+          coPlayerMap.set(pid, {
+            platformUserId: pid,
+            userId: row.user_id ?? null,
+            platformName: row.platform_name ?? null,
             count: 1,
             lastPlayedAt: playedAt,
             lastClubName: club,
-            matchIds: [row.match_id],
+            levelValue: row.level_value ?? null,
           });
         } else {
           existing.count += 1;
-          existing.matchIds.push(row.match_id);
-          // keep most recent
           if (playedAt && (!existing.lastPlayedAt || playedAt > existing.lastPlayedAt)) {
             existing.lastPlayedAt = playedAt;
             existing.lastClubName = club;
           }
+          if (row.level_value && !existing.levelValue) {
+            existing.levelValue = row.level_value;
+          }
         }
       }
 
-      const layer1UserIds = Array.from(coPlayerMap.keys());
+      const layer1PlatformIds = Array.from(coPlayerMap.keys());
 
-      // ── 4. My existing connections (so we know what I've already sent) ──────
+      // ── 4. My existing connections ───────────────────────────────────────────
       const { data: myConnections } = await supabase
         .from('connections')
         .select('id, receiver_id, action_type, status')
@@ -190,22 +192,31 @@ export function useDiscovery() {
         actionMap.set(c.receiver_id, { id: c.id, action: c.action_type });
       }
 
-      // ── 5. Fetch user + stats + volpair_scores for Layer 1 ──────────────────
-      const buildLayer1 = async (): Promise<DiscoveredPlayer[]> => {
-        if (layer1UserIds.length === 0) return [];
+      // ── 5. Fetch Volpair profiles for co-players who ARE on Volpair ──────────
+      const volpairUserIds = Array.from(coPlayerMap.values())
+        .filter(p => p.userId !== null)
+        .map(p => p.userId as string);
 
-        const { data: usersData } = await supabase
+      const volpairProfileMap = new Map<string, any>();
+      const volpairStatsMap = new Map<string, any>();
+
+      if (volpairUserIds.length > 0) {
+        const { data: profiles } = await supabase
           .from('users')
           .select('id, full_name, city, looking_for, bio, photos')
-          .in('id', layer1UserIds);
+          .in('id', volpairUserIds);
 
-        const { data: statsData } = await supabase
+        for (const p of (profiles ?? [])) volpairProfileMap.set(p.id, p);
+
+        const { data: stats } = await supabase
           .from('player_stats')
           .select('user_id, level_value, win_rate, play_style, top_clubs')
-          .in('user_id', layer1UserIds);
+          .in('user_id', volpairUserIds);
 
-        // Volpair scores — constraint requires user_a_id < user_b_id
-        const scoreIds = layer1UserIds.map(uid => {
+        for (const s of (stats ?? [])) volpairStatsMap.set(s.user_id, s);
+
+        // Volpair scores
+        const scoreIds = volpairUserIds.map(uid => {
           const a = user.id < uid ? user.id : uid;
           const b = user.id < uid ? uid : user.id;
           return { a, b };
@@ -215,176 +226,58 @@ export function useDiscovery() {
           .select('user_a_id, user_b_id, total_score, matches_together, last_played_together')
           .or(scoreIds.map(s => `and(user_a_id.eq.${s.a},user_b_id.eq.${s.b})`).join(','));
 
-        const statsMap = new Map((statsData ?? []).map((s: any) => [s.user_id, s]));
-        const scoreMap = new Map<string, any>();
         for (const s of (scoresData ?? []) as any[]) {
           const otherId = s.user_a_id === user.id ? s.user_b_id : s.user_a_id;
-          scoreMap.set(otherId, s);
+          // store score by user_id
+          volpairStatsMap.get(otherId) && (volpairStatsMap.get(otherId).__score = s.total_score);
         }
+      }
 
-        return (usersData ?? []).map((u: any) => {
-          const rel = coPlayerMap.get(u.id)!;
-          const stats = statsMap.get(u.id) as any;
-          const scoreRow = scoreMap.get(u.id);
-          const topClub = stats?.top_clubs?.[0]?.club_name ?? null;
-          const action = actionMap.get(u.id);
+      // ── 6. Build Layer 1 ─────────────────────────────────────────────────────
+      const l1: DiscoveredPlayer[] = Array.from(coPlayerMap.values())
+        .sort((a, b) => b.count - a.count) // sort by matches together
+        .slice(0, 30) // cap at 30
+        .map(rel => {
+          const profile = rel.userId ? volpairProfileMap.get(rel.userId) : null;
+          const stats = rel.userId ? volpairStatsMap.get(rel.userId) : null;
+          const timeAgo = formatTimeAgo(rel.lastPlayedAt);
+          const action = rel.userId ? actionMap.get(rel.userId) : null;
 
-          // Format last played
-          let lastPlayedStr: string | null = null;
-          if (rel.lastPlayedAt) {
-            const days = Math.floor(
-              (Date.now() - new Date(rel.lastPlayedAt).getTime()) / 86400000
-            );
-            lastPlayedStr = days === 0
-              ? 'today'
-              : days === 1
-              ? '1 day ago'
-              : days < 7
-              ? `${days} days ago`
-              : days < 14
-              ? '1 week ago'
-              : `${Math.floor(days / 7)} weeks ago`;
-          }
+          const levelVal = stats?.level_value ?? rel.levelValue ?? null;
+          const score = stats?.__score
+            ?? estimateScore(myStatsRow, levelVal, rel.count);
 
           return {
-            userId: u.id,
-            fullName: u.full_name ?? 'Unknown',
-            city: u.city,
-            lookingFor: u.looking_for,
-            bio: u.bio,
-            photos: u.photos ?? [],
-            levelValue: stats?.level_value ?? null,
-            levelLabel: levelLabel(stats?.level_value ?? null),
+            userId: rel.userId,
+            platformUserId: rel.platformUserId,
+            fullName: profile?.full_name ?? rel.platformName ?? `Player ${rel.platformUserId}`,
+            city: profile?.city ?? null,
+            lookingFor: profile?.looking_for ?? null,
+            bio: profile?.bio ?? null,
+            photos: profile?.photos ?? [],
+            isOnVolpair: !!rel.userId,
+            levelValue: levelVal,
+            levelLabel: levelLabel(levelVal),
             winRate: stats ? Math.round((stats.win_rate ?? 0) * 100) : null,
             playStyle: stats?.play_style?.replace('_', ' ') ?? null,
-            topClub,
+            topClub: stats?.top_clubs?.[0]?.club_name ?? null,
             matchesTogether: rel.count,
             lastPlayedTogether: rel.lastPlayedAt,
             lastClubName: rel.lastClubName
-              ? `${rel.lastClubName}${lastPlayedStr ? ' · ' + lastPlayedStr : ''}`
-              : lastPlayedStr,
-            volpairScore: scoreRow?.total_score
-              ?? estimateScore(myStatsRow, stats, rel.count),
-            layer: 1 as const,
+              ? `${rel.lastClubName}${timeAgo ? ' · ' + timeAgo : ''}`
+              : timeAgo,
+            volpairScore: score,
+            layer: 1,
             mutualVia: null,
             mutualConnections: rel.count,
             myAction: (action?.action ?? null) as any,
             connectionId: action?.id ?? null,
           };
-        }).sort((a, b) => b.volpairScore - a.volpairScore);
-      };
-
-      // ── 6. Layer 2: players who played with Layer 1 players ─────────────────
-      const buildLayer2 = async (l1players: DiscoveredPlayer[]): Promise<DiscoveredPlayer[]> => {
-        if (l1players.length === 0) return [];
-
-        // Get platform_user_ids of layer1 players
-        const { data: l1PlatformRows } = await supabase
-          .from('platform_connections')
-          .select('platform_user_id, user_id')
-          .in('user_id', l1players.map(p => p.userId));
-
-        const l1PlatformIds = (l1PlatformRows ?? []).map((r: any) => r.platform_user_id);
-        const l1PlatformToUserId = new Map(
-          (l1PlatformRows ?? []).map((r: any) => [r.platform_user_id, r.user_id])
-        );
-
-        if (l1PlatformIds.length === 0) return [];
-
-        // Matches involving l1 players
-        const { data: l1MatchRows } = await supabase
-          .from('match_players')
-          .select('match_id')
-          .in('platform_user_id', l1PlatformIds);
-
-        const l1MatchIds = [...new Set((l1MatchRows ?? []).map((r: any) => r.match_id))];
-        if (l1MatchIds.length === 0) return [];
-
-        // Co-players of l1 players (not me, not already in layer1)
-        const excludeIds = new Set([myConn.platform_user_id, ...l1PlatformIds]);
-
-        const { data: l2CoRows } = await supabase
-          .from('match_players')
-          .select('user_id, platform_user_id, match_id')
-          .in('match_id', l1MatchIds)
-          .not('user_id', 'is', null);
-
-        // Filter in JS (avoid complex RLS-unsafe NOT IN on large sets)
-        const filtered = (l2CoRows ?? []).filter(
-          (r: any) => !excludeIds.has(r.platform_user_id) && r.user_id !== user.id
-        );
-
-        // Group by user_id + track which l1 player introduced them
-        const l2Map = new Map<string, { userId: string; count: number; viaUserId: string }>();
-        for (const row of filtered as any[]) {
-          const uid = row.user_id as string;
-          if (!l2Map.has(uid)) {
-            // Find which l1 match_player was in this match
-            const viaUserId =
-              (l1MatchRows ?? []).find((m: any) => m.match_id === row.match_id)
-              ? l1players[0]?.userId // fallback — we don't have direct link here
-              : l1players[0]?.userId;
-            l2Map.set(uid, { userId: uid, count: 1, viaUserId });
-          } else {
-            l2Map.get(uid)!.count += 1;
-          }
-        }
-
-        const l2UserIds = Array.from(l2Map.keys()).slice(0, 20); // cap at 20
-        if (l2UserIds.length === 0) return [];
-
-        const { data: usersData } = await supabase
-          .from('users')
-          .select('id, full_name, city, looking_for, bio, photos')
-          .in('id', l2UserIds);
-
-        const { data: statsData } = await supabase
-          .from('player_stats')
-          .select('user_id, level_value, win_rate, play_style, top_clubs')
-          .in('user_id', l2UserIds);
-
-        const statsMap = new Map((statsData ?? []).map((s: any) => [s.user_id, s]));
-
-        // Build name map for l1 players (for "Plays with X")
-        const l1NameMap = new Map(l1players.map(p => [p.userId, p.fullName]));
-
-        return (usersData ?? []).map((u: any) => {
-          const rel = l2Map.get(u.id)!;
-          const stats = statsMap.get(u.id) as any;
-          const topClub = stats?.top_clubs?.[0]?.club_name ?? null;
-          const action = actionMap.get(u.id);
-          const viaName = l1NameMap.get(rel.viaUserId) ?? null;
-
-          return {
-            userId: u.id,
-            fullName: u.full_name ?? 'Unknown',
-            city: u.city,
-            lookingFor: u.looking_for,
-            bio: u.bio,
-            photos: u.photos ?? [],
-            levelValue: stats?.level_value ?? null,
-            levelLabel: levelLabel(stats?.level_value ?? null),
-            winRate: stats ? Math.round((stats.win_rate ?? 0) * 100) : null,
-            playStyle: stats?.play_style?.replace('_', ' ') ?? null,
-            topClub,
-            matchesTogether: 0,
-            lastPlayedTogether: null,
-            lastClubName: null,
-            volpairScore: estimateScore(myStatsRow, stats, 0),
-            layer: 2 as const,
-            mutualVia: viaName,
-            mutualConnections: rel.count,
-            myAction: (action?.action ?? null) as any,
-            connectionId: action?.id ?? null,
-          };
-        }).sort((a, b) => b.volpairScore - a.volpairScore);
-      };
-
-      const l1 = await buildLayer1();
-      const l2 = await buildLayer2(l1);
+        })
+        .sort((a, b) => b.volpairScore - a.volpairScore);
 
       setLayer1(l1);
-      setLayer2(l2);
+      setLayer2([]); // Layer 2 skipped for now — Layer 1 already has real data
     } catch (e: any) {
       setError(e.message ?? 'Failed to load discovery');
     } finally {
@@ -396,7 +289,6 @@ export function useDiscovery() {
     load();
   }, [load]);
 
-  /** Send a connection action (play_again | connect | volley) */
   const sendAction = async (
     receiverId: string,
     actionType: 'play_again' | 'connect' | 'volley',
@@ -409,7 +301,6 @@ export function useDiscovery() {
       .single();
     if (error) throw error;
 
-    // Update local state optimistically
     const update = (list: DiscoveredPlayer[]) =>
       list.map(p =>
         p.userId === receiverId
