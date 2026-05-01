@@ -1,19 +1,29 @@
 import React, { useEffect, useRef } from 'react';
 import {
-  View, Text, TouchableOpacity, StyleSheet, StatusBar, Animated,
+  View, Text, TouchableOpacity, StyleSheet, StatusBar, Animated, Image,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme } from '../../lib/theme';
-
-// Mock — will use route.params.matchedUserId to fetch real user
-const MOCK_MATCH = { name: 'Sofia', emoji: '🎾' };
+import { useAuth } from '../../context/AuthContext';
 
 export default function MutualVolleyMatchScreen({ route, navigation }: any) {
   const insets = useSafeAreaInsets();
+  const { user } = useAuth();
+  const { connectionId, matchedUserName, matchedUserPhoto } = route.params ?? {};
+
   const scaleA = useRef(new Animated.Value(0.3)).current;
   const scaleB = useRef(new Animated.Value(0.3)).current;
   const fadeText = useRef(new Animated.Value(0)).current;
   const scaleBadge = useRef(new Animated.Value(0)).current;
+
+  const firstName = matchedUserName?.split(' ')[0] ?? 'them';
+  const myPhoto = user?.photos?.[0] ?? null;
+  const myInitials = user?.full_name
+    ? user.full_name.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()
+    : '👤';
+  const theirInitials = matchedUserName
+    ? matchedUserName.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()
+    : '👤';
 
   useEffect(() => {
     Animated.sequence([
@@ -29,7 +39,7 @@ export default function MutualVolleyMatchScreen({ route, navigation }: any) {
   }, []);
 
   const handleSendServe = () => {
-    navigation.navigate('Conversation', { connectionId: 'mock-connection-id' });
+    navigation.replace('Conversation', { connectionId });
   };
 
   const handleMaybeLater = () => {
@@ -40,28 +50,39 @@ export default function MutualVolleyMatchScreen({ route, navigation }: any) {
     <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
       <StatusBar barStyle="light-content" backgroundColor={theme.bg} />
 
-      {/* Background glow */}
       <View style={styles.glowViolet} />
       <View style={styles.glowTurquoise} />
 
       <View style={styles.center}>
-        {/* Avatars */}
         <View style={styles.avatarRow}>
+          {/* My avatar */}
           <Animated.View style={[styles.avatarCircle, { transform: [{ scale: scaleA }] }]}>
-            <Text style={styles.avatarEmoji}>👤</Text>
+            {myPhoto ? (
+              <Image source={{ uri: myPhoto }} style={styles.avatarImage} resizeMode="cover" />
+            ) : (
+              <Text style={styles.avatarText}>{myInitials}</Text>
+            )}
           </Animated.View>
+
+          {/* Match badge */}
           <Animated.View style={[styles.matchBadge, { transform: [{ scale: scaleBadge }] }]}>
             <Text style={styles.matchBadgeEmoji}>💘</Text>
           </Animated.View>
+
+          {/* Their avatar */}
           <Animated.View style={[styles.avatarCircle, styles.avatarCircleB, { transform: [{ scale: scaleB }] }]}>
-            <Text style={styles.avatarEmoji}>{MOCK_MATCH.emoji}</Text>
+            {matchedUserPhoto ? (
+              <Image source={{ uri: matchedUserPhoto }} style={styles.avatarImage} resizeMode="cover" />
+            ) : (
+              <Text style={styles.avatarText}>{theirInitials}</Text>
+            )}
           </Animated.View>
         </View>
 
         <Animated.View style={{ opacity: fadeText, alignItems: 'center' }}>
           <Text style={styles.title}>It's a match!</Text>
           <Text style={styles.subtitle}>
-            You and {MOCK_MATCH.name} both sent a Volley.
+            You and {firstName} both sent a Volley.
           </Text>
           <View style={styles.courtCard}>
             <Text style={styles.courtText}>The court is yours.</Text>
@@ -94,16 +115,19 @@ const styles = StyleSheet.create({
     backgroundColor: theme.primary, opacity: 0.08,
   },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 24 },
-  avatarRow: { flexDirection: 'row', alignItems: 'center', gap: 0 },
+  avatarRow: { flexDirection: 'row', alignItems: 'center' },
   avatarCircle: {
     width: 90, height: 90, borderRadius: 45,
-    backgroundColor: theme.primaryDim, alignItems: 'center', justifyContent: 'center',
+    backgroundColor: theme.primaryDim,
+    alignItems: 'center', justifyContent: 'center',
     borderWidth: 3, borderColor: theme.primaryBorder,
+    overflow: 'hidden',
   },
   avatarCircleB: {
     backgroundColor: theme.secondaryDim, borderColor: theme.secondaryBorder,
   },
-  avatarEmoji: { fontSize: 40 },
+  avatarImage: { width: 90, height: 90 },
+  avatarText: { fontSize: 28, fontWeight: '800', color: theme.primary },
   matchBadge: {
     width: 48, height: 48, borderRadius: 24,
     backgroundColor: theme.secondaryDim, alignItems: 'center', justifyContent: 'center',

@@ -1,11 +1,12 @@
-import React from 'react';
-import { NavigationContainer } from '@react-navigation/native';
+import React, { useRef } from 'react';
+import { NavigationContainer, NavigationContainerRef } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Text } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext';
 import { theme } from '../lib/theme';
+import { useVolleyMatch } from '../hooks/useVolleyMatch';
 
 import WelcomeScreen from '../screens/auth/WelcomeScreen';
 import EmailSignupScreen from '../screens/auth/EmailSignupScreen';
@@ -106,8 +107,24 @@ function ProfileNavigator() {
   );
 }
 
-function MainTabs() {
+// ── MainTabs with global Volley match listener ─────────────────────────────────
+
+function MainTabs({ navRef }: { navRef: React.RefObject<NavigationContainerRef<any>> }) {
   const insets = useSafeAreaInsets();
+
+  // Global realtime Volley match listener — fires from anywhere in the app
+  useVolleyMatch((match) => {
+    navRef.current?.navigate('Connect', {
+      screen: 'MutualVolleyMatch',
+      params: {
+        connectionId: match.connectionId,
+        matchedUserId: match.matchedUserId,
+        matchedUserName: match.matchedUserName,
+        matchedUserPhoto: match.matchedUserPhoto,
+      },
+    });
+  });
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -143,29 +160,32 @@ function MainTabs() {
   );
 }
 
+// ── Root navigator ─────────────────────────────────────────────────────────────
+
 export default function Navigation() {
   const { session, user, loading } = useAuth();
+  const navRef = useRef<NavigationContainerRef<any>>(null);
+
   if (loading) return null;
 
   return (
-    <NavigationContainer>
+    <NavigationContainer ref={navRef}>
       {!session ? (
-        // Not logged in → Welcome + sign up + full onboarding
         <RootStack.Navigator screenOptions={{ headerShown: false }}>
           <RootStack.Screen name="Welcome" component={WelcomeScreen} />
           <RootStack.Screen name="EmailSignup" component={EmailSignupScreen} />
           {ONBOARDING_SCREENS(RootStack)}
         </RootStack.Navigator>
       ) : !user?.profile_complete ? (
-        // Logged in but not finished — resume from the right step
         <RootStack.Navigator screenOptions={{ headerShown: false }}>
           <RootStack.Screen name="OnboardingResume" component={OnboardingResumeScreen} />
           {ONBOARDING_SCREENS(RootStack)}
         </RootStack.Navigator>
       ) : (
-        // Fully onboarded → main app
         <RootStack.Navigator screenOptions={{ headerShown: false }}>
-          <RootStack.Screen name="MainTabs" component={MainTabs} />
+          <RootStack.Screen name="MainTabs">
+            {() => <MainTabs navRef={navRef} />}
+          </RootStack.Screen>
         </RootStack.Navigator>
       )}
     </NavigationContainer>
