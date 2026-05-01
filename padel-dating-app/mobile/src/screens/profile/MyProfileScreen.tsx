@@ -6,6 +6,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useIsFocused } from '@react-navigation/native';
 import { theme } from '../../lib/theme';
 import { useAuth } from '../../context/AuthContext';
+import AnimatedRing from '../../components/AnimatedRing';
+
+const AVATAR_SIZE = 100;
+const RING_THICKNESS = 3;
 
 export default function MyProfileScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
@@ -23,12 +27,19 @@ export default function MyProfileScreen({ navigation }: any) {
   const mainPhoto = user?.photos?.[0] ?? null;
   const lastSynced: string | null = null;
 
+  // Ring color based on gender
+  const ringColor = user?.gender === 'female' ? '#A78BFA'   // violet for women
+    : user?.gender === 'male' ? theme.primary               // turquoise for men
+    : theme.primary;                                         // default turquoise
+
   const MENU_ITEMS = [
     { icon: '✏️', label: 'Edit Profile', screen: 'EditProfile' },
     { icon: '📊', label: 'My Stats', screen: 'MyStats' },
     { icon: '🔔', label: 'Notifications', screen: 'Notifications' },
     { icon: '⚙️', label: 'Settings', screen: 'Settings' },
   ];
+
+  const innerSize = AVATAR_SIZE - RING_THICKNESS * 2;
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -38,19 +49,27 @@ export default function MyProfileScreen({ navigation }: any) {
       </View>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
         <View style={styles.profileCard}>
-          {mainPhoto ? (
-            <View style={styles.avatarWrapper}>
+
+          {/* Animated ring avatar */}
+          <AnimatedRing
+            size={AVATAR_SIZE}
+            thickness={RING_THICKNESS}
+            color={ringColor}
+            duration={1400}
+          >
+            {mainPhoto ? (
               <Image
                 source={{ uri: mainPhoto }}
-                style={styles.avatarPhoto}
+                style={{ width: innerSize, height: innerSize }}
                 resizeMode="cover"
               />
-            </View>
-          ) : (
-            <View style={styles.avatarCircle}>
-              <Text style={styles.avatarInitials}>{initials}</Text>
-            </View>
-          )}
+            ) : (
+              <View style={[styles.avatarFallback, { width: innerSize, height: innerSize, borderRadius: innerSize / 2 }]}>
+                <Text style={styles.avatarInitials}>{initials}</Text>
+              </View>
+            )}
+          </AnimatedRing>
+
           <Text style={styles.profileName}>
             {user?.full_name ?? user?.email?.split('@')[0] ?? 'Player'}
           </Text>
@@ -89,7 +108,6 @@ export default function MyProfileScreen({ navigation }: any) {
           </View>
         </View>
 
-        {/* Sync History CTA */}
         <TouchableOpacity
           style={lastSynced ? styles.syncCtaSynced : styles.syncCtaNever}
           onPress={() => navigation.navigate('PlatformSync')}
@@ -98,10 +116,12 @@ export default function MyProfileScreen({ navigation }: any) {
           <Text style={styles.syncCtaIcon}>🔄</Text>
           <View style={styles.syncCtaText}>
             <Text style={lastSynced ? styles.syncCtaTitleSynced : styles.syncCtaTitle}>
-              {lastSynced ? 'Sync History' : 'Sync History'}
+              Sync History
             </Text>
             <Text style={styles.syncCtaSub}>
-              {lastSynced ? `Last synced ${lastSynced}` : 'Import your match history and get your Volpair score'}
+              {lastSynced
+                ? `Last synced ${lastSynced}`
+                : 'Import your match history and get your Volpair score'}
             </Text>
           </View>
           <Text style={styles.syncCtaArrow}>›</Text>
@@ -144,18 +164,12 @@ const styles = StyleSheet.create({
     backgroundColor: theme.bgCard, borderRadius: 20, padding: 24,
     alignItems: 'center', borderWidth: 1, borderColor: theme.border, marginBottom: 12,
   },
-  avatarWrapper: {
-    width: 90, height: 90, borderRadius: 45, marginBottom: 14,
-    borderWidth: 2.5, borderColor: theme.primaryBorder, overflow: 'hidden',
+  avatarFallback: {
+    backgroundColor: theme.primaryDim,
+    alignItems: 'center', justifyContent: 'center',
   },
-  avatarPhoto: { width: 90, height: 90 },
-  avatarCircle: {
-    width: 90, height: 90, borderRadius: 45,
-    backgroundColor: theme.primaryDim, alignItems: 'center', justifyContent: 'center',
-    borderWidth: 2.5, borderColor: theme.primaryBorder, marginBottom: 14,
-  },
-  avatarInitials: { fontSize: 32, fontWeight: '800', color: theme.primary },
-  profileName: { fontSize: 22, fontWeight: '800', color: theme.textPrimary, marginBottom: 4 },
+  avatarInitials: { fontSize: 30, fontWeight: '800', color: theme.primary },
+  profileName: { fontSize: 22, fontWeight: '800', color: theme.textPrimary, marginBottom: 4, marginTop: 14 },
   profileCity: { fontSize: 13, color: theme.textMuted, marginBottom: 12 },
   badgeRow: { flexDirection: 'row', gap: 8, marginBottom: 12, flexWrap: 'wrap', justifyContent: 'center' },
   badge: {
