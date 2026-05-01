@@ -1,134 +1,165 @@
 /**
- * AnimatedRing — animated circular ring that draws itself around an avatar.
+ * AnimatedRing — clean animated circular ring with glow effect
  *
- * Uses the "rotating half-circle" technique:
- * - Two half-circles clipped by overflow:hidden containers
- * - First half rotates 0→180° (right side fills)
- * - Second half rotates 0→180° (left side fills)
- * - Combined: full circle draws clockwise from bottom
- *
- * Pure RN Animated — no SVG, works in Expo Go.
+ * Uses the rotating half-mask technique correctly:
+ * - A full ring border is revealed by rotating two half-circle masks
+ * - A glow pulse animates simultaneously for the "charging" feel
  */
 
 import React, { useEffect, useRef } from 'react';
 import { View, Animated, StyleSheet } from 'react-native';
 
 interface Props {
-  size: number;       // total diameter including ring
-  thickness: number;  // ring stroke width
-  color: string;      // ring color
-  duration?: number;  // total animation ms
+  size: number;
+  thickness: number;
+  color: string;
+  duration?: number;
   children: React.ReactNode;
 }
 
-export default function AnimatedRing({ size, thickness, color, duration = 1400, children }: Props) {
+export default function AnimatedRing({
+  size,
+  thickness,
+  color,
+  duration = 1400,
+  children,
+}: Props) {
   const half = size / 2;
   const innerSize = size - thickness * 2;
 
-  const rotA = useRef(new Animated.Value(-180)).current; // right half: starts hidden
-  const rotB = useRef(new Animated.Value(-180)).current; // left half: starts hidden
+  // Progress: 0 → 1 over full duration
+  const progress = useRef(new Animated.Value(0)).current;
+  // Glow pulse
+  const glow = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    rotA.setValue(-180);
-    rotB.setValue(-180);
+    progress.setValue(0);
+    glow.setValue(0);
 
-    Animated.sequence([
-      // First half: draw right side (bottom → top clockwise)
-      Animated.timing(rotA, {
-        toValue: 0,
-        duration: duration / 2,
+    Animated.parallel([
+      // Draw the ring
+      Animated.timing(progress, {
+        toValue: 1,
+        duration,
         useNativeDriver: true,
       }),
-      // Second half: draw left side (top → bottom clockwise)
-      Animated.timing(rotB, {
-        toValue: 0,
-        duration: duration / 2,
-        useNativeDriver: true,
-      }),
+      // Glow: fade in during draw, then settle
+      Animated.sequence([
+        Animated.timing(glow, {
+          toValue: 1,
+          duration: duration * 0.6,
+          useNativeDriver: true,
+        }),
+        Animated.timing(glow, {
+          toValue: 0.4,
+          duration: duration * 0.4,
+          useNativeDriver: true,
+        }),
+      ]),
     ]).start();
   }, [color]);
 
-  const rotateA = rotA.interpolate({
-    inputRange: [-180, 0],
-    outputRange: ['-180deg', '0deg'],
+  // First half rotates 0→180° (covers right side)
+  const rotateRight = progress.interpolate({
+    inputRange: [0, 0.5, 1],
+    outputRange: ['0deg', '180deg', '180deg'],
   });
 
-  const rotateB = rotB.interpolate({
-    inputRange: [-180, 0],
-    outputRange: ['-180deg', '0deg'],
+  // Second half rotates 0→180° but only starts at 50% progress
+  const rotateLeft = progress.interpolate({
+    inputRange: [0, 0.5, 1],
+    outputRange: ['0deg', '0deg', '180deg'],
   });
+
+  const glowOpacity = glow;
 
   return (
-    <View style={{ width: size, height: size }}>
-      {/* Faint background ring */}
-      <View style={[
-        StyleSheet.absoluteFill,
-        {
-          borderRadius: half,
-          borderWidth: thickness,
-          borderColor: 'rgba(255,255,255,0.07)',
-        },
-      ]} />
+    <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
 
-      {/* RIGHT half — clip to right 50% of circle */}
+      {/* Glow halo behind the ring */}
+      <Animated.View
+        style={{
+          position: 'absolute',
+          width: size + 12,
+          height: size + 12,
+          borderRadius: (size + 12) / 2,
+          backgroundColor: color,
+          opacity: Animated.multiply(glowOpacity, 0.25),
+          top: -6,
+          left: -6,
+        }}
+      />
+
+      {/* Base ring (faint track) */}
       <View style={{
-        position: 'absolute', top: 0, right: 0,
-        width: half, height: size,
+        position: 'absolute',
+        width: size,
+        height: size,
+        borderRadius: half,
+        borderWidth: thickness,
+        borderColor: 'rgba(255,255,255,0.06)',
+      }} />
+
+      {/* RIGHT half — reveals first 180° */}
+      <View style={{
+        position: 'absolute',
+        width: half,
+        height: size,
+        right: 0,
         overflow: 'hidden',
       }}>
-        {/* Full-size ring that rotates behind the clip */}
         <Animated.View style={{
           position: 'absolute',
-          top: 0, left: -half,
-          width: size, height: size,
+          width: size,
+          height: size,
+          right: 0,
           borderRadius: half,
           borderWidth: thickness,
           borderColor: color,
           borderLeftColor: 'transparent',
-          borderBottomColor: 'transparent',
+          borderTopColor: 'transparent',
           transform: [
             { translateX: half },
-            { rotate: '-135deg' }, // start from bottom (270° = -90°, but offset -45° to start at 6 o'clock)
+            { rotate: '-90deg' },
             { translateX: -half },
-            { rotate: rotateA },
+            { rotate: rotateRight },
           ],
         }} />
       </View>
 
-      {/* LEFT half — clip to left 50% of circle */}
+      {/* LEFT half — reveals second 180° */}
       <View style={{
-        position: 'absolute', top: 0, left: 0,
-        width: half, height: size,
+        position: 'absolute',
+        width: half,
+        height: size,
+        left: 0,
         overflow: 'hidden',
       }}>
         <Animated.View style={{
           position: 'absolute',
-          top: 0, left: 0,
-          width: size, height: size,
+          width: size,
+          height: size,
+          left: 0,
           borderRadius: half,
           borderWidth: thickness,
           borderColor: color,
           borderRightColor: 'transparent',
-          borderTopColor: 'transparent',
+          borderBottomColor: 'transparent',
           transform: [
             { translateX: -half },
-            { rotate: '45deg' },
+            { rotate: '90deg' },
             { translateX: half },
-            { rotate: rotateB },
+            { rotate: rotateLeft },
           ],
         }} />
       </View>
 
-      {/* Avatar content centered inside the ring */}
+      {/* Inner content */}
       <View style={{
-        position: 'absolute',
-        top: thickness,
-        left: thickness,
         width: innerSize,
         height: innerSize,
         borderRadius: innerSize / 2,
         overflow: 'hidden',
-        backgroundColor: 'transparent',
       }}>
         {children}
       </View>
