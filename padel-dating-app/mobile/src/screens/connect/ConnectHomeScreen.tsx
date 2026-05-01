@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
-  StatusBar, ActivityIndicator, RefreshControl,
+  StatusBar, ActivityIndicator, RefreshControl, Share,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme } from '../../lib/theme';
@@ -49,6 +49,41 @@ function ActionButtons({
   );
 }
 
+// ─── Invite row (non-Volpair players) ────────────────────────────────────────
+
+function InviteRow({ playerName }: { playerName: string }) {
+  const [invited, setInvited] = useState(false);
+
+  const handleInvite = async () => {
+    const firstName = playerName.split(' ')[0];
+    try {
+      await Share.share({
+        message: `Hey ${firstName}! I found you on Volpair — the app that connects padel players by their real match history. Join me and let's see our compatibility score 🎾\n\nDownload: volpair.app`,
+      });
+      setInvited(true);
+    } catch {
+      // User cancelled share sheet — no-op
+    }
+  };
+
+  if (invited) {
+    return (
+      <View style={styles.inviteRow}>
+        <Text style={styles.invitedText}>✅ Invite sent!</Text>
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.inviteRow}>
+      <Text style={styles.inviteText}>Not on Volpair yet</Text>
+      <TouchableOpacity style={styles.inviteBtn} onPress={handleInvite} activeOpacity={0.8}>
+        <Text style={styles.inviteBtnText}>📲 Invite</Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
 // ─── Player card ──────────────────────────────────────────────────────────────
 
 function PlayerCard({
@@ -66,7 +101,6 @@ function PlayerCard({
     if (player.isOnVolpair && player.userId) {
       navigation.navigate('PlayerProfile', { userId: player.userId });
     }
-    // Non-Volpair players: tap does nothing (card is not interactive)
   };
 
   return (
@@ -85,11 +119,6 @@ function PlayerCard({
         <View style={styles.cardHeaderInfo}>
           <View style={styles.nameRow}>
             <Text style={styles.playerName}>{firstName}</Text>
-            {!player.isOnVolpair && (
-              <View style={styles.notOnBadge}>
-                <Text style={styles.notOnText}>Not on Volpair</Text>
-              </View>
-            )}
             {player.isOnVolpair && (player.lookingFor === 'date' || player.lookingFor === 'both') && (
               <View style={styles.intentBadge}>
                 <Text style={styles.intentText}>
@@ -147,7 +176,6 @@ function PlayerCard({
         </View>
       )}
 
-      {/* Only show actions for Volpair users */}
       {player.isOnVolpair ? (
         player.myAction ? (
           <View style={styles.actionedRow}>
@@ -165,11 +193,7 @@ function PlayerCard({
           />
         )
       ) : (
-        <View style={styles.inviteRow}>
-          <Text style={styles.inviteText}>
-            🎾 You've played together — invite them to join Volpair
-          </Text>
-        </View>
+        <InviteRow playerName={player.fullName} />
       )}
     </TouchableOpacity>
   );
@@ -203,7 +227,7 @@ export default function ConnectHomeScreen({ navigation }: any) {
     player: DiscoveredPlayer,
     type: 'play_again' | 'connect' | 'volley',
   ) => {
-    if (!player.userId) return; // can't action non-Volpair players
+    if (!player.userId) return;
     try {
       await sendAction(player.userId, type);
     } catch (e) {
@@ -363,7 +387,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.bgCard, borderRadius: 18, padding: 16,
     marginBottom: 12, borderWidth: 1, borderColor: theme.border,
   },
-  playerCardMuted: { opacity: 0.7 },
+  playerCardMuted: { opacity: 0.75 },
   cardHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, marginBottom: 10 },
   avatarCircle: {
     width: 52, height: 52, borderRadius: 26,
@@ -381,12 +405,6 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: theme.secondaryBorder,
   },
   intentText: { fontSize: 11, color: '#A78BFA', fontWeight: '600' },
-  notOnBadge: {
-    backgroundColor: theme.bgDeep, borderRadius: 8,
-    paddingHorizontal: 7, paddingVertical: 2,
-    borderWidth: 1, borderColor: theme.border,
-  },
-  notOnText: { fontSize: 11, color: theme.textMuted, fontWeight: '600' },
   playerCity: { fontSize: 12, color: theme.textMuted, marginBottom: 6 },
   levelRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   levelBadge: {
@@ -424,10 +442,18 @@ const styles = StyleSheet.create({
   },
   actionedText: { fontSize: 13, color: theme.primary, fontWeight: '600' },
   inviteRow: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     marginTop: 12, paddingTop: 12,
     borderTopWidth: 1, borderTopColor: theme.border,
   },
-  inviteText: { fontSize: 12, color: theme.textMuted, textAlign: 'center' },
+  inviteText: { fontSize: 12, color: theme.textMuted },
+  inviteBtn: {
+    backgroundColor: theme.primaryDim, borderRadius: 10,
+    paddingHorizontal: 14, paddingVertical: 8,
+    borderWidth: 1, borderColor: theme.primaryBorder,
+  },
+  inviteBtnText: { color: theme.primary, fontSize: 13, fontWeight: '700' },
+  invitedText: { fontSize: 13, color: theme.primary, fontWeight: '600' },
   nearbyTeaser: {
     flexDirection: 'row', alignItems: 'center', gap: 12,
     backgroundColor: theme.bgCard, borderRadius: 16, padding: 16,
