@@ -1,68 +1,76 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   StatusBar, FlatList, KeyboardAvoidingView, Platform,
+  ActivityIndicator, Image,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme } from '../../lib/theme';
+import { useAuth } from '../../context/AuthContext';
+import { useConversation } from '../../hooks/useConversation';
 
 const SERVE_PROMPTS = [
   'Rematch Saturday? 🎾',
-  'Good game last week — always looking for strong players at your level',
+  'Good game — always looking for strong players at your level',
   'That win rate though 👀',
   'In for Sunday at Carbon?',
 ];
 
-// Mock messages
-const INITIAL_MESSAGES = [
-  {
-    id: '1', body: 'You matched with Sofia.',
-    senderId: 'system', createdAt: '10:14',
-  },
-];
+function formatTime(iso: string): string {
+  const d = new Date(iso);
+  const now = new Date();
+  const diffDays = Math.floor((now.getTime() - d.getTime()) / 86400000);
+  if (diffDays === 0) return d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+  if (diffDays === 1) return 'Yesterday';
+  if (diffDays < 7) return d.toLocaleDateString('en-GB', { weekday: 'short' });
+  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+}
 
 export default function ConversationScreen({ route, navigation }: any) {
   const insets = useSafeAreaInsets();
-  const [messages, setMessages] = useState(INITIAL_MESSAGES);
+  const { user } = useAuth();
+  const { connectionId } = route.params ?? {};
+
+  const { messages, info, loading, error, sendServe } = useConversation(connectionId);
   const [input, setInput] = useState('');
-  const [serveSent, setServeSent] = useState(false);
+  const [sending, setSending] = useState(false);
   const flatRef = useRef<FlatList>(null);
 
-  const myId = 'me';
+  const serveSent = messages.some(m => m.senderId === user?.id);
 
-  const sendMessage = (body: string) => {
-    if (!body.trim()) return;
-    const newMsg = {
-      id: Date.now().toString(),
-      body: body.trim(),
-      senderId: myId,
-      createdAt: new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
-    };
-    setMessages(prev => [...prev, newMsg]);
+  useEffect(() => {
+    if (messages.length > 0) {
+      setTimeout(() => flatRef.current?.scrollToEnd({ animated: false }), 100);
+    }
+  }, [messages.length]);
+
+  const handleSend = async (body: string) => {
+    if (!body.trim() || sending) return;
+    setSending(true);
     setInput('');
-    setServeSent(true);
-    setTimeout(() => flatRef.current?.scrollToEnd({ animated: true }), 100);
+    try {
+      await sendServe(body);
+      setTimeout(() => flatRef.current?.scrollToEnd({ animated: true }), 100);
+    } catch (e) {
+      console.error('sendServe error:', e);
+    } finally {
+      setSending(false);
+    }
   };
 
+  const otherInitials = info?.otherUserName
+    ? info.otherUserName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
+    : '?';
+
   const renderMessage = ({ item }: any) => {
-    if (item.senderId === 'system') {
-      return (
-        <View style={styles.systemMsg}>
-          <Text style={styles.systemMsgText}>{item.body}</Text>
-          <Text style={styles.systemMsgSub}>
-            Send your first Serve — a challenge, a compliment, or a simple hello.
-          </Text>
-        </View>
-      );
-    }
-    const isMe = item.senderId === myId;
+    const isMe = item.senderId === user?.id;
     return (
       <View style={[styles.bubble, isMe ? styles.bubbleMe : styles.bubbleThem]}>
         <Text style={[styles.bubbleText, isMe ? styles.bubbleTextMe : styles.bubbleTextThem]}>
           {item.body}
         </Text>
         <Text style={[styles.bubbleTime, isMe ? styles.bubbleTimeMe : styles.bubbleTimeThem]}>
-          {item.createdAt}
+          {formatTime(item.createdAt)}
         </Text>
       </View>
     );
@@ -83,64 +91,103 @@ export default function ConversationScreen({ route, navigation }: any) {
             <Text style={styles.backText}>←</Text>
           </TouchableOpacity>
           <View style={styles.headerInfo}>
-            <View style={styles.headerAvatar}>
-              <Text style={styles.headerAvatarEmoji}>🎾</Text>
+            <View style={styles.headerAvatarWrapper}>
+              {info?.otherUserPhoto ? (
+                <Image
+                  source={{ uri: info.otherUserPhoto }}
+                  style={styles.headerAvatarImage}
+                  resizeMode="cover"
+                />
+              ) : (
+                <Text style={styles.headerAvatarText}>{otherInitials}</Text>
+              )}
             </View>
             <View>
-              <Text style={styles.headerName}>Sofia</Text>
-              <Text style={styles.headerSub}>Matched · Carbon Padel</Text>
+              <Text style={styles.headerName}>
+                {info?.otherUserName ?? '…'}
+              </Text>
+              <Text style={styles.headerSub}>
+                {info?.matchedAt ? `Matched ${formatTime(info.matchedAt)}` : 'Matched'}
+              </Text>
             </View>
           </View>
         </View>
 
-        {/* Messages */}
-        <FlatList
-          ref={flatRef}
-          data={messages}
-          keyExtractor={item => item.id}
-          renderItem={renderMessage}
-          contentContainerStyle={styles.messageList}
-          onContentSizeChange={() => flatRef.current?.scrollToEnd({ animated: false })}
-        />
-
-        {/* Serve prompt chips — shown before first message */}
-        {!serveSent && (
-          <View style={styles.prompts}>
-            <Text style={styles.promptsLabel}>Serve ideas:</Text>
-            <View style={styles.promptChips}>
-              {SERVE_PROMPTS.map((p, i) => (
-                <TouchableOpacity
-                  key={i}
-                  style={styles.promptChip}
-                  onPress={() => setInput(p)}
-                  activeOpacity={0.75}
-                >
-                  <Text style={styles.promptChipText}>{p}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
+        {/* Body */}
+        {loading ? (
+          <View style={styles.loadingBox}>
+            <ActivityIndicator color={theme.primary} />
           </View>
+        ) : error ? (
+          <View style={styles.loadingBox}>
+            <Text style={styles.errorText}>⚠️ {error}</Text>
+          </View>
+        ) : (
+          <>
+            {/* Match system message */}
+            <FlatList
+              ref={flatRef}
+              data={messages}
+              keyExtractor={item => item.id}
+              renderItem={renderMessage}
+              contentContainerStyle={styles.messageList}
+              onContentSizeChange={() => flatRef.current?.scrollToEnd({ animated: false })}
+              ListHeaderComponent={
+                <View style={styles.systemMsg}>
+                  <Text style={styles.systemMsgText}>
+                    🎾 You matched with {info?.otherUserName?.split(' ')[0] ?? 'them'}!
+                  </Text>
+                  <Text style={styles.systemMsgSub}>
+                    Send your first Serve — a challenge, a compliment, or a simple hello.
+                  </Text>
+                </View>
+              }
+            />
+
+            {/* Serve prompt chips — before first message */}
+            {!serveSent && (
+              <View style={styles.prompts}>
+                <Text style={styles.promptsLabel}>Serve ideas:</Text>
+                <View style={styles.promptChips}>
+                  {SERVE_PROMPTS.map((p, i) => (
+                    <TouchableOpacity
+                      key={i}
+                      style={styles.promptChip}
+                      onPress={() => setInput(p)}
+                      activeOpacity={0.75}
+                    >
+                      <Text style={styles.promptChipText}>{p}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+            )}
+
+            {/* Input */}
+            <View style={[styles.inputRow, { paddingBottom: insets.bottom + 8 }]}>
+              <TextInput
+                style={styles.input}
+                value={input}
+                onChangeText={setInput}
+                placeholder={serveSent ? 'Continue the rally…' : 'Send your Serve…'}
+                placeholderTextColor={theme.textDim}
+                multiline
+                maxLength={500}
+                onSubmitEditing={() => handleSend(input)}
+              />
+              <TouchableOpacity
+                style={[styles.sendBtn, (!input.trim() || sending) && styles.sendBtnDisabled]}
+                onPress={() => handleSend(input)}
+                disabled={!input.trim() || sending}
+              >
+                {sending
+                  ? <ActivityIndicator color={theme.bg} size="small" />
+                  : <Text style={styles.sendBtnText}>↑</Text>
+                }
+              </TouchableOpacity>
+            </View>
+          </>
         )}
-
-        {/* Input */}
-        <View style={[styles.inputRow, { paddingBottom: insets.bottom + 8 }]}>
-          <TextInput
-            style={styles.input}
-            value={input}
-            onChangeText={setInput}
-            placeholder={serveSent ? 'Continue the rally…' : 'Send your Serve…'}
-            placeholderTextColor={theme.textDim}
-            multiline
-            maxLength={500}
-          />
-          <TouchableOpacity
-            style={[styles.sendBtn, !input.trim() && styles.sendBtnDisabled]}
-            onPress={() => sendMessage(input)}
-            disabled={!input.trim()}
-          >
-            <Text style={styles.sendBtnText}>↑</Text>
-          </TouchableOpacity>
-        </View>
       </View>
     </KeyboardAvoidingView>
   );
@@ -156,29 +203,39 @@ const styles = StyleSheet.create({
   backBtn: { padding: 4 },
   backText: { fontSize: 22, color: theme.textSecondary },
   headerInfo: { flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 },
-  headerAvatar: {
+  headerAvatarWrapper: {
     width: 40, height: 40, borderRadius: 20,
     backgroundColor: theme.primaryDim, alignItems: 'center', justifyContent: 'center',
-    borderWidth: 1.5, borderColor: theme.primaryBorder,
+    borderWidth: 1.5, borderColor: theme.primaryBorder, overflow: 'hidden',
   },
-  headerAvatarEmoji: { fontSize: 18 },
+  headerAvatarImage: { width: 40, height: 40 },
+  headerAvatarText: { fontSize: 16, fontWeight: '800', color: theme.primary },
   headerName: { fontSize: 16, fontWeight: '700', color: theme.textPrimary },
   headerSub: { fontSize: 12, color: theme.textMuted },
+
+  loadingBox: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  errorText: { fontSize: 14, color: '#EF4444' },
 
   messageList: { paddingHorizontal: 16, paddingVertical: 16, gap: 10 },
 
   systemMsg: {
     backgroundColor: theme.bgCard, borderRadius: 14, padding: 16,
-    alignItems: 'center', marginBottom: 8, borderWidth: 1, borderColor: theme.border,
+    alignItems: 'center', marginBottom: 16, borderWidth: 1, borderColor: theme.border,
   },
   systemMsgText: { fontSize: 15, fontWeight: '700', color: theme.primary, marginBottom: 6 },
   systemMsgSub: { fontSize: 13, color: theme.textMuted, textAlign: 'center', lineHeight: 20 },
 
   bubble: {
-    maxWidth: '75%', borderRadius: 18, paddingHorizontal: 14, paddingVertical: 10, marginVertical: 3,
+    maxWidth: '75%', borderRadius: 18,
+    paddingHorizontal: 14, paddingVertical: 10, marginVertical: 3,
   },
-  bubbleMe: { backgroundColor: theme.primary, alignSelf: 'flex-end', borderBottomRightRadius: 4 },
-  bubbleThem: { backgroundColor: theme.bgCard, alignSelf: 'flex-start', borderBottomLeftRadius: 4, borderWidth: 1, borderColor: theme.border },
+  bubbleMe: {
+    backgroundColor: theme.primary, alignSelf: 'flex-end', borderBottomRightRadius: 4,
+  },
+  bubbleThem: {
+    backgroundColor: theme.bgCard, alignSelf: 'flex-start',
+    borderBottomLeftRadius: 4, borderWidth: 1, borderColor: theme.border,
+  },
   bubbleText: { fontSize: 15, lineHeight: 22 },
   bubbleTextMe: { color: theme.bg, fontWeight: '500' },
   bubbleTextThem: { color: theme.textPrimary },
@@ -190,7 +247,8 @@ const styles = StyleSheet.create({
   promptsLabel: { fontSize: 12, color: theme.textMuted, marginBottom: 8 },
   promptChips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   promptChip: {
-    backgroundColor: theme.bgCard, borderRadius: 20, paddingHorizontal: 12, paddingVertical: 7,
+    backgroundColor: theme.bgCard, borderRadius: 20,
+    paddingHorizontal: 12, paddingVertical: 7,
     borderWidth: 1, borderColor: theme.border,
   },
   promptChipText: { fontSize: 13, color: theme.textSecondary },

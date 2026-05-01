@@ -1,25 +1,26 @@
 import React from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, StatusBar } from 'react-native';
+import {
+  View, Text, StyleSheet, TouchableOpacity, StatusBar,
+  ActivityIndicator, Image, FlatList,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme } from '../../lib/theme';
+import { useConnections } from '../../hooks/useConnections';
 
-const MOCK_CONNECTIONS = [
-  {
-    id: '1', name: 'Sofia', lastServe: 'Rematch Saturday? 🎾',
-    time: '2m ago', unread: true, emoji: '🎾',
-  },
-  {
-    id: '2', name: 'Elena', lastServe: 'Good game last week!',
-    time: '1h ago', unread: true, emoji: '💫',
-  },
-  {
-    id: '3', name: 'James', lastServe: 'In for Sunday at Carbon?',
-    time: 'Yesterday', unread: false, emoji: '🎯',
-  },
-];
+function formatTime(iso: string | null): string {
+  if (!iso) return '';
+  const d = new Date(iso);
+  const now = new Date();
+  const diffDays = Math.floor((now.getTime() - d.getTime()) / 86400000);
+  if (diffDays === 0) return d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+  if (diffDays === 1) return 'Yesterday';
+  if (diffDays < 7) return d.toLocaleDateString('en-GB', { weekday: 'short' });
+  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+}
 
 export default function ConnectionsListScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
+  const { connections, loading } = useConnections();
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -30,37 +31,70 @@ export default function ConnectionsListScreen({ navigation }: any) {
         <Text style={styles.headerSub}>Your serves and connections</Text>
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
-        {MOCK_CONNECTIONS.map(c => (
-          <TouchableOpacity
-            key={c.id}
-            style={styles.row}
-            onPress={() => navigation.navigate('Conversation', { connectionId: c.id })}
-            activeOpacity={0.75}
-          >
-            <View style={styles.avatar}>
-              <Text style={styles.avatarEmoji}>{c.emoji}</Text>
-            </View>
-            <View style={styles.info}>
-              <View style={styles.nameRow}>
-                <Text style={styles.name}>{c.name}</Text>
-                <Text style={styles.time}>{c.time}</Text>
-              </View>
-              <Text style={[styles.lastServe, c.unread && styles.lastServeUnread]} numberOfLines={1}>
-                {c.lastServe}
-              </Text>
-            </View>
-            {c.unread && <View style={styles.unreadDot} />}
-          </TouchableOpacity>
-        ))}
-
-        <View style={styles.emptyHint}>
-          <Text style={styles.emptyHintIcon}>💘</Text>
-          <Text style={styles.emptyHintText}>
+      {loading ? (
+        <View style={styles.loadingBox}>
+          <ActivityIndicator color={theme.primary} />
+        </View>
+      ) : connections.length === 0 ? (
+        <View style={styles.emptyBox}>
+          <Text style={styles.emptyIcon}>💘</Text>
+          <Text style={styles.emptyTitle}>No matches yet</Text>
+          <Text style={styles.emptyText}>
             When you and someone both send a Volley, your conversation opens here.
           </Text>
         </View>
-      </ScrollView>
+      ) : (
+        <FlatList
+          data={connections}
+          keyExtractor={item => item.connectionId}
+          renderItem={({ item }) => {
+            const initials = item.otherUserName
+              .split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+
+            return (
+              <TouchableOpacity
+                style={styles.row}
+                onPress={() => navigation.navigate('Conversation', {
+                  connectionId: item.connectionId,
+                })}
+                activeOpacity={0.75}
+              >
+                <View style={styles.avatarWrapper}>
+                  {item.otherUserPhoto ? (
+                    <Image
+                      source={{ uri: item.otherUserPhoto }}
+                      style={styles.avatarImage}
+                      resizeMode="cover"
+                    />
+                  ) : (
+                    <Text style={styles.avatarInitials}>{initials}</Text>
+                  )}
+                </View>
+                <View style={styles.info}>
+                  <View style={styles.nameRow}>
+                    <Text style={styles.name}>{item.otherUserName.split(' ')[0]}</Text>
+                    <Text style={styles.time}>{formatTime(item.lastMessageAt)}</Text>
+                  </View>
+                  <Text
+                    style={[styles.lastServe, item.unreadCount > 0 && styles.lastServeUnread]}
+                    numberOfLines={1}
+                  >
+                    {item.lastMessage ?? 'Matched — send your first Serve 🎾'}
+                  </Text>
+                </View>
+                {item.unreadCount > 0 && (
+                  <View style={styles.unreadBadge}>
+                    <Text style={styles.unreadCount}>
+                      {item.unreadCount > 9 ? '9+' : item.unreadCount}
+                    </Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+            );
+          }}
+          contentContainerStyle={{ paddingTop: 8 }}
+        />
+      )}
     </View>
   );
 }
@@ -73,33 +107,35 @@ const styles = StyleSheet.create({
   },
   headerTitle: { fontSize: 26, fontWeight: '800', color: theme.textPrimary },
   headerSub: { fontSize: 12, color: theme.textMuted, marginTop: 2 },
-  scroll: { paddingTop: 8 },
-
+  loadingBox: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  emptyBox: {
+    flex: 1, alignItems: 'center', justifyContent: 'center', padding: 40,
+  },
+  emptyIcon: { fontSize: 48, marginBottom: 16 },
+  emptyTitle: { fontSize: 20, fontWeight: '800', color: theme.textPrimary, marginBottom: 8 },
+  emptyText: { fontSize: 14, color: theme.textMuted, textAlign: 'center', lineHeight: 22 },
   row: {
     flexDirection: 'row', alignItems: 'center', gap: 14,
     paddingHorizontal: 16, paddingVertical: 14,
     borderBottomWidth: 1, borderBottomColor: theme.bgCard,
   },
-  avatar: {
+  avatarWrapper: {
     width: 50, height: 50, borderRadius: 25,
     backgroundColor: theme.primaryDim, alignItems: 'center', justifyContent: 'center',
-    borderWidth: 1.5, borderColor: theme.primaryBorder,
+    borderWidth: 1.5, borderColor: theme.primaryBorder, overflow: 'hidden',
   },
-  avatarEmoji: { fontSize: 22 },
+  avatarImage: { width: 50, height: 50 },
+  avatarInitials: { fontSize: 18, fontWeight: '800', color: theme.primary },
   info: { flex: 1 },
   nameRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 },
   name: { fontSize: 16, fontWeight: '700', color: theme.textPrimary },
   time: { fontSize: 12, color: theme.textMuted },
   lastServe: { fontSize: 13, color: theme.textMuted },
-  lastServeUnread: { color: theme.textSecondary, fontWeight: '500' },
-  unreadDot: {
-    width: 10, height: 10, borderRadius: 5, backgroundColor: theme.primary,
+  lastServeUnread: { color: theme.textSecondary, fontWeight: '600' },
+  unreadBadge: {
+    minWidth: 20, height: 20, borderRadius: 10,
+    backgroundColor: theme.primary, alignItems: 'center', justifyContent: 'center',
+    paddingHorizontal: 5,
   },
-
-  emptyHint: {
-    margin: 20, backgroundColor: theme.bgCard, borderRadius: 16, padding: 20,
-    alignItems: 'center', borderWidth: 1, borderColor: theme.border,
-  },
-  emptyHintIcon: { fontSize: 32, marginBottom: 10 },
-  emptyHintText: { fontSize: 13, color: theme.textMuted, textAlign: 'center', lineHeight: 20 },
+  unreadCount: { fontSize: 11, fontWeight: '800', color: theme.bg },
 });
