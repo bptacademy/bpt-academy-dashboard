@@ -1,34 +1,59 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
-  View, Text, ScrollView, StyleSheet, TouchableOpacity, StatusBar,
+  View, Text, ScrollView, StyleSheet, TouchableOpacity, StatusBar, ActivityIndicator,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme } from '../../lib/theme';
+import { useAuth } from '../../context/AuthContext';
+import { supabase } from '../../lib/supabase';
 
-// Mock — replaced with real data from player_stats + matches tables after Playtomic sync
-const MOCK_STATS = {
-  level: 4.7, levelLabel: 'Advanced Competitive', levelConfidence: 0.92,
-  totalMatches: 124, wins: 84, losses: 40, winRate: 68,
-  avgSetFor: 5.8, avgSetAgainst: 4.2,
-  playStyle: 'Aggressive',
-  preferredTime: 'Evening',
-  preferredDays: ['Tuesday', 'Thursday', 'Saturday'],
-  topClubs: [
-    { name: 'Carbon Padel', count: 38 },
-    { name: 'Padel Social Club', count: 24 },
-    { name: 'Destination Padel', count: 17 },
-  ],
-  topPartners: [
-    { name: 'James', matches: 22, winRate: 71, emoji: '🎯' },
-    { name: 'Carlos', matches: 14, winRate: 57, emoji: '⚡' },
-    { name: 'Sofia', matches: 4, winRate: 75, emoji: '🎾' },
-  ],
-  levelHistory: [4.1, 4.3, 4.4, 4.5, 4.6, 4.7, 4.7],
+function levelLabel(value: number): string {
+  if (value >= 5.5) return 'Elite';
+  if (value >= 5.0) return 'Advanced+';
+  if (value >= 4.5) return 'Advanced';
+  if (value >= 4.0) return 'Competitive';
+  if (value >= 3.5) return 'Intermediate+';
+  if (value >= 3.0) return 'Intermediate';
+  return 'Beginner';
+}
+
+const DAY_SHORT: Record<string, string> = {
+  monday: 'Mon', tuesday: 'Tue', wednesday: 'Wed',
+  thursday: 'Thu', friday: 'Fri', saturday: 'Sat', sunday: 'Sun',
 };
 
 export default function MyStatsScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
-  const s = MOCK_STATS;
+  const { user } = useAuth();
+  const [stats, setStats] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadStats();
+  }, []);
+
+  const loadStats = async () => {
+    if (!user?.id) return;
+    setLoading(true);
+    try {
+      const { data } = await supabase
+        .from('player_stats')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('platform', 'playtomic')
+        .maybeSingle();
+      setStats(data);
+    } catch (e) {
+      console.error('MyStatsScreen load error:', e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const winRatePct = stats ? Math.round((stats.win_rate ?? 0) * 100) : null;
+  const playStyleFormatted = stats?.play_style?.replace('_', ' ') ?? null;
+  const preferredDays: string[] = stats?.preferred_days ?? [];
+  const topClubs: { club_id: string; club_name: string; play_count: number }[] = stats?.top_clubs ?? [];
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -42,113 +67,145 @@ export default function MyStatsScreen({ navigation }: any) {
         <View style={{ width: 60 }} />
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
-
-        {/* Level */}
-        <View style={styles.levelCard}>
-          <View style={styles.levelLeft}>
-            <Text style={styles.levelValue}>{s.level}</Text>
-            <Text style={styles.levelLabel}>{s.levelLabel}</Text>
-            <View style={styles.confidenceRow}>
-              <View style={styles.confidenceBg}>
-                <View style={[styles.confidenceFill, { width: `${s.levelConfidence * 100}%` }]} />
-              </View>
-              <Text style={styles.confidenceText}>{Math.round(s.levelConfidence * 100)}% confidence</Text>
-            </View>
-          </View>
-          <Text style={styles.levelEmoji}>🏆</Text>
+      {loading ? (
+        <View style={styles.loadingBox}>
+          <ActivityIndicator color={theme.primary} size="large" />
+          <Text style={styles.loadingText}>Loading your stats…</Text>
         </View>
-
-        {/* Overview */}
-        <View style={styles.overviewRow}>
-          <View style={styles.overviewBox}>
-            <Text style={styles.overviewValue}>{s.totalMatches}</Text>
-            <Text style={styles.overviewLabel}>Matches</Text>
-          </View>
-          <View style={styles.overviewBox}>
-            <Text style={styles.overviewValue}>{s.winRate}%</Text>
-            <Text style={styles.overviewLabel}>Win rate</Text>
-          </View>
-          <View style={styles.overviewBox}>
-            <Text style={styles.overviewValue}>{s.wins}</Text>
-            <Text style={styles.overviewLabel}>Wins</Text>
-          </View>
-          <View style={styles.overviewBox}>
-            <Text style={styles.overviewValue}>{s.losses}</Text>
-            <Text style={styles.overviewLabel}>Losses</Text>
-          </View>
+      ) : !stats ? (
+        <View style={styles.emptyBox}>
+          <Text style={styles.emptyEmoji}>🎾</Text>
+          <Text style={styles.emptyTitle}>No stats yet</Text>
+          <Text style={styles.emptyText}>
+            Sync your Playtomic history to see your level, win rate, play style and more.
+          </Text>
+          <TouchableOpacity
+            style={styles.syncBtn}
+            onPress={() => navigation.navigate('PlatformSync')}
+          >
+            <Text style={styles.syncBtnText}>🔄 Sync History</Text>
+          </TouchableOpacity>
         </View>
+      ) : (
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
 
-        {/* Set scores */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>📊 Average set scores</Text>
-          <View style={styles.setRow}>
-            <View style={styles.setBox}>
-              <Text style={styles.setFor}>{s.avgSetFor}</Text>
-              <Text style={styles.setLabel}>Sets won</Text>
-            </View>
-            <Text style={styles.setVs}>vs</Text>
-            <View style={styles.setBox}>
-              <Text style={styles.setAgainst}>{s.avgSetAgainst}</Text>
-              <Text style={styles.setLabel}>Sets lost</Text>
-            </View>
-          </View>
-        </View>
-
-        {/* Play style */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>⚡ Play style</Text>
-          <View style={styles.styleRow}>
-            <View style={styles.styleBadge}>
-              <Text style={styles.styleValue}>{s.playStyle}</Text>
-            </View>
-            <View style={styles.styleBadge}>
-              <Text style={styles.styleValue}>🕐 {s.preferredTime}</Text>
-            </View>
-          </View>
-          <View style={styles.daysRow}>
-            {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => {
-              const active = s.preferredDays.some(d => d.startsWith(day.slice(0, 3)));
-              return (
-                <View key={day} style={[styles.dayBox, active && styles.dayBoxActive]}>
-                  <Text style={[styles.dayText, active && styles.dayTextActive]}>{day}</Text>
+          {/* Level card */}
+          <View style={styles.levelCard}>
+            <View style={styles.levelLeft}>
+              <Text style={styles.levelValue}>
+                {stats.level_value?.toFixed(2) ?? '—'}
+              </Text>
+              <Text style={styles.levelLabel}>
+                {stats.level_value ? levelLabel(stats.level_value) : '—'}
+              </Text>
+              {stats.level_confidence != null && (
+                <View style={styles.confidenceRow}>
+                  <View style={styles.confidenceBg}>
+                    <View style={[styles.confidenceFill, { width: `${Math.round(stats.level_confidence * 100)}%` as any }]} />
+                  </View>
+                  <Text style={styles.confidenceText}>
+                    {Math.round(stats.level_confidence * 100)}% confidence
+                  </Text>
                 </View>
-              );
-            })}
+              )}
+            </View>
+            <Text style={styles.levelEmoji}>🏆</Text>
           </View>
-        </View>
 
-        {/* Top clubs */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>📍 Top clubs</Text>
-          {s.topClubs.map((c, i) => (
-            <View key={i} style={styles.clubRow}>
-              <Text style={styles.clubRank}>#{i + 1}</Text>
-              <Text style={styles.clubName}>{c.name}</Text>
-              <Text style={styles.clubCount}>{c.count} matches</Text>
+          {/* Overview */}
+          <View style={styles.overviewRow}>
+            <View style={styles.overviewBox}>
+              <Text style={styles.overviewValue}>{stats.total_matches ?? 0}</Text>
+              <Text style={styles.overviewLabel}>Matches</Text>
             </View>
-          ))}
-        </View>
-
-        {/* Top partners */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>🤝 Top partners</Text>
-          {s.topPartners.map((p, i) => (
-            <View key={i} style={styles.partnerRow}>
-              <View style={styles.partnerAvatar}>
-                <Text style={styles.partnerEmoji}>{p.emoji}</Text>
-              </View>
-              <View style={styles.partnerInfo}>
-                <Text style={styles.partnerName}>{p.name}</Text>
-                <Text style={styles.partnerSub}>{p.matches} matches together</Text>
-              </View>
-              <Text style={styles.partnerWin}>{p.winRate}% win</Text>
+            <View style={styles.overviewBox}>
+              <Text style={styles.overviewValue}>{winRatePct != null ? `${winRatePct}%` : '—'}</Text>
+              <Text style={styles.overviewLabel}>Win rate</Text>
             </View>
-          ))}
-        </View>
+            <View style={styles.overviewBox}>
+              <Text style={styles.overviewValue}>{stats.wins ?? 0}</Text>
+              <Text style={styles.overviewLabel}>Wins</Text>
+            </View>
+            <View style={styles.overviewBox}>
+              <Text style={styles.overviewValue}>{stats.losses ?? 0}</Text>
+              <Text style={styles.overviewLabel}>Losses</Text>
+            </View>
+          </View>
 
-        <View style={{ height: 24 }} />
-      </ScrollView>
+          {/* Set scores */}
+          {(stats.avg_set_score_for != null || stats.avg_set_score_against != null) && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>📊 Average set scores</Text>
+              <View style={styles.setRow}>
+                <View style={styles.setBox}>
+                  <Text style={styles.setFor}>
+                    {stats.avg_set_score_for?.toFixed(1) ?? '—'}
+                  </Text>
+                  <Text style={styles.setLabel}>Sets won</Text>
+                </View>
+                <Text style={styles.setVs}>vs</Text>
+                <View style={styles.setBox}>
+                  <Text style={styles.setAgainst}>
+                    {stats.avg_set_score_against?.toFixed(1) ?? '—'}
+                  </Text>
+                  <Text style={styles.setLabel}>Sets lost</Text>
+                </View>
+              </View>
+            </View>
+          )}
+
+          {/* Play style + preferred days */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>⚡ Play style</Text>
+            <View style={styles.styleRow}>
+              {playStyleFormatted && (
+                <View style={styles.styleBadge}>
+                  <Text style={styles.styleValue}>
+                    {playStyleFormatted.charAt(0).toUpperCase() + playStyleFormatted.slice(1)}
+                  </Text>
+                </View>
+              )}
+              {stats.preferred_time_of_day && (
+                <View style={styles.styleBadge}>
+                  <Text style={styles.styleValue}>
+                    🕐 {stats.preferred_time_of_day.charAt(0).toUpperCase() + stats.preferred_time_of_day.slice(1)}
+                  </Text>
+                </View>
+              )}
+            </View>
+            {preferredDays.length > 0 && (
+              <View style={styles.daysRow}>
+                {['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].map(day => {
+                  const active = preferredDays.includes(day);
+                  return (
+                    <View key={day} style={[styles.dayBox, active && styles.dayBoxActive]}>
+                      <Text style={[styles.dayText, active && styles.dayTextActive]}>
+                        {DAY_SHORT[day]}
+                      </Text>
+                    </View>
+                  );
+                })}
+              </View>
+            )}
+          </View>
+
+          {/* Top clubs */}
+          {topClubs.length > 0 && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>📍 Top clubs</Text>
+              {topClubs.map((c, i) => (
+                <View key={i} style={styles.clubRow}>
+                  <Text style={styles.clubRank}>#{i + 1}</Text>
+                  <Text style={styles.clubName}>{c.club_name}</Text>
+                  <Text style={styles.clubCount}>{c.play_count} matches</Text>
+                </View>
+              ))}
+            </View>
+          )}
+
+          <View style={{ height: 24 }} />
+        </ScrollView>
+      )}
     </View>
   );
 }
@@ -162,8 +219,18 @@ const styles = StyleSheet.create({
   },
   headerTitle: { fontSize: 17, fontWeight: '700', color: theme.textPrimary },
   backText: { fontSize: 16, color: theme.textSecondary },
+  loadingBox: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 14 },
+  loadingText: { fontSize: 14, color: theme.textMuted },
+  emptyBox: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 40, gap: 12 },
+  emptyEmoji: { fontSize: 48 },
+  emptyTitle: { fontSize: 20, fontWeight: '800', color: theme.textPrimary },
+  emptyText: { fontSize: 14, color: theme.textMuted, textAlign: 'center', lineHeight: 22 },
+  syncBtn: {
+    marginTop: 8, backgroundColor: theme.primaryDim, borderRadius: 12,
+    paddingHorizontal: 24, paddingVertical: 12, borderWidth: 1, borderColor: theme.primaryBorder,
+  },
+  syncBtnText: { color: theme.primary, fontSize: 15, fontWeight: '700' },
   scroll: { padding: 16 },
-
   levelCard: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     backgroundColor: theme.primaryDim, borderRadius: 18, padding: 20,
@@ -177,7 +244,6 @@ const styles = StyleSheet.create({
   confidenceFill: { height: 4, backgroundColor: theme.primary, borderRadius: 2 },
   confidenceText: { fontSize: 11, color: theme.textMuted },
   levelEmoji: { fontSize: 40 },
-
   overviewRow: {
     flexDirection: 'row', backgroundColor: theme.bgCard, borderRadius: 16,
     padding: 16, marginBottom: 12, borderWidth: 1, borderColor: theme.border,
@@ -185,50 +251,33 @@ const styles = StyleSheet.create({
   overviewBox: { flex: 1, alignItems: 'center' },
   overviewValue: { fontSize: 20, fontWeight: '800', color: theme.textPrimary, marginBottom: 4 },
   overviewLabel: { fontSize: 11, color: theme.textMuted },
-
   section: {
     backgroundColor: theme.bgCard, borderRadius: 16, padding: 16,
     marginBottom: 12, borderWidth: 1, borderColor: theme.border,
   },
   sectionTitle: { fontSize: 14, fontWeight: '700', color: theme.textSecondary, marginBottom: 14 },
-
   setRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 24 },
   setBox: { alignItems: 'center' },
   setFor: { fontSize: 32, fontWeight: '800', color: theme.primary },
   setAgainst: { fontSize: 32, fontWeight: '800', color: theme.textMuted },
   setLabel: { fontSize: 12, color: theme.textMuted, marginTop: 4 },
   setVs: { fontSize: 16, color: theme.textDim, fontWeight: '600' },
-
-  styleRow: { flexDirection: 'row', gap: 10, marginBottom: 14 },
+  styleRow: { flexDirection: 'row', gap: 10, marginBottom: 14, flexWrap: 'wrap' },
   styleBadge: {
     backgroundColor: theme.primaryDim, borderRadius: 10,
     paddingHorizontal: 14, paddingVertical: 8, borderWidth: 1, borderColor: theme.primaryBorder,
   },
   styleValue: { fontSize: 14, fontWeight: '600', color: theme.primary },
-
   daysRow: { flexDirection: 'row', gap: 6 },
   dayBox: {
     flex: 1, paddingVertical: 8, borderRadius: 10, alignItems: 'center',
     backgroundColor: theme.bgDeep, borderWidth: 1, borderColor: theme.border,
   },
   dayBoxActive: { backgroundColor: theme.primaryDim, borderColor: theme.primaryBorder },
-  dayText: { fontSize: 11, fontWeight: '600', color: theme.textMuted },
+  dayText: { fontSize: 10, fontWeight: '600', color: theme.textMuted },
   dayTextActive: { color: theme.primary },
-
   clubRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 10 },
   clubRank: { fontSize: 13, fontWeight: '700', color: theme.textDim, width: 24 },
   clubName: { flex: 1, fontSize: 14, color: theme.textPrimary },
   clubCount: { fontSize: 12, color: theme.textMuted },
-
-  partnerRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 10 },
-  partnerAvatar: {
-    width: 40, height: 40, borderRadius: 20,
-    backgroundColor: theme.primaryDim, alignItems: 'center', justifyContent: 'center',
-    borderWidth: 1.5, borderColor: theme.primaryBorder,
-  },
-  partnerEmoji: { fontSize: 18 },
-  partnerInfo: { flex: 1 },
-  partnerName: { fontSize: 15, fontWeight: '700', color: theme.textPrimary, marginBottom: 2 },
-  partnerSub: { fontSize: 12, color: theme.textMuted },
-  partnerWin: { fontSize: 13, fontWeight: '700', color: theme.primary },
 });

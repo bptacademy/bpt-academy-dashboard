@@ -16,6 +16,12 @@ const SCREEN_WIDTH = Dimensions.get('window').width;
 const SLOT_WIDTH = Math.floor((SCREEN_WIDTH - 40 - 20) / 3);
 const SLOT_HEIGHT = Math.floor(SLOT_WIDTH * (5 / 4));
 
+const GENDER_OPTIONS: { id: 'male' | 'female' | 'other'; label: string }[] = [
+  { id: 'male', label: '👨 Man' },
+  { id: 'female', label: '👩 Woman' },
+  { id: 'other', label: '🌈 Other' },
+];
+
 const INTENT_OPTIONS: { id: 'date' | 'partner' | 'both' | 'exploring'; label: string }[] = [
   { id: 'date', label: '💘 A date' },
   { id: 'partner', label: '🎾 A doubles partner' },
@@ -37,6 +43,7 @@ export default function EditProfileScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
   const { user, session, refreshUser } = useAuth();
   const [fullName, setFullName] = useState(user?.full_name ?? '');
+  const [gender, setGender] = useState<'male' | 'female' | 'other' | null>(user?.gender ?? null);
   const [bio, setBio] = useState(user?.bio ?? '');
   const [city, setCity] = useState(user?.city ?? '');
   const [lookingFor, setLookingFor] = useState<'date' | 'partner' | 'both' | 'exploring'>(
@@ -85,6 +92,7 @@ export default function EditProfileScreen({ navigation }: any) {
         .from('users')
         .update({
           full_name: fullName.trim(),
+          gender: gender ?? null,
           bio: bio.trim() || null,
           city: city.trim() || null,
           looking_for: lookingFor,
@@ -136,6 +144,23 @@ export default function EditProfileScreen({ navigation }: any) {
           autoCorrect={false}
           returnKeyType="done"
         />
+
+        {/* Gender */}
+        <Text style={styles.fieldLabel}>⚧️ I am a</Text>
+        <View style={styles.genderRow}>
+          {GENDER_OPTIONS.map(o => (
+            <TouchableOpacity
+              key={o.id}
+              style={[styles.genderBtn, gender === o.id && styles.genderBtnActive]}
+              onPress={() => setGender(o.id)}
+              activeOpacity={0.75}
+            >
+              <Text style={[styles.genderText, gender === o.id && styles.genderTextActive]}>
+                {o.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
 
         {/* Photos */}
         <Text style={styles.fieldLabel}>📸 Photos ({photos.length}/{MAX_PHOTOS})</Text>
@@ -281,11 +306,17 @@ const styles = StyleSheet.create({
   scroll: { padding: 20 },
   fieldLabel: { fontSize: 13, fontWeight: '600', color: theme.textSecondary, marginBottom: 6, marginTop: 24 },
   fieldHint: { fontSize: 12, color: theme.textMuted, marginBottom: 12 },
-  photoGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-  photoSlot: {
-    width: SLOT_WIDTH, height: SLOT_HEIGHT,
-    position: 'relative', borderRadius: 14, overflow: 'hidden',
+  genderRow: { flexDirection: 'row', gap: 10 },
+  genderBtn: {
+    flex: 1, paddingVertical: 12, borderRadius: 14,
+    alignItems: 'center', borderWidth: 1.5, borderColor: theme.border,
+    backgroundColor: theme.bgCard,
   },
+  genderBtnActive: { borderColor: theme.primaryBorder, backgroundColor: theme.primaryDim },
+  genderText: { fontSize: 14, color: theme.textMuted, fontWeight: '600' },
+  genderTextActive: { color: theme.primary, fontWeight: '700' },
+  photoGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+  photoSlot: { width: SLOT_WIDTH, height: SLOT_HEIGHT, position: 'relative', borderRadius: 14, overflow: 'hidden' },
   removeOverlay: {
     position: 'absolute', top: 6, right: 6,
     width: 24, height: 24, borderRadius: 12,
@@ -294,14 +325,12 @@ const styles = StyleSheet.create({
   removeIcon: { color: '#FFFFFF', fontSize: 12, fontWeight: '700' },
   mainBadge: {
     position: 'absolute', bottom: 6, left: 6,
-    backgroundColor: theme.primary, borderRadius: 6,
-    paddingHorizontal: 7, paddingVertical: 2,
+    backgroundColor: theme.primary, borderRadius: 6, paddingHorizontal: 7, paddingVertical: 2,
   },
   mainBadgeText: { color: theme.bg, fontSize: 10, fontWeight: '800' },
   addSlot: {
-    backgroundColor: theme.bgCard,
-    borderWidth: 1.5, borderColor: theme.border, borderStyle: 'dashed',
-    alignItems: 'center', justifyContent: 'center', gap: 4,
+    backgroundColor: theme.bgCard, borderWidth: 1.5, borderColor: theme.border,
+    borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center', gap: 4,
   },
   addIcon: { fontSize: 26, color: theme.textDim },
   addLabel: { fontSize: 11, color: theme.textDim, fontWeight: '600' },
@@ -315,8 +344,7 @@ const styles = StyleSheet.create({
   charCount: { position: 'absolute', bottom: 10, right: 14, fontSize: 11, color: theme.textDim },
   optionGrid: { gap: 8 },
   optionBtn: {
-    padding: 14, borderRadius: 14, borderWidth: 1, borderColor: theme.border,
-    backgroundColor: theme.bgCard,
+    padding: 14, borderRadius: 14, borderWidth: 1, borderColor: theme.border, backgroundColor: theme.bgCard,
   },
   optionBtnActive: { borderColor: theme.primaryBorder, backgroundColor: theme.primaryDim },
   optionText: { fontSize: 15, color: theme.textMuted, fontWeight: '500' },
