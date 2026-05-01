@@ -26,7 +26,6 @@ export default function MyProfileScreen({ navigation }: any) {
   const MENU_ITEMS = [
     { icon: '✏️', label: 'Edit Profile', screen: 'EditProfile' },
     { icon: '📊', label: 'My Stats', screen: 'MyStats' },
-    { icon: '🔗', label: 'Sync History', screen: 'PlatformSync' },
     { icon: '🔔', label: 'Notifications', screen: 'Notifications' },
     { icon: '⚙️', label: 'Settings', screen: 'Settings' },
   ];
@@ -90,20 +89,19 @@ export default function MyProfileScreen({ navigation }: any) {
           </View>
         </View>
 
+        {/* Sync History CTA */}
         <TouchableOpacity
           style={lastSynced ? styles.syncCtaSynced : styles.syncCtaNever}
           onPress={() => navigation.navigate('PlatformSync')}
           activeOpacity={0.8}
         >
-          <Text style={styles.syncCtaIcon}>🎾</Text>
+          <Text style={styles.syncCtaIcon}>🔄</Text>
           <View style={styles.syncCtaText}>
             <Text style={lastSynced ? styles.syncCtaTitleSynced : styles.syncCtaTitle}>
-              {lastSynced ? 'Playtomic connected' : 'Sync History'}
+              {lastSynced ? 'Sync History' : 'Sync History'}
             </Text>
             <Text style={styles.syncCtaSub}>
-              {lastSynced
-                ? `Last synced ${lastSynced}`
-                : 'Import your match history and get your Volpair score'}
+              {lastSynced ? `Last synced ${lastSynced}` : 'Import your match history and get your Volpair score'}
             </Text>
           </View>
           <Text style={styles.syncCtaArrow}>›</Text>
