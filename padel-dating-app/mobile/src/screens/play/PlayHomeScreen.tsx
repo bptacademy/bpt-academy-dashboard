@@ -182,7 +182,6 @@ function CourtHistoryTab({ navigation }: { navigation: any }) {
       contentContainerStyle={styles.scroll}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.primary} />}
     >
-      {/* Layer 1 */}
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>🎾 Played with</Text>
         {layer1.length > 0 && (
@@ -202,7 +201,6 @@ function CourtHistoryTab({ navigation }: { navigation: any }) {
         ))
       )}
 
-      {/* Layer 2 */}
       {layer2.length > 0 && (
         <>
           <View style={[styles.sectionHeader, { marginTop: 8 }]}>
@@ -315,7 +313,6 @@ function PartnerCard({ partner, onServe }: { partner: Partner; onServe: () => vo
 function FindPartnerTab() {
   const { partners, loading, error, reload, sendServe } = usePartners();
   const [refreshing, setRefreshing] = useState(false);
-
   const onRefresh = async () => { setRefreshing(true); await reload(); setRefreshing(false); };
 
   if (loading && !refreshing) {
@@ -326,14 +323,11 @@ function FindPartnerTab() {
       </View>
     );
   }
-
   if (error) {
     return (
       <View style={styles.loadingBox}>
         <Text style={styles.errorText}>⚠️ {error}</Text>
-        <TouchableOpacity style={styles.retryBtn} onPress={reload}>
-          <Text style={styles.retryText}>Try again</Text>
-        </TouchableOpacity>
+        <TouchableOpacity style={styles.retryBtn} onPress={reload}><Text style={styles.retryText}>Try again</Text></TouchableOpacity>
       </View>
     );
   }
@@ -347,9 +341,7 @@ function FindPartnerTab() {
       {partners.length === 0 ? (
         <View style={styles.emptyBox}>
           <Text style={styles.emptyEmoji}>🎾</Text>
-          <Text style={styles.emptyText}>
-            No compatible players found yet.{'\n'}Sync your Playtomic account to get matched.
-          </Text>
+          <Text style={styles.emptyText}>No compatible players found yet.{'\n'}Sync your Playtomic account to get matched.</Text>
         </View>
       ) : (
         <>
@@ -384,30 +376,31 @@ export default function PlayHomeScreen({ navigation }: any) {
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <StatusBar barStyle="light-content" backgroundColor={theme.bg} />
 
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Play</Text>
-        <Text style={styles.headerSub}>Your court world</Text>
+      {/* Compact header + tabs in one block — no stranded gap */}
+      <View style={styles.headerBlock}>
+        <View style={styles.headerRow}>
+          <Text style={styles.headerTitle}>Play</Text>
+          <Text style={styles.headerSub}>Your court world</Text>
+        </View>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.tabRow}
+        >
+          {TABS.map(t => (
+            <TouchableOpacity
+              key={t.id}
+              style={[styles.subTab, tab === t.id && styles.subTabActive]}
+              onPress={() => setTab(t.id)}
+              activeOpacity={0.75}
+            >
+              <Text style={[styles.subTabText, tab === t.id && styles.subTabTextActive]}>
+                {t.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
       </View>
-
-      {/* Sub-tabs */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.tabRow}
-      >
-        {TABS.map(t => (
-          <TouchableOpacity
-            key={t.id}
-            style={[styles.subTab, tab === t.id && styles.subTabActive]}
-            onPress={() => setTab(t.id)}
-            activeOpacity={0.75}
-          >
-            <Text style={[styles.subTabText, tab === t.id && styles.subTabTextActive]}>
-              {t.label}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
 
       {tab === 'history' && <CourtHistoryTab navigation={navigation} />}
       {tab === 'partner' && <FindPartnerTab />}
@@ -415,9 +408,7 @@ export default function PlayHomeScreen({ navigation }: any) {
         <View style={styles.comingSoonBox}>
           <Text style={styles.comingSoonEmoji}>🏟</Text>
           <Text style={styles.comingSoonTitle}>Open Courts</Text>
-          <Text style={styles.comingSoonText}>
-            Live games near you needing players. Coming in v2.
-          </Text>
+          <Text style={styles.comingSoonText}>Live games near you needing players. Coming in v2.</Text>
         </View>
       )}
     </View>
@@ -430,14 +421,18 @@ const AVATAR_SIZE = 110;
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: theme.bg },
-  header: {
-    paddingHorizontal: 20, paddingVertical: 16,
+
+  // Header + tabs unified — no gap between them
+  headerBlock: {
     borderBottomWidth: 1, borderBottomColor: theme.bgCard,
   },
+  headerRow: {
+    paddingHorizontal: 20, paddingTop: 14, paddingBottom: 10,
+    flexDirection: 'row', alignItems: 'baseline', gap: 10,
+  },
   headerTitle: { fontSize: 26, fontWeight: '800', color: theme.textPrimary },
-  headerSub: { fontSize: 12, color: theme.textMuted, marginTop: 2 },
-
-  tabRow: { paddingHorizontal: 16, paddingVertical: 12, gap: 8 },
+  headerSub: { fontSize: 12, color: theme.textMuted },
+  tabRow: { paddingHorizontal: 16, paddingBottom: 12, paddingTop: 2, gap: 8 },
   subTab: {
     paddingVertical: 9, paddingHorizontal: 14, borderRadius: 12,
     backgroundColor: theme.bgCard, borderWidth: 1, borderColor: theme.border,
@@ -452,7 +447,7 @@ const styles = StyleSheet.create({
   retryBtn: { backgroundColor: theme.primaryDim, borderRadius: 10, paddingHorizontal: 20, paddingVertical: 10, borderWidth: 1, borderColor: theme.primaryBorder },
   retryText: { color: theme.primary, fontWeight: '700' },
 
-  scroll: { paddingHorizontal: 16, paddingTop: 4 },
+  scroll: { paddingHorizontal: 16, paddingTop: 12 },
   sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 },
   sectionTitle: { fontSize: 15, fontWeight: '700', color: theme.textPrimary, flex: 1 },
   countBadge: { backgroundColor: theme.primaryDim, borderRadius: 10, paddingHorizontal: 8, paddingVertical: 3, borderWidth: 1, borderColor: theme.primaryBorder },
@@ -506,7 +501,7 @@ const styles = StyleSheet.create({
   inviteBtnText: { color: theme.primary, fontSize: 13, fontWeight: '700' },
   invitedText: { fontSize: 13, color: theme.primary, fontWeight: '600' },
 
-  // ── Partner card specifics ──
+  // ── Partner card ──
   partnerCardHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, marginBottom: 10 },
   partnerAvatar: { width: 52, height: 52, borderRadius: 26 },
   partnerAvatarFallback: { backgroundColor: theme.primaryDim, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: theme.primaryBorder },

@@ -15,6 +15,10 @@ import { theme } from '../../lib/theme';
 import { useCourtPicks, CourtPick } from '../../hooks/useCourtPicks';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
+import { DiscoveryLoaderA, DiscoveryLoaderB, DiscoveryLoaderC } from '../../components/DiscoveryLoader';
+
+// 👇 Change to DiscoveryLoaderB or DiscoveryLoaderC to preview other variants
+const ActiveLoader = DiscoveryLoaderA;
 
 // ─── Full discovery card ──────────────────────────────────────────────────────
 
@@ -43,14 +47,12 @@ function DiscoveryCard({ pick, navigation, onAction }: {
       activeOpacity={0.92}
     >
       <View style={styles.cardBody}>
-        {/* Photo */}
         <View style={styles.cardAvatar}>
           {pick.photo_url
             ? <Image source={{ uri: pick.photo_url }} style={styles.cardAvatarImg} resizeMode="cover" />
             : <Text style={styles.cardAvatarInitials}>{initials}</Text>}
         </View>
 
-        {/* Info */}
         <View style={styles.cardInfo}>
           <View style={styles.cardNameRow}>
             <Text style={styles.cardName}>{firstName}</Text>
@@ -85,7 +87,6 @@ function DiscoveryCard({ pick, navigation, onAction }: {
             {pick.total_matches ? ` · ${pick.total_matches} matches played` : ''}
           </Text>
 
-          {/* Score */}
           <View style={[styles.scoreBadge, { borderColor: scoreColor, marginTop: 6 }]}>
             <Text style={[styles.scoreValue, { color: scoreColor }]}>{pick.volpair_score ?? '—'}</Text>
             <Text style={[styles.scoreLabel, { color: scoreColor }]}>match</Text>
@@ -93,7 +94,6 @@ function DiscoveryCard({ pick, navigation, onAction }: {
         </View>
       </View>
 
-      {/* Actions */}
       {myAction ? (
         <View style={styles.actionedRow}>
           <Text style={styles.actionedText}>
@@ -119,11 +119,9 @@ function DiscoveryCard({ pick, navigation, onAction }: {
 // ─── Teaser / locked state ────────────────────────────────────────────────────
 
 function DiscoveryLocked({ onEnable, locationDenied }: { onEnable: () => void; locationDenied: boolean }) {
-  // 3 ghost cards behind the CTA
   const ghosts = [0, 1, 2];
   return (
     <View style={styles.lockedWrapper}>
-      {/* Ghost cards */}
       {ghosts.map(i => (
         <View key={i} style={[styles.card, styles.ghostCard]}>
           <View style={styles.cardBody}>
@@ -139,7 +137,6 @@ function DiscoveryLocked({ onEnable, locationDenied }: { onEnable: () => void; l
         </View>
       ))}
 
-      {/* Dark overlay + CTA */}
       <View style={styles.lockedOverlay}>
         <View style={styles.lockedCta}>
           <Text style={styles.lockedIcon}>🎯</Text>
@@ -186,7 +183,6 @@ export default function ConnectHomeScreen({ navigation }: any) {
 
   const onRefresh = async () => {
     setRefreshing(true);
-    // Re-trigger by toggling (picks refetch on mount via enabled state)
     setTimeout(() => setRefreshing(false), 1200);
   };
 
@@ -215,23 +211,23 @@ export default function ConnectHomeScreen({ navigation }: any) {
         </TouchableOpacity>
       </View>
 
-      {/* Not yet enabled — show locked teaser */}
+      {/* ── Not yet enabled — show locked teaser ── */}
       {!enabled ? (
         <ScrollView contentContainerStyle={styles.scroll}>
           <DiscoveryLocked onEnable={() => setEnabled(true)} locationDenied={locationDenied} />
         </ScrollView>
+
+      /* ── Loading — show animated loader (swappable variant) ── */
       ) : loading && !refreshing ? (
-        <View style={styles.loadingBox}>
-          <ActivityIndicator size="large" color={theme.primary} />
-          <Text style={styles.loadingText}>Finding your best matches…</Text>
-        </View>
+        <ActiveLoader />
+
+      /* ── Results ── */
       ) : (
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scroll}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.primary} />}
         >
-          {/* Header row */}
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>🎯 Your top picks</Text>
             {picks.length > 0 && (
@@ -284,8 +280,6 @@ const styles = StyleSheet.create({
   headerSub: { fontSize: 12, color: theme.textMuted, marginTop: 2 },
   notifBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: theme.bgCard, alignItems: 'center', justifyContent: 'center' },
   notifIcon: { fontSize: 18 },
-  loadingBox: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 14 },
-  loadingText: { fontSize: 14, color: theme.textMuted },
   scroll: { paddingHorizontal: 16, paddingTop: 16 },
   sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 },
   sectionTitle: { fontSize: 15, fontWeight: '700', color: theme.textPrimary, flex: 1 },
@@ -346,9 +340,7 @@ const styles = StyleSheet.create({
   lockedOverlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(13,27,42,0.88)',
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
+    borderRadius: 18, alignItems: 'center', justifyContent: 'center',
     paddingHorizontal: 24,
   },
   lockedCta: { alignItems: 'center', gap: 10 },
