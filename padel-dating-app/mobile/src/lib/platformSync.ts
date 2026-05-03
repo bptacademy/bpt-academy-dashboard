@@ -29,6 +29,7 @@ function fetchWithTimeout(url: string, options: RequestInit, timeoutMs: number):
   });
 }
 
+// Email + password flow (legacy / fallback)
 export async function connectPlatform(
   platform: string,
   email: string,
@@ -40,7 +41,22 @@ export async function connectPlatform(
     { method: 'POST', headers, body: JSON.stringify({ platform, email, password }) },
     AUTH_TIMEOUT_MS,
   );
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error ?? `Platform auth failed (${res.status})`);
+  return data;
+}
 
+// WebView flow — user_id extracted from Playtomic redirect URL
+export async function connectPlatformWithUserId(
+  platform: string,
+  platformUserId: string,
+): Promise<{ platform_user_id: string }> {
+  const headers = await getAuthHeaders();
+  const res = await fetchWithTimeout(
+    `${FUNCTIONS_URL}/platform-auth`,
+    { method: 'POST', headers, body: JSON.stringify({ platform, platformUserId }) },
+    AUTH_TIMEOUT_MS,
+  );
   const data = await res.json();
   if (!res.ok) throw new Error(data.error ?? `Platform auth failed (${res.status})`);
   return data;
@@ -59,7 +75,6 @@ export async function syncPlatform(): Promise<{
     { method: 'POST', headers, body: JSON.stringify({}) },
     SYNC_TIMEOUT_MS,
   );
-
   const data = await res.json();
   if (!res.ok) throw new Error(data.error ?? `Sync failed (${res.status})`);
   return data;

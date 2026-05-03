@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
-  StatusBar, ActivityIndicator, RefreshControl,
+  StatusBar, ActivityIndicator, RefreshControl, Image,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme } from '../../lib/theme';
@@ -32,14 +32,20 @@ function PartnerCard({ partner, onServe }: { partner: Partner; onServe: () => vo
     return 'Weekday evenings';
   })();
 
+  const photoUrl = partner.photos?.[0];
+
   return (
     <View style={styles.card}>
       <View style={styles.cardHeader}>
-        <View style={styles.avatar}>
-          <Text style={styles.avatarInitials}>
-            {partner.fullName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
-          </Text>
-        </View>
+        {photoUrl ? (
+          <Image source={{ uri: photoUrl }} style={styles.avatar} />
+        ) : (
+          <View style={[styles.avatar, styles.avatarFallback]}>
+            <Text style={styles.avatarInitials}>
+              {partner.fullName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+            </Text>
+          </View>
+        )}
         <View style={styles.cardInfo}>
           <Text style={styles.playerName}>{firstName}</Text>
           <Text style={styles.playerCity}>
@@ -269,6 +275,8 @@ const styles = StyleSheet.create({
   cardHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, marginBottom: 10 },
   avatar: {
     width: 50, height: 50, borderRadius: 25,
+  },
+  avatarFallback: {
     backgroundColor: theme.primaryDim, alignItems: 'center', justifyContent: 'center',
     borderWidth: 2, borderColor: theme.primaryBorder,
   },

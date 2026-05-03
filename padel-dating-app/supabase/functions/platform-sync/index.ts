@@ -2,6 +2,9 @@
 // Fetches match history from Playtomic, upserts into DB,
 // recalculates player_stats and volpair_scores.
 // Idempotent — safe to run multiple times.
+// Supports two auth modes:
+//   - accessToken present: use Bearer token on all Playtomic requests
+//   - accessToken absent (WebView flow): use public/unauthenticated endpoints
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
@@ -15,20 +18,22 @@ const PLAYTOMIC_BASE = 'https://api.playtomic.io';
 
 // ─── Playtomic helpers ────────────────────────────────────────────────────────
 
-async function fetchPlaytomicMatches(accessToken: string, userId: string, page = 0, size = 50) {
+function playtomicHeaders(accessToken: string | null): Record<string, string> {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (accessToken) headers['Authorization'] = `Bearer ${accessToken}`;
+  return headers;
+}
+
+async function fetchPlaytomicMatches(accessToken: string | null, userId: string, page = 0, size = 50) {
   const url = `${PLAYTOMIC_BASE}/v1/matches?user_id=${userId}&page=${page}&size=${size}`;
-  const res = await fetch(url, {
-    headers: { Authorization: `Bearer ${accessToken}` },
-  });
+  const res = await fetch(url, { headers: playtomicHeaders(accessToken) });
   if (!res.ok) throw new Error(`Matches fetch failed: ${res.status}`);
   return res.json();
 }
 
-async function fetchPlaytomicLevel(accessToken: string, userId: string) {
+async function fetchPlaytomicLevel(accessToken: string | null, userId: string) {
   const url = `${PLAYTOMIC_BASE}/v1/levels?user_id=${userId}&sport_id=PADEL`;
-  const res = await fetch(url, {
-    headers: { Authorization: `Bearer ${accessToken}` },
-  });
+  const res = await fetch(url, { headers: playtomicHeaders(accessToken) });
   if (!res.ok) return null;
   const data = await res.json();
   return Array.isArray(data) ? data[0] : data;
@@ -140,9 +145,10 @@ serve(async (req) => {
       });
     }
 
-    const accessToken = conn.access_token;
-    const platformUserId = conn.platform_user_id; // e.g. "4987425"
-    const volpairUserId = volpairUser.id;          // the internal UUID
+    // accessToken may be null for WebView-flow users — that's fine
+    const accessToken: string | null = conn.access_token ?? null;
+    const platformUserId = conn.platform_user_id;
+    const volpairUserId = volpairUser.id;
 
     // ── Step 1: Fetch level ──────────────────────────────────────────────────
     let levelData: any = null;
@@ -163,10 +169,9 @@ serve(async (req) => {
       page++;
     }
 
-    console.log(`Fetched ${allMatches.length} matches for user ${platformUserId}`);
+    console.log(`Fetched ${allMatches.length} matches for user ${platformUserId} (token: ${accessToken ? 'yes' : 'no'})`);
 
     // ── Step 3: Build a lookup of ALL known Volpair users by platform_user_id ─
-    // Do this ONCE up front — much more efficient than per-player queries
     const { data: allConns } = await supabase
       .from('platform_connections')
       .select('user_id, platform_user_id')
@@ -176,7 +181,6 @@ serve(async (req) => {
     for (const c of (allConns ?? []) as any[]) {
       platformToVolpairUser.set(c.platform_user_id, c.user_id);
     }
-    // Always include the current user (in case their connection was just created)
     platformToVolpairUser.set(platformUserId, volpairUserId);
 
     // ── Step 4: Upsert clubs ─────────────────────────────────────────────────
@@ -234,9 +238,7 @@ serve(async (req) => {
 
       for (const team of (m.teams ?? [])) {
         for (const player of (team.players ?? [])) {
-          // Use pre-built map — O(1) lookup, no extra DB query per player
           const linkedUserId = platformToVolpairUser.get(String(player.user_id)) ?? null;
-
           await supabase.from('match_players').upsert({
             match_id: matchRow.id,
             user_id: linkedUserId,

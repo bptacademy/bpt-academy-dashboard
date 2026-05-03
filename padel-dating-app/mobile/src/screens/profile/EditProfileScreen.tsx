@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
-  StatusBar, ScrollView, Alert, ActivityIndicator, Image, Dimensions,
+  StatusBar, ScrollView, Alert, ActivityIndicator, Image, Dimensions, FlatList,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
@@ -10,6 +10,7 @@ import { theme } from '../../lib/theme';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { uploadPhotos } from '../../lib/uploadPhoto';
+import { Club } from '../../types';
 
 const GOOGLE_KEY = process.env.EXPO_PUBLIC_GOOGLE_PLACES_KEY!;
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -55,6 +56,52 @@ export default function EditProfileScreen({ navigation }: any) {
   const [photos, setPhotos] = useState<string[]>(user?.photos ?? []);
   const [saving, setSaving] = useState(false);
 
+  // Club search state
+  const [clubQuery, setClubQuery] = useState(user?.home_club_name ?? '');
+  const [clubResults, setClubResults] = useState<Club[]>([]);
+  const [selectedClub, setSelectedClub] = useState<{ id: string; name: string } | null>(
+    user?.home_club_id ? { id: user.home_club_id, name: user.home_club_name ?? '' } : null
+  );
+  const [clubSearching, setClubSearching] = useState(false);
+  const [clubDropdownVisible, setClubDropdownVisible] = useState(false);
+
+  const searchClubs = async (query: string) => {
+    setClubQuery(query);
+    if (query.length < 2) {
+      setClubResults([]);
+      setClubDropdownVisible(false);
+      return;
+    }
+    setClubSearching(true);
+    try {
+      const { data, error } = await supabase
+        .from('clubs')
+        .select('id, name, city, country_code')
+        .ilike('name', `%${query}%`)
+        .limit(8);
+      if (!error && data) {
+        setClubResults(data as Club[]);
+        setClubDropdownVisible(true);
+      }
+    } finally {
+      setClubSearching(false);
+    }
+  };
+
+  const selectClub = (club: Club) => {
+    setSelectedClub({ id: club.id, name: club.name });
+    setClubQuery(club.name);
+    setClubDropdownVisible(false);
+    setClubResults([]);
+  };
+
+  const clearClub = () => {
+    setSelectedClub(null);
+    setClubQuery('');
+    setClubResults([]);
+    setClubDropdownVisible(false);
+  };
+
   const pickPhoto = async () => {
     if (photos.length >= MAX_PHOTOS) {
       Alert.alert('Maximum photos', `You can upload up to ${MAX_PHOTOS} photos.`);
@@ -98,6 +145,8 @@ export default function EditProfileScreen({ navigation }: any) {
           looking_for: lookingFor,
           visible_to: visibleTo,
           photos: photoUrls,
+          home_club_id: selectedClub?.id ?? null,
+          home_club_name: selectedClub?.name ?? null,
         })
         .eq('id', user?.id ?? '');
 
@@ -239,6 +288,63 @@ export default function EditProfileScreen({ navigation }: any) {
           />
         </View>
 
+        {/* Home Club */}
+        <Text style={styles.fieldLabel}>🏟️ Home club</Text>
+        <Text style={styles.fieldHint}>The padel club where you play most.</Text>
+
+        {selectedClub ? (
+          <View style={styles.clubSelected}>
+            <Text style={styles.clubSelectedIcon}>🏟️</Text>
+            <Text style={styles.clubSelectedName}>{selectedClub.name}</Text>
+            <TouchableOpacity onPress={clearClub} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+              <Text style={styles.clubClearBtn}>✕</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <View style={styles.clubSearchWrapper}>
+            <View style={styles.clubInputRow}>
+              <TextInput
+                style={styles.clubInput}
+                value={clubQuery}
+                onChangeText={searchClubs}
+                placeholder="Search clubs…"
+                placeholderTextColor={theme.textDim}
+                autoCorrect={false}
+                returnKeyType="search"
+              />
+              {clubSearching && (
+                <ActivityIndicator size="small" color={theme.primary} style={styles.clubSpinner} />
+              )}
+            </View>
+
+            {clubDropdownVisible && clubResults.length > 0 && (
+              <View style={styles.clubDropdown}>
+                {clubResults.map((club, idx) => (
+                  <TouchableOpacity
+                    key={club.id}
+                    style={[styles.clubDropdownRow, idx < clubResults.length - 1 && styles.clubDropdownRowBorder]}
+                    onPress={() => selectClub(club)}
+                    activeOpacity={0.75}
+                  >
+                    <Text style={styles.clubDropdownName}>{club.name}</Text>
+                    {(club.city || club.country_code) && (
+                      <Text style={styles.clubDropdownCity}>
+                        {[club.city, club.country_code].filter(Boolean).join(', ')}
+                      </Text>
+                    )}
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+
+            {clubDropdownVisible && clubResults.length === 0 && !clubSearching && clubQuery.length >= 2 && (
+              <View style={styles.clubNoResults}>
+                <Text style={styles.clubNoResultsText}>No clubs found. It may not be listed yet.</Text>
+              </View>
+            )}
+          </View>
+        )}
+
         {/* Bio */}
         <Text style={styles.fieldLabel}>🗣️ One line about yourself</Text>
         <View style={styles.bioWrapper}>
@@ -349,4 +455,41 @@ const styles = StyleSheet.create({
   optionBtnActive: { borderColor: theme.primaryBorder, backgroundColor: theme.primaryDim },
   optionText: { fontSize: 15, color: theme.textMuted, fontWeight: '500' },
   optionTextActive: { color: theme.primary, fontWeight: '700' },
+
+  // Club search
+  clubSearchWrapper: { zIndex: 5 },
+  clubInputRow: {
+    flexDirection: 'row', alignItems: 'center',
+    backgroundColor: theme.bgCard, borderRadius: 14,
+    borderWidth: 1, borderColor: theme.border,
+    paddingHorizontal: 16,
+  },
+  clubInput: {
+    flex: 1, height: 50, fontSize: 15, color: theme.textPrimary,
+  },
+  clubSpinner: { marginLeft: 8 },
+  clubDropdown: {
+    backgroundColor: theme.bgCard, borderRadius: 14,
+    borderWidth: 1, borderColor: theme.border, marginTop: 4,
+    overflow: 'hidden',
+  },
+  clubDropdownRow: { paddingVertical: 13, paddingHorizontal: 16 },
+  clubDropdownRowBorder: { borderBottomWidth: 1, borderBottomColor: theme.border },
+  clubDropdownName: { fontSize: 14, color: theme.textPrimary, fontWeight: '600' },
+  clubDropdownCity: { fontSize: 12, color: theme.textMuted, marginTop: 2 },
+  clubNoResults: {
+    backgroundColor: theme.bgCard, borderRadius: 14,
+    borderWidth: 1, borderColor: theme.border, marginTop: 4,
+    padding: 16,
+  },
+  clubNoResultsText: { fontSize: 13, color: theme.textMuted },
+  clubSelected: {
+    flexDirection: 'row', alignItems: 'center', gap: 10,
+    backgroundColor: theme.primaryDim, borderRadius: 14,
+    borderWidth: 1.5, borderColor: theme.primaryBorder,
+    paddingHorizontal: 16, paddingVertical: 14,
+  },
+  clubSelectedIcon: { fontSize: 20 },
+  clubSelectedName: { flex: 1, fontSize: 15, color: theme.primary, fontWeight: '700' },
+  clubClearBtn: { fontSize: 16, color: theme.textMuted, fontWeight: '700' },
 });

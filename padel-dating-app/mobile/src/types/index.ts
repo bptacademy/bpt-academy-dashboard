@@ -12,10 +12,18 @@ export interface User {
   city: string | null;
   location_lat: number | null;
   location_lon: number | null;
+  // Radar fields
+  last_lat: number | null;
+  last_lon: number | null;
+  last_location_at: string | null;
+  radar_visible: boolean;
   is_premium: boolean;
   premium_expires_at: string | null;
   profile_complete: boolean;
   photos: string[]; // signed URLs
+  photo_url?: string | null; // primary photo convenience field
+  home_club_id: string | null;
+  home_club_name: string | null;
   created_at: string;
   last_active_at: string | null;
 }
@@ -175,6 +183,7 @@ export type RootStackParamList = {
 export type MainTabParamList = {
   Connect: undefined;
   Play: undefined;
+  Radar: undefined;
   Messages: undefined;
   Profile: undefined;
 };

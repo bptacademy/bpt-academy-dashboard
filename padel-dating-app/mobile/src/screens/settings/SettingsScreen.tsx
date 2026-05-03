@@ -5,14 +5,29 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme } from '../../lib/theme';
+import { useAuth } from '../../context/AuthContext';
+import { supabase } from '../../lib/supabase';
 
 export default function SettingsScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
+  const { user, refreshUser } = useAuth();
+
   const [pushVolley, setPushVolley] = useState(true);
   const [pushServe, setPushServe] = useState(true);
   const [pushPostMatch, setPushPostMatch] = useState(true);
   const [pushSync, setPushSync] = useState(false);
   const [showDistance, setShowDistance] = useState(true);
+  const [radarVisible, setRadarVisible] = useState<boolean>(
+    user?.radar_visible !== undefined ? user.radar_visible : true,
+  );
+
+  const handleRadarVisibleToggle = async (value: boolean) => {
+    setRadarVisible(value);
+    if (user?.id) {
+      await supabase.from('users').update({ radar_visible: value }).eq('id', user.id);
+      await refreshUser();
+    }
+  };
 
   const Section = ({ title, children }: any) => (
     <View style={styles.section}>
@@ -46,7 +61,7 @@ export default function SettingsScreen({ navigation }: any) {
         <Text style={styles.rowLabel}>{label}</Text>
         {sub && <Text style={styles.rowSub}>{sub}</Text>}
       </View>
-      <Text style={styles.rowArrow}>›</Text>
+      <Text style={styles.rowArrow}>{'\u203A'}</Text>
     </TouchableOpacity>
   );
 
@@ -56,7 +71,7 @@ export default function SettingsScreen({ navigation }: any) {
 
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text style={styles.backText}>← Back</Text>
+          <Text style={styles.backText}>{'\u2190'} Back</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Settings</Text>
         <View style={{ width: 60 }} />
@@ -72,7 +87,19 @@ export default function SettingsScreen({ navigation }: any) {
         </Section>
 
         <Section title="Privacy">
-          <ToggleRow label="Show distance" sub="Let others see roughly how far you are" value={showDistance} onChange={setShowDistance} last />
+          <ToggleRow
+            label="Show distance"
+            sub="Let others see roughly how far you are"
+            value={showDistance}
+            onChange={setShowDistance}
+          />
+          <ToggleRow
+            label="Appear on Radar"
+            sub="Let other players discover you nearby"
+            value={radarVisible}
+            onChange={handleRadarVisibleToggle}
+            last
+          />
         </Section>
 
         <Section title="Account">

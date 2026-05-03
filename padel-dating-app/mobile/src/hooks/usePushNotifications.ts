@@ -18,13 +18,17 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 
 // Show notifications as banners even when app is in foreground
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: true,
-  }),
-});
+try {
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowAlert: true,
+      shouldPlaySound: true,
+      shouldSetBadge: true,
+    }),
+  });
+} catch (_) {
+  // Silently ignore in Expo Go where native module may be unavailable
+}
 
 export function usePushNotifications(
   onNotification?: (notification: Notifications.Notification) => void
@@ -38,28 +42,35 @@ export function usePushNotifications(
 
     registerForPushNotifications(user.id);
 
-    // Foreground notification received
-    notificationListener.current = Notifications.addNotificationReceivedListener(
-      (notification) => {
-        onNotification?.(notification);
-      }
-    );
+    try {
+      // Foreground notification received
+      notificationListener.current = Notifications.addNotificationReceivedListener(
+        (notification) => {
+          onNotification?.(notification);
+        }
+      );
 
-    // User tapped a notification
-    responseListener.current = Notifications.addNotificationResponseReceivedListener(
-      (response) => {
-        const data = response.notification.request.content.data as any;
-        console.log('Notification tapped:', data);
-        // Navigation handled by caller via onNotification
-      }
-    );
+      // User tapped a notification
+      responseListener.current = Notifications.addNotificationResponseReceivedListener(
+        (response) => {
+          const data = response.notification.request.content.data as any;
+          console.log('Notification tapped:', data);
+        }
+      );
+    } catch (_) {
+      // Silently ignore in Expo Go
+    }
 
     return () => {
-      if (notificationListener.current) {
-        Notifications.removeNotificationSubscription(notificationListener.current);
-      }
-      if (responseListener.current) {
-        Notifications.removeNotificationSubscription(responseListener.current);
+      try {
+        if (notificationListener.current && Notifications.removeNotificationSubscription) {
+          Notifications.removeNotificationSubscription(notificationListener.current);
+        }
+        if (responseListener.current && Notifications.removeNotificationSubscription) {
+          Notifications.removeNotificationSubscription(responseListener.current);
+        }
+      } catch (_) {
+        // Silently ignore in Expo Go where native module is unavailable
       }
     };
   }, [user?.id]);
@@ -83,7 +94,7 @@ async function registerForPushNotifications(userId: string) {
 
     // Get Expo push token
     const tokenData = await Notifications.getExpoPushTokenAsync({
-      projectId: '402b07e4-ccc8-4ceb-8b83-5e94a3f6327f', // Volpair EAS project ID (reuse BPT for now — update when Volpair EAS is set up)
+      projectId: '402b07e4-ccc8-4ceb-8b83-5e94a3f6327f',
     });
 
     const token = tokenData.data;

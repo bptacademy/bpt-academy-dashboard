@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, Animated, StatusBar, Alert, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme } from '../../lib/theme';
-import { connectPlatform, syncPlatform } from '../../lib/platformSync';
+import { connectPlatform, connectPlatformWithUserId, syncPlatform } from '../../lib/platformSync';
 
 const STEPS = [
   'Connecting to Playtomic…',
@@ -12,11 +12,10 @@ const STEPS = [
   'Building your profile…',
 ];
 
-// Show "taking longer than expected" message after this many ms
 const SLOW_THRESHOLD_MS = 20_000;
 
 export default function SyncingProfileScreen({ route, navigation }: any) {
-  const { platform, platformEmail, platformPassword, skipAuth } = route.params ?? {};
+  const { platform, platformEmail, platformPassword, platformUserId, skipAuth } = route.params ?? {};
   const insets = useSafeAreaInsets();
   const [stepIndex, setStepIndex] = useState(0);
   const [isSlow, setIsSlow] = useState(false);
@@ -29,9 +28,7 @@ export default function SyncingProfileScreen({ route, navigation }: any) {
       Animated.timing(spinAnim, { toValue: 1, duration: 1200, useNativeDriver: true })
     ).start();
 
-    // Show "taking longer" hint after 20s
     slowTimer.current = setTimeout(() => setIsSlow(true), SLOW_THRESHOLD_MS);
-
     runSync();
 
     return () => {
@@ -43,7 +40,11 @@ export default function SyncingProfileScreen({ route, navigation }: any) {
     try {
       if (!skipAuth) {
         setStepIndex(0);
-        await connectPlatform(platform ?? 'playtomic', platformEmail, platformPassword);
+        if (platformUserId) {
+          await connectPlatformWithUserId(platform ?? 'playtomic', platformUserId);
+        } else {
+          await connectPlatform(platform ?? 'playtomic', platformEmail, platformPassword);
+        }
       }
 
       setStepIndex(1);
@@ -60,8 +61,18 @@ export default function SyncingProfileScreen({ route, navigation }: any) {
       const msg = err?.message ?? 'Could not connect to Playtomic.';
       Alert.alert(
         'Connection failed',
-        msg + '\n\nPlease check your Playtomic credentials and try again.',
-        [{ text: 'Go back', onPress: () => navigation.goBack() }],
+        msg + '\n\nPlease try again.',
+        [{
+          text: 'Go back',
+          onPress: () => {
+            // Use navigate instead of goBack — this screen may be root of stack
+            if (navigation.canGoBack()) {
+              navigation.goBack();
+            } else {
+              navigation.navigate('PlatformLogin', { platform, label: 'Playtomic' });
+            }
+          },
+        }],
       );
     }
   };
@@ -69,7 +80,6 @@ export default function SyncingProfileScreen({ route, navigation }: any) {
   const handleSkip = () => {
     if (didNavigate.current) return;
     didNavigate.current = true;
-    // Navigate forward without sync result — ProfilePreview handles missing data gracefully
     navigation.replace('ProfilePreview', { platform, syncResult: null });
   };
 
@@ -122,9 +132,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.bgCard, borderRadius: 16, padding: 20,
     borderWidth: 1, borderColor: theme.border,
   },
-  slowText: {
-    fontSize: 13, color: theme.textMuted, textAlign: 'center', lineHeight: 20,
-  },
+  slowText: { fontSize: 13, color: theme.textMuted, textAlign: 'center', lineHeight: 20 },
   skipBtn: {
     backgroundColor: theme.primaryDim, borderRadius: 10,
     paddingHorizontal: 20, paddingVertical: 10,

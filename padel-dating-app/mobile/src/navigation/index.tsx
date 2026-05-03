@@ -14,6 +14,7 @@ import EmailSignupScreen from '../screens/auth/EmailSignupScreen';
 import OnboardingResumeScreen from '../screens/auth/OnboardingResumeScreen';
 import PlatformSelectScreen from '../screens/auth/PlatformSelectScreen';
 import PlatformLoginScreen from '../screens/auth/PlatformLoginScreen';
+import PlaytomicWebLoginScreen from '../screens/auth/PlaytomicWebLoginScreen';
 import SyncingProfileScreen from '../screens/auth/SyncingProfileScreen';
 import ProfilePreviewScreen from '../screens/auth/ProfilePreviewScreen';
 import Question1LocationScreen from '../screens/auth/Question1LocationScreen';
@@ -31,6 +32,7 @@ import ConnectionsListScreen from '../screens/connect/ConnectionsListScreen';
 import PostMatchPromptScreen from '../screens/connect/PostMatchPromptScreen';
 
 import PlayHomeScreen from '../screens/play/PlayHomeScreen';
+import RadarScreen from '../screens/radar/RadarScreen';
 
 import MyProfileScreen from '../screens/profile/MyProfileScreen';
 import EditProfileScreen from '../screens/profile/EditProfileScreen';
@@ -46,6 +48,7 @@ const RootStack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 const ConnectStack = createNativeStackNavigator();
 const PlayStack = createNativeStackNavigator();
+const RadarStack = createNativeStackNavigator();
 const MessagesStack = createNativeStackNavigator();
 const ProfileStack = createNativeStackNavigator();
 
@@ -53,6 +56,7 @@ const ONBOARDING_SCREENS = (Stack: any) => (
   <>
     <Stack.Screen name="PlatformSelect" component={PlatformSelectScreen} />
     <Stack.Screen name="PlatformLogin" component={PlatformLoginScreen} />
+    <Stack.Screen name="PlaytomicWebLogin" component={PlaytomicWebLoginScreen} />
     <Stack.Screen name="SyncingProfile" component={SyncingProfileScreen} />
     <Stack.Screen name="ProfilePreview" component={ProfilePreviewScreen} />
     <Stack.Screen name="Question1Location" component={Question1LocationScreen} />
@@ -72,7 +76,18 @@ function ConnectNavigator() {
       <ConnectStack.Screen name="MutualVolleyMatch" component={MutualVolleyMatchScreen} />
       <ConnectStack.Screen name="Conversation" component={ConversationScreen} />
       <ConnectStack.Screen name="PostMatchPrompt" component={PostMatchPromptScreen} />
+      {/* Notifications accessible from Connect bell without switching tabs */}
+      <ConnectStack.Screen name="Notifications" component={NotificationsScreen} />
     </ConnectStack.Navigator>
+  );
+}
+
+function RadarNavigator() {
+  return (
+    <RadarStack.Navigator screenOptions={{ headerShown: false }}>
+      <RadarStack.Screen name="RadarHome" component={RadarScreen} />
+      <RadarStack.Screen name="PlayerProfile" component={PlayerProfileScreen} />
+    </RadarStack.Navigator>
   );
 }
 
@@ -111,10 +126,8 @@ function ProfileNavigator() {
 function MainTabs({ navRef }: { navRef: React.RefObject<NavigationContainerRef<any>> }) {
   const insets = useSafeAreaInsets();
 
-  // Global: register push token + handle incoming notifications
   usePushNotifications((notification) => {
     const data = notification.request.content.data as any;
-    // Route to correct screen based on notification type
     if (data?.type === 'match' && data?.connectionId) {
       navRef.current?.navigate('Connect', {
         screen: 'MutualVolleyMatch',
@@ -130,7 +143,6 @@ function MainTabs({ navRef }: { navRef: React.RefObject<NavigationContainerRef<a
     }
   });
 
-  // Global: realtime Volley match detection
   useVolleyMatch((match) => {
     navRef.current?.navigate('Connect', {
       screen: 'MutualVolleyMatch',
@@ -160,7 +172,7 @@ function MainTabs({ navRef }: { navRef: React.RefObject<NavigationContainerRef<a
         tabBarShowLabel: false,
         tabBarIcon: ({ focused }) => {
           const icons: Record<string, string> = {
-            Connect: '💘', Play: '🎾', Messages: '💬', Profile: '👤',
+            Connect: '💘', Play: '🎾', Radar: '📡', Messages: '💬', Profile: '👤',
           };
           return (
             <Text style={{ fontSize: 26, opacity: focused ? 1 : 0.4 }}>
@@ -172,6 +184,7 @@ function MainTabs({ navRef }: { navRef: React.RefObject<NavigationContainerRef<a
     >
       <Tab.Screen name="Connect" component={ConnectNavigator} />
       <Tab.Screen name="Play" component={PlayNavigator} />
+      <Tab.Screen name="Radar" component={RadarNavigator} />
       <Tab.Screen name="Messages" component={MessagesNavigator} />
       <Tab.Screen name="Profile" component={ProfileNavigator} />
     </Tab.Navigator>
@@ -202,6 +215,11 @@ export default function Navigation() {
           <RootStack.Screen name="MainTabs">
             {() => <MainTabs navRef={navRef} />}
           </RootStack.Screen>
+          <RootStack.Screen
+            name="PlaytomicWebLoginModal"
+            component={PlaytomicWebLoginScreen}
+            options={{ presentation: 'modal' }}
+          />
         </RootStack.Navigator>
       )}
     </NavigationContainer>

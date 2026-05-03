@@ -15,7 +15,6 @@ export default function MyProfileScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
   const { user, signOut, refreshUser } = useAuth();
   const isFocused = useIsFocused();
-  // Increment key every time screen is focused → forces AnimatedRing to remount + replay
   const [ringKey, setRingKey] = useState(0);
 
   useEffect(() => {
@@ -32,9 +31,7 @@ export default function MyProfileScreen({ navigation }: any) {
   const mainPhoto = user?.photos?.[0] ?? null;
   const lastSynced: string | null = null;
 
-  const ringColor = user?.gender === 'female' ? '#A78BFA'
-    : theme.primary;
-
+  const ringColor = user?.gender === 'female' ? '#A78BFA' : theme.primary;
   const innerSize = AVATAR_SIZE - RING_THICKNESS * 2;
 
   const MENU_ITEMS = [
@@ -53,7 +50,6 @@ export default function MyProfileScreen({ navigation }: any) {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
         <View style={styles.profileCard}>
 
-          {/* key prop forces remount → animation replays on every focus */}
           <AnimatedRing
             key={ringKey}
             size={AVATAR_SIZE}
@@ -77,7 +73,21 @@ export default function MyProfileScreen({ navigation }: any) {
           <Text style={styles.profileName}>
             {user?.full_name ?? user?.email?.split('@')[0] ?? 'Player'}
           </Text>
+
           {user?.city && <Text style={styles.profileCity}>📍 {user.city}</Text>}
+
+          {/* Home club badge */}
+          {user?.home_club_name && (
+            <TouchableOpacity
+              style={styles.clubBadge}
+              onPress={() => navigation.navigate('EditProfile')}
+              activeOpacity={0.75}
+            >
+              <Text style={styles.clubBadgeIcon}>🏟️</Text>
+              <Text style={styles.clubBadgeName}>{user.home_club_name}</Text>
+            </TouchableOpacity>
+          )}
+
           <View style={styles.badgeRow}>
             {user?.looking_for && (
               <View style={styles.badge}>
@@ -92,6 +102,7 @@ export default function MyProfileScreen({ navigation }: any) {
               <Text style={[styles.badgeText, styles.badgePrimaryText]}>Level TBD</Text>
             </View>
           </View>
+
           {user?.bio && <Text style={styles.bio}>"{user.bio}"</Text>}
         </View>
 
@@ -174,7 +185,16 @@ const styles = StyleSheet.create({
   },
   avatarInitials: { fontSize: 30, fontWeight: '800', color: theme.primary },
   profileName: { fontSize: 22, fontWeight: '800', color: theme.textPrimary, marginBottom: 4, marginTop: 14 },
-  profileCity: { fontSize: 13, color: theme.textMuted, marginBottom: 12 },
+  profileCity: { fontSize: 13, color: theme.textMuted, marginBottom: 8 },
+  clubBadge: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    backgroundColor: theme.bgDeep, borderRadius: 20,
+    paddingHorizontal: 14, paddingVertical: 6,
+    borderWidth: 1, borderColor: theme.primaryBorder,
+    marginBottom: 12,
+  },
+  clubBadgeIcon: { fontSize: 14 },
+  clubBadgeName: { fontSize: 13, fontWeight: '700', color: theme.primary },
   badgeRow: { flexDirection: 'row', gap: 8, marginBottom: 12, flexWrap: 'wrap', justifyContent: 'center' },
   badge: {
     backgroundColor: theme.bgDeep, borderRadius: 10,

@@ -1,83 +1,275 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity, StatusBar,
+  ActivityIndicator, Image,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme } from '../../lib/theme';
+import { supabase } from '../../lib/supabase';
+import { useAuth } from '../../context/AuthContext';
+import { notifyVolley } from '../../lib/notifications';
 
-const MOCK_PLAYERS = [
-  { id: '1', name: 'Sofia', club: 'Carbon Padel', emoji: '🎾' },
-  { id: '2', name: 'James', club: 'Carbon Padel', emoji: '🎯' },
-  { id: '3', name: 'Elena', club: 'Carbon Padel', emoji: '💫' },
-];
+// ─── Types ────────────────────────────────────────────────────────────────────
 
-type Response = 'yes' | 'maybe' | 'no';
+interface CoPlayer {
+  userId: string | null;
+  platformUserId: string;
+  platformName: string | null;
+  levelValue: number | null;
+  isOnVolpair: boolean;
+  alreadyActioned: boolean;
+  photo_url: string | null;
+}
+
+interface MatchGroup {
+  matchId: string;
+  clubName: string | null;
+  playedAt: string | null;
+  players: CoPlayer[];
+}
+
+type ResponseType = 'yes' | 'maybe' | 'no';
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function formatDate(isoDate: string | null): string {
+  if (!isoDate) return '';
+  const d = new Date(isoDate);
+  return d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+}
+
+function getInitials(name: string | null): string {
+  if (!name) return '?';
+  return name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+}
+
+// ─── Player card ─────────────────────────────────────────────────────────────
+
+function PlayerCard({
+  player,
+  response,
+  onResponse,
+  onInvite,
+}: {
+  player: CoPlayer;
+  response: ResponseType | undefined;
+  onResponse: (r: ResponseType) => void;
+  onInvite: () => void;
+}) {
+  const displayName = player.platformName ?? `Player ${player.platformUserId}`;
+
+  return (
+    <View style={styles.card}>
+      <View style={styles.cardTop}>
+        {player.photo_url ? (
+          <Image source={{ uri: player.photo_url }} style={styles.avatar} />
+        ) : (
+          <View style={[styles.avatar, styles.avatarFallback]}>
+            <Text style={styles.avatarInitials}>{getInitials(displayName)}</Text>
+          </View>
+        )}
+
+        <View style={styles.cardInfo}>
+          <Text style={styles.playerName}>{displayName}</Text>
+          <View style={styles.badgeRow}>
+            {player.levelValue !== null && (
+              <View style={styles.levelBadge}>
+                <Text style={styles.levelBadgeText}>{player.levelValue.toFixed(1)}</Text>
+              </View>
+            )}
+            {player.isOnVolpair ? (
+              <View style={styles.volpairBadge}>
+                <Text style={styles.volpairBadgeText}>On Volpair</Text>
+              </View>
+            ) : (
+              <Text style={styles.notOnVolpairText}>Not on Volpair yet</Text>
+            )}
+          </View>
+        </View>
+      </View>
+
+      {!player.isOnVolpair && (
+        <TouchableOpacity style={styles.inviteBtn} onPress={onInvite} activeOpacity={0.8}>
+          <Text style={styles.inviteBtnText}>📨 Invite to Volpair</Text>
+        </TouchableOpacity>
+      )}
+
+      {player.alreadyActioned ? (
+        <View style={styles.alreadyActionedRow}>
+          <Text style={styles.alreadyActionedText}>✓ Already connected</Text>
+        </View>
+      ) : (
+        <View style={styles.btnRow}>
+          {(['yes', 'maybe', 'no'] as ResponseType[]).map(option => (
+            <TouchableOpacity
+              key={option}
+              style={[
+                styles.responseBtn,
+                response === option && styles.responseBtnSelected,
+                response === option && option === 'yes' && styles.responseBtnYes,
+                response === option && option === 'maybe' && styles.responseBtnMaybe,
+                response === option && option === 'no' && styles.responseBtnNo,
+              ]}
+              onPress={() => onResponse(option)}
+              activeOpacity={0.75}
+            >
+              <Text style={[
+                styles.responseBtnText,
+                response === option && styles.responseBtnTextSelected,
+              ]}>
+                {option === 'yes' ? '✓ Yes' : option === 'maybe' ? '~ Maybe' : '✕ Not really'}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
+    </View>
+  );
+}
+
+// ─── Main screen ──────────────────────────────────────────────────────────────
 
 export default function PostMatchPromptScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
-  const [responses, setResponses] = useState<Record<string, Response>>({});
+  const { user } = useAuth();
+  const [matchGroups, setMatchGroups] = useState<MatchGroup[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [responses, setResponses] = useState<Record<string, ResponseType>>({});
+  const [saving, setSaving] = useState<Set<string>>(new Set());
 
-  const allAnswered = MOCK_PLAYERS.every(p => responses[p.id]);
+  // Fetch from edge function
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('post-match-prompt', { body: {} });
+      if (error) throw error;
+      setMatchGroups(data?.matches ?? []);
+    } catch (e) {
+      console.error('post-match-prompt fetch error:', e);
+      setMatchGroups([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  const totalPlayers = matchGroups.reduce((sum, g) => sum + g.players.length, 0);
+
+  const handleResponse = async (playerId: string, player: CoPlayer, r: ResponseType) => {
+    setResponses(prev => ({ ...prev, [playerId]: r }));
+
+    // Only act if Yes/Maybe and player is on Volpair
+    if ((r === 'yes' || r === 'maybe') && player.isOnVolpair && player.userId && user) {
+      if (saving.has(playerId)) return;
+      setSaving(prev => new Set(prev).add(playerId));
+
+      try {
+        // Insert connection
+        await supabase.from('connections').insert({
+          sender_id: user.id,
+          receiver_id: player.userId,
+          action_type: 'connect',
+          status: 'pending',
+        });
+
+        // Send notification (best-effort)
+        const { data: myProfile } = await supabase
+          .from('users')
+          .select('full_name')
+          .eq('id', user.id)
+          .maybeSingle();
+
+        await notifyVolley(player.userId, myProfile?.full_name ?? 'Someone');
+      } catch (e) {
+        console.error('connection insert error:', e);
+      } finally {
+        setSaving(prev => {
+          const next = new Set(prev);
+          next.delete(playerId);
+          return next;
+        });
+      }
+    }
+  };
+
+  const handleInvite = (player: CoPlayer) => {
+    // Future: deep link / share invite
+    console.log('Invite:', player.platformUserId);
+  };
 
   const handleDone = () => navigation.goBack();
+
+  if (loading) {
+    return (
+      <View style={[styles.container, styles.centered, { paddingTop: insets.top }]}>
+        <StatusBar barStyle="light-content" backgroundColor={theme.bg} />
+        <ActivityIndicator size="large" color={theme.primary} />
+        <Text style={styles.loadingText}>Checking recent matches…</Text>
+      </View>
+    );
+  }
+
+  if (matchGroups.length === 0) {
+    return (
+      <View style={[styles.container, styles.centered, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
+        <StatusBar barStyle="light-content" backgroundColor={theme.bg} />
+        <Text style={styles.emptyEmoji}>🎾</Text>
+        <Text style={styles.emptyTitle}>No recent matches to review</Text>
+        <Text style={styles.emptyBody}>
+          Check back after your next match at the club.
+        </Text>
+        <TouchableOpacity style={styles.doneBtn} onPress={handleDone}>
+          <Text style={styles.doneBtnText}>Done</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   return (
     <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
       <StatusBar barStyle="light-content" backgroundColor={theme.bg} />
 
       <View style={styles.header}>
-        <Text style={styles.title}>You played with 3 people yesterday.</Text>
+        <Text style={styles.title}>
+          You played with {totalPlayers} {totalPlayers === 1 ? 'person' : 'people'} recently.
+        </Text>
         <Text style={styles.subtitle}>Want to connect with any of them?</Text>
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
-        {MOCK_PLAYERS.map(player => {
-          const r = responses[player.id];
-          return (
-            <View key={player.id} style={styles.card}>
-              <View style={styles.cardTop}>
-                <View style={styles.avatar}>
-                  <Text style={styles.avatarEmoji}>{player.emoji}</Text>
-                </View>
-                <View style={styles.cardInfo}>
-                  <Text style={styles.playerName}>{player.name}</Text>
-                  <Text style={styles.playerClub}>🏟 {player.club}</Text>
-                </View>
-              </View>
-              <View style={styles.btnRow}>
-                {(['yes', 'maybe', 'no'] as Response[]).map(option => (
-                  <TouchableOpacity
-                    key={option}
-                    style={[
-                      styles.responseBtn,
-                      r === option && styles.responseBtnSelected,
-                      r === option && option === 'yes' && styles.responseBtnYes,
-                      r === option && option === 'maybe' && styles.responseBtnMaybe,
-                      r === option && option === 'no' && styles.responseBtnNo,
-                    ]}
-                    onPress={() => setResponses(prev => ({ ...prev, [player.id]: option }))}
-                    activeOpacity={0.75}
-                  >
-                    <Text style={[
-                      styles.responseBtnText,
-                      r === option && styles.responseBtnTextSelected,
-                    ]}>
-                      {option === 'yes' ? '✓ Yes' : option === 'maybe' ? '~ Maybe' : '✕ Not really'}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
+        {matchGroups.map(group => (
+          <View key={group.matchId}>
+            {/* Section header */}
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>
+                {group.clubName ? `🏟 ${group.clubName}` : '🏟 Match'}
+              </Text>
+              {group.playedAt && (
+                <Text style={styles.sectionDate}>{formatDate(group.playedAt)}</Text>
+              )}
             </View>
-          );
-        })}
+
+            {group.players.map(player => {
+              const playerId = player.userId ?? player.platformUserId;
+              return (
+                <PlayerCard
+                  key={playerId}
+                  player={player}
+                  response={responses[playerId]}
+                  onResponse={(r) => handleResponse(playerId, player, r)}
+                  onInvite={() => handleInvite(player)}
+                />
+              );
+            })}
+          </View>
+        ))}
       </ScrollView>
 
       <View style={styles.bottom}>
-        <TouchableOpacity
-          style={[styles.doneBtn, !allAnswered && styles.doneBtnDisabled]}
-          onPress={handleDone}
-          disabled={!allAnswered}
-        >
+        <TouchableOpacity style={styles.doneBtn} onPress={handleDone}>
           <Text style={styles.doneBtnText}>Done</Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={handleDone}>
@@ -88,27 +280,68 @@ export default function PostMatchPromptScreen({ navigation }: any) {
   );
 }
 
+// ─── Styles ───────────────────────────────────────────────────────────────────
+
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: theme.bg, paddingHorizontal: 20 },
-  header: { paddingTop: 24, paddingBottom: 20 },
+  centered: { alignItems: 'center', justifyContent: 'center' },
+
+  loadingText: { marginTop: 14, fontSize: 14, color: theme.textMuted },
+
+  emptyEmoji: { fontSize: 56, marginBottom: 16 },
+  emptyTitle: { fontSize: 20, fontWeight: '800', color: theme.textPrimary, marginBottom: 8 },
+  emptyBody: { fontSize: 14, color: theme.textMuted, textAlign: 'center', lineHeight: 22, paddingHorizontal: 24, marginBottom: 32 },
+
+  header: { paddingTop: 24, paddingBottom: 16 },
   title: { fontSize: 22, fontWeight: '800', color: theme.textPrimary, marginBottom: 6 },
   subtitle: { fontSize: 15, color: theme.textMuted },
-  scroll: { gap: 12, paddingBottom: 20 },
+
+  scroll: { gap: 4, paddingBottom: 20 },
+
+  sectionHeader: {
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    paddingVertical: 10, paddingHorizontal: 2,
+  },
+  sectionTitle: { fontSize: 14, fontWeight: '700', color: theme.textSecondary },
+  sectionDate: { fontSize: 12, color: theme.textMuted },
 
   card: {
     backgroundColor: theme.bgCard, borderRadius: 18, padding: 16,
-    borderWidth: 1, borderColor: theme.border,
+    borderWidth: 1, borderColor: theme.border, marginBottom: 10,
   },
   cardTop: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 14 },
-  avatar: {
-    width: 48, height: 48, borderRadius: 24,
+  avatar: { width: 48, height: 48, borderRadius: 24 },
+  avatarFallback: {
     backgroundColor: theme.primaryDim, alignItems: 'center', justifyContent: 'center',
     borderWidth: 2, borderColor: theme.primaryBorder,
   },
-  avatarEmoji: { fontSize: 22 },
+  avatarInitials: { fontSize: 18, fontWeight: '800', color: theme.primary },
   cardInfo: { flex: 1 },
-  playerName: { fontSize: 17, fontWeight: '700', color: theme.textPrimary, marginBottom: 3 },
-  playerClub: { fontSize: 13, color: theme.textMuted },
+  playerName: { fontSize: 17, fontWeight: '700', color: theme.textPrimary, marginBottom: 6 },
+
+  badgeRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  levelBadge: {
+    backgroundColor: theme.primaryDim, borderRadius: 8,
+    paddingHorizontal: 7, paddingVertical: 2,
+    borderWidth: 1, borderColor: theme.primaryBorder,
+  },
+  levelBadgeText: { fontSize: 11, fontWeight: '800', color: theme.primary },
+  volpairBadge: {
+    backgroundColor: theme.primaryDim, borderRadius: 8,
+    paddingHorizontal: 8, paddingVertical: 2,
+    borderWidth: 1, borderColor: theme.primaryBorder,
+  },
+  volpairBadgeText: { fontSize: 11, fontWeight: '700', color: theme.primary },
+  notOnVolpairText: { fontSize: 11, color: theme.textMuted },
+
+  inviteBtn: {
+    backgroundColor: theme.bgDeep, borderRadius: 10, padding: 10,
+    alignItems: 'center', borderWidth: 1, borderColor: theme.border, marginBottom: 10,
+  },
+  inviteBtnText: { fontSize: 13, fontWeight: '600', color: theme.textSecondary },
+
+  alreadyActionedRow: { alignItems: 'center', paddingVertical: 10 },
+  alreadyActionedText: { fontSize: 13, color: theme.primary, fontWeight: '600' },
 
   btnRow: { flexDirection: 'row', gap: 8 },
   responseBtn: {

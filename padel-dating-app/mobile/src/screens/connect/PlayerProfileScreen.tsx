@@ -163,10 +163,10 @@ export default function PlayerProfileScreen({ route, navigation }: any) {
   const load = async () => {
     setLoading(true);
     try {
-      // User profile
+      // User profile — now includes home_club_name
       const { data: p } = await supabase
         .from('users')
-        .select('id, full_name, city, bio, looking_for, photos, gender')
+        .select('id, full_name, city, bio, looking_for, photos, gender, home_club_name')
         .eq('id', userId)
         .maybeSingle();
       setProfile(p);
@@ -296,6 +296,15 @@ export default function PlayerProfileScreen({ route, navigation }: any) {
           </View>
           <Text style={styles.playerName}>{firstName}</Text>
           {profile.city && <Text style={styles.playerCity}>📍 {profile.city}</Text>}
+
+          {/* Home club badge */}
+          {profile.home_club_name && (
+            <View style={styles.homeClubBadge}>
+              <Text style={styles.homeClubIcon}>🏟️</Text>
+              <Text style={styles.homeClubName}>{profile.home_club_name}</Text>
+            </View>
+          )}
+
           {profile.bio && <Text style={styles.playerBio}>"{profile.bio}"</Text>}
           <View style={styles.badgeRow}>
             {(profile.looking_for === 'date' || profile.looking_for === 'both') && (
@@ -391,7 +400,7 @@ export default function PlayerProfileScreen({ route, navigation }: any) {
           </View>
         )}
 
-        {/* Top clubs */}
+        {/* Top clubs from match history */}
         {stats?.top_clubs?.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>📍 Regular clubs</Text>
@@ -462,7 +471,16 @@ const styles = StyleSheet.create({
   avatarImage: { width: 100, height: 100 },
   avatarInitials: { fontSize: 36, fontWeight: '800', color: theme.primary },
   playerName: { fontSize: 26, fontWeight: '800', color: theme.textPrimary, marginBottom: 4 },
-  playerCity: { fontSize: 14, color: theme.textMuted, marginBottom: 10 },
+  playerCity: { fontSize: 14, color: theme.textMuted, marginBottom: 8 },
+  homeClubBadge: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    backgroundColor: theme.bgDeep, borderRadius: 20,
+    paddingHorizontal: 14, paddingVertical: 6,
+    borderWidth: 1, borderColor: theme.primaryBorder,
+    marginBottom: 10,
+  },
+  homeClubIcon: { fontSize: 14 },
+  homeClubName: { fontSize: 13, fontWeight: '700', color: theme.primary },
   playerBio: { fontSize: 15, color: theme.textSecondary, fontStyle: 'italic', textAlign: 'center', lineHeight: 22, marginBottom: 12 },
   badgeRow: { flexDirection: 'row', gap: 8 },
   intentBadge: {

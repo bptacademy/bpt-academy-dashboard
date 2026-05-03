@@ -146,6 +146,19 @@ export function usePartners() {
 
       const statsMap = new Map((statsData ?? []).map((s: any) => [s.user_id, s]));
 
+      // ── 5. Generate signed photo URLs ─────────────────────────────────────────
+      const photoUrlMap = new Map<string, string>();
+      for (const u of (usersData ?? []) as any[]) {
+        const firstPath = u.photos?.[0];
+        if (firstPath) {
+          const cleanPath = String(firstPath).replace(/^\/avatars\//, '').replace(/^avatars\//, '');
+          const { data: urlData } = await supabase.storage
+            .from('avatars')
+            .createSignedUrl(cleanPath, 3600);
+          if (urlData?.signedUrl) photoUrlMap.set(u.id, urlData.signedUrl);
+        }
+      }
+
       const result: Partner[] = (usersData ?? []).map((u: any) => {
         const stats = statsMap.get(u.id) as any;
         const topClub = stats?.top_clubs?.[0]?.club_name ?? null;
@@ -161,7 +174,7 @@ export function usePartners() {
           userId: u.id,
           fullName: u.full_name ?? 'Unknown',
           city: u.city,
-          photos: u.photos ?? [],
+          photos: photoUrlMap.get(u.id) ? [photoUrlMap.get(u.id)!] : (u.photos ?? []),
           levelValue: stats?.level_value ?? null,
           levelLabel: levelLabel(stats?.level_value ?? null),
           winRate: stats ? Math.round((stats.win_rate ?? 0) * 100) : null,

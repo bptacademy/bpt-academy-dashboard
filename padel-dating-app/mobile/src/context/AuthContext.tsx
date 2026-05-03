@@ -24,7 +24,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Keep a ref so refreshUser always has the latest session
   const sessionRef = useRef<Session | null>(null);
 
   const fetchUser = async (userId: string) => {
@@ -42,7 +41,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const refreshUser = async () => {
-    // Use live session from Supabase, not stale closure
     const { data: { session: liveSession } } = await supabase.auth.getSession();
     if (liveSession?.user?.id) await fetchUser(liveSession.user.id);
   };
@@ -55,7 +53,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      // Stale/invalid refresh token — clear the session silently and show welcome screen
+      if (error) {
+        console.log('Session restore failed (stale token) — signing out silently');
+        supabase.auth.signOut().catch(() => {});
+        setLoading(false);
+        return;
+      }
       setSession(session);
       sessionRef.current = session;
       if (session?.user?.id) {
@@ -66,6 +71,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      // TOKEN_REFRESHED failure fires as a null session — handle gracefully
       setSession(session);
       sessionRef.current = session;
       if (session?.user?.id) fetchUser(session.user.id);

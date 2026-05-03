@@ -1,7 +1,8 @@
 // platform-auth Edge Function
-// Called during onboarding when user connects their booking platform.
-// Authenticates with the platform, stores encrypted tokens in platform_connections.
-// Platform credentials never leave this function.
+// Authenticates with the platform and stores the connection in platform_connections.
+// Supports two flows:
+//   1. Email + password (legacy)
+//   2. platformUserId from WebView redirect URL (no credentials needed)
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
@@ -11,6 +12,7 @@ const CORS = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Flow 1: email + password → get access token from Playtomic
 async function playtomicLogin(email: string, password: string) {
   const res = await fetch('https://api.playtomic.io/v3/auth/login', {
     method: 'POST',
@@ -19,7 +21,6 @@ async function playtomicLogin(email: string, password: string) {
   });
 
   if (!res.ok) {
-    const err = await res.text();
     throw new Error(`Playtomic login failed (${res.status}). Please check your Playtomic email and password.`);
   }
 
@@ -32,14 +33,27 @@ async function playtomicLogin(email: string, password: string) {
   };
 }
 
+// Flow 2: user_id from WebView redirect URL
+// No verification needed — the user_id comes directly from Playtomic's
+// post-login redirect, which only fires after successful authentication.
+function playtomicLoginWithUserId(userId: string) {
+  return {
+    accessToken: null as string | null,
+    refreshToken: null as string | null,
+    platformUserId: userId,
+    expiresAt: null as string | null,
+  };
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS });
 
   try {
-    const { platform, email, password } = await req.json();
+    const { platform, email, password, platformUserId } = await req.json();
 
-    if (!platform || !email || !password) {
-      return new Response(JSON.stringify({ error: 'platform, email and password are required' }), {
+    // Validate: need platform AND either platformUserId OR (email + password)
+    if (!platform || (!platformUserId && (!email || !password))) {
+      return new Response(JSON.stringify({ error: 'platform and either platformUserId or email+password are required' }), {
         status: 400, headers: { ...CORS, 'Content-Type': 'application/json' },
       });
     }
@@ -66,7 +80,6 @@ serve(async (req) => {
     }
 
     // Get or create the Volpair user record
-    // The mobile app should have created this already, but we upsert here as a safety net
     let { data: volpairUser } = await supabase
       .from('users')
       .select('id')
@@ -74,12 +87,11 @@ serve(async (req) => {
       .maybeSingle();
 
     if (!volpairUser) {
-      // Create it now — this handles race conditions and edge cases
       const { data: newUser, error: insertError } = await supabase
         .from('users')
         .upsert({
           auth_id: authUser.id,
-          email: authUser.email ?? email,
+          email: authUser.email ?? email ?? '',
           profile_complete: false,
           last_active_at: new Date().toISOString(),
         }, { onConflict: 'auth_id' })
@@ -94,14 +106,16 @@ serve(async (req) => {
       volpairUser = newUser;
     }
 
-    // Authenticate with the platform
     if (platform !== 'playtomic') {
       return new Response(JSON.stringify({ error: `Platform ${platform} not yet supported` }), {
         status: 400, headers: { ...CORS, 'Content-Type': 'application/json' },
       });
     }
 
-    const tokens = await playtomicLogin(email, password);
+    // Branch: WebView flow (userId) vs email+password flow
+    const tokens = platformUserId
+      ? playtomicLoginWithUserId(platformUserId)
+      : await playtomicLogin(email, password);
 
     // Store the connection
     const { error: upsertError } = await supabase

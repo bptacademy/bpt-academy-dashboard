@@ -199,6 +199,8 @@ export function useDiscovery() {
 
       const volpairProfileMap = new Map<string, any>();
       const volpairStatsMap = new Map<string, any>();
+      const scoreMap = new Map<string, number>();
+      const photoUrlMap = new Map<string, string>();
 
       if (volpairUserIds.length > 0) {
         const { data: profiles } = await supabase
@@ -215,7 +217,7 @@ export function useDiscovery() {
 
         for (const s of (stats ?? [])) volpairStatsMap.set(s.user_id, s);
 
-        // Volpair scores
+        // Volpair scores — Fix 2: use separate scoreMap instead of mutating volpairStatsMap
         const scoreIds = volpairUserIds.map(uid => {
           const a = user.id < uid ? user.id : uid;
           const b = user.id < uid ? uid : user.id;
@@ -228,8 +230,18 @@ export function useDiscovery() {
 
         for (const s of (scoresData ?? []) as any[]) {
           const otherId = s.user_a_id === user.id ? s.user_b_id : s.user_a_id;
-          // store score by user_id
-          volpairStatsMap.get(otherId) && (volpairStatsMap.get(otherId).__score = s.total_score);
+          scoreMap.set(otherId, s.total_score);
+        }
+
+        // Fix 1: Generate signed URLs for first photos of Volpair users
+        for (const [uid, profile] of volpairProfileMap.entries()) {
+          const firstPath = profile.photos?.[0];
+          if (firstPath) {
+            const { data: urlData } = await supabase.storage
+              .from('avatars')
+              .createSignedUrl(firstPath.replace('avatars/', ''), 3600);
+            if (urlData?.signedUrl) photoUrlMap.set(uid, urlData.signedUrl);
+          }
         }
       }
 
@@ -244,7 +256,8 @@ export function useDiscovery() {
           const action = rel.userId ? actionMap.get(rel.userId) : null;
 
           const levelVal = stats?.level_value ?? rel.levelValue ?? null;
-          const score = stats?.__score
+          // Fix 2: use scoreMap instead of stats.__score
+          const score = (rel.userId ? scoreMap.get(rel.userId) : null)
             ?? estimateScore(myStatsRow, levelVal, rel.count);
 
           return {
@@ -254,7 +267,8 @@ export function useDiscovery() {
             city: profile?.city ?? null,
             lookingFor: profile?.looking_for ?? null,
             bio: profile?.bio ?? null,
-            photos: profile?.photos ?? [],
+            // Fix 1: use signed URL if available
+            photos: rel.userId && photoUrlMap.get(rel.userId) ? [photoUrlMap.get(rel.userId)!] : [],
             isOnVolpair: !!rel.userId,
             levelValue: levelVal,
             levelLabel: levelLabel(levelVal),
@@ -277,7 +291,146 @@ export function useDiscovery() {
         .sort((a, b) => b.volpairScore - a.volpairScore);
 
       setLayer1(l1);
-      setLayer2([]); // Layer 2 skipped for now — Layer 1 already has real data
+
+      // ── Layer 2: players who played with my Layer 1 co-players ──────────────
+      const layer1VolpairIds = l1.filter(p => p.userId).map(p => p.userId as string);
+      const layer1PlatformIdSet = new Set(layer1PlatformIds);
+      layer1PlatformIdSet.add(myPlatformId);
+
+      if (layer1PlatformIds.length > 0) {
+        // Get match IDs for layer 1 players
+        const { data: l1MatchRows } = await supabase
+          .from('match_players')
+          .select('match_id, platform_user_id')
+          .in('platform_user_id', layer1PlatformIds.slice(0, 20)); // cap to avoid huge queries
+
+        const l1MatchIds = [...new Set((l1MatchRows ?? []).map((r: any) => r.match_id))];
+
+        if (l1MatchIds.length > 0) {
+          // Get co-players of those matches, excluding myself and layer 1
+          const { data: l2Rows } = await supabase
+            .from('match_players')
+            .select('user_id, platform_user_id, platform_name, level_value, match_id, matches(played_at, tenant_name)')
+            .in('match_id', l1MatchIds)
+            .neq('platform_user_id', myPlatformId)
+            .not('user_id', 'is', null); // Layer 2: only show Volpair users
+
+          // Group and find mutual connection name
+          const l2Map = new Map<string, {
+            platformUserId: string;
+            userId: string;
+            platformName: string | null;
+            count: number;
+            levelValue: number | null;
+            mutualVia: string | null;
+          }>();
+
+          for (const row of (l2Rows ?? []) as any[]) {
+            const pid = row.platform_user_id as string;
+            if (layer1PlatformIdSet.has(pid)) continue; // skip layer 1 already shown
+
+            // Find which layer 1 player they played with
+            const l1PlayerRow = (l1MatchRows ?? []).find((r: any) => r.match_id === row.match_id);
+            const mutualPlatformId = l1PlayerRow?.platform_user_id;
+            const mutualPlayer = l1.find(p => p.platformUserId === mutualPlatformId);
+
+            if (!l2Map.has(pid)) {
+              l2Map.set(pid, {
+                platformUserId: pid,
+                userId: row.user_id,
+                platformName: row.platform_name ?? null,
+                count: 1,
+                levelValue: row.level_value ?? null,
+                mutualVia: mutualPlayer ? mutualPlayer.fullName.split(' ')[0] : null,
+              });
+            } else {
+              const e = l2Map.get(pid)!;
+              e.count += 1;
+              if (row.level_value && !e.levelValue) e.levelValue = row.level_value;
+            }
+          }
+
+          // Fetch profiles + scores for layer 2 Volpair users
+          const l2UserIds = Array.from(l2Map.values()).map(p => p.userId).filter(Boolean);
+          const l2ProfileMap = new Map<string, any>();
+          const l2ScoreMap = new Map<string, number>();
+          const l2PhotoMap = new Map<string, string>();
+
+          if (l2UserIds.length > 0) {
+            const { data: l2Profiles } = await supabase
+              .from('users')
+              .select('id, full_name, city, looking_for, bio, photos')
+              .in('id', l2UserIds);
+            for (const p of (l2Profiles ?? [])) l2ProfileMap.set(p.id, p);
+
+            const l2ScoreIds = l2UserIds.map(uid => {
+              const a = user.id < uid ? user.id : uid;
+              const b = user.id < uid ? uid : user.id;
+              return { a, b };
+            });
+            const { data: l2Scores } = await supabase
+              .from('volpair_scores')
+              .select('user_a_id, user_b_id, total_score')
+              .or(l2ScoreIds.map(s => `and(user_a_id.eq.${s.a},user_b_id.eq.${s.b})`).join(','));
+            for (const s of (l2Scores ?? []) as any[]) {
+              const otherId = s.user_a_id === user.id ? s.user_b_id : s.user_a_id;
+              l2ScoreMap.set(otherId, s.total_score);
+            }
+
+            // Generate signed photo URLs for layer 2
+            for (const [uid, profile] of l2ProfileMap.entries()) {
+              const firstPath = profile.photos?.[0];
+              if (firstPath) {
+                const { data: urlData } = await supabase.storage
+                  .from('avatars')
+                  .createSignedUrl(firstPath.replace('avatars/', ''), 3600);
+                if (urlData?.signedUrl) l2PhotoMap.set(uid, urlData.signedUrl);
+              }
+            }
+          }
+
+          const l2: DiscoveredPlayer[] = Array.from(l2Map.values())
+            .filter(p => !layer1VolpairIds.includes(p.userId)) // deduplicate
+            .slice(0, 20)
+            .map(rel => {
+              const profile = l2ProfileMap.get(rel.userId);
+              const levelVal = rel.levelValue ?? null;
+              const score = l2ScoreMap.get(rel.userId) ?? estimateScore(myStatsRow, levelVal, 0);
+              const action = actionMap.get(rel.userId);
+              return {
+                userId: rel.userId,
+                platformUserId: rel.platformUserId,
+                fullName: profile?.full_name ?? rel.platformName ?? `Player ${rel.platformUserId}`,
+                city: profile?.city ?? null,
+                lookingFor: profile?.looking_for ?? null,
+                bio: profile?.bio ?? null,
+                photos: l2PhotoMap.get(rel.userId) ? [l2PhotoMap.get(rel.userId)!] : [],
+                isOnVolpair: true,
+                levelValue: levelVal,
+                levelLabel: levelLabel(levelVal),
+                winRate: null,
+                playStyle: null,
+                topClub: null,
+                matchesTogether: 0,
+                lastPlayedTogether: null,
+                lastClubName: null,
+                volpairScore: score,
+                layer: 2 as const,
+                mutualVia: rel.mutualVia,
+                mutualConnections: rel.count,
+                myAction: (action?.action ?? null) as any,
+                connectionId: action?.id ?? null,
+              };
+            })
+            .sort((a, b) => b.volpairScore - a.volpairScore);
+
+          setLayer2(l2);
+        } else {
+          setLayer2([]);
+        }
+      } else {
+        setLayer2([]);
+      }
     } catch (e: any) {
       setError(e.message ?? 'Failed to load discovery');
     } finally {
@@ -313,5 +466,10 @@ export function useDiscovery() {
     return data.id;
   };
 
-  return { layer1, layer2, loading, error, reload: load, sendAction };
+  const excludeIds = [
+    ...layer1.filter(p => p.userId).map(p => p.userId as string),
+    ...layer2.filter(p => p.userId).map(p => p.userId as string),
+  ];
+
+  return { layer1, layer2, loading, error, reload: load, sendAction, excludeIds };
 }
