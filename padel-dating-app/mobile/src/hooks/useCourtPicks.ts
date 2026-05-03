@@ -4,12 +4,18 @@
  * Finds nearby Volpair users who are NOT in Layer 1 or 2,
  * filtered by compatible intent + level range, sorted by Volpair score.
  * Uses expo-location + radar-search edge function.
+ *
+ * Always shows the discovery loader for at least MIN_LOADER_MS so the
+ * Variant C score animation plays in full before results appear.
  */
 
 import { useState, useCallback } from 'react';
 import * as Location from 'expo-location';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
+
+// Minimum time the loader is shown — matches the ~3s Variant C animation
+const MIN_LOADER_MS = 3000;
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -106,76 +112,74 @@ export function useCourtPicks({ excludeIds, myLevel, myLookingFor }: UseCourtPic
     setLoading(true);
     setLocationDenied(false);
 
-    try {
-      // 1. Request location permission
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        setLocationDenied(true);
-        setLoading(false);
-        return;
-      }
+    // Start the minimum display timer alongside the actual fetch
+    const minDelay = new Promise<void>(resolve => setTimeout(resolve, MIN_LOADER_MS));
 
-      // 2. Get current position
-      const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
-      const lat = pos.coords.latitude;
-      const lon = pos.coords.longitude;
-
-      // 3. Update user's location in Supabase
-      await supabase
-        .from('users')
-        .update({ last_lat: lat, last_lon: lon, last_location_at: new Date().toISOString() })
-        .eq('id', user.id);
-
-      // 4. Call radar-search edge function
-      const { data, error } = await supabase.functions.invoke('radar-search', {
-        body: { lat, lon, radius_miles: 25, active_within_hours: 168 },
-      });
-
-      if (error || !data?.players) {
-        // Fall back to mock data so the strip renders nicely during dev
-        setPicks(MOCK_PICKS);
-        setLoading(false);
-        return;
-      }
-
-      const rawPlayers: CourtPick[] = data.players;
-
-      // 5. Filter results
-      const excludeSet = new Set(excludeIds);
-
-      const filtered = rawPlayers.filter(p => {
-        if (p.volpair_score === null || p.volpair_score === undefined) return false;
-        if (excludeSet.has(p.id)) return false;
-        if (myLevel !== null && p.level_value !== null) {
-          if (Math.abs(p.level_value - myLevel) > 1.5) return false;
+    const doFetch = async (): Promise<CourtPick[]> => {
+      try {
+        // 1. Request location permission
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== 'granted') {
+          setLocationDenied(true);
+          return [];
         }
-        if (myLookingFor === 'date' || myLookingFor === 'both') {
-          const theirIntent = (p as any).looking_for ?? null;
-          if (theirIntent !== 'date' && theirIntent !== 'both') return false;
-        }
-        return true;
-      });
 
-      // 6. Sort by volpair_score DESC
-      filtered.sort((a, b) => (b.volpair_score ?? 0) - (a.volpair_score ?? 0));
+        // 2. Get current position
+        const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+        const lat = pos.coords.latitude;
+        const lon = pos.coords.longitude;
 
-      // 7. Use real data if available, otherwise mock
-      const result = filtered.slice(0, 10);
-      setPicks(result.length > 0 ? result : MOCK_PICKS);
-    } catch (e) {
-      console.error('useCourtPicks error:', e);
-      // Fall back to mock data on any error
-      setPicks(MOCK_PICKS);
-    } finally {
-      setLoading(false);
-    }
+        // 3. Update user's location in Supabase
+        await supabase
+          .from('users')
+          .update({ last_lat: lat, last_lon: lon, last_location_at: new Date().toISOString() })
+          .eq('id', user.id);
+
+        // 4. Call radar-search edge function
+        const { data, error } = await supabase.functions.invoke('radar-search', {
+          body: { lat, lon, radius_miles: 25, active_within_hours: 168 },
+        });
+
+        if (error || !data?.players) return MOCK_PICKS;
+
+        const rawPlayers: CourtPick[] = data.players;
+
+        // 5. Filter
+        const excludeSet = new Set(excludeIds);
+        const filtered = rawPlayers.filter(p => {
+          if (p.volpair_score === null || p.volpair_score === undefined) return false;
+          if (excludeSet.has(p.id)) return false;
+          if (myLevel !== null && p.level_value !== null) {
+            if (Math.abs(p.level_value - myLevel) > 1.5) return false;
+          }
+          if (myLookingFor === 'date' || myLookingFor === 'both') {
+            const theirIntent = (p as any).looking_for ?? null;
+            if (theirIntent !== 'date' && theirIntent !== 'both') return false;
+          }
+          return true;
+        });
+
+        // 6. Sort by volpair_score DESC, cap at 10
+        filtered.sort((a, b) => (b.volpair_score ?? 0) - (a.volpair_score ?? 0));
+        const result = filtered.slice(0, 10);
+        return result.length > 0 ? result : MOCK_PICKS;
+
+      } catch (e) {
+        console.error('useCourtPicks error:', e);
+        return MOCK_PICKS;
+      }
+    };
+
+    // Wait for BOTH the fetch AND the minimum 3s to complete
+    const [result] = await Promise.all([doFetch(), minDelay]);
+    setPicks(result);
+    setLoading(false);
+
   }, [user, excludeIds, myLevel, myLookingFor]);
 
   const setEnabled = useCallback((val: boolean) => {
     setEnabledState(val);
-    if (val) {
-      fetchPicks();
-    }
+    if (val) fetchPicks();
   }, [fetchPicks]);
 
   return { picks, loading, locationDenied, enabled, setEnabled };
