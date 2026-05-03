@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
-  StatusBar, ActivityIndicator, RefreshControl, Share, Image, Platform,
+  StatusBar, ActivityIndicator, RefreshControl, Share, Image, Platform, FlatList,
 } from 'react-native';
+import { BlurView } from 'expo-blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme } from '../../lib/theme';
 import { useDiscovery, DiscoveredPlayer } from '../../hooks/useDiscovery';
@@ -70,7 +71,7 @@ function InviteRow({ playerName }: { playerName: string }) {
   );
 }
 
-// ─── Player card ──────────────────────────────────────────────────────────────
+// ─── Player card (vertical feed) ─────────────────────────────────────────────
 
 function PlayerCard({ player, navigation, onAction }: {
   player: DiscoveredPlayer;
@@ -88,9 +89,7 @@ function PlayerCard({ player, navigation, onAction }: {
       onPress={handlePress}
       activeOpacity={player.isOnVolpair ? 0.92 : 1}
     >
-      {/* Top section: photo left, all info right */}
       <View style={styles.cardBody}>
-        {/* Photo */}
         <View style={[styles.avatar, !player.isOnVolpair && styles.avatarMuted]}>
           {player.photos[0]
             ? <Image source={{ uri: player.photos[0] }} style={styles.avatarImg} />
@@ -98,10 +97,7 @@ function PlayerCard({ player, navigation, onAction }: {
                 {player.fullName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
               </Text>}
         </View>
-
-        {/* Info column */}
         <View style={styles.cardInfo}>
-          {/* Name + intent badge */}
           <View style={styles.nameRow}>
             <Text style={styles.playerName}>{firstName}</Text>
             {player.isOnVolpair && (player.lookingFor === 'date' || player.lookingFor === 'both') && (
@@ -110,11 +106,7 @@ function PlayerCard({ player, navigation, onAction }: {
               </View>
             )}
           </View>
-
-          {/* City */}
           {player.city && <Text style={styles.metaText}>📍 {player.city}</Text>}
-
-          {/* Level */}
           {player.levelValue !== null && (
             <View style={styles.levelRow}>
               <View style={styles.levelBadge}>
@@ -123,8 +115,6 @@ function PlayerCard({ player, navigation, onAction }: {
               {player.levelLabel && <Text style={styles.levelLabel}>{player.levelLabel}</Text>}
             </View>
           )}
-
-          {/* Club + matches */}
           {player.lastClubName && <Text style={styles.metaText}>🏟 {player.lastClubName}</Text>}
           {player.matchesTogether > 0 && (
             <Text style={styles.metaText}>
@@ -139,15 +129,11 @@ function PlayerCard({ player, navigation, onAction }: {
               {player.mutualConnections > 1 ? ` · ${player.mutualConnections} shared` : ''}
             </Text>
           )}
-
-          {/* Score badge */}
           <View style={{ marginTop: 6 }}>
             <ScoreBadge score={player.volpairScore} muted={!player.isOnVolpair} />
           </View>
         </View>
       </View>
-
-      {/* Actions */}
       {player.isOnVolpair ? (
         player.myAction ? (
           <View style={styles.actionedRow}>
@@ -171,103 +157,163 @@ function PlayerCard({ player, navigation, onAction }: {
   );
 }
 
-// ─── CourtPickCard ────────────────────────────────────────────────────────────
+// ─── Court Pick horizontal mini-card ─────────────────────────────────────────
 
-function CourtPickCard({ pick, navigation, onAction }: {
-  pick: CourtPick;
+function CourtPickMiniCard({ pick, navigation, onAction, blurred }: {
+  pick: CourtPick | null;
   navigation: any;
-  onAction: (type: 'play_again' | 'connect' | 'volley') => void;
+  onAction?: (type: 'play_again' | 'connect' | 'volley') => void;
+  blurred?: boolean;
 }) {
   const [myAction, setMyAction] = useState<string | null>(null);
+
+  if (blurred || !pick) {
+    // Ghost placeholder card
+    return (
+      <View style={styles.miniCard}>
+        <View style={styles.miniAvatarGhost} />
+        <View style={styles.miniNameGhost} />
+        <View style={styles.miniScoreGhost} />
+        <View style={styles.miniMetaGhost} />
+      </View>
+    );
+  }
+
   const initials = pick.full_name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
-  const handleAction = (type: 'play_again' | 'connect' | 'volley') => { setMyAction(type); onAction(type); };
-  const scoreColor = pick.volpair_score && pick.volpair_score >= 80 ? theme.primary : theme.textMuted;
+  const scoreColor = pick.volpair_score && pick.volpair_score >= 85 ? theme.scoreHigh
+    : pick.volpair_score && pick.volpair_score >= 70 ? theme.scoreMid
+    : theme.scoreLow;
+
+  const handleAction = (type: 'play_again' | 'connect' | 'volley') => {
+    setMyAction(type);
+    onAction?.(type);
+  };
 
   return (
-    <TouchableOpacity style={styles.playerCard} onPress={() => navigation.navigate('PlayerProfile', { userId: pick.id })} activeOpacity={0.92}>
-      <View style={styles.cardBody}>
-        <View style={styles.avatar}>
-          {pick.photo_url
-            ? <Image source={{ uri: pick.photo_url }} style={styles.avatarImg} />
-            : <Text style={styles.avatarInitials}>{initials}</Text>}
-        </View>
-        <View style={styles.cardInfo}>
-          <Text style={styles.playerName}>{pick.full_name.split(' ')[0]}</Text>
-          {pick.city && <Text style={styles.metaText}>📍 {pick.city}</Text>}
-          {pick.level_value !== null && (
-            <View style={styles.levelRow}>
-              <View style={styles.levelBadge}><Text style={styles.levelValue}>{pick.level_value.toFixed(1)}</Text></View>
-            </View>
-          )}
-          <Text style={styles.metaText}>{pick.distance_miles.toFixed(1)} mi · {pick.total_matches ?? 0} matches</Text>
-          <View style={[styles.scoreBadge, { borderColor: scoreColor, marginTop: 6 }]}>
-            <Text style={[styles.scoreValue, { color: scoreColor }]}>{pick.volpair_score ?? '—'}</Text>
-            <Text style={[styles.scoreLabel, { color: theme.textMuted }]}>match</Text>
-          </View>
-        </View>
+    <TouchableOpacity
+      style={styles.miniCard}
+      onPress={() => navigation.navigate('PlayerProfile', { userId: pick.id })}
+      activeOpacity={0.88}
+    >
+      {/* Avatar */}
+      <View style={styles.miniAvatar}>
+        {pick.photo_url
+          ? <Image source={{ uri: pick.photo_url }} style={styles.miniAvatarImg} />
+          : <Text style={styles.miniAvatarInitials}>{initials}</Text>}
       </View>
+
+      {/* Name + city */}
+      <Text style={styles.miniName} numberOfLines={1}>{pick.full_name.split(' ')[0]}</Text>
+      {pick.city && <Text style={styles.miniCity} numberOfLines={1}>📍 {pick.city}</Text>}
+
+      {/* Score pill */}
+      <View style={[styles.miniScorePill, { borderColor: scoreColor }]}>
+        <Text style={[styles.miniScoreValue, { color: scoreColor }]}>{pick.volpair_score ?? '—'}</Text>
+        <Text style={styles.miniScoreLabel}> match</Text>
+      </View>
+
+      {/* Quick action */}
       {myAction ? (
-        <View style={styles.actionedRow}>
-          <Text style={styles.actionedText}>
-            {myAction === 'play_again' ? '🎾 Play request sent!' : myAction === 'connect' ? '👋 Connection sent!' : '💘 Volley sent — fingers crossed!'}
-          </Text>
-        </View>
+        <Text style={styles.miniActioned}>
+          {myAction === 'volley' ? '💘 Sent!' : myAction === 'connect' ? '👋 Sent!' : '🎾 Sent!'}
+        </Text>
       ) : (
-        <ActionButtons onPlayAgain={() => handleAction('play_again')} onConnect={() => handleAction('connect')} onVolley={() => handleAction('volley')} />
+        <View style={styles.miniActions}>
+          <TouchableOpacity style={styles.miniActionBtn} onPress={() => handleAction('connect')} activeOpacity={0.75}>
+            <Text style={styles.miniActionText}>👋</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.miniActionBtn, styles.miniVolleyBtn]} onPress={() => handleAction('volley')} activeOpacity={0.75}>
+            <Text style={styles.miniActionText}>💘</Text>
+          </TouchableOpacity>
+        </View>
       )}
     </TouchableOpacity>
   );
 }
 
-// ─── CourtPicksSection ────────────────────────────────────────────────────────
+// ─── Court Picks horizontal strip ────────────────────────────────────────────
 
-function CourtPicksSection({ navigation, excludeIds, myLevel, myLookingFor, onAction }: {
-  navigation: any; excludeIds: string[]; myLevel: number | null; myLookingFor: string | null;
-  onAction: (player: any, type: 'play_again' | 'connect' | 'volley') => void;
+const GHOST_PICKS = [null, null, null]; // 3 blurred placeholders
+
+function CourtPicksStrip({ navigation, excludeIds, myLevel, myLookingFor, onAction }: {
+  navigation: any;
+  excludeIds: string[];
+  myLevel: number | null;
+  myLookingFor: string | null;
+  onAction: (player: CourtPick, type: 'play_again' | 'connect' | 'volley') => void;
 }) {
   const { picks, loading, locationDenied, enabled, setEnabled } = useCourtPicks({ excludeIds, myLevel, myLookingFor });
 
-  if (!enabled) {
-    return (
-      <View style={styles.courtPicksBanner}>
-        <View style={styles.courtPicksBannerLeft}>
-          <Text style={styles.courtPicksIcon}>🎯</Text>
-          <View>
-            <Text style={styles.courtPicksTitle}>Court Picks</Text>
-            <Text style={styles.courtPicksSub}>Your best matches nearby</Text>
-          </View>
-        </View>
-        <TouchableOpacity style={styles.courtPicksEnableBtn} onPress={() => setEnabled(true)}>
-          <Text style={styles.courtPicksEnableBtnText}>Enable</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
-  if (locationDenied) return (
-    <View style={styles.courtPicksBanner}>
-      <Text style={styles.courtPicksIcon}>📍</Text>
-      <Text style={styles.courtPicksSub}>Location permission needed for Court Picks</Text>
-    </View>
-  );
-  if (loading) return (
-    <View style={[styles.sectionHeader, { marginTop: 8 }]}>
-      <Text style={styles.sectionTitle}>🎯 Court Picks</Text>
-      <ActivityIndicator size="small" color={theme.primary} style={{ marginLeft: 8 }} />
-    </View>
-  );
-  if (picks.length === 0) return null;
-
   return (
-    <>
-      <View style={[styles.sectionHeader, { marginTop: 8 }]}>
-        <Text style={styles.sectionTitle}>🎯 Court Picks</Text>
-        <View style={styles.sectionCountBadge}><Text style={styles.sectionCount}>{picks.length}</Text></View>
+    <View style={styles.stripSection}>
+      {/* Header row */}
+      <View style={styles.stripHeader}>
+        <View style={styles.stripTitleRow}>
+          <Text style={styles.stripTitle}>🎯 Court Picks</Text>
+          {enabled && picks.length > 0 && (
+            <View style={styles.sectionCountBadge}>
+              <Text style={styles.sectionCount}>{picks.length}</Text>
+            </View>
+          )}
+        </View>
+        <Text style={styles.stripSub}>
+          {enabled ? 'Top matches near you — sorted by compatibility' : 'Your best matches nearby, sorted by compatibility'}
+        </Text>
       </View>
-      <Text style={styles.sectionSub}>Top matches near you — sorted by compatibility, not distance</Text>
-      {picks.map(pick => (
-        <CourtPickCard key={pick.id} pick={pick} navigation={navigation} onAction={type => onAction(pick, type)} />
-      ))}
-    </>
+
+      {/* Strip body */}
+      <View style={styles.stripBody}>
+        {enabled && loading ? (
+          <View style={styles.stripLoading}>
+            <ActivityIndicator size="small" color={theme.primary} />
+            <Text style={styles.stripLoadingText}>Finding picks…</Text>
+          </View>
+        ) : (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.stripScroll}
+          >
+            {(enabled && !locationDenied && picks.length > 0 ? picks : GHOST_PICKS).map((pick, i) => (
+              <CourtPickMiniCard
+                key={pick ? pick.id : `ghost-${i}`}
+                pick={pick}
+                navigation={navigation}
+                blurred={!enabled || locationDenied || picks.length === 0}
+                onAction={pick ? type => onAction(pick, type) : undefined}
+              />
+            ))}
+          </ScrollView>
+        )}
+
+        {/* Overlay — only shown when not enabled or location denied */}
+        {(!enabled || locationDenied) && (
+          <View style={styles.stripOverlay}>
+            <BlurView intensity={18} tint="dark" style={StyleSheet.absoluteFill} />
+            <View style={styles.stripOverlayContent}>
+              <Text style={styles.stripOverlayIcon}>🎯</Text>
+              <Text style={styles.stripOverlayTitle}>
+                {locationDenied ? 'Location needed' : 'Enable Court Picks'}
+              </Text>
+              <Text style={styles.stripOverlaySub}>
+                {locationDenied
+                  ? 'Allow location access to see picks near you'
+                  : 'See your highest-rated matches in your area'}
+              </Text>
+              <TouchableOpacity
+                style={styles.stripEnableBtn}
+                onPress={() => setEnabled(true)}
+                activeOpacity={0.85}
+              >
+                <Text style={styles.stripEnableBtnText}>
+                  {locationDenied ? 'Allow location' : 'Enable'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+      </View>
+    </View>
   );
 }
 
@@ -305,6 +351,17 @@ export default function ConnectHomeScreen({ navigation }: any) {
     try { await sendAction(player.userId, type); } catch (e) { console.error('sendAction error:', e); }
   };
 
+  const handleCourtPickAction = async (pick: CourtPick, type: 'play_again' | 'connect' | 'volley') => {
+    if (!user?.id) return;
+    try {
+      await supabase.from('connections').insert({
+        sender_id: user.id,
+        receiver_id: pick.id,
+        action_type: type,
+      });
+    } catch (e) { console.error('courtPick action error:', e); }
+  };
+
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <StatusBar barStyle="light-content" backgroundColor={theme.bg} />
@@ -326,7 +383,9 @@ export default function ConnectHomeScreen({ navigation }: any) {
       ) : error ? (
         <View style={styles.loadingBox}>
           <Text style={styles.errorText}>⚠️ {error}</Text>
-          <TouchableOpacity style={styles.retryBtn} onPress={reload}><Text style={styles.retryText}>Try again</Text></TouchableOpacity>
+          <TouchableOpacity style={styles.retryBtn} onPress={reload}>
+            <Text style={styles.retryText}>Try again</Text>
+          </TouchableOpacity>
         </View>
       ) : (
         <ScrollView
@@ -334,35 +393,58 @@ export default function ConnectHomeScreen({ navigation }: any) {
           contentContainerStyle={styles.scroll}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.primary} />}
         >
-          <View style={styles.sectionHeader}>
+          {/* ── Court Picks strip — always at the top ── */}
+          <CourtPicksStrip
+            navigation={navigation}
+            excludeIds={excludeIds ?? []}
+            myLevel={myStats?.level_value ?? null}
+            myLookingFor={(user as any)?.looking_for ?? null}
+            onAction={handleCourtPickAction}
+          />
+
+          {/* ── Layer 1: people you've played with ── */}
+          <View style={[styles.sectionHeader, { marginTop: 20 }]}>
             <Text style={styles.sectionTitle}>🎾 People you've played with</Text>
-            {layer1.length > 0 && <View style={styles.sectionCountBadge}><Text style={styles.sectionCount}>{layer1.length}</Text></View>}
+            {layer1.length > 0 && (
+              <View style={styles.sectionCountBadge}>
+                <Text style={styles.sectionCount}>{layer1.length}</Text>
+              </View>
+            )}
           </View>
           <Text style={styles.sectionSub}>Strongest signal — you already know if there's something there</Text>
 
           {layer1.length === 0
             ? <EmptyState message="Sync your Playtomic account to discover people you've played with" />
-            : layer1.map(p => <PlayerCard key={p.platformUserId} player={p} navigation={navigation} onAction={type => handleAction(p, type)} />)
+            : layer1.map(p => (
+                <PlayerCard
+                  key={p.platformUserId}
+                  player={p}
+                  navigation={navigation}
+                  onAction={type => handleAction(p, type)}
+                />
+              ))
           }
 
+          {/* ── Layer 2: friends of your court ── */}
           {layer2.length > 0 && (
             <>
               <View style={[styles.sectionHeader, { marginTop: 8 }]}>
                 <Text style={styles.sectionTitle}>🔗 Friends of your court</Text>
-                <View style={styles.sectionCountBadge}><Text style={styles.sectionCount}>{layer2.length}</Text></View>
+                <View style={styles.sectionCountBadge}>
+                  <Text style={styles.sectionCount}>{layer2.length}</Text>
+                </View>
               </View>
               <Text style={styles.sectionSub}>Players in your padel circle — not strangers</Text>
-              {layer2.map(p => <PlayerCard key={p.platformUserId} player={p} navigation={navigation} onAction={type => handleAction(p, type)} />)}
+              {layer2.map(p => (
+                <PlayerCard
+                  key={p.platformUserId}
+                  player={p}
+                  navigation={navigation}
+                  onAction={type => handleAction(p, type)}
+                />
+              ))}
             </>
           )}
-
-          <CourtPicksSection
-            navigation={navigation}
-            excludeIds={excludeIds ?? []}
-            myLevel={myStats?.level_value ?? null}
-            myLookingFor={(user as any)?.looking_for ?? null}
-            onAction={handleAction}
-          />
 
           <View style={{ height: 24 }} />
         </ScrollView>
@@ -374,6 +456,8 @@ export default function ConnectHomeScreen({ navigation }: any) {
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
 const AVATAR_SIZE = 130;
+const MINI_CARD_WIDTH = 148;
+const MINI_AVATAR_SIZE = 72;
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: theme.bg },
@@ -392,15 +476,117 @@ const styles = StyleSheet.create({
   retryBtn: { backgroundColor: theme.primaryDim, borderRadius: 10, paddingHorizontal: 20, paddingVertical: 10, borderWidth: 1, borderColor: theme.primaryBorder },
   retryText: { color: theme.primary, fontWeight: '700' },
   scroll: { paddingHorizontal: 16, paddingTop: 16 },
+
+  // ── Court Picks strip ──
+  stripSection: {
+    marginBottom: 4,
+  },
+  stripHeader: {
+    marginBottom: 10,
+  },
+  stripTitleRow: {
+    flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 3,
+  },
+  stripTitle: { fontSize: 15, fontWeight: '700', color: theme.textPrimary },
+  stripSub: { fontSize: 12, color: theme.textMuted, lineHeight: 18 },
+  stripBody: {
+    position: 'relative',
+    minHeight: 210,
+  },
+  stripLoading: {
+    height: 210, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 10,
+  },
+  stripLoadingText: { fontSize: 13, color: theme.textMuted },
+  stripScroll: {
+    paddingRight: 8, gap: 10,
+  },
+
+  // Overlay when not enabled
+  stripOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: 16,
+    overflow: 'hidden',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stripOverlayContent: {
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 24,
+  },
+  stripOverlayIcon: { fontSize: 28, marginBottom: 2 },
+  stripOverlayTitle: { fontSize: 16, fontWeight: '800', color: theme.textPrimary, textAlign: 'center' },
+  stripOverlaySub: { fontSize: 12, color: theme.textSecondary, textAlign: 'center', lineHeight: 18 },
+  stripEnableBtn: {
+    marginTop: 8,
+    backgroundColor: theme.primary,
+    borderRadius: 12, paddingHorizontal: 24, paddingVertical: 10,
+  },
+  stripEnableBtnText: { color: theme.bg, fontSize: 14, fontWeight: '800' },
+
+  // ── Mini card ──
+  miniCard: {
+    width: MINI_CARD_WIDTH,
+    backgroundColor: theme.bgCard,
+    borderRadius: 16,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(0,212,200,0.15)',
+    alignItems: 'center',
+    gap: 6,
+    ...Platform.select({
+      ios: { shadowColor: theme.primary, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 4 },
+      android: { elevation: 2 },
+    }),
+  },
+  miniAvatar: {
+    width: MINI_AVATAR_SIZE, height: MINI_AVATAR_SIZE, borderRadius: MINI_AVATAR_SIZE / 2,
+    backgroundColor: theme.primaryDim, alignItems: 'center', justifyContent: 'center',
+    borderWidth: 2, borderColor: 'rgba(0,212,200,0.3)', overflow: 'hidden',
+  },
+  miniAvatarImg: { width: MINI_AVATAR_SIZE, height: MINI_AVATAR_SIZE },
+  miniAvatarInitials: { fontSize: 22, fontWeight: '800', color: theme.primary },
+  miniName: { fontSize: 14, fontWeight: '800', color: theme.textPrimary, textAlign: 'center' },
+  miniCity: { fontSize: 11, color: theme.textMuted, textAlign: 'center' },
+  miniScorePill: {
+    flexDirection: 'row', alignItems: 'baseline',
+    borderWidth: 1.5, borderRadius: 10,
+    paddingHorizontal: 8, paddingVertical: 3,
+  },
+  miniScoreValue: { fontSize: 14, fontWeight: '800' },
+  miniScoreLabel: { fontSize: 10, color: theme.textMuted, fontWeight: '600' },
+  miniActions: { flexDirection: 'row', gap: 8, marginTop: 2 },
+  miniActionBtn: {
+    width: 36, height: 36, borderRadius: 10,
+    backgroundColor: theme.bgDeep, borderWidth: 1, borderColor: theme.border,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  miniVolleyBtn: { backgroundColor: theme.secondaryDim, borderColor: theme.secondaryBorder },
+  miniActionText: { fontSize: 16 },
+  miniActioned: { fontSize: 12, color: theme.primary, fontWeight: '700', marginTop: 2 },
+
+  // Ghost card placeholders
+  miniAvatarGhost: {
+    width: MINI_AVATAR_SIZE, height: MINI_AVATAR_SIZE, borderRadius: MINI_AVATAR_SIZE / 2,
+    backgroundColor: theme.bgDeep, borderWidth: 2, borderColor: theme.border,
+  },
+  miniNameGhost: { width: 70, height: 12, borderRadius: 6, backgroundColor: theme.bgDeep },
+  miniScoreGhost: { width: 50, height: 24, borderRadius: 10, backgroundColor: theme.bgDeep },
+  miniMetaGhost: { width: 90, height: 28, borderRadius: 10, backgroundColor: theme.bgDeep },
+
+  // ── Section headers ──
   sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 },
   sectionTitle: { fontSize: 15, fontWeight: '700', color: theme.textPrimary, flex: 1 },
   sectionCountBadge: { backgroundColor: theme.primaryDim, borderRadius: 10, paddingHorizontal: 8, paddingVertical: 3, borderWidth: 1, borderColor: theme.primaryBorder },
   sectionCount: { fontSize: 12, fontWeight: '700', color: theme.primary },
   sectionSub: { fontSize: 12, color: theme.textMuted, marginBottom: 14, lineHeight: 18 },
+
+  // ── Empty state ──
   emptyBox: { alignItems: 'center', paddingVertical: 32, gap: 10, backgroundColor: theme.bgCard, borderRadius: 16, marginBottom: 16, borderWidth: 1, borderColor: theme.border },
   emptyEmoji: { fontSize: 36 },
   emptyText: { fontSize: 13, color: theme.textMuted, textAlign: 'center', paddingHorizontal: 24 },
 
+  // ── Player card (feed) ──
   playerCard: {
     backgroundColor: theme.bgCard, borderRadius: 18, padding: 14,
     marginBottom: 12, borderWidth: 1, borderColor: 'rgba(0,212,200,0.15)',
@@ -410,40 +596,28 @@ const styles = StyleSheet.create({
     }),
   },
   playerCardMuted: { opacity: 0.75 },
-
-  // Card body: photo left, info right — same height
   cardBody: { flexDirection: 'row', alignItems: 'stretch', marginBottom: 10, gap: 14 },
-
-  // Photo — tall, fills card height
   avatar: {
     width: AVATAR_SIZE, height: AVATAR_SIZE, borderRadius: 14,
     backgroundColor: theme.primaryDim, alignItems: 'center', justifyContent: 'center',
-    borderWidth: 2, borderColor: 'rgba(0,212,200,0.3)', overflow: 'hidden',
-    flexShrink: 0,
+    borderWidth: 2, borderColor: 'rgba(0,212,200,0.3)', overflow: 'hidden', flexShrink: 0,
   },
   avatarMuted: { backgroundColor: theme.bgDeep, borderColor: theme.border },
   avatarImg: { width: AVATAR_SIZE, height: AVATAR_SIZE, borderRadius: 14 },
   avatarInitials: { fontSize: 38, fontWeight: '800', color: theme.primary },
-
-  // Info column — takes remaining space, content stacked top-to-bottom
   cardInfo: { flex: 1, justifyContent: 'flex-start', gap: 3, alignItems: 'flex-end' },
-
   nameRow: { flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginBottom: 2, justifyContent: 'flex-end' },
   playerName: { fontSize: 18, fontWeight: '800', color: theme.textPrimary },
   intentBadge: { backgroundColor: theme.secondaryDim, borderRadius: 8, paddingHorizontal: 7, paddingVertical: 2, borderWidth: 1, borderColor: theme.secondaryBorder },
   intentText: { fontSize: 11, color: '#A78BFA', fontWeight: '600' },
-
   metaText: { fontSize: 12, color: theme.textSecondary, lineHeight: 18, textAlign: 'right' },
-
   levelRow: { flexDirection: 'row', alignItems: 'center', gap: 6, justifyContent: 'flex-end' },
   levelBadge: { backgroundColor: theme.primaryDim, borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3, borderWidth: 1, borderColor: theme.primaryBorder },
   levelValue: { fontSize: 13, fontWeight: '800', color: theme.primary },
   levelLabel: { fontSize: 12, color: theme.textMuted },
-
   scoreBadge: { width: 50, height: 50, borderRadius: 25, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
   scoreValue: { fontSize: 16, fontWeight: '800', lineHeight: 18 },
   scoreLabel: { fontSize: 9, fontWeight: '600', lineHeight: 11 },
-
   actionRow: { flexDirection: 'row', gap: 8, paddingTop: 12, borderTopWidth: 1, borderTopColor: theme.border },
   actionBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 5, paddingVertical: 10, borderRadius: 12, backgroundColor: theme.bgDeep, borderWidth: 1, borderColor: theme.border },
   volleyBtn: { backgroundColor: theme.secondaryDim, borderColor: theme.secondaryBorder },
@@ -457,12 +631,4 @@ const styles = StyleSheet.create({
   inviteBtn: { backgroundColor: theme.primaryDim, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 8, borderWidth: 1, borderColor: theme.primaryBorder },
   inviteBtnText: { color: theme.primary, fontSize: 13, fontWeight: '700' },
   invitedText: { fontSize: 13, color: theme.primary, fontWeight: '600' },
-
-  courtPicksBanner: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: theme.bgCard, borderRadius: 16, padding: 16, borderWidth: 1, borderColor: 'rgba(0,212,200,0.2)', marginTop: 8 },
-  courtPicksBannerLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  courtPicksIcon: { fontSize: 26 },
-  courtPicksTitle: { fontSize: 15, fontWeight: '700', color: theme.textPrimary },
-  courtPicksSub: { fontSize: 12, color: theme.textMuted, marginTop: 2 },
-  courtPicksEnableBtn: { backgroundColor: theme.primary, borderRadius: 10, paddingHorizontal: 16, paddingVertical: 8 },
-  courtPicksEnableBtnText: { color: theme.bg, fontSize: 13, fontWeight: '800' },
 });
