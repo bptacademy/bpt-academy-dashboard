@@ -3,7 +3,6 @@ import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
   StatusBar, ActivityIndicator, RefreshControl, Share, Image, Platform, FlatList,
 } from 'react-native';
-import { BlurView } from 'expo-blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme } from '../../lib/theme';
 import { useDiscovery, DiscoveredPlayer } from '../../hooks/useDiscovery';
@@ -168,7 +167,6 @@ function CourtPickMiniCard({ pick, navigation, onAction, blurred }: {
   const [myAction, setMyAction] = useState<string | null>(null);
 
   if (blurred || !pick) {
-    // Ghost placeholder card
     return (
       <View style={styles.miniCard}>
         <View style={styles.miniAvatarGhost} />
@@ -195,24 +193,17 @@ function CourtPickMiniCard({ pick, navigation, onAction, blurred }: {
       onPress={() => navigation.navigate('PlayerProfile', { userId: pick.id })}
       activeOpacity={0.88}
     >
-      {/* Avatar */}
       <View style={styles.miniAvatar}>
         {pick.photo_url
           ? <Image source={{ uri: pick.photo_url }} style={styles.miniAvatarImg} />
           : <Text style={styles.miniAvatarInitials}>{initials}</Text>}
       </View>
-
-      {/* Name + city */}
       <Text style={styles.miniName} numberOfLines={1}>{pick.full_name.split(' ')[0]}</Text>
       {pick.city && <Text style={styles.miniCity} numberOfLines={1}>📍 {pick.city}</Text>}
-
-      {/* Score pill */}
       <View style={[styles.miniScorePill, { borderColor: scoreColor }]}>
         <Text style={[styles.miniScoreValue, { color: scoreColor }]}>{pick.volpair_score ?? '—'}</Text>
         <Text style={styles.miniScoreLabel}> match</Text>
       </View>
-
-      {/* Quick action */}
       {myAction ? (
         <Text style={styles.miniActioned}>
           {myAction === 'volley' ? '💘 Sent!' : myAction === 'connect' ? '👋 Sent!' : '🎾 Sent!'}
@@ -233,7 +224,7 @@ function CourtPickMiniCard({ pick, navigation, onAction, blurred }: {
 
 // ─── Court Picks horizontal strip ────────────────────────────────────────────
 
-const GHOST_PICKS = [null, null, null]; // 3 blurred placeholders
+const GHOST_PICKS = [null, null, null];
 
 function CourtPicksStrip({ navigation, excludeIds, myLevel, myLookingFor, onAction }: {
   navigation: any;
@@ -246,7 +237,6 @@ function CourtPicksStrip({ navigation, excludeIds, myLevel, myLookingFor, onActi
 
   return (
     <View style={styles.stripSection}>
-      {/* Header row */}
       <View style={styles.stripHeader}>
         <View style={styles.stripTitleRow}>
           <Text style={styles.stripTitle}>🎯 Court Picks</Text>
@@ -261,7 +251,6 @@ function CourtPicksStrip({ navigation, excludeIds, myLevel, myLookingFor, onActi
         </Text>
       </View>
 
-      {/* Strip body */}
       <View style={styles.stripBody}>
         {enabled && loading ? (
           <View style={styles.stripLoading}>
@@ -286,10 +275,9 @@ function CourtPicksStrip({ navigation, excludeIds, myLevel, myLookingFor, onActi
           </ScrollView>
         )}
 
-        {/* Overlay — only shown when not enabled or location denied */}
+        {/* Dark overlay when not enabled — no native blur needed */}
         {(!enabled || locationDenied) && (
           <View style={styles.stripOverlay}>
-            <BlurView intensity={18} tint="dark" style={StyleSheet.absoluteFill} />
             <View style={styles.stripOverlayContent}>
               <Text style={styles.stripOverlayIcon}>🎯</Text>
               <Text style={styles.stripOverlayTitle}>
@@ -393,7 +381,6 @@ export default function ConnectHomeScreen({ navigation }: any) {
           contentContainerStyle={styles.scroll}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.primary} />}
         >
-          {/* ── Court Picks strip — always at the top ── */}
           <CourtPicksStrip
             navigation={navigation}
             excludeIds={excludeIds ?? []}
@@ -402,7 +389,6 @@ export default function ConnectHomeScreen({ navigation }: any) {
             onAction={handleCourtPickAction}
           />
 
-          {/* ── Layer 1: people you've played with ── */}
           <View style={[styles.sectionHeader, { marginTop: 20 }]}>
             <Text style={styles.sectionTitle}>🎾 People you've played with</Text>
             {layer1.length > 0 && (
@@ -416,16 +402,10 @@ export default function ConnectHomeScreen({ navigation }: any) {
           {layer1.length === 0
             ? <EmptyState message="Sync your Playtomic account to discover people you've played with" />
             : layer1.map(p => (
-                <PlayerCard
-                  key={p.platformUserId}
-                  player={p}
-                  navigation={navigation}
-                  onAction={type => handleAction(p, type)}
-                />
+                <PlayerCard key={p.platformUserId} player={p} navigation={navigation} onAction={type => handleAction(p, type)} />
               ))
           }
 
-          {/* ── Layer 2: friends of your court ── */}
           {layer2.length > 0 && (
             <>
               <View style={[styles.sectionHeader, { marginTop: 8 }]}>
@@ -436,12 +416,7 @@ export default function ConnectHomeScreen({ navigation }: any) {
               </View>
               <Text style={styles.sectionSub}>Players in your padel circle — not strangers</Text>
               {layer2.map(p => (
-                <PlayerCard
-                  key={p.platformUserId}
-                  player={p}
-                  navigation={navigation}
-                  onAction={type => handleAction(p, type)}
-                />
+                <PlayerCard key={p.platformUserId} player={p} navigation={navigation} onAction={type => handleAction(p, type)} />
               ))}
             </>
           )}
@@ -478,62 +453,37 @@ const styles = StyleSheet.create({
   scroll: { paddingHorizontal: 16, paddingTop: 16 },
 
   // ── Court Picks strip ──
-  stripSection: {
-    marginBottom: 4,
-  },
-  stripHeader: {
-    marginBottom: 10,
-  },
-  stripTitleRow: {
-    flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 3,
-  },
+  stripSection: { marginBottom: 4 },
+  stripHeader: { marginBottom: 10 },
+  stripTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 3 },
   stripTitle: { fontSize: 15, fontWeight: '700', color: theme.textPrimary },
   stripSub: { fontSize: 12, color: theme.textMuted, lineHeight: 18 },
-  stripBody: {
-    position: 'relative',
-    minHeight: 210,
-  },
-  stripLoading: {
-    height: 210, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 10,
-  },
+  stripBody: { position: 'relative', minHeight: 210 },
+  stripLoading: { height: 210, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 10 },
   stripLoadingText: { fontSize: 13, color: theme.textMuted },
-  stripScroll: {
-    paddingRight: 8, gap: 10,
-  },
-
-  // Overlay when not enabled
+  stripScroll: { paddingRight: 8, gap: 10 },
   stripOverlay: {
     ...StyleSheet.absoluteFillObject,
     borderRadius: 16,
     overflow: 'hidden',
+    backgroundColor: 'rgba(13,27,42,0.82)',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  stripOverlayContent: {
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 24,
-  },
+  stripOverlayContent: { alignItems: 'center', gap: 6, paddingHorizontal: 24 },
   stripOverlayIcon: { fontSize: 28, marginBottom: 2 },
   stripOverlayTitle: { fontSize: 16, fontWeight: '800', color: theme.textPrimary, textAlign: 'center' },
   stripOverlaySub: { fontSize: 12, color: theme.textSecondary, textAlign: 'center', lineHeight: 18 },
   stripEnableBtn: {
-    marginTop: 8,
-    backgroundColor: theme.primary,
+    marginTop: 8, backgroundColor: theme.primary,
     borderRadius: 12, paddingHorizontal: 24, paddingVertical: 10,
   },
   stripEnableBtnText: { color: theme.bg, fontSize: 14, fontWeight: '800' },
 
   // ── Mini card ──
   miniCard: {
-    width: MINI_CARD_WIDTH,
-    backgroundColor: theme.bgCard,
-    borderRadius: 16,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(0,212,200,0.15)',
-    alignItems: 'center',
-    gap: 6,
+    width: MINI_CARD_WIDTH, backgroundColor: theme.bgCard, borderRadius: 16, padding: 12,
+    borderWidth: 1, borderColor: 'rgba(0,212,200,0.15)', alignItems: 'center', gap: 6,
     ...Platform.select({
       ios: { shadowColor: theme.primary, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 4 },
       android: { elevation: 2 },
@@ -550,8 +500,7 @@ const styles = StyleSheet.create({
   miniCity: { fontSize: 11, color: theme.textMuted, textAlign: 'center' },
   miniScorePill: {
     flexDirection: 'row', alignItems: 'baseline',
-    borderWidth: 1.5, borderRadius: 10,
-    paddingHorizontal: 8, paddingVertical: 3,
+    borderWidth: 1.5, borderRadius: 10, paddingHorizontal: 8, paddingVertical: 3,
   },
   miniScoreValue: { fontSize: 14, fontWeight: '800' },
   miniScoreLabel: { fontSize: 10, color: theme.textMuted, fontWeight: '600' },
@@ -564,8 +513,6 @@ const styles = StyleSheet.create({
   miniVolleyBtn: { backgroundColor: theme.secondaryDim, borderColor: theme.secondaryBorder },
   miniActionText: { fontSize: 16 },
   miniActioned: { fontSize: 12, color: theme.primary, fontWeight: '700', marginTop: 2 },
-
-  // Ghost card placeholders
   miniAvatarGhost: {
     width: MINI_AVATAR_SIZE, height: MINI_AVATAR_SIZE, borderRadius: MINI_AVATAR_SIZE / 2,
     backgroundColor: theme.bgDeep, borderWidth: 2, borderColor: theme.border,
