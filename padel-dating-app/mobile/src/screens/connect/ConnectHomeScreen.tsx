@@ -15,10 +15,7 @@ import { theme } from '../../lib/theme';
 import { useCourtPicks, CourtPick } from '../../hooks/useCourtPicks';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
-import { DiscoveryLoaderA, DiscoveryLoaderB, DiscoveryLoaderC } from '../../components/DiscoveryLoader';
-
-// 👇 Change to DiscoveryLoaderB or DiscoveryLoaderC to preview other variants
-const ActiveLoader = DiscoveryLoaderA;
+import { DiscoveryLoaderC } from '../../components/DiscoveryLoader';
 
 // ─── Full discovery card ──────────────────────────────────────────────────────
 
@@ -211,15 +208,15 @@ export default function ConnectHomeScreen({ navigation }: any) {
         </TouchableOpacity>
       </View>
 
-      {/* ── Not yet enabled — show locked teaser ── */}
+      {/* ── Not yet enabled — locked teaser ── */}
       {!enabled ? (
         <ScrollView contentContainerStyle={styles.scroll}>
           <DiscoveryLocked onEnable={() => setEnabled(true)} locationDenied={locationDenied} />
         </ScrollView>
 
-      /* ── Loading — show animated loader (swappable variant) ── */
+      /* ── First load — Variant C score reveal (~3s) ── */
       ) : loading && !refreshing ? (
-        <ActiveLoader />
+        <DiscoveryLoaderC />
 
       /* ── Results ── */
       ) : (
@@ -290,7 +287,6 @@ const styles = StyleSheet.create({
   emptyEmoji: { fontSize: 48 },
   emptyText: { fontSize: 14, color: theme.textMuted, textAlign: 'center', lineHeight: 22, paddingHorizontal: 32 },
 
-  // ── Discovery card ──
   card: {
     backgroundColor: theme.bgCard, borderRadius: 18, padding: 14,
     marginBottom: 12, borderWidth: 1, borderColor: 'rgba(0,212,200,0.15)',
@@ -329,7 +325,6 @@ const styles = StyleSheet.create({
   actionedRow: { borderTopWidth: 1, borderTopColor: theme.border, paddingTop: 12, alignItems: 'center' },
   actionedText: { fontSize: 13, color: theme.primary, fontWeight: '600' },
 
-  // ── Locked / teaser state ──
   lockedWrapper: { position: 'relative', minHeight: 520 },
   ghostCard: { opacity: 0.35, marginBottom: 12 },
   ghostAvatar: { width: AVATAR_SIZE, height: AVATAR_SIZE, borderRadius: 14, backgroundColor: theme.bgDeep, flexShrink: 0 },
