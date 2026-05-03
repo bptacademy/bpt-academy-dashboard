@@ -1,7 +1,7 @@
 import React, { useRef, useState, useCallback, useEffect } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet,
-  StatusBar, ActivityIndicator, Linking, AppState, TextInput, Alert,
+  StatusBar, ActivityIndicator, Linking, AppState, TextInput, Alert, ScrollView,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme } from '../../lib/theme';
@@ -11,7 +11,6 @@ let WebView: any = null;
 try { WebView = require('react-native-webview').WebView; } catch (_) {}
 
 const PLAYTOMIC_URL = 'https://app.playtomic.io/login';
-const PROFILE_URL = 'https://app.playtomic.io/app_tabs/profile';
 const USER_AGENT =
   'Mozilla/5.0 (Linux; Android 10; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Mobile Safari/537.36';
 
@@ -38,7 +37,6 @@ function shouldOpenExternally(url: string): boolean {
 
 function extractUserIdFromUrl(url: string): string | null {
   try {
-    // Match ?user_id=123 or /users/123 patterns
     const qsMatch = url.match(/[?&]user_id=(\d+)/);
     if (qsMatch) return qsMatch[1];
     const pathMatch = url.match(/\/users\/(\d+)/);
@@ -49,14 +47,10 @@ function extractUserIdFromUrl(url: string): string | null {
   }
 }
 
-// Injected after page load — tries multiple strategies to find the Playtomic user ID:
-// 1. URL query string / path
-// 2. localStorage tokens
-// 3. DOM (profile link href)
+// Injected on every page load — scans URL + localStorage + DOM
 const DETECT_USER_JS = `
 (function() {
   try {
-    // Strategy 1: URL
     const url = window.location.href;
     const qsMatch = url.match(/[?&]user_id=(\\d+)/);
     const pathMatch = url.match(/\\/users\\/(\\d+)/);
@@ -65,21 +59,17 @@ const DETECT_USER_JS = `
       window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'userId', userId }));
       return;
     }
-
-    // Strategy 2: localStorage — Playtomic stores JWT after login
     const keys = Object.keys(localStorage);
     for (const key of keys) {
       const val = localStorage.getItem(key);
       if (!val) continue;
       try {
         const parsed = JSON.parse(val);
-        // Look for user_id or userId in any stored object
         const uid = parsed.user_id || parsed.userId || parsed.id;
         if (uid && String(uid).match(/^\\d+$/)) {
           window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'userId', userId: String(uid) }));
           return;
         }
-        // Also try decoding JWT payload
         if (parsed.access_token || parsed.token) {
           const jwt = parsed.access_token || parsed.token;
           const parts = jwt.split('.');
@@ -94,8 +84,6 @@ const DETECT_USER_JS = `
         }
       } catch (_) {}
     }
-
-    // Strategy 3: DOM — look for profile link containing user ID
     const profileLinks = document.querySelectorAll('a[href*="/users/"]');
     for (const link of profileLinks) {
       const href = link.getAttribute('href') || '';
@@ -105,37 +93,175 @@ const DETECT_USER_JS = `
         return;
       }
     }
-
-    // Not found — report current URL so we can debug
-    window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'notFound', url: window.location.href }));
-  } catch(e) {
-    window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'error', msg: String(e) }));
-  }
+  } catch(e) {}
   true;
 })();
 `;
+
+// ─── Manual entry screen ──────────────────────────────────────────────────────
+// Shown after returning from Facebook/Google/Apple in system browser.
+// WebView cookies ≠ system browser cookies — cross-sandbox session is impossible.
+// The cleanest UX: guide the user to find their Playtomic ID themselves.
+
+function ManualEntryScreen({
+  onSuccess, onBack,
+}: { onSuccess: (userId: string) => void; onBack: () => void }) {
+  const [step, setStep] = useState<'intro' | 'lookup' | 'enter'>('intro');
+  const [userId, setUserId] = useState('');
+  const [checking, setChecking] = useState(false);
+
+  const handleVerifyAndSubmit = async () => {
+    const clean = userId.trim();
+    if (!clean.match(/^\d+$/)) {
+      Alert.alert('Invalid ID', 'Your Playtomic user ID should be a number only (e.g. 123456).');
+      return;
+    }
+    setChecking(true);
+    try {
+      // Verify the ID exists by hitting Playtomic's public profile endpoint
+      const res = await fetch(`https://api.playtomic.io/v1/players/${clean}`, {
+        headers: { 'Accept': 'application/json' },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const name = data?.full_name || data?.name || `Player ${clean}`;
+        Alert.alert(
+          'Is this you?',
+          `We found: ${name}\n\nPlaytomic ID: ${clean}`,
+          [
+            { text: 'No, try again', style: 'cancel', onPress: () => setChecking(false) },
+            { text: 'Yes, that\'s me', onPress: () => onSuccess(clean) },
+          ]
+        );
+      } else {
+        // ID not found — submit anyway (Playtomic API may block without auth)
+        onSuccess(clean);
+      }
+    } catch (_) {
+      // Network error — submit optimistically
+      onSuccess(clean);
+    } finally {
+      setChecking(false);
+    }
+  };
+
+  return (
+    <ScrollView
+      style={styles.manualScreen}
+      contentContainerStyle={styles.manualScreenContent}
+      keyboardShouldPersistTaps="handled"
+    >
+      <TouchableOpacity style={styles.manualBackBtn} onPress={onBack}>
+        <Text style={styles.manualBackText}>← Back to login page</Text>
+      </TouchableOpacity>
+
+      {step === 'intro' && (
+        <>
+          <Text style={styles.manualIcon}>🔐</Text>
+          <Text style={styles.manualTitle}>One more step</Text>
+          <Text style={styles.manualBody}>
+            You logged in with Facebook (or Google/Apple) in your browser. Because of how mobile security works, we need to link that account manually — it only takes 30 seconds.
+          </Text>
+          <Text style={styles.manualBody}>
+            We just need your <Text style={{ color: theme.primary, fontWeight: '700' }}>Playtomic user ID</Text> — a number you can find in the app or website.
+          </Text>
+
+          <TouchableOpacity style={styles.manualPrimaryBtn} onPress={() => setStep('lookup')}>
+            <Text style={styles.manualPrimaryBtnText}>Show me how to find it →</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.manualSecondaryBtn} onPress={() => setStep('enter')}>
+            <Text style={styles.manualSecondaryBtnText}>I already know my ID</Text>
+          </TouchableOpacity>
+        </>
+      )}
+
+      {step === 'lookup' && (
+        <>
+          <Text style={styles.manualTitle}>Find your Playtomic ID</Text>
+
+          <View style={styles.stepBox}>
+            <Text style={styles.stepNum}>1</Text>
+            <Text style={styles.stepText}>Open <Text style={{ color: theme.primary, fontWeight: '700' }}>Playtomic</Text> in Safari or your browser</Text>
+          </View>
+          <View style={styles.stepBox}>
+            <Text style={styles.stepNum}>2</Text>
+            <Text style={styles.stepText}>Tap your profile photo → go to your profile page</Text>
+          </View>
+          <View style={styles.stepBox}>
+            <Text style={styles.stepNum}>3</Text>
+            <Text style={styles.stepText}>Look at the URL — it will contain a number like:{'\n'}<Text style={styles.urlExample}>playtomic.io/users/<Text style={{ color: theme.primary }}>123456</Text></Text></Text>
+          </View>
+          <View style={styles.stepBox}>
+            <Text style={styles.stepNum}>4</Text>
+            <Text style={styles.stepText}>Copy that number and come back here</Text>
+          </View>
+
+          <TouchableOpacity
+            style={styles.manualPrimaryBtn}
+            onPress={() => Linking.openURL('https://app.playtomic.io')}
+          >
+            <Text style={styles.manualPrimaryBtnText}>Open Playtomic →</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.manualPrimaryBtn, { marginTop: 8, backgroundColor: theme.bgCard, borderWidth: 1, borderColor: theme.primaryBorder }]} onPress={() => setStep('enter')}>
+            <Text style={[styles.manualPrimaryBtnText, { color: theme.primary }]}>I have the number →</Text>
+          </TouchableOpacity>
+        </>
+      )}
+
+      {step === 'enter' && (
+        <>
+          <Text style={styles.manualTitle}>Enter your Playtomic ID</Text>
+          <Text style={styles.manualBody}>
+            Paste the number from your Playtomic profile URL.
+          </Text>
+          <TextInput
+            style={styles.manualInput}
+            value={userId}
+            onChangeText={setUserId}
+            placeholder="e.g. 123456"
+            placeholderTextColor={theme.textDim}
+            keyboardType="numeric"
+            returnKeyType="done"
+            onSubmitEditing={handleVerifyAndSubmit}
+            autoFocus
+          />
+          <TouchableOpacity
+            style={[styles.manualPrimaryBtn, (!userId.trim() || checking) && { opacity: 0.5 }]}
+            onPress={handleVerifyAndSubmit}
+            disabled={!userId.trim() || checking}
+          >
+            {checking
+              ? <ActivityIndicator color={theme.bg} size="small" />
+              : <Text style={styles.manualPrimaryBtnText}>Connect account</Text>
+            }
+          </TouchableOpacity>
+          <TouchableOpacity style={{ marginTop: 16 }} onPress={() => setStep('lookup')}>
+            <Text style={styles.manualSecondaryBtnText}>← How do I find my ID?</Text>
+          </TouchableOpacity>
+        </>
+      )}
+    </ScrollView>
+  );
+}
+
+// ─── Main screen ──────────────────────────────────────────────────────────────
 
 export default function PlaytomicWebLoginScreen({ route, navigation }: any) {
   const { onSuccess } = route.params as { onSuccess: (userId: string) => void };
   const insets = useSafeAreaInsets();
   const [loading, setLoading] = useState(true);
   const [detected, setDetected] = useState(false);
-  const [showReturnBanner, setShowReturnBanner] = useState(false);
-  const [showManualEntry, setShowManualEntry] = useState(false);
-  const [manualId, setManualId] = useState('');
-  const [retrying, setRetrying] = useState(false);
+  const [showManual, setShowManual] = useState(false);
   const didComplete = useRef(false);
   const webViewRef = useRef<any>(null);
   const openedExternalRef = useRef(false);
 
-  // When app comes back to foreground after system browser OAuth, reload WebView
+  // When app returns to foreground after system browser, show manual flow
+  // (cross-sandbox: WebView cookies ≠ system browser — can't detect session)
   useEffect(() => {
     const sub = AppState.addEventListener('change', (state) => {
       if (state === 'active' && openedExternalRef.current && !didComplete.current) {
-        // Small delay to let the browser finish closing
-        setTimeout(() => {
-          setShowReturnBanner(true);
-        }, 500);
+        setTimeout(() => setShowManual(true), 600);
       }
     });
     return () => sub.remove();
@@ -158,26 +284,8 @@ export default function PlaytomicWebLoginScreen({ route, navigation }: any) {
   const handleMessage = (event: any) => {
     try {
       const msg = JSON.parse(event.nativeEvent.data);
-      if (msg.type === 'userId' && msg.userId) {
-        handleSuccess(msg.userId);
-      }
-      // 'notFound' or 'error' — silently ignore, user can tap banner
+      if (msg.type === 'userId' && msg.userId) handleSuccess(msg.userId);
     } catch (_) {}
-  };
-
-  // Tap "Logged in?" — navigate to profile page and inject detection script
-  const handleReturnFromBrowser = () => {
-    setRetrying(true);
-    setLoading(true);
-    // Navigate to Playtomic profile — if logged in, this will load with user context
-    webViewRef.current?.injectJavaScript(
-      `window.location.href = '${PROFILE_URL}'; true;`
-    );
-    // After navigation settles, run detection
-    setTimeout(() => {
-      webViewRef.current?.injectJavaScript(DETECT_USER_JS);
-      setRetrying(false);
-    }, 3000);
   };
 
   const handleShouldStartLoad = (request: any) => {
@@ -185,8 +293,6 @@ export default function PlaytomicWebLoginScreen({ route, navigation }: any) {
     if (shouldOpenExternally(url)) {
       Linking.openURL(url).catch(() => {});
       openedExternalRef.current = true;
-      // Show banner immediately — don't wait for AppState (race condition)
-      setTimeout(() => setShowReturnBanner(true), 1000);
       return false;
     }
     return true;
@@ -194,17 +300,7 @@ export default function PlaytomicWebLoginScreen({ route, navigation }: any) {
 
   const handleLoadEnd = () => {
     setLoading(false);
-    // Run detection on every page load — catches cases where user is already logged in
     webViewRef.current?.injectJavaScript(DETECT_USER_JS);
-  };
-
-  const handleManualSubmit = () => {
-    const clean = manualId.trim();
-    if (!clean.match(/^\d+$/)) {
-      Alert.alert('Invalid ID', 'Your Playtomic user ID should be a number (e.g. 123456).');
-      return;
-    }
-    handleSuccess(clean);
   };
 
   if (!WebView) {
@@ -245,65 +341,36 @@ export default function PlaytomicWebLoginScreen({ route, navigation }: any) {
         <View style={styles.headerRight} />
       </View>
 
-      {/* Return banner — shown after external OAuth (Facebook/Google/Apple) */}
-      {showReturnBanner && !detected && (
-        <TouchableOpacity
-          style={styles.returnBanner}
-          onPress={handleReturnFromBrowser}
-          activeOpacity={0.85}
-        >
-          {retrying
-            ? <ActivityIndicator color={theme.bg} size="small" />
-            : <Text style={styles.returnBannerText}>✅ Logged in on Facebook? Tap here to continue →</Text>
-          }
-        </TouchableOpacity>
-      )}
+      {/* Manual flow — shown after returning from social OAuth in system browser */}
+      {showManual && !detected ? (
+        <ManualEntryScreen
+          onSuccess={handleSuccess}
+          onBack={() => setShowManual(false)}
+        />
+      ) : (
+        <>
+          <WebView
+            ref={webViewRef}
+            source={{ uri: PLAYTOMIC_URL }}
+            userAgent={USER_AGENT}
+            sharedCookiesEnabled={true}
+            thirdPartyCookiesEnabled={true}
+            domStorageEnabled={true}
+            style={styles.webview}
+            javaScriptEnabled={true}
+            onMessage={handleMessage}
+            onLoadStart={() => setLoading(true)}
+            onLoadEnd={handleLoadEnd}
+            onNavigationStateChange={handleNavChange}
+            onShouldStartLoadWithRequest={handleShouldStartLoad}
+          />
 
-      {/* Manual ID fallback — shown after 2 failed attempts */}
-      {showManualEntry && !detected && (
-        <View style={styles.manualEntry}>
-          <Text style={styles.manualLabel}>Can't detect your account?</Text>
-          <Text style={styles.manualSub}>
-            Open Playtomic in Safari, go to your Profile, copy the number from the URL and paste it below.
-          </Text>
-          <View style={styles.manualRow}>
-            <TextInput
-              style={styles.manualInput}
-              value={manualId}
-              onChangeText={setManualId}
-              placeholder="e.g. 123456"
-              placeholderTextColor={theme.textDim}
-              keyboardType="numeric"
-              returnKeyType="done"
-              onSubmitEditing={handleManualSubmit}
-            />
-            <TouchableOpacity style={styles.manualBtn} onPress={handleManualSubmit}>
-              <Text style={styles.manualBtnText}>Go</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      )}
-
-      <WebView
-        ref={webViewRef}
-        source={{ uri: PLAYTOMIC_URL }}
-        userAgent={USER_AGENT}
-        sharedCookiesEnabled={true}
-        thirdPartyCookiesEnabled={true}
-        style={styles.webview}
-        javaScriptEnabled={true}
-        domStorageEnabled={true}
-        onMessage={handleMessage}
-        onLoadStart={() => setLoading(true)}
-        onLoadEnd={handleLoadEnd}
-        onNavigationStateChange={handleNavChange}
-        onShouldStartLoadWithRequest={handleShouldStartLoad}
-      />
-
-      {loading && (
-        <View style={styles.loadingOverlay}>
-          <ActivityIndicator size="large" color={theme.primary} />
-        </View>
+          {loading && (
+            <View style={styles.loadingOverlay}>
+              <ActivityIndicator size="large" color={theme.primary} />
+            </View>
+          )}
+        </>
       )}
 
       {detected && (
@@ -312,16 +379,6 @@ export default function PlaytomicWebLoginScreen({ route, navigation }: any) {
           <Text style={styles.detectedText}>Connected!</Text>
           <Text style={styles.detectedSub}>Importing your match history…</Text>
         </View>
-      )}
-
-      {/* Show manual entry option after banner has been shown a while */}
-      {showReturnBanner && !detected && !showManualEntry && (
-        <TouchableOpacity
-          style={styles.manualEntryLink}
-          onPress={() => setShowManualEntry(true)}
-        >
-          <Text style={styles.manualEntryLinkText}>Still not working? Enter ID manually</Text>
-        </TouchableOpacity>
       )}
     </View>
   );
@@ -335,66 +392,53 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16, paddingVertical: 12,
     backgroundColor: theme.bg, borderBottomWidth: 1, borderBottomColor: theme.border,
   },
-  closeBtn: {
-    width: 36, height: 36, borderRadius: 18,
-    backgroundColor: theme.bgCard, alignItems: 'center', justifyContent: 'center',
-  },
+  closeBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: theme.bgCard, alignItems: 'center', justifyContent: 'center' },
   closeBtnText: { color: theme.textSecondary, fontSize: 16, fontWeight: '700' },
   headerTitle: { fontSize: 16, fontWeight: '700', color: theme.textPrimary },
   headerRight: { width: 36 },
-
-  returnBanner: {
-    backgroundColor: theme.primary,
-    paddingVertical: 14, paddingHorizontal: 20,
-    alignItems: 'center', minHeight: 48, justifyContent: 'center',
-  },
-  returnBannerText: { color: '#0D1B2A', fontWeight: '800', fontSize: 14, textAlign: 'center' },
-
-  manualEntry: {
-    backgroundColor: theme.bgCard, padding: 16, borderBottomWidth: 1, borderBottomColor: theme.border,
-    gap: 8,
-  },
-  manualLabel: { fontSize: 14, fontWeight: '700', color: theme.textPrimary },
-  manualSub: { fontSize: 12, color: theme.textMuted, lineHeight: 18 },
-  manualRow: { flexDirection: 'row', gap: 10, alignItems: 'center', marginTop: 4 },
-  manualInput: {
-    flex: 1, backgroundColor: theme.bgDeep, borderRadius: 10, borderWidth: 1,
-    borderColor: theme.border, paddingHorizontal: 14, paddingVertical: 10,
-    fontSize: 15, color: theme.textPrimary,
-  },
-  manualBtn: {
-    backgroundColor: theme.primary, borderRadius: 10,
-    paddingHorizontal: 18, paddingVertical: 10,
-  },
-  manualBtnText: { color: theme.bg, fontWeight: '800', fontSize: 14 },
-
-  manualEntryLink: {
-    position: 'absolute', bottom: 16, alignSelf: 'center',
-    backgroundColor: theme.bgCard, borderRadius: 10,
-    paddingHorizontal: 16, paddingVertical: 10,
-    borderWidth: 1, borderColor: theme.border,
-  },
-  manualEntryLinkText: { fontSize: 13, color: theme.textMuted },
-
   webview: { flex: 1 },
-  loadingOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: theme.bg, alignItems: 'center', justifyContent: 'center',
-  },
-  detectedOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(13,27,42,0.95)',
-    alignItems: 'center', justifyContent: 'center', gap: 12,
-  },
+  loadingOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: theme.bg, alignItems: 'center', justifyContent: 'center' },
+  detectedOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(13,27,42,0.95)', alignItems: 'center', justifyContent: 'center', gap: 12 },
   detectedIcon: { fontSize: 56 },
   detectedText: { fontSize: 22, fontWeight: '800', color: theme.textPrimary },
   detectedSub: { fontSize: 15, color: theme.primary },
   unavailableIcon: { fontSize: 48 },
   unavailableTitle: { fontSize: 20, fontWeight: '800', color: theme.textPrimary, textAlign: 'center' },
   unavailableText: { fontSize: 14, color: theme.textMuted, textAlign: 'center', lineHeight: 22 },
-  backBtn: {
-    marginTop: 8, backgroundColor: theme.bgCard, borderRadius: 12,
-    paddingHorizontal: 24, paddingVertical: 12, borderWidth: 1, borderColor: theme.border,
-  },
+  backBtn: { marginTop: 8, backgroundColor: theme.bgCard, borderRadius: 12, paddingHorizontal: 24, paddingVertical: 12, borderWidth: 1, borderColor: theme.border },
   backBtnText: { color: theme.primary, fontWeight: '700', fontSize: 15 },
+
+  // ── Manual entry screen ──
+  manualScreen: { flex: 1, backgroundColor: theme.bg },
+  manualScreenContent: { paddingHorizontal: 24, paddingTop: 8, paddingBottom: 40, gap: 16 },
+  manualBackBtn: { paddingVertical: 12 },
+  manualBackText: { color: theme.textSecondary, fontSize: 14 },
+  manualIcon: { fontSize: 52, textAlign: 'center', marginBottom: 4 },
+  manualTitle: { fontSize: 24, fontWeight: '800', color: theme.textPrimary },
+  manualBody: { fontSize: 14, color: theme.textSecondary, lineHeight: 22 },
+  stepBox: {
+    flexDirection: 'row', gap: 14, alignItems: 'flex-start',
+    backgroundColor: theme.bgCard, borderRadius: 14, padding: 14,
+    borderWidth: 1, borderColor: theme.border,
+  },
+  stepNum: {
+    width: 26, height: 26, borderRadius: 13,
+    backgroundColor: theme.primaryDim, borderWidth: 1, borderColor: theme.primaryBorder,
+    textAlign: 'center', lineHeight: 26,
+    fontSize: 13, fontWeight: '800', color: theme.primary,
+  },
+  stepText: { flex: 1, fontSize: 14, color: theme.textSecondary, lineHeight: 20 },
+  urlExample: { fontSize: 13, color: theme.textMuted, fontFamily: 'monospace' },
+  manualInput: {
+    backgroundColor: theme.bgCard, borderRadius: 14, borderWidth: 1, borderColor: theme.border,
+    paddingHorizontal: 18, paddingVertical: 14,
+    fontSize: 20, color: theme.textPrimary, fontWeight: '700', letterSpacing: 2,
+  },
+  manualPrimaryBtn: {
+    backgroundColor: theme.primary, borderRadius: 14,
+    paddingVertical: 16, alignItems: 'center',
+  },
+  manualPrimaryBtnText: { color: theme.bg, fontSize: 15, fontWeight: '800' },
+  manualSecondaryBtn: { alignItems: 'center', paddingVertical: 8 },
+  manualSecondaryBtnText: { color: theme.textMuted, fontSize: 14 },
 });
