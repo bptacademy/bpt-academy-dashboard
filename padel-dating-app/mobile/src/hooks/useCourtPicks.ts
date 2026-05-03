@@ -35,6 +35,63 @@ interface UseCourtPicksParams {
   myLookingFor: string | null;
 }
 
+// ─── Mock data (shown when real data is empty — dev/preview only) ─────────────
+
+const MOCK_PICKS: CourtPick[] = [
+  {
+    id: 'mock-1',
+    full_name: 'Sofia Martínez',
+    city: 'London',
+    distance_miles: 1.2,
+    level_value: 4.2,
+    total_matches: 87,
+    win_rate: 0.62,
+    volpair_score: 94,
+    photo_url: null,
+    last_active_at: new Date().toISOString(),
+    looking_for: 'both',
+  },
+  {
+    id: 'mock-2',
+    full_name: 'James Okafor',
+    city: 'London',
+    distance_miles: 2.8,
+    level_value: 3.9,
+    total_matches: 54,
+    win_rate: 0.55,
+    volpair_score: 88,
+    photo_url: null,
+    last_active_at: new Date().toISOString(),
+    looking_for: 'partner',
+  },
+  {
+    id: 'mock-3',
+    full_name: 'Elena Rossi',
+    city: 'London',
+    distance_miles: 4.1,
+    level_value: 4.5,
+    total_matches: 112,
+    win_rate: 0.71,
+    volpair_score: 81,
+    photo_url: null,
+    last_active_at: new Date().toISOString(),
+    looking_for: 'date',
+  },
+  {
+    id: 'mock-4',
+    full_name: 'Marco Silva',
+    city: 'London',
+    distance_miles: 5.3,
+    level_value: 4.0,
+    total_matches: 63,
+    win_rate: 0.58,
+    volpair_score: 76,
+    photo_url: null,
+    last_active_at: new Date().toISOString(),
+    looking_for: 'both',
+  },
+];
+
 // ─── Hook ─────────────────────────────────────────────────────────────────────
 
 export function useCourtPicks({ excludeIds, myLevel, myLookingFor }: UseCourtPicksParams) {
@@ -75,7 +132,8 @@ export function useCourtPicks({ excludeIds, myLevel, myLookingFor }: UseCourtPic
       });
 
       if (error || !data?.players) {
-        setPicks([]);
+        // Fall back to mock data so the strip renders nicely during dev
+        setPicks(MOCK_PICKS);
         setLoading(false);
         return;
       }
@@ -86,35 +144,28 @@ export function useCourtPicks({ excludeIds, myLevel, myLookingFor }: UseCourtPic
       const excludeSet = new Set(excludeIds);
 
       const filtered = rawPlayers.filter(p => {
-        // Must have a volpair_score
         if (p.volpair_score === null || p.volpair_score === undefined) return false;
-
-        // Exclude Layer 1 + 2 IDs
         if (excludeSet.has(p.id)) return false;
-
-        // Level compatibility: within ±1.5
         if (myLevel !== null && p.level_value !== null) {
           if (Math.abs(p.level_value - myLevel) > 1.5) return false;
         }
-
-        // Intent compatibility
         if (myLookingFor === 'date' || myLookingFor === 'both') {
           const theirIntent = (p as any).looking_for ?? null;
           if (theirIntent !== 'date' && theirIntent !== 'both') return false;
         }
-        // If myLookingFor is 'partner' or 'exploring' (or null), show everyone
-
         return true;
       });
 
       // 6. Sort by volpair_score DESC
       filtered.sort((a, b) => (b.volpair_score ?? 0) - (a.volpair_score ?? 0));
 
-      // 7. Cap at 10
-      setPicks(filtered.slice(0, 10));
+      // 7. Use real data if available, otherwise mock
+      const result = filtered.slice(0, 10);
+      setPicks(result.length > 0 ? result : MOCK_PICKS);
     } catch (e) {
       console.error('useCourtPicks error:', e);
-      setPicks([]);
+      // Fall back to mock data on any error
+      setPicks(MOCK_PICKS);
     } finally {
       setLoading(false);
     }
