@@ -19,7 +19,6 @@ function levelLabel(v: number) {
   return 'Beginner';
 }
 
-// ─── Score Breakdown Modal ────────────────────────────────────────────────────
 function ScoreBreakdownModal({ visible, onClose, score }: any) {
   if (!score) return null;
   const dims = [
@@ -61,7 +60,6 @@ function ScoreBreakdownModal({ visible, onClose, score }: any) {
   );
 }
 
-// ─── Level Explainer Modal ────────────────────────────────────────────────────
 function LevelExplainerModal({ visible, onClose, level }: any) {
   const lvl = level ?? 0;
   return (
@@ -100,7 +98,6 @@ function LevelExplainerModal({ visible, onClose, level }: any) {
   );
 }
 
-// ─── Report Modal ─────────────────────────────────────────────────────────────
 function ReportModal({ visible, onClose, name }: any) {
   const REASONS = ['Inappropriate photos', 'Harassment or abuse', 'Fake profile', 'Spam', 'Other'];
   const [selected, setSelected] = useState<string | null>(null);
@@ -138,7 +135,6 @@ function ReportModal({ visible, onClose, name }: any) {
   );
 }
 
-// ─── Main Screen ──────────────────────────────────────────────────────────────
 export default function PlayerProfileScreen({ route, navigation }: any) {
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
@@ -163,7 +159,6 @@ export default function PlayerProfileScreen({ route, navigation }: any) {
   const load = async () => {
     setLoading(true);
     try {
-      // User profile — now includes home_club_name
       const { data: p } = await supabase
         .from('users')
         .select('id, full_name, city, bio, looking_for, photos, gender, home_club_name')
@@ -171,7 +166,6 @@ export default function PlayerProfileScreen({ route, navigation }: any) {
         .maybeSingle();
       setProfile(p);
 
-      // Their player stats
       const { data: s } = await supabase
         .from('player_stats')
         .select('*')
@@ -180,7 +174,6 @@ export default function PlayerProfileScreen({ route, navigation }: any) {
         .maybeSingle();
       setStats(s);
 
-      // Volpair score between me and them
       if (user?.id) {
         const [a, b] = [user.id, userId].sort();
         const { data: vs } = await supabase
@@ -191,7 +184,6 @@ export default function PlayerProfileScreen({ route, navigation }: any) {
           .maybeSingle();
         setVolpairScore(vs);
 
-        // Matches together — find common match IDs
         const { data: myMatches } = await supabase
           .from('match_players')
           .select('match_id')
@@ -213,7 +205,6 @@ export default function PlayerProfileScreen({ route, navigation }: any) {
           setLastClub(sorted[0]?.matches?.tenant_name ?? null);
         }
 
-        // My existing action toward them
         const { data: existingConn } = await supabase
           .from('connections')
           .select('action_type')
@@ -239,7 +230,6 @@ export default function PlayerProfileScreen({ route, navigation }: any) {
         action_type: type,
       });
       setMyAction(type);
-
       if (type === 'volley') {
         await notifyVolley(userId, user.full_name ?? 'Someone');
       }
@@ -285,7 +275,6 @@ export default function PlayerProfileScreen({ route, navigation }: any) {
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
 
-        {/* Avatar + name */}
         <View style={styles.heroSection}>
           <View style={styles.avatarLarge}>
             {mainPhoto ? (
@@ -297,7 +286,6 @@ export default function PlayerProfileScreen({ route, navigation }: any) {
           <Text style={styles.playerName}>{firstName}</Text>
           {profile.city && <Text style={styles.playerCity}>📍 {profile.city}</Text>}
 
-          {/* Home club badge */}
           {profile.home_club_name && (
             <View style={styles.homeClubBadge}>
               <Text style={styles.homeClubIcon}>🏟️</Text>
@@ -317,7 +305,6 @@ export default function PlayerProfileScreen({ route, navigation }: any) {
           </View>
         </View>
 
-        {/* Level + Volpair score */}
         <View style={styles.scoreRow}>
           <TouchableOpacity style={styles.levelCard} onPress={() => setShowLevel(true)} activeOpacity={0.8}>
             <Text style={styles.levelValue}>{stats?.level_value?.toFixed(2) ?? '—'}</Text>
@@ -329,15 +316,12 @@ export default function PlayerProfileScreen({ route, navigation }: any) {
             onPress={() => volpairScore && setShowScore(true)}
             activeOpacity={volpairScore ? 0.8 : 1}
           >
-            <Text style={styles.volpairScoreValue}>
-              {volpairScore?.total_score ?? '—'}
-            </Text>
+            <Text style={styles.volpairScoreValue}>{volpairScore?.total_score ?? '—'}</Text>
             <Text style={styles.volpairScoreLabel}>Volpair Score</Text>
             {volpairScore && <Text style={styles.volpairScoreTap}>See breakdown →</Text>}
           </TouchableOpacity>
         </View>
 
-        {/* Shared court history */}
         {matchesTogether > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>🤝 Your court history</Text>
@@ -365,7 +349,6 @@ export default function PlayerProfileScreen({ route, navigation }: any) {
           </View>
         )}
 
-        {/* Their stats */}
         {stats && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>📊 Their stats</Text>
@@ -400,7 +383,6 @@ export default function PlayerProfileScreen({ route, navigation }: any) {
           </View>
         )}
 
-        {/* Top clubs from match history */}
         {stats?.top_clubs?.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>📍 Regular clubs</Text>
@@ -417,7 +399,6 @@ export default function PlayerProfileScreen({ route, navigation }: any) {
         <View style={{ height: 100 }} />
       </ScrollView>
 
-      {/* Action bar */}
       <View style={[styles.actionBar, { paddingBottom: insets.bottom + 8 }]}>
         {myAction ? (
           <View style={styles.actionedRow}>
@@ -542,7 +523,7 @@ const styles = StyleSheet.create({
   actionBtnEmoji: { fontSize: 16 },
   actionBtnText: { fontSize: 13, fontWeight: '700', color: theme.textSecondary },
   volleyBtnText: { color: '#A78BFA' },
-  actionedRow: { alignItems: 'center', paddingVertical: 14 },
+  actionedRow: { alignItems: 'center', paddingVertical: 10 },
   actionedText: { fontSize: 15, color: theme.primary, fontWeight: '700' },
 });
 
