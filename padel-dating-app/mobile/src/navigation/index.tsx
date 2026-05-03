@@ -76,9 +76,18 @@ function ConnectNavigator() {
       <ConnectStack.Screen name="MutualVolleyMatch" component={MutualVolleyMatchScreen} />
       <ConnectStack.Screen name="Conversation" component={ConversationScreen} />
       <ConnectStack.Screen name="PostMatchPrompt" component={PostMatchPromptScreen} />
-      {/* Notifications accessible from Connect bell without switching tabs */}
       <ConnectStack.Screen name="Notifications" component={NotificationsScreen} />
     </ConnectStack.Navigator>
+  );
+}
+
+function PlayNavigator() {
+  return (
+    <PlayStack.Navigator screenOptions={{ headerShown: false }}>
+      <PlayStack.Screen name="PlayHome" component={PlayHomeScreen} />
+      {/* PlayerProfile accessible from Court History cards */}
+      <PlayStack.Screen name="PlayerProfile" component={PlayerProfileScreen} />
+    </PlayStack.Navigator>
   );
 }
 
@@ -88,14 +97,6 @@ function RadarNavigator() {
       <RadarStack.Screen name="RadarHome" component={RadarScreen} />
       <RadarStack.Screen name="PlayerProfile" component={PlayerProfileScreen} />
     </RadarStack.Navigator>
-  );
-}
-
-function PlayNavigator() {
-  return (
-    <PlayStack.Navigator screenOptions={{ headerShown: false }}>
-      <PlayStack.Screen name="PlayHome" component={PlayHomeScreen} />
-    </PlayStack.Navigator>
   );
 }
 
