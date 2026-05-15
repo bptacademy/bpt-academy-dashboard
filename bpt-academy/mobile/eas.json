@@ -24,6 +24,9 @@
     },
     "production": {
       "autoIncrement": true,
+      "ios": {
+        "credentialsSource": "remote"
+      },
       "env": {
         "EXPO_PUBLIC_SUPABASE_URL": "https://nobxhhnhakawhbimrate.supabase.co",
         "EXPO_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_vnFb-ACqDwBiYt4PcKXC5Q_Ty8LRYoR"
@@ -31,6 +34,11 @@
     }
   },
   "submit": {
-    "production": {}
+    "production": {
+      "ios": {
+        "appleId": "bplsportsltd@gmail.com",
+        "appleTeamId": "R7365964A2"
+      }
+    }
   }
 }
