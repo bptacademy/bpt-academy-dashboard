@@ -6,7 +6,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
-import { theme } from '../../lib/theme';
+import { theme, fonts } from '../../lib/theme';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { uploadPhotos } from '../../lib/uploadPhoto';
@@ -406,12 +406,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20, paddingVertical: 16,
     borderBottomWidth: 1, borderBottomColor: theme.bgCard,
   },
-  headerTitle: { fontSize: 17, fontWeight: '700', color: theme.textPrimary },
-  cancelText: { fontSize: 16, color: theme.textMuted },
-  saveText: { fontSize: 16, color: theme.primary, fontWeight: '700' },
+  headerTitle: { fontSize: 17, fontFamily: fonts.bodyBold, color: theme.textPrimary },
+  cancelText: { fontSize: 16, color: theme.textMuted, fontFamily: fonts.bodyLight },
+  saveText: { fontSize: 16, color: theme.primary, fontFamily: fonts.bodyBold },
   scroll: { padding: 20 },
-  fieldLabel: { fontSize: 13, fontWeight: '600', color: theme.textSecondary, marginBottom: 6, marginTop: 24 },
-  fieldHint: { fontSize: 12, color: theme.textMuted, marginBottom: 12 },
+  fieldLabel: { fontSize: 13, fontFamily: fonts.bodyBold, color: theme.textSecondary, marginBottom: 6, marginTop: 24 },
+  fieldHint: { fontSize: 12, color: theme.textMuted, marginBottom: 12, fontFamily: fonts.bodyLight },
   genderRow: { flexDirection: 'row', gap: 10 },
   genderBtn: {
     flex: 1, paddingVertical: 12, borderRadius: 14,
@@ -419,8 +419,8 @@ const styles = StyleSheet.create({
     backgroundColor: theme.bgCard,
   },
   genderBtnActive: { borderColor: theme.primaryBorder, backgroundColor: theme.primaryDim },
-  genderText: { fontSize: 14, color: theme.textMuted, fontWeight: '600' },
-  genderTextActive: { color: theme.primary, fontWeight: '700' },
+  genderText: { fontSize: 14, color: theme.textMuted, fontFamily: fonts.bodyBold },
+  genderTextActive: { color: theme.primary },
   photoGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   photoSlot: { width: SLOT_WIDTH, height: SLOT_HEIGHT, position: 'relative', borderRadius: 14, overflow: 'hidden' },
   removeOverlay: {
@@ -428,33 +428,34 @@ const styles = StyleSheet.create({
     width: 24, height: 24, borderRadius: 12,
     backgroundColor: 'rgba(0,0,0,0.65)', alignItems: 'center', justifyContent: 'center',
   },
-  removeIcon: { color: '#FFFFFF', fontSize: 12, fontWeight: '700' },
+  removeIcon: { color: '#FFFFFF', fontSize: 12, fontFamily: fonts.bodyBold },
   mainBadge: {
     position: 'absolute', bottom: 6, left: 6,
     backgroundColor: theme.primary, borderRadius: 6, paddingHorizontal: 7, paddingVertical: 2,
   },
-  mainBadgeText: { color: theme.bg, fontSize: 10, fontWeight: '800' },
+  mainBadgeText: { color: theme.bg, fontSize: 10, fontFamily: fonts.headlineBold },
   addSlot: {
     backgroundColor: theme.bgCard, borderWidth: 1.5, borderColor: theme.border,
     borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center', gap: 4,
   },
   addIcon: { fontSize: 26, color: theme.textDim },
-  addLabel: { fontSize: 11, color: theme.textDim, fontWeight: '600' },
+  addLabel: { fontSize: 11, color: theme.textDim, fontFamily: fonts.bodyBold },
   placesWrapper: { zIndex: 10 },
   input: {
     backgroundColor: theme.bgCard, borderRadius: 14, padding: 16,
     fontSize: 15, color: theme.textPrimary, borderWidth: 1, borderColor: theme.border,
+    fontFamily: fonts.bodyLight,
   },
   bioWrapper: { position: 'relative' },
   bioInput: { minHeight: 90, textAlignVertical: 'top' },
-  charCount: { position: 'absolute', bottom: 10, right: 14, fontSize: 11, color: theme.textDim },
+  charCount: { position: 'absolute', bottom: 10, right: 14, fontSize: 11, color: theme.textDim, fontFamily: fonts.bodyLight },
   optionGrid: { gap: 8 },
   optionBtn: {
     padding: 14, borderRadius: 14, borderWidth: 1, borderColor: theme.border, backgroundColor: theme.bgCard,
   },
   optionBtnActive: { borderColor: theme.primaryBorder, backgroundColor: theme.primaryDim },
-  optionText: { fontSize: 15, color: theme.textMuted, fontWeight: '500' },
-  optionTextActive: { color: theme.primary, fontWeight: '700' },
+  optionText: { fontSize: 15, color: theme.textMuted, fontFamily: fonts.bodyLight },
+  optionTextActive: { color: theme.primary, fontFamily: fonts.bodyBold },
 
   // Club search
   clubSearchWrapper: { zIndex: 5 },
@@ -465,7 +466,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   clubInput: {
-    flex: 1, height: 50, fontSize: 15, color: theme.textPrimary,
+    flex: 1, height: 50, fontSize: 15, color: theme.textPrimary, fontFamily: fonts.bodyLight,
   },
   clubSpinner: { marginLeft: 8 },
   clubDropdown: {
@@ -475,14 +476,14 @@ const styles = StyleSheet.create({
   },
   clubDropdownRow: { paddingVertical: 13, paddingHorizontal: 16 },
   clubDropdownRowBorder: { borderBottomWidth: 1, borderBottomColor: theme.border },
-  clubDropdownName: { fontSize: 14, color: theme.textPrimary, fontWeight: '600' },
-  clubDropdownCity: { fontSize: 12, color: theme.textMuted, marginTop: 2 },
+  clubDropdownName: { fontSize: 14, color: theme.textPrimary, fontFamily: fonts.bodyBold },
+  clubDropdownCity: { fontSize: 12, color: theme.textMuted, marginTop: 2, fontFamily: fonts.bodyLight },
   clubNoResults: {
     backgroundColor: theme.bgCard, borderRadius: 14,
     borderWidth: 1, borderColor: theme.border, marginTop: 4,
     padding: 16,
   },
-  clubNoResultsText: { fontSize: 13, color: theme.textMuted },
+  clubNoResultsText: { fontSize: 13, color: theme.textMuted, fontFamily: fonts.bodyLight },
   clubSelected: {
     flexDirection: 'row', alignItems: 'center', gap: 10,
     backgroundColor: theme.primaryDim, borderRadius: 14,
@@ -490,6 +491,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16, paddingVertical: 14,
   },
   clubSelectedIcon: { fontSize: 20 },
-  clubSelectedName: { flex: 1, fontSize: 15, color: theme.primary, fontWeight: '700' },
-  clubClearBtn: { fontSize: 16, color: theme.textMuted, fontWeight: '700' },
+  clubSelectedName: { flex: 1, fontSize: 15, color: theme.primary, fontFamily: fonts.bodyBold },
+  clubClearBtn: { fontSize: 16, color: theme.textMuted, fontFamily: fonts.bodyBold },
 });

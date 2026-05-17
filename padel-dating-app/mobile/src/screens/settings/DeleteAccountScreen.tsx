@@ -4,7 +4,7 @@ import {
   Alert, ActivityIndicator, TextInput,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { theme } from '../../lib/theme';
+import { theme, fonts } from '../../lib/theme';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 
@@ -112,27 +112,27 @@ const styles = StyleSheet.create({
     paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: theme.bgCard,
     marginBottom: 32,
   },
-  headerTitle: { fontSize: 17, fontWeight: '700', color: theme.textPrimary },
-  backText: { fontSize: 16, color: theme.textSecondary },
+  headerTitle: { fontSize: 17, fontFamily: fonts.bodyBold, color: theme.textPrimary },
+  backText: { fontSize: 16, color: theme.textSecondary, fontFamily: fonts.bodyLight },
   content: { flex: 1 },
   warningEmoji: { fontSize: 48, marginBottom: 16 },
-  title: { fontSize: 24, fontWeight: '800', color: theme.textPrimary, marginBottom: 12 },
-  body: { fontSize: 15, color: theme.textMuted, lineHeight: 22, marginBottom: 20 },
+  title: { fontSize: 24, fontFamily: fonts.headlineBold, color: theme.textPrimary, marginBottom: 12 },
+  body: { fontSize: 15, color: theme.textMuted, lineHeight: 22, marginBottom: 20, fontFamily: fonts.bodyLight },
   list: { gap: 10, marginBottom: 32 },
   listRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  listDot: { fontSize: 13, color: '#F87171', fontWeight: '700', width: 20 },
-  listItem: { fontSize: 14, color: theme.textSecondary },
-  confirmLabel: { fontSize: 14, color: theme.textMuted, marginBottom: 10 },
-  confirmWord: { color: '#F87171', fontWeight: '800' },
+  listDot: { fontSize: 13, color: '#F87171', fontFamily: fonts.bodyBold, width: 20 },
+  listItem: { fontSize: 14, color: theme.textSecondary, fontFamily: fonts.bodyLight },
+  confirmLabel: { fontSize: 14, color: theme.textMuted, marginBottom: 10, fontFamily: fonts.bodyLight },
+  confirmWord: { color: '#F87171', fontFamily: fonts.headlineBold },
   confirmInput: {
     backgroundColor: theme.bgCard, borderRadius: 14, padding: 16,
     fontSize: 16, color: theme.textPrimary, borderWidth: 1.5, borderColor: '#F87171',
-    letterSpacing: 2,
+    letterSpacing: 2, fontFamily: fonts.bodyBold,
   },
   bottom: { paddingBottom: 12 },
   deleteBtn: {
     backgroundColor: '#EF4444', borderRadius: 16, padding: 18, alignItems: 'center',
   },
   deleteBtnDisabled: { opacity: 0.35 },
-  deleteBtnText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
+  deleteBtnText: { color: '#FFFFFF', fontSize: 16, fontFamily: fonts.headlineBold },
 });

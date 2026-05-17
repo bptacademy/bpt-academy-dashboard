@@ -3,7 +3,7 @@ import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity, StatusBar, Alert,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { theme } from '../../lib/theme';
+import { theme, fonts } from '../../lib/theme';
 
 const MOCK_BLOCKED: any[] = [];
 
@@ -65,13 +65,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20, paddingVertical: 16,
     borderBottomWidth: 1, borderBottomColor: theme.bgCard,
   },
-  headerTitle: { fontSize: 17, fontWeight: '700', color: theme.textPrimary },
-  backText: { fontSize: 16, color: theme.textSecondary },
+  headerTitle: { fontSize: 17, fontFamily: fonts.bodyBold, color: theme.textPrimary },
+  backText: { fontSize: 16, color: theme.textSecondary, fontFamily: fonts.bodyLight },
   scroll: { padding: 16 },
   empty: { paddingTop: 60, alignItems: 'center' },
   emptyEmoji: { fontSize: 48, marginBottom: 16 },
-  emptyTitle: { fontSize: 18, fontWeight: '700', color: theme.textPrimary, marginBottom: 8 },
-  emptySub: { fontSize: 14, color: theme.textMuted, textAlign: 'center', lineHeight: 22 },
+  emptyTitle: { fontSize: 18, fontFamily: fonts.bodyBold, color: theme.textPrimary, marginBottom: 8 },
+  emptySub: { fontSize: 14, color: theme.textMuted, textAlign: 'center', lineHeight: 22, fontFamily: fonts.bodyLight },
   row: {
     flexDirection: 'row', alignItems: 'center', gap: 12,
     backgroundColor: theme.bgCard, borderRadius: 14, padding: 14,
@@ -82,10 +82,10 @@ const styles = StyleSheet.create({
     backgroundColor: theme.bgDeep, alignItems: 'center', justifyContent: 'center',
   },
   avatarEmoji: { fontSize: 18 },
-  name: { flex: 1, fontSize: 15, fontWeight: '600', color: theme.textPrimary },
+  name: { flex: 1, fontSize: 15, fontFamily: fonts.bodyBold, color: theme.textPrimary },
   unblockBtn: {
     paddingHorizontal: 14, paddingVertical: 7, borderRadius: 10,
     backgroundColor: theme.bgDeep, borderWidth: 1, borderColor: theme.border,
   },
-  unblockText: { fontSize: 13, color: theme.textSecondary, fontWeight: '600' },
+  unblockText: { fontSize: 13, color: theme.textSecondary, fontFamily: fonts.bodyBold },
 });

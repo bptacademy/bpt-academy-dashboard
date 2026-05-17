@@ -4,7 +4,7 @@ import {
   Alert, ActivityIndicator, Image, ScrollView,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { theme } from '../../lib/theme';
+import { theme, fonts } from '../../lib/theme';
 import * as ImagePicker from 'expo-image-picker';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
@@ -145,8 +145,8 @@ export default function PhotoUploadScreen({ route, navigation }: any) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: theme.bg, paddingHorizontal: 24 },
   header: { paddingTop: 24, marginBottom: 28 },
-  title: { fontSize: 28, fontWeight: '800', color: theme.textPrimary, marginBottom: 8 },
-  subtitle: { fontSize: 15, color: theme.textMuted, lineHeight: 22 },
+  title: { fontSize: 28, fontFamily: fonts.headlineBold, color: theme.textPrimary, marginBottom: 8 },
+  subtitle: { fontSize: 15, color: theme.textMuted, lineHeight: 22, fontFamily: fonts.bodyLight },
   photoGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 24 },
   photoSlot: { position: 'relative', width: '47%', aspectRatio: 4 / 5 },
   photo: { width: '100%', height: '100%', borderRadius: 16 },
@@ -155,13 +155,13 @@ const styles = StyleSheet.create({
     backgroundColor: theme.primary, borderRadius: 6,
     paddingHorizontal: 8, paddingVertical: 3,
   },
-  mainBadgeText: { color: theme.bg, fontSize: 10, fontWeight: '800' },
+  mainBadgeText: { color: theme.bg, fontSize: 10, fontFamily: fonts.headlineBold },
   removeBtn: {
     position: 'absolute', top: 8, right: 8,
     width: 28, height: 28, borderRadius: 14,
     backgroundColor: 'rgba(0,0,0,0.6)', alignItems: 'center', justifyContent: 'center',
   },
-  removeBtnText: { color: theme.textPrimary, fontSize: 13, fontWeight: '700' },
+  removeBtnText: { color: theme.textPrimary, fontSize: 13, fontFamily: fonts.bodyBold },
   addSlot: {
     width: '47%', aspectRatio: 4 / 5,
     backgroundColor: theme.bgCard, borderRadius: 16,
@@ -169,13 +169,13 @@ const styles = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center', gap: 8,
   },
   addIcon: { fontSize: 32, color: theme.textDim },
-  addLabel: { fontSize: 13, color: theme.textDim, fontWeight: '600' },
+  addLabel: { fontSize: 13, color: theme.textDim, fontFamily: fonts.bodyBold },
   tipsBox: {
     backgroundColor: theme.bgCard, borderRadius: 14, padding: 16,
     borderWidth: 1, borderColor: theme.border, marginBottom: 100, gap: 6,
   },
-  tipsTitle: { fontSize: 13, fontWeight: '700', color: theme.textMuted, marginBottom: 6 },
-  tipText: { fontSize: 13, color: theme.textDim, lineHeight: 20 },
+  tipsTitle: { fontSize: 13, fontFamily: fonts.bodyBold, color: theme.textMuted, marginBottom: 6 },
+  tipText: { fontSize: 13, color: theme.textDim, lineHeight: 20, fontFamily: fonts.bodyLight },
   bottom: { paddingBottom: 12 },
   finishBtn: {
     backgroundColor: theme.primary, borderRadius: 16, padding: 18, alignItems: 'center',
@@ -183,6 +183,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3, shadowRadius: 10, elevation: 5,
   },
   finishBtnDisabled: { opacity: 0.4 },
-  finishBtnText: { color: theme.textPrimary, fontSize: 17, fontWeight: '700' },
+  finishBtnText: { color: theme.textPrimary, fontSize: 17, fontFamily: fonts.headlineBold },
   savingRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
 });

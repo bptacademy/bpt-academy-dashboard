@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1920">
+<title>Volpair — Slide 07 App UI</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    width: 1920px; height: 1080px;
+    background: #0A1520;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+  }
+  .slide {
+    width: 1920px; height: 1080px;
+    background: #0A1520;
+    position: relative; overflow: hidden;
+    padding: 60px 80px;
+  }
+  .glow1 {
+    position: absolute; top: 0; right: 0;
+    width: 800px; height: 600px;
+    background: radial-gradient(ellipse, rgba(124,58,237,0.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .glow2 {
+    position: absolute; bottom: 0; left: 400px;
+    width: 700px; height: 500px;
+    background: radial-gradient(ellipse, rgba(0,212,200,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .title-area { margin-bottom: 8px; }
+  .h-white {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700; font-size: 64px; color: #fff;
+    display: inline;
+  }
+  .h-gradient {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700; font-size: 64px;
+    background: linear-gradient(135deg, #00D4C8, #7C3AED);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    display: inline;
+    margin-left: 16px;
+  }
+  .subtitle {
+    font-family: 'Inter', sans-serif;
+    font-size: 16px; color: #4A6080;
+    margin-bottom: 40px;
+    display: block;
+  }
+  .phones-row {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 32px;
+  }
+  .phone-col { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+  .phone {
+    width: 160px; height: 320px;
+    border: 2px solid #243650;
+    border-radius: 24px;
+    background: #0A1520;
+    position: relative;
+    overflow: hidden;
+  }
+  .phone-notch {
+    position: absolute; top: 8px; left: 50%; transform: translateX(-50%);
+    width: 48px; height: 12px;
+    background: #0A1520; border: 1px solid #243650;
+    border-radius: 6px; z-index: 10;
+  }
+  .phone-home {
+    position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
+    width: 32px; height: 3px;
+    background: #243650; border-radius: 2px; z-index: 10;
+  }
+  .screen { position: absolute; top: 26px; left: 8px; right: 8px; bottom: 18px; overflow: hidden; }
+  /* Phone 1 — Onboarding */
+  .blob-top {
+    width: 100%; height: 80px;
+    background: linear-gradient(135deg, rgba(0,212,200,0.4), rgba(124,58,237,0.4));
+    border-radius: 0 0 40px 40px;
+    margin-bottom: 8px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .logo-mini {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 12px; font-weight: 800;
+    background: linear-gradient(135deg, #00D4C8, #7C3AED);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+  .onboard-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 11px; font-weight: 700;
+    color: #fff; text-align: center;
+    margin-bottom: 4px;
+  }
+  .onboard-sub {
+    font-family: 'Inter', sans-serif;
+    font-size: 8px; color: #4A6080;
+    text-align: center; margin-bottom: 12px;
+  }
+  .cta-btn {
+    width: 100%; padding: 6px 0;
+    background: linear-gradient(135deg, #00D4C8, #7C3AED);
+    border-radius: 6px; text-align: center;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 9px; font-weight: 700;
+    color: #fff; margin-bottom: 6px;
+  }
+  .outline-btn {
+    width: 100%; padding: 6px 0;
+    border: 1px solid #243650; border-radius: 6px;
+    text-align: center;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 8px; color: #7A9CC0;
+  }
+  /* Phone 2 — Discovery */
+  .disc-label {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 9px; color: #00D4C8;
+    letter-spacing: 0.2em; text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .swipe-card {
+    border: 1px solid #243650;
+    border-radius: 10px; overflow: hidden;
+  }
+  .swipe-photo {
+    width: 100%; height: 80px;
+    background: linear-gradient(135deg, rgba(0,212,200,0.25), rgba(124,58,237,0.25));
+  }
+  .swipe-info { padding: 6px; }
+  .swipe-name {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 11px; font-weight: 700; color: #fff;
+  }
+  .swipe-loc {
+    font-family: 'Inter', sans-serif;
+    font-size: 8px; color: #4A6080;
+  }
+  .action-row { display: flex; gap: 6px; margin-top: 8px; }
+  .pass-btn {
+    flex: 1; padding: 5px 0; background: #111E2E;
+    border: 1px solid #1A2C42; border-radius: 6px;
+    text-align: center; font-size: 8px;
+    font-family: 'Space Grotesk', sans-serif; color: #7A9CC0; font-weight: 600;
+  }
+  .match-btn {
+    flex: 1; padding: 5px 0;
+    background: linear-gradient(135deg, #00D4C8, #7C3AED);
+    border-radius: 6px; text-align: center;
+    font-size: 8px; font-family: 'Space Grotesk', sans-serif;
+    color: #fff; font-weight: 600;
+  }
+  /* Phone 3 — Match */
+  .match-screen {
+    background: #0A1520;
+    display: flex; flex-direction: column; align-items: center;
+    padding-top: 16px; gap: 8px;
+    position: relative;
+  }
+  .match-glow {
+    position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+    width: 120px; height: 120px;
+    background: radial-gradient(ellipse, rgba(124,58,237,0.4) 0%, transparent 70%);
+  }
+  .match-circle {
+    width: 50px; height: 50px;
+    background: linear-gradient(135deg, #00D4C8, #7C3AED);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; z-index: 1;
+  }
+  .match-text {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 13px; font-weight: 800;
+    background: linear-gradient(135deg, #00D4C8, #7C3AED);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    z-index: 1;
+  }
+  .avatars-row { display: flex; gap: 10px; z-index: 1; }
+  .mini-avatar {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: linear-gradient(135deg, #00D4C8, #7C3AED);
+    border: 2px solid #0A1520;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px;
+  }
+  .rally-btn {
+    padding: 6px 12px;
+    background: linear-gradient(135deg, #00D4C8, #7C3AED);
+    border-radius: 6px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 9px; font-weight: 700; color: #fff;
+    z-index: 1;
+  }
+  /* Phone 4 — Chat */
+  .chat-header {
+    display: flex; align-items: center; gap: 6px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #1A2C42;
+    margin-bottom: 6px;
+  }
+  .chat-avatar {
+    width: 22px; height: 22px; border-radius: 50%;
+    background: linear-gradient(135deg, #00D4C8, #7C3AED);
+    flex-shrink: 0;
+  }
+  .chat-name {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 10px; font-weight: 700; color: #fff;
+    flex: 1;
+  }
+  .green-dot {
+    width: 7px; height: 7px; background: #22c55e;
+    border-radius: 50%;
+  }
+  .bubble-recv {
+    background: #111E2E; border-radius: 0 8px 8px 8px;
+    padding: 5px 8px; max-width: 90%;
+    font-family: 'Inter', sans-serif; font-size: 8px; color: #fff;
+    margin-bottom: 5px;
+  }
+  .bubble-sent {
+    background: linear-gradient(135deg, #00D4C8, #7C3AED);
+    border-radius: 8px 0 8px 8px;
+    padding: 5px 8px; max-width: 90%;
+    font-family: 'Inter', sans-serif; font-size: 8px; color: #fff;
+    margin-bottom: 5px;
+    align-self: flex-end;
+  }
+  .chat-bubbles {
+    display: flex; flex-direction: column;
+    flex: 1; overflow: hidden;
+  }
+  .chat-input {
+    width: 100%; height: 20px;
+    background: #111E2E; border: 1px solid #1A2C42;
+    border-radius: 10px; margin-top: 4px;
+  }
+  .phone-label {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 10px; color: #4A6080;
+    letter-spacing: 0.15em; text-transform: uppercase;
+    text-align: center;
+  }
+  .slide-num {
+    position: absolute; bottom: 16px; right: 80px;
+    font-size: 11px; letter-spacing: 0.3em;
+    color: #4A6080; font-family: 'Space Grotesk', sans-serif;
+    text-transform: uppercase;
+  }
+  .bottom-bar {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    height: 4px; background: linear-gradient(90deg, #00D4C8, #7C3AED);
+  }
+</style>
+</head>
+<body>
+<div class="slide">
+  <div class="glow1"></div>
+  <div class="glow2"></div>
+
+  <div class="title-area">
+    <span class="h-white">App</span>
+    <span class="h-gradient">UI</span>
+  </div>
+  <span class="subtitle">Four core user experiences</span>
+
+  <div class="phones-row">
+    <!-- Phone 1 — Onboarding -->
+    <div class="phone-col">
+      <div class="phone">
+        <div class="phone-notch"></div>
+        <div class="screen" style="display:flex;flex-direction:column;">
+          <div class="blob-top">
+            <span class="logo-mini">VOLPAIR</span>
+          </div>
+          <div style="padding: 0 6px; display:flex; flex-direction:column; flex:1;">
+            <div class="onboard-title">Find Your Rally Partner</div>
+            <div class="onboard-sub">Meet padel players near you</div>
+            <div class="cta-btn">Get Started</div>
+            <div class="outline-btn">Sign in with Google</div>
+          </div>
+        </div>
+        <div class="phone-home"></div>
+      </div>
+      <span class="phone-label">Onboarding</span>
+    </div>
+
+    <!-- Phone 2 — Discovery -->
+    <div class="phone-col">
+      <div class="phone">
+        <div class="phone-notch"></div>
+        <div class="screen" style="padding: 6px 0;">
+          <div class="disc-label">Discover</div>
+          <div class="swipe-card">
+            <div class="swipe-photo"></div>
+            <div class="swipe-info">
+              <div class="swipe-name">Sofia A.</div>
+              <div class="swipe-loc">Barcelona · Advanced</div>
+            </div>
+          </div>
+          <div class="action-row">
+            <div class="pass-btn">Pass</div>
+            <div class="match-btn">Match 🎾</div>
+          </div>
+        </div>
+        <div class="phone-home"></div>
+      </div>
+      <span class="phone-label">Discovery</span>
+    </div>
+
+    <!-- Phone 3 — Match celebration -->
+    <div class="phone-col">
+      <div class="phone">
+        <div class="phone-notch"></div>
+        <div class="screen match-screen">
+          <div class="match-glow"></div>
+          <div class="match-circle">🎾</div>
+          <span class="match-text">It's a Match!</span>
+          <div class="avatars-row">
+            <div class="mini-avatar">👤</div>
+            <div class="mini-avatar">👤</div>
+          </div>
+          <div class="rally-btn">Start Rallying</div>
+        </div>
+        <div class="phone-home"></div>
+      </div>
+      <span class="phone-label">Match</span>
+    </div>
+
+    <!-- Phone 4 — Chat -->
+    <div class="phone-col">
+      <div class="phone">
+        <div class="phone-notch"></div>
+        <div class="screen" style="display:flex;flex-direction:column;padding:4px 0;">
+          <div class="chat-header">
+            <div class="chat-avatar"></div>
+            <span class="chat-name">Sofia A.</span>
+            <div class="green-dot"></div>
+          </div>
+          <div class="chat-bubbles">
+            <div class="bubble-recv">Hey! Up for a game? 🎾</div>
+            <div class="bubble-sent">Absolutely! When?</div>
+            <div class="bubble-sent">Saturday works?</div>
+          </div>
+          <div class="chat-input"></div>
+        </div>
+        <div class="phone-home"></div>
+      </div>
+      <span class="phone-label">Chat</span>
+    </div>
+  </div>
+
+  <span class="slide-num">07 / 10</span>
+  <div class="bottom-bar"></div>
+</div>
+</body>
+</html>

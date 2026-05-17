@@ -6,7 +6,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Location from 'expo-location';
-import { theme } from '../../lib/theme';
+import { theme, fonts } from '../../lib/theme';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 
@@ -36,7 +36,7 @@ interface RadarPlayer {
   _mockFraction?: number;
 }
 
-// ─── Mock players (Ana P. removed) ───────────────────────────────────────────
+// ─── Mock players ─────────────────────────────────────────────────────────────
 const MOCK_PLAYERS: RadarPlayer[] = [
   { id: 'mock-1', full_name: 'Carlos R.', city: 'London', last_active_at: new Date().toISOString(), last_lat: 0, last_lon: 0, level_value: 4.2, total_matches: 87, win_rate: 0.61, play_style: 'aggressive', distance_miles: 2.1, volpair_score: 78, photo_url: null, _mockBearing: 45, _mockFraction: 0.30 },
   { id: 'mock-2', full_name: 'Sofia M.', city: 'London', last_active_at: new Date().toISOString(), last_lat: 0, last_lon: 0, level_value: 3.8, total_matches: 52, win_rate: 0.54, play_style: 'balanced', distance_miles: 4.8, volpair_score: 91, photo_url: null, _mockBearing: 155, _mockFraction: 0.62 },
@@ -236,7 +236,6 @@ export default function RadarScreen({ navigation }: any) {
         <>
           <View style={styles.radarWrapper}>
             <View style={{ width: TOTAL, height: TOTAL }}>
-              {/* Visual circle — overflow:hidden clips rings + scan line */}
               <View style={styles.radarCircle}>
                 {[1, 0.667, 0.333].map((scale, i) => (
                   <View key={i} style={[styles.ring, {
@@ -253,8 +252,6 @@ export default function RadarScreen({ navigation }: any) {
                 <Animated.View style={[styles.scanLineWrap, { transform: [{ rotate: scanRotation }] }]}>
                   <View style={styles.scanLineRight} />
                 </Animated.View>
-
-                {/* 🎾 Ball — absoluteFill + flex centre = guaranteed dead centre */}
                 <View style={styles.myAvatarCentrer} pointerEvents="none">
                   <View style={styles.myAvatarWrap}>
                     {(user as any)?.photo_url
@@ -264,7 +261,6 @@ export default function RadarScreen({ navigation }: any) {
                 </View>
               </View>
 
-              {/* Player avatars outside the clipped circle */}
               {players.map(p => (
                 <PlayerDot key={p.id} player={p}
                   myLat={myLat ?? 51.5074} myLon={myLon ?? -0.1278}
@@ -321,8 +317,8 @@ export default function RadarScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: theme.bg },
   header: { paddingHorizontal: 20, paddingVertical: 12, alignItems: 'center' },
-  headerTitle: { fontSize: 20, fontWeight: '800', color: theme.textPrimary, letterSpacing: 0.5 },
-  headerSub: { fontSize: 12, color: theme.textSecondary, marginTop: 2 },
+  headerTitle: { fontSize: 20, fontFamily: fonts.headlineBold, color: theme.textPrimary, letterSpacing: 0.5 },
+  headerSub: { fontSize: 12, fontFamily: fonts.bodyLight, color: theme.textSecondary, marginTop: 2 },
   radarWrapper: { alignItems: 'center', marginTop: 8 },
   radarCircle: {
     position: 'absolute', left: PAD, top: PAD,
@@ -372,7 +368,7 @@ const styles = StyleSheet.create({
     width: AVATAR_SIZE, height: AVATAR_SIZE, borderRadius: AVATAR_SIZE / 2,
     backgroundColor: theme.primary, alignItems: 'center', justifyContent: 'center',
   },
-  playerInitialsText: { color: '#0D1B2A', fontWeight: '800', fontSize: 14 },
+  playerInitialsText: { fontFamily: fonts.bodyBold, color: '#0D1B2A', fontSize: 14 },
   scoreBadge: {
     position: 'absolute', bottom: -7, right: -7,
     backgroundColor: theme.primary, borderRadius: 8,
@@ -380,7 +376,7 @@ const styles = StyleSheet.create({
     borderWidth: 1.5, borderColor: theme.bg,
     minWidth: 22, alignItems: 'center',
   },
-  scoreBadgeText: { color: '#0D1B2A', fontSize: 9, fontWeight: '800' },
+  scoreBadgeText: { fontFamily: fonts.headlineLightIt, color: '#0D1B2A', fontSize: 9 },
   loadingOverlay: { backgroundColor: 'rgba(13,27,42,0.6)', alignItems: 'center', justifyContent: 'center', zIndex: 30 },
   mockBadge: {
     alignSelf: 'center', marginTop: 8,
@@ -388,15 +384,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14, paddingVertical: 6,
     borderWidth: 1, borderColor: 'rgba(0,212,200,0.18)',
   },
-  mockBadgeText: { color: theme.textSecondary, fontSize: 11 },
+  mockBadgeText: { fontFamily: fonts.bodyLight, color: theme.textSecondary, fontSize: 11 },
   controls: { paddingHorizontal: 20, paddingTop: 18, gap: 16 },
   filterRow: { flexDirection: 'row', gap: 10, justifyContent: 'center' },
   pill: { paddingHorizontal: 22, paddingVertical: 9, borderRadius: 20, borderWidth: 1, borderColor: theme.border, backgroundColor: theme.bgCard },
   pillActive: { borderColor: theme.primary, backgroundColor: 'rgba(0,212,200,0.1)' },
-  pillText: { fontSize: 14, color: theme.textSecondary, fontWeight: '500' },
-  pillTextActive: { color: theme.primary, fontWeight: '700' },
+  pillText: { fontSize: 14, fontFamily: fonts.bodyLight, color: theme.textSecondary },
+  pillTextActive: { fontFamily: fonts.bodyBold, color: theme.primary },
   sliderContainer: { alignItems: 'center', gap: 10 },
-  sliderLabel: { fontSize: 14, color: theme.textSecondary, fontWeight: '600' },
+  sliderLabel: { fontSize: 14, fontFamily: fonts.bodyBold, color: theme.textSecondary },
   sliderTrackWrapper: { width: SLIDER_W, height: 40, justifyContent: 'center' },
   sliderTrack: { height: 4, backgroundColor: theme.border, borderRadius: 2, overflow: 'hidden' },
   sliderFill: { height: 4, backgroundColor: theme.primary, borderRadius: 2 },
@@ -410,7 +406,7 @@ const styles = StyleSheet.create({
   },
   errorContainer: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 12 },
   errorEmoji: { fontSize: 48 },
-  errorText: { fontSize: 15, color: theme.textSecondary, textAlign: 'center', lineHeight: 22 },
+  errorText: { fontSize: 15, fontFamily: fonts.bodyLight, color: theme.textSecondary, textAlign: 'center', lineHeight: 22 },
 });
 
 // ─── Popup styles ─────────────────────────────────────────────────────────────
@@ -428,20 +424,20 @@ const popup = StyleSheet.create({
   avatarWrap: { width: 72, height: 72, borderRadius: 36, borderWidth: 2.5, borderColor: theme.primary, overflow: 'hidden' },
   avatar: { width: 72, height: 72, borderRadius: 36 },
   avatarFallback: { width: 72, height: 72, borderRadius: 36, backgroundColor: theme.primary, alignItems: 'center', justifyContent: 'center' },
-  avatarInitials: { color: '#0D1B2A', fontWeight: '800', fontSize: 22 },
+  avatarInitials: { fontFamily: fonts.headlineBold, color: '#0D1B2A', fontSize: 22 },
   scorePill: { alignItems: 'center', backgroundColor: 'rgba(0,212,200,0.12)', borderRadius: 14, paddingHorizontal: 16, paddingVertical: 10, borderWidth: 1, borderColor: 'rgba(0,212,200,0.3)' },
-  scoreLabel: { fontSize: 9, fontWeight: '800', color: theme.primary, letterSpacing: 1 },
-  scoreValue: { fontSize: 28, fontWeight: '900', color: theme.primary },
-  name: { fontSize: 22, fontWeight: '800', color: theme.textPrimary, textAlign: 'center' },
-  city: { fontSize: 13, color: theme.textSecondary },
+  scoreLabel: { fontSize: 9, fontFamily: fonts.bodyBold, color: theme.primary, letterSpacing: 1 },
+  scoreValue: { fontSize: 28, fontFamily: fonts.headlineLightIt, color: theme.primary },
+  name: { fontSize: 22, fontFamily: fonts.headlineBold, color: theme.textPrimary, textAlign: 'center' },
+  city: { fontSize: 13, fontFamily: fonts.bodyLight, color: theme.textSecondary },
   statsRow: { flexDirection: 'row', gap: 20, marginVertical: 6 },
   stat: { alignItems: 'center', gap: 2 },
-  statValue: { fontSize: 18, fontWeight: '800', color: theme.textPrimary },
-  statLabel: { fontSize: 11, color: theme.textSecondary },
+  statValue: { fontSize: 18, fontFamily: fonts.headlineLightIt, color: theme.textPrimary },
+  statLabel: { fontSize: 11, fontFamily: fonts.bodyLight, color: theme.textSecondary },
   stylePill: { backgroundColor: 'rgba(0,212,200,0.08)', borderRadius: 10, paddingHorizontal: 14, paddingVertical: 5, borderWidth: 1, borderColor: 'rgba(0,212,200,0.2)' },
-  styleText: { color: theme.primary, fontSize: 12, fontWeight: '600', textTransform: 'capitalize' },
+  styleText: { fontFamily: fonts.bodyBold, color: theme.primary, fontSize: 12, textTransform: 'capitalize' },
   viewBtn: { width: '100%', backgroundColor: theme.primary, borderRadius: 16, paddingVertical: 16, alignItems: 'center', marginTop: 8 },
-  viewBtnText: { color: '#0D1B2A', fontSize: 16, fontWeight: '800' },
+  viewBtnText: { fontFamily: fonts.bodyBold, color: '#0D1B2A', fontSize: 16 },
   closeBtn: { paddingVertical: 10 },
-  closeBtnText: { color: theme.textSecondary, fontSize: 14 },
+  closeBtnText: { fontFamily: fonts.bodyLight, color: theme.textSecondary, fontSize: 14 },
 });

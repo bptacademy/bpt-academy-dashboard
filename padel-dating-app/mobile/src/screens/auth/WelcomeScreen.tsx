@@ -4,6 +4,7 @@ import {
   StatusBar, Animated, Dimensions, Image, ImageBackground,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { fonts } from '../../lib/theme';
 
 const { width, height } = Dimensions.get('window');
 const LOGO = require('../../../assets/volpair-logo-nobg.png');
@@ -180,7 +181,7 @@ const styles = StyleSheet.create({
   primaryBtnText: {
     color: '#0D1B2A',
     fontSize: 17,
-    fontWeight: '800',
+    fontFamily: fonts.headlineBold,
     letterSpacing: 0.2,
   },
   secondaryBtn: {
@@ -194,12 +195,13 @@ const styles = StyleSheet.create({
   secondaryBtnText: {
     color: '#00D4C8',
     fontSize: 17,
-    fontWeight: '700',
+    fontFamily: fonts.bodyBold,
   },
   legalNote: {
     fontSize: 11,
     color: 'rgba(255,255,255,0.35)',
     textAlign: 'center',
     lineHeight: 16,
+    fontFamily: fonts.bodyLight,
   },
 });

@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1920">
+<title>Volpair — Slide 01 Cover</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    width: 1920px; height: 1080px;
+    background: #0A1520;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Inter', sans-serif;
+    overflow: hidden;
+  }
+  .slide {
+    width: 1920px; height: 1080px;
+    background: #0A1520;
+    position: relative; overflow: hidden;
+  }
+  /* Ambient glows */
+  .glow-teal {
+    position: absolute; top: -200px; left: -200px;
+    width: 900px; height: 900px;
+    background: radial-gradient(ellipse, rgba(0,212,200,0.18) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .glow-purple {
+    position: absolute; top: -100px; right: -100px;
+    width: 800px; height: 800px;
+    background: radial-gradient(ellipse, rgba(124,58,237,0.22) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .glow-purple-bottom {
+    position: absolute; bottom: -200px; right: 200px;
+    width: 700px; height: 700px;
+    background: radial-gradient(ellipse, rgba(124,58,237,0.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  /* Left half */
+  .left {
+    position: absolute; left: 0; top: 0;
+    width: 960px; height: 1080px;
+    display: flex; flex-direction: column;
+    justify-content: center;
+    padding: 60px 80px;
+  }
+  .logo-row {
+    position: absolute; top: 60px; left: 80px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .logo-wordmark {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    letter-spacing: 0.25em;
+    color: #fff;
+    text-transform: uppercase;
+  }
+  .headline-area {
+    margin-top: 40px;
+  }
+  .h-white {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 800;
+    font-size: 92px;
+    color: #fff;
+    line-height: 1.0;
+    display: block;
+  }
+  .h-gradient {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 800;
+    font-size: 92px;
+    background: linear-gradient(135deg, #00D4C8, #7C3AED);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1.0;
+    display: block;
+  }
+  .tagline {
+    margin-top: 28px;
+    font-size: 18px;
+    color: #7A9CC0;
+    font-family: 'Inter', sans-serif;
+  }
+  .pills {
+    display: flex; gap: 16px;
+    margin-top: 36px;
+  }
+  .pill-teal {
+    padding: 10px 28px;
+    border: 1.5px solid #00D4C8;
+    border-radius: 100px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: #00D4C8;
+    letter-spacing: 0.1em;
+  }
+  .pill-purple {
+    padding: 10px 28px;
+    border: 1.5px solid #7C3AED;
+    border-radius: 100px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: #7C3AED;
+    letter-spacing: 0.1em;
+  }
+  .brand-footer {
+    position: absolute; bottom: 76px; left: 80px;
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    color: #4A6080;
+    font-family: 'Space Grotesk', sans-serif;
+    text-transform: uppercase;
+  }
+  /* Right half */
+  .right {
+    position: absolute; right: 0; top: 0;
+    width: 960px; height: 1080px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .court-svg {
+    position: absolute;
+    right: 80px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+  /* Glass score card */
+  .score-card {
+    position: absolute;
+    right: 160px;
+    top: 50%;
+    transform: translateY(-30%);
+    width: 220px;
+    background: rgba(17,30,46,0.85);
+    border: 1px solid #243650;
+    border-radius: 16px;
+    padding: 20px 20px 16px;
+    backdrop-filter: blur(10px);
+    z-index: 10;
+  }
+  .score-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 8px;
+  }
+  .score-value {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    color: #00D4C8;
+    margin-bottom: 14px;
+  }
+  .connect-btn {
+    width: 100%;
+    padding: 9px 0;
+    background: linear-gradient(135deg, #00D4C8, #7C3AED);
+    border-radius: 8px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    text-align: center;
+    letter-spacing: 0.05em;
+  }
+  /* Slide number */
+  .slide-num {
+    position: absolute;
+    bottom: 76px; right: 80px;
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    color: #4A6080;
+    font-family: 'Space Grotesk', sans-serif;
+    text-transform: uppercase;
+  }
+  /* Bottom gradient bar */
+  .bottom-bar {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #00D4C8, #7C3AED);
+  }
+</style>
+</head>
+<body>
+<div class="slide">
+  <div class="glow-teal"></div>
+  <div class="glow-purple"></div>
+  <div class="glow-purple-bottom"></div>
+
+  <!-- Left content -->
+  <div class="left">
+    <div class="logo-row">
+      <svg width="40" height="40" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="lgI1" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#00D4C8"/>
+            <stop offset="100%" stop-color="#7C3AED"/>
+          </linearGradient>
+        </defs>
+        <circle cx="26" cy="22" r="18" fill="url(#lgI1)"/>
+        <line x1="26" y1="5" x2="26" y2="39" stroke="rgba(255,255,255,0.3)" stroke-width="1.2"/>
+        <line x1="9" y1="22" x2="43" y2="22" stroke="rgba(255,255,255,0.3)" stroke-width="1.2"/>
+        <path d="M26 30 C26 30 18 25 18 20 C18 17 20 15 22 15 C24 15 26 17 26 17 C26 17 28 15 30 15 C32 15 34 17 34 20 C34 25 26 30 26 30Z" fill="rgba(255,255,255,0.92)"/>
+        <rect x="22" y="38" width="8" height="12" rx="3" fill="url(#lgI1)"/>
+        <rect x="20" y="36" width="12" height="4" rx="2" fill="url(#lgI1)"/>
+      </svg>
+      <span class="logo-wordmark">Volpair</span>
+    </div>
+
+    <div class="headline-area">
+      <span class="h-white">Where Padel</span>
+      <span class="h-gradient">Finds Its Match.</span>
+    </div>
+
+    <p class="tagline">Every Rally Starts With a Match.</p>
+
+    <div class="pills">
+      <span class="pill-teal">PLAY</span>
+      <span class="pill-purple">CONNECT</span>
+    </div>
+  </div>
+
+  <span class="brand-footer">2026 · Brand Presentation</span>
+
+  <!-- Right half — padel court SVG -->
+  <div class="right">
+    <svg class="court-svg" width="420" height="600" viewBox="0 0 420 600" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <!-- Outer court -->
+      <rect x="10" y="10" width="400" height="580" rx="4" stroke="#243650" stroke-width="1.5" fill="none"/>
+      <!-- Inner play area -->
+      <rect x="30" y="30" width="360" height="540" rx="2" stroke="#1A2C42" stroke-width="1" fill="none"/>
+      <!-- Center net line -->
+      <line x1="10" y1="300" x2="410" y2="300" stroke="#243650" stroke-width="2"/>
+      <!-- Service boxes -->
+      <line x1="210" y1="30" x2="210" y2="570" stroke="#1A2C42" stroke-width="1" stroke-dasharray="6,4"/>
+      <!-- Service lines -->
+      <line x1="30" y1="150" x2="390" y2="150" stroke="#1A2C42" stroke-width="1"/>
+      <line x1="30" y1="450" x2="390" y2="450" stroke="#1A2C42" stroke-width="1"/>
+      <!-- Semicircles at ends -->
+      <path d="M 130 30 A 80 80 0 0 0 290 30" stroke="#1A2C42" stroke-width="1" fill="none"/>
+      <path d="M 130 570 A 80 80 0 0 1 290 570" stroke="#1A2C42" stroke-width="1" fill="none"/>
+      <!-- Center circle -->
+      <circle cx="210" cy="300" r="30" stroke="#1A2C42" stroke-width="1" fill="none"/>
+      <!-- Corner arcs -->
+      <path d="M 10 80 Q 10 10 80 10" stroke="#243650" stroke-width="1" fill="none"/>
+      <path d="M 340 10 Q 410 10 410 80" stroke="#243650" stroke-width="1" fill="none"/>
+      <path d="M 410 520 Q 410 590 340 590" stroke="#243650" stroke-width="1" fill="none"/>
+      <path d="M 80 590 Q 10 590 10 520" stroke="#243650" stroke-width="1" fill="none"/>
+    </svg>
+
+    <!-- Score card -->
+    <div class="score-card">
+      <div class="score-title">Alex M. vs Sam K.</div>
+      <div class="score-value">Current Set: 4–3</div>
+      <div class="connect-btn">Connect</div>
+    </div>
+  </div>
+
+  <span class="slide-num">01 / 10</span>
+  <div class="bottom-bar"></div>
+</div>
+</body>
+</html>

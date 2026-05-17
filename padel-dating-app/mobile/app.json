@@ -37,7 +37,14 @@
       [
         "expo-font",
         {
-          "fonts": []
+          "fonts": [
+            "./assets/fonts/AdelphiPETRIAL-Eb.otf",
+            "./assets/fonts/AdelphiPETRIAL-EbIt.otf",
+            "./assets/fonts/AdelphiPETRIAL-Lt.otf",
+            "./assets/fonts/AdelphiPETRIAL-LtIt.otf",
+            "./assets/fonts/Brinnan Bold.otf",
+            "./assets/fonts/Brinnan Light.otf"
+          ]
         }
       ],
       [

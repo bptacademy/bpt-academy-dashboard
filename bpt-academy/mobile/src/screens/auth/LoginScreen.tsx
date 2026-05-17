@@ -30,7 +30,7 @@ export default function LoginScreen({ navigation }: Props) {
 
   return (
     <View style={styles.root}>
-      {/* Full-screen background — covers every pixel on every device */}
+      {/* Full-screen background */}
       <Image
         source={require('../../../assets/bg.png')}
         style={[styles.bg, { width, height }]}
@@ -108,8 +108,14 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#0B1628' },
   bg: { position: 'absolute', top: 0, left: 0 },
   flex: { flex: 1 },
-  inner: { flexGrow: 1, paddingHorizontal: 24, justifyContent: 'center' },
-  header: { alignItems: 'center', marginBottom: 32 },
+  inner: {
+    flexGrow: 1,
+    paddingHorizontal: 24,
+    justifyContent: 'flex-start',   // push content toward top instead of center
+    paddingTop: 0,                  // overridden inline above
+    marginTop: '15%',               // shift the whole block upward from true center
+  },
+  header: { alignItems: 'center', marginBottom: 24 },
   subtitle: { fontSize: 16, color: 'rgba(255,255,255,0.60)', marginTop: 4 },
   card: {
     backgroundColor: 'rgba(17,30,51,0.80)',

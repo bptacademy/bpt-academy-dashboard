@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1920">
+<title>Volpair — Slide 10 Applications</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    width: 1920px; height: 1080px;
+    background: #0A1520;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+  }
+  .slide {
+    width: 1920px; height: 1080px;
+    background: #0A1520;
+    position: relative; overflow: hidden;
+    padding: 60px 80px;
+  }
+  .glow1 {
+    position: absolute; top: -150px; left: -100px;
+    width: 800px; height: 700px;
+    background: radial-gradient(ellipse, rgba(0,212,200,0.09) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .glow2 {
+    position: absolute; bottom: -100px; right: -100px;
+    width: 800px; height: 700px;
+    background: radial-gradient(ellipse, rgba(124,58,237,0.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  /* Top header */
+  .top-header { margin-bottom: 40px; }
+  .h-white {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700; font-size: 72px; color: #fff;
+    display: block; line-height: 1.0;
+  }
+  .h-gradient {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700; font-size: 72px;
+    background: linear-gradient(135deg, #00D4C8, #7C3AED);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    display: block; line-height: 1.0;
+  }
+  .subtitle {
+    font-family: 'Inter', sans-serif;
+    font-size: 18px; color: #4A6080;
+    margin-top: 12px; display: block;
+  }
+  /* Cards row */
+  .cards-row {
+    display: flex;
+    justify-content: center;
+    gap: 36px;
+    margin-bottom: 48px;
+  }
+  .app-card {
+    width: 400px; height: 290px;
+    background: #111E2E;
+    border: 1px solid #243650;
+    border-radius: 20px;
+    padding: 24px;
+    display: flex; flex-direction: column;
+    gap: 12px;
+    position: relative; overflow: hidden;
+  }
+  .card-label {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 11px; letter-spacing: 0.25em;
+    text-transform: uppercase; font-weight: 600;
+  }
+  .card-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 20px; font-weight: 700; color: #fff;
+  }
+  .card-desc {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px; color: #4A6080;
+    line-height: 1.5;
+  }
+  .card-visual {
+    flex: 1; display: flex; align-items: center; justify-content: center;
+    margin-top: 4px;
+  }
+  /* Bottom closer */
+  .closer {
+    position: absolute;
+    bottom: 68px; left: 0; right: 0;
+    text-align: center;
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+  }
+  .closer-wordmark {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 800; font-size: 56px;
+    background: linear-gradient(135deg, #00D4C8, #7C3AED);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    letter-spacing: 0.06em;
+  }
+  .closer-tagline {
+    font-family: 'Inter', sans-serif;
+    font-size: 16px; color: #7A9CC0;
+  }
+  .closer-urls {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 12px; color: #4A6080;
+    letter-spacing: 0.15em;
+  }
+  .slide-num {
+    position: absolute; bottom: 16px; right: 80px;
+    font-size: 11px; letter-spacing: 0.3em;
+    color: #4A6080; font-family: 'Space Grotesk', sans-serif;
+    text-transform: uppercase;
+  }
+  .bottom-bar {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    height: 4px; background: linear-gradient(90deg, #00D4C8, #7C3AED);
+  }
+</style>
+</head>
+<body>
+<div class="slide">
+  <div class="glow1"></div>
+  <div class="glow2"></div>
+
+  <div class="top-header">
+    <span class="h-white">Volpair</span>
+    <span class="h-gradient">In The Wild</span>
+    <span class="subtitle">From courts to phones to closets.</span>
+  </div>
+
+  <div class="cards-row">
+    <!-- Card 1 — Merch -->
+    <div class="app-card">
+      <span class="card-label" style="color:#00D4C8;">01 / Branded Apparel</span>
+      <div class="card-visual">
+        <!-- T-shirt SVG -->
+        <svg width="100" height="90" viewBox="0 0 100 90" fill="none" stroke="#243650" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M30 8 L10 25 L20 32 L20 82 L80 82 L80 32 L90 25 L70 8 C66 14 56 18 50 18 C44 18 34 14 30 8Z" fill="#111E2E" stroke="#243650"/>
+          <text x="50" y="58" text-anchor="middle" font-family="Space Grotesk" font-size="8" font-weight="800" fill="#00D4C8" stroke="none">VOLPAIR</text>
+          <text x="50" y="68" text-anchor="middle" font-family="Space Grotesk" font-size="5" fill="#4A6080" stroke="none" letter-spacing="2">PADEL</text>
+        </svg>
+      </div>
+      <span class="card-title">Streetwear &amp; Sportswear</span>
+      <span class="card-desc">Premium padel apparel for courts and streets</span>
+    </div>
+
+    <!-- Card 2 — Courts -->
+    <div class="app-card">
+      <span class="card-label" style="color:#7C3AED;">02 / Court Signage</span>
+      <div class="card-visual">
+        <!-- Padel court side-view SVG -->
+        <svg width="160" height="80" viewBox="0 0 160 80" fill="none" stroke="#243650" stroke-width="1.5" stroke-linecap="round">
+          <!-- Floor -->
+          <rect x="5" y="55" width="150" height="20" rx="2" fill="#0D1B2A" stroke="#1A2C42"/>
+          <!-- Back glass wall -->
+          <rect x="5" y="15" width="150" height="42" fill="#0D1B2A" stroke="#243650" stroke-width="1"/>
+          <!-- Glass panes -->
+          <line x1="55" y1="15" x2="55" y2="57" stroke="#1A2C42" stroke-width="1"/>
+          <line x1="105" y1="15" x2="105" y2="57" stroke="#1A2C42" stroke-width="1"/>
+          <!-- Net -->
+          <line x1="80" y1="30" x2="80" y2="57" stroke="#00D4C8" stroke-width="2"/>
+          <line x1="5" y1="30" x2="155" y2="30" stroke="#1A2C42" stroke-dasharray="4,3"/>
+          <!-- Net post -->
+          <rect x="78" y="26" width="4" height="4" rx="1" fill="#00D4C8" stroke="none"/>
+          <!-- Court lines on floor -->
+          <line x1="5" y1="62" x2="155" y2="62" stroke="#243650"/>
+          <!-- VOLPAIR on court floor -->
+          <text x="80" y="71" text-anchor="middle" font-family="Space Grotesk" font-size="7" font-weight="800" fill="#7C3AED" stroke="none" letter-spacing="2">VOLPAIR</text>
+        </svg>
+      </div>
+      <span class="card-title">Court Branding &amp; Venue</span>
+      <span class="card-desc">On-court logos, banners and digital displays</span>
+    </div>
+
+    <!-- Card 3 — App Store -->
+    <div class="app-card">
+      <span class="card-label" style="color:#F59E0B;">03 / App Store</span>
+      <div class="card-visual">
+        <!-- Phone frame with App Store UI -->
+        <div style="width:100px;height:160px;border:2px solid #243650;border-radius:18px;background:#0A1520;position:relative;overflow:hidden;display:flex;flex-direction:column;padding:16px 8px 10px;">
+          <!-- Notch -->
+          <div style="position:absolute;top:6px;left:50%;transform:translateX(-50%);width:30px;height:8px;background:#0A1520;border:1px solid #243650;border-radius:4px;z-index:10;"></div>
+          <!-- App icon -->
+          <div style="width:36px;height:36px;background:linear-gradient(135deg,#00D4C8,#7C3AED);border-radius:8px;margin:0 auto 6px;display:flex;align-items:center;justify-content:center;">
+            <span style="font-size:16px;">🎾</span>
+          </div>
+          <!-- App name -->
+          <div style="text-align:center;font-family:Space Grotesk,sans-serif;font-size:9px;font-weight:700;color:#fff;margin-bottom:2px;">VOLPAIR</div>
+          <!-- Stars -->
+          <div style="text-align:center;font-size:9px;margin-bottom:4px;">⭐⭐⭐⭐⭐</div>
+          <!-- Screenshots strip -->
+          <div style="display:flex;gap:3px;margin-bottom:4px;">
+            <div style="flex:1;height:28px;background:linear-gradient(135deg,rgba(0,212,200,0.3),rgba(124,58,237,0.3));border-radius:3px;"></div>
+            <div style="flex:1;height:28px;background:linear-gradient(135deg,rgba(124,58,237,0.3),rgba(0,212,200,0.3));border-radius:3px;"></div>
+          </div>
+          <!-- Get button -->
+          <div style="background:linear-gradient(135deg,#00D4C8,#7C3AED);border-radius:5px;padding:3px 0;text-align:center;font-family:Space Grotesk,sans-serif;font-size:8px;font-weight:700;color:#fff;">GET</div>
+          <!-- Home indicator -->
+          <div style="position:absolute;bottom:5px;left:50%;transform:translateX(-50%);width:24px;height:2px;background:#243650;border-radius:1px;"></div>
+        </div>
+      </div>
+      <span class="card-title">Mobile App Presence</span>
+      <span class="card-desc">iOS &amp; Android app store listings</span>
+    </div>
+  </div>
+
+  <!-- Bottom closer -->
+  <div class="closer">
+    <span class="closer-wordmark">VOLPAIR</span>
+    <span class="closer-tagline">Every Rally Starts With a Match.</span>
+    <span class="closer-urls">volpair.com · volpair.app · @volpair</span>
+  </div>
+
+  <span class="slide-num">10 / 10</span>
+  <div class="bottom-bar"></div>
+</div>
+</body>
+</html>

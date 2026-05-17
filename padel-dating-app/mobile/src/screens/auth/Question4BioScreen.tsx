@@ -4,7 +4,7 @@ import {
   StatusBar, KeyboardAvoidingView, Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { theme } from '../../lib/theme';
+import { theme, fonts } from '../../lib/theme';
 import OnboardingProgress from '../../components/common/OnboardingProgress';
 
 const EXAMPLES = [
@@ -75,22 +75,22 @@ export default function Question4BioScreen({ route, navigation }: any) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: theme.bg, paddingHorizontal: 24 },
   inner: { flex: 1, paddingTop: 24 },
-  question: { fontSize: 26, fontWeight: '800', color: theme.textPrimary, marginBottom: 8 },
-  subtitle: { fontSize: 15, color: theme.textMuted, marginBottom: 24, lineHeight: 22 },
+  question: { fontSize: 26, fontFamily: fonts.headlineBold, color: theme.textPrimary, marginBottom: 8 },
+  subtitle: { fontSize: 15, color: theme.textMuted, marginBottom: 24, lineHeight: 22, fontFamily: fonts.bodyLight },
   inputWrapper: { position: 'relative', marginBottom: 28 },
   input: {
     backgroundColor: theme.bgCard, borderRadius: 14, padding: 16,
     fontSize: 16, color: theme.textPrimary, borderWidth: 1.5, borderColor: theme.border,
-    minHeight: 100,
+    minHeight: 100, fontFamily: fonts.bodyLight,
   },
   charCount: {
     position: 'absolute', bottom: 10, right: 14,
-    fontSize: 11, color: theme.textDim,
+    fontSize: 11, color: theme.textDim, fontFamily: fonts.bodyLight,
   },
-  examplesTitle: { fontSize: 13, fontWeight: '600', color: theme.textMuted, marginBottom: 10 },
+  examplesTitle: { fontSize: 13, fontFamily: fonts.bodyBold, color: theme.textMuted, marginBottom: 10 },
   example: {
     fontSize: 13, color: theme.textSecondary, fontStyle: 'italic',
-    marginBottom: 10, lineHeight: 20,
+    marginBottom: 10, lineHeight: 20, fontFamily: fonts.bodyLight,
   },
   bottom: { paddingBottom: 12, gap: 10 },
   nextBtn: {
@@ -98,6 +98,6 @@ const styles = StyleSheet.create({
     shadowColor: theme.primary, shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3, shadowRadius: 10, elevation: 5,
   },
-  nextBtnText: { color: theme.textPrimary, fontSize: 17, fontWeight: '700' },
-  skipLink: { color: theme.textDim, fontSize: 14, textAlign: 'center', paddingVertical: 4 },
+  nextBtnText: { color: theme.textPrimary, fontSize: 17, fontFamily: fonts.headlineBold },
+  skipLink: { color: theme.textDim, fontSize: 14, textAlign: 'center', paddingVertical: 4, fontFamily: fonts.bodyLight },
 });

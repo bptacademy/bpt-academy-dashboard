@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Volpair — Partnership Presentation</title>
+<style>
+  @page { size: 1280px 720px; margin: 0; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #060e1a; color: #F0F6FC; font-family: 'Helvetica Neue', Arial, sans-serif; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .nav { display: none !important; }
+  .slides { padding-top: 0; }
+  .slide { width: 1280px; height: 720px; min-height: unset; padding: 44px 80px; display: flex; flex-direction: column; justify-content: center; border-bottom: none; position: relative; page-break-after: always; break-after: page; page-break-inside: avoid; break-inside: avoid; overflow: hidden; }
+  .slide:nth-child(odd) { background: #0B1628; }
+  .slide:nth-child(even) { background: #0d1a2e; }
+  .slide-number { position: absolute; top: 20px; right: 28px; color: #1e3a52; font-size: 72px; font-weight: 900; line-height: 1; }
+  .slide-label { color: #00D4C8; font-size: 11px; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 20px; }
+
+  /* COVER */
+  .slide-cover { background: #0B1628 !important; align-items: center; text-align: center; }
+  .logo-text { font-size: 72px; font-weight: 900; color: #00D4C8; letter-spacing: 8px; margin-bottom: 16px; }
+  .tagline { font-size: 22px; color: #F0F6FC; font-weight: 300; margin-bottom: 32px; line-height: 1.5; }
+  .cover-sub { font-size: 14px; color: #7A8FA6; border-top: 1px solid #1a3a52; border-bottom: 1px solid #1a3a52; padding: 12px 40px; margin-bottom: 32px; letter-spacing: 1px; }
+  .cover-url { color: #00D4C8; font-size: 14px; letter-spacing: 2px; }
+  .cover-conf { color: #3a5a72; font-size: 12px; margin-top: 40px; }
+
+  /* TYPOGRAPHY */
+  h1 { font-size: 42px; font-weight: 900; line-height: 1.15; margin-bottom: 24px; }
+  h2 { font-size: 28px; font-weight: 700; color: #00D4C8; margin-bottom: 16px; margin-top: 40px; }
+  h3 { font-size: 20px; font-weight: 700; color: #F0F6FC; margin-bottom: 10px; margin-top: 24px; }
+  p { font-size: 17px; line-height: 1.7; color: #c0d0e0; margin-bottom: 16px; }
+  .highlight { color: #00D4C8; }
+  .muted { color: #7A8FA6; }
+
+  /* CALLOUT */
+  .callout { background: #00D4C8; color: #0B1628; padding: 24px 32px; border-radius: 8px; margin: 24px 0; font-size: 18px; font-weight: 600; line-height: 1.5; }
+  .callout-dark { background: rgba(0,212,200,0.08); border: 1px solid #00D4C8; color: #F0F6FC; padding: 24px 32px; border-radius: 8px; margin: 24px 0; font-size: 16px; line-height: 1.7; }
+
+  /* ARROW LIST */
+  .arrow-list { list-style: none; margin: 16px 0; }
+  .arrow-list li { padding: 8px 0 8px 28px; position: relative; font-size: 17px; color: #c0d0e0; line-height: 1.5; }
+  .arrow-list li::before { content: '→'; position: absolute; left: 0; color: #00D4C8; font-weight: bold; }
+
+  /* STATS GRID */
+  .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin: 32px 0; }
+  .stat-card { background: rgba(17,30,51,0.9); border: 1px solid #1a3a52; border-radius: 10px; padding: 28px 20px; text-align: center; }
+  .stat-number { font-size: 48px; font-weight: 900; color: #00D4C8; line-height: 1; margin-bottom: 8px; }
+  .stat-label { font-size: 13px; color: #7A8FA6; line-height: 1.4; }
+
+  /* SUPPORTING STATS */
+  .support-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 20px 0; }
+  .support-item { background: rgba(17,30,51,0.6); padding: 14px 18px; border-radius: 6px; font-size: 15px; color: #c0d0e0; }
+
+  /* TWO COLUMNS */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin: 24px 0; }
+  .two-col-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; margin: 24px 0; }
+
+  /* CARDS */
+  .card { background: rgba(17,30,51,0.85); border: 1px solid #1a3a52; border-radius: 10px; padding: 28px; }
+  .card-turquoise { border-left: 4px solid #00D4C8; }
+  .card-violet { border-left: 4px solid #7C3AED; }
+  .card-title { font-size: 16px; font-weight: 700; color: #F0F6FC; margin-bottom: 8px; }
+  .card-icon { font-size: 28px; margin-bottom: 12px; }
+  .card-body { font-size: 14px; color: #7A8FA6; line-height: 1.6; }
+
+  /* PLATFORM CARDS */
+  .platform-card { background: rgba(17,30,51,0.85); border-radius: 12px; padding: 28px; position: relative; overflow: hidden; }
+  .platform-card.phase1 { border: 2px solid #00D4C8; box-shadow: 0 0 20px rgba(0,212,200,0.15); }
+  .platform-card.phase2 { border: 2px solid #7C3AED; }
+  .platform-card.phase3 { border: 2px solid #2a4a62; }
+  .platform-name { font-size: 20px; font-weight: 900; margin-bottom: 4px; }
+  .platform-name.p1 { color: #00D4C8; }
+  .platform-name.p2 { color: #7C3AED; }
+  .platform-name.p3 { color: #7A8FA6; }
+  .platform-stat { font-size: 13px; color: #c0d0e0; padding: 4px 0; border-bottom: 1px solid #0d2035; }
+  .phase-badge { display: inline-block; padding: 5px 14px; border-radius: 20px; font-size: 11px; font-weight: 700; letter-spacing: 1px; margin-top: 16px; }
+  .phase-badge.p1 { background: #00D4C8; color: #0B1628; }
+  .phase-badge.p2 { background: #7C3AED; color: #fff; }
+  .phase-badge.p3 { background: #2a4a62; color: #7A8FA6; }
+  .platform-tagline { font-size: 13px; color: #7A8FA6; margin-top: 12px; font-style: italic; }
+
+  /* COMPARISON TABLE */
+  table { width: 100%; border-collapse: collapse; margin: 24px 0; font-size: 15px; }
+  th { background: #0d1f33; color: #7A8FA6; padding: 12px 16px; text-align: left; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; }
+  td { padding: 12px 16px; border-bottom: 1px solid #0d2035; color: #c0d0e0; }
+  tr.volpair-row td { background: rgba(0,212,200,0.08); color: #00D4C8; font-weight: 700; }
+  .tick { color: #00D4C8; font-weight: bold; }
+  .cross { color: #2a4a62; }
+  .partial { color: #7A8FA6; }
+
+  /* SCORE */
+  .score-row { display: flex; align-items: flex-start; padding: 14px 0; border-bottom: 1px solid #0d2035; }
+  .score-icon { font-size: 22px; width: 40px; flex-shrink: 0; }
+  .score-info { flex: 1; }
+  .score-label { font-size: 16px; font-weight: 700; color: #F0F6FC; }
+  .score-desc { font-size: 13px; color: #7A8FA6; margin-top: 2px; }
+  .score-pts { font-size: 20px; font-weight: 900; color: #00D4C8; width: 60px; text-align: right; flex-shrink: 0; }
+  .score-total { display: flex; justify-content: space-between; padding: 16px 0 0; font-size: 18px; font-weight: 900; color: #F0F6FC; border-top: 2px solid #00D4C8; margin-top: 8px; }
+
+  /* FEATURES GRID */
+  .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 24px 0; }
+  .feature-card { background: rgba(17,30,51,0.85); border: 1px solid #1a3a52; border-radius: 10px; padding: 22px; }
+  .feature-icon { font-size: 28px; margin-bottom: 10px; }
+  .feature-name { font-size: 14px; font-weight: 700; color: #F0F6FC; margin-bottom: 6px; }
+  .feature-desc { font-size: 13px; color: #7A8FA6; line-height: 1.5; }
+
+  /* CLUBS TABLE */
+  .problem-solution { display: grid; grid-template-columns: 1fr 1fr; gap: 0; margin: 24px 0; border: 1px solid #1a3a52; border-radius: 10px; overflow: hidden; }
+  .ps-col { padding: 0; }
+  .ps-header { padding: 14px 20px; font-size: 12px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; }
+  .ps-header.problem { background: #0d1a2e; color: #7A8FA6; }
+  .ps-header.solution { background: rgba(0,212,200,0.1); color: #00D4C8; }
+  .ps-row { padding: 14px 20px; font-size: 14px; line-height: 1.5; border-top: 1px solid #0d2035; }
+  .ps-row.problem { color: #7A8FA6; background: #0d1a2e; }
+  .ps-row.solution { color: #c0d0e0; background: rgba(0,212,200,0.04); }
+
+  /* FLOW */
+  .flow { display: flex; flex-direction: column; align-items: flex-start; margin: 24px 0; gap: 0; }
+  .flow-step { background: rgba(17,30,51,0.85); border: 1px solid #1a3a52; border-radius: 8px; padding: 14px 22px; font-size: 15px; color: #c0d0e0; }
+  .flow-arrow { color: #00D4C8; font-size: 20px; padding: 4px 22px; }
+
+  /* PHASE TIMELINE */
+  .phase-timeline { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; margin: 32px 0; border-radius: 10px; overflow: hidden; }
+  .phase-block { padding: 28px 24px; }
+  .phase-block.p1 { background: rgba(0,212,200,0.1); border: 2px solid #00D4C8; border-right: none; border-radius: 10px 0 0 10px; }
+  .phase-block.p2 { background: rgba(124,58,237,0.1); border: 2px solid #7C3AED; border-left: none; border-right: none; }
+  .phase-block.p3 { background: rgba(42,74,98,0.3); border: 2px solid #2a4a62; border-left: none; border-radius: 0 10px 10px 0; }
+  .phase-title { font-size: 12px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 6px; }
+  .phase-title.p1 { color: #00D4C8; }
+  .phase-title.p2 { color: #7C3AED; }
+  .phase-title.p3 { color: #7A8FA6; }
+  .phase-platform { font-size: 20px; font-weight: 900; color: #F0F6FC; margin-bottom: 8px; }
+  .phase-range { font-size: 13px; color: #7A8FA6; }
+
+  /* STATUS TABLE */
+  .status-table { width: 100%; border-collapse: collapse; margin: 24px 0; }
+  .status-table td { padding: 12px 16px; border-bottom: 1px solid #0d2035; font-size: 15px; }
+  .status-table td:first-child { color: #c0d0e0; }
+  .status-table td:last-child { text-align: right; font-weight: 600; }
+  .status-table tr.active td { background: rgba(0,212,200,0.05); }
+  .status-table tr.ask-row td { background: rgba(0,212,200,0.1); }
+  .status-table tr.future td { opacity: 0.5; }
+
+  /* ASK */
+  .ask-item { display: flex; gap: 16px; padding: 16px 0; border-bottom: 1px solid #0d2035; }
+  .ask-num { font-size: 28px; font-weight: 900; color: #00D4C8; width: 40px; flex-shrink: 0; }
+  .ask-content { font-size: 16px; color: #c0d0e0; line-height: 1.6; }
+  .benefit-row { display: flex; gap: 14px; padding: 14px 0; border-bottom: 1px solid #0d2035; align-items: flex-start; }
+  .benefit-icon { font-size: 22px; width: 36px; flex-shrink: 0; }
+  .benefit-title { font-size: 15px; font-weight: 700; color: #F0F6FC; }
+  .benefit-desc { font-size: 13px; color: #7A8FA6; margin-top: 2px; }
+  .swappable-badge { background: #7C3AED; color: #fff; font-size: 11px; font-weight: 700; letter-spacing: 1px; padding: 4px 12px; border-radius: 4px; display: inline-block; margin-bottom: 16px; }
+  .platform-version { border: 1px solid #1a3a52; border-radius: 10px; padding: 32px; margin-bottom: 24px; }
+  .platform-version.otc { border-color: #00D4C8; }
+  .platform-version.matchi { border-color: #7C3AED; }
+  .platform-version.playtomic { border-color: #2a4a62; }
+
+  /* TEAM */
+  .team-card { display: flex; gap: 24px; align-items: flex-start; background: rgba(17,30,51,0.85); border: 1px solid #1a3a52; border-radius: 10px; padding: 28px; margin-bottom: 16px; }
+  .team-photo { width: 72px; height: 72px; border-radius: 50%; background: #1a3a52; border: 2px solid #00D4C8; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: #00D4C8; font-size: 28px; }
+  .team-name { font-size: 20px; font-weight: 900; color: #F0F6FC; }
+  .team-title { font-size: 13px; color: #00D4C8; letter-spacing: 1px; margin-bottom: 10px; font-weight: 600; }
+  .team-bio { font-size: 14px; color: #7A8FA6; line-height: 1.6; }
+
+  /* CLOSING */
+  .slide-closing { background: #0B1628 !important; align-items: center; text-align: center; }
+  .closing-statement { font-size: 36px; font-weight: 900; line-height: 1.4; margin-bottom: 48px; }
+  .closing-turquoise { color: #00D4C8; }
+  .closing-contact { font-size: 15px; color: #7A8FA6; line-height: 2; border-top: 1px solid #1a3a52; border-bottom: 1px solid #1a3a52; padding: 20px 40px; margin-bottom: 40px; }
+  .closing-logo { font-size: 36px; font-weight: 900; color: #00D4C8; letter-spacing: 6px; }
+  .closing-footer { position: absolute; bottom: 20px; color: #1e3a52; font-size: 12px; }
+
+  /* PULL QUOTE */
+  .pull-quote { font-size: 24px; font-style: italic; color: #00D4C8; text-align: center; padding: 32px; border-top: 1px solid #1a3a52; border-bottom: 1px solid #1a3a52; margin: 32px 0; line-height: 1.5; }
+
+  /* BEFORE / AFTER */
+  .before-after { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 24px 0; }
+  .before-card { background: #0d1a2e; border: 1px solid #1a3a52; border-radius: 10px; padding: 24px; }
+  .after-card { background: rgba(0,212,200,0.07); border: 1px solid #00D4C8; border-radius: 10px; padding: 24px; }
+  .ba-label { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 12px; }
+  .before-card .ba-label { color: #7A8FA6; }
+  .after-card .ba-label { color: #00D4C8; }
+  .ba-text { font-size: 15px; color: #c0d0e0; line-height: 1.6; }
+
+  /* JOURNEY */
+  .journey-step { display: flex; gap: 20px; padding: 14px 0; border-bottom: 1px solid #0d2035; align-items: flex-start; }
+  .journey-num { font-size: 28px; font-weight: 900; color: #00D4C8; width: 36px; flex-shrink: 0; line-height: 1; }
+  .journey-text { font-size: 16px; color: #c0d0e0; line-height: 1.5; padding-top: 4px; }
+
+  /* SLIDE 15 — compact status table */
+  .slide-status .status-table { margin: 12px 0; }
+  .slide-status .status-table td { padding: 7px 14px; font-size: 13px; }
+  .slide-status h1 { font-size: 32px; margin-bottom: 10px; }
+  .slide-status .slide-label { margin-bottom: 8px; }
+  .slide-status .callout { padding: 14px 24px; font-size: 16px; margin: 10px 0 0; }
+
+  /* SLIDE 16 — compact ask slide */
+  .slide-ask { justify-content: flex-start; padding-top: 36px; padding-bottom: 28px; }
+  .slide-ask .swappable-badge { margin-bottom: 10px; }
+  .slide-ask .platform-version { padding: 18px 24px; margin-bottom: 0; }
+  .slide-ask .platform-version h2 { font-size: 16px; margin-top: 0; margin-bottom: 6px; }
+  .slide-ask .platform-version h1 { font-size: 20px; margin-bottom: 6px; }
+  .slide-ask .platform-version p { font-size: 13px; margin-bottom: 0; line-height: 1.4; }
+  .slide-ask .ask-item { padding: 7px 0; }
+  .slide-ask .ask-num { font-size: 20px; }
+  .slide-ask .ask-content { font-size: 13px; line-height: 1.4; }
+  .slide-ask h3 { font-size: 14px; margin-top: 10px; margin-bottom: 4px; }
+  .slide-ask .benefit-row { padding: 6px 0; }
+  .slide-ask .benefit-icon { font-size: 16px; width: 24px; }
+  .slide-ask .benefit-title { font-size: 13px; }
+  .slide-ask .benefit-desc { font-size: 12px; }
+  .slide-ask .callout-dark { padding: 12px 18px; font-size: 13px; line-height: 1.5; margin-top: 10px; }
+  .slide-ask .slide-label { margin-bottom: 6px; }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-title">VOLPAIR</div>
+  <div class="nav-counter">Partnership Presentation · Confidential · May 2026</div>
+</nav>
+
+<div class="slides">
+
+<!-- SLIDE 1 -->
+<div class="slide slide-cover">
+  <div class="slide-number">1</div>
+  <div class="logo-text">VOLPAIR</div>
+  <div class="tagline">Where the game starts.<br>Where connections happen.</div>
+  <div class="cover-sub">A partnership proposal for leading padel booking platforms</div>
+  <div class="cover-url">volpair.com &nbsp;·&nbsp; volpair.app</div>
+  <div class="cover-conf">Confidential — May 2026</div>
+</div>
+
+<!-- SLIDE 2 -->
+<div class="slide">
+  <div class="slide-number">2</div>
+  <div class="slide-label">The Problem</div>
+  <h1>Padel is one of the fastest ways<br>to meet someone new.<br>Nobody's built the app for that.</h1>
+  <p>Every week, millions of padel players share a court, share a moment, share a post-match drink — and then lose each other in the noise.</p>
+  <p>Booking platforms do one thing brilliantly: fill courts. But the moment the match ends, the social layer vanishes. There's no way to discover who else is out there — people you've never played with, who might be exactly your type, on and off the court.</p>
+  <ul class="arrow-list">
+    <li>No way to discover new people you've never played with, matched to you by real data</li>
+    <li>No way to find a compatible doubles partner based on actual play history and skill level</li>
+    <li>No way to turn a shared love of the sport into something more</li>
+  </ul>
+  <p style="margin-top:20px">Tinder, Bumble, Hinge? They match on stated preferences. A profile. A photo. A guess.</p>
+  <p><strong>Padel booking platforms already have the real data. It's sitting idle.</strong></p>
+  <div class="callout">Volpair activates it.</div>
+</div>
+
+<!-- SLIDE 3 -->
+<div class="slide">
+  <div class="slide-number">3</div>
+  <div class="slide-label">The Insight</div>
+  <h1>A 90-minute padel match is more intimate than most first dates.</h1>
+  <div class="two-col">
+    <div>
+      <p>When you play padel with someone, you:</p>
+      <ul class="arrow-list">
+        <li>🎾 &nbsp;See how they handle pressure</li>
+        <li>🤝 &nbsp;Experience how they communicate under stress</li>
+        <li>⚡ &nbsp;Feel whether there's real energy between you</li>
+        <li>😂 &nbsp;Share a post-match moment that breaks down barriers fast</li>
+      </ul>
+      <p style="margin-top:20px">That's more intimacy than most people achieve after three generic coffee dates.</p>
+    </div>
+    <div>
+      <div class="callout-dark" style="margin-top:0">
+        <p>Volpair uses your platform's real play data to surface the people most compatible with you — before you've even met them.</p>
+      </div>
+    </div>
+  </div>
+  <div class="pull-quote">"The sport is the vehicle.<br>Connection is the destination."</div>
+</div>
+
+<!-- SLIDE 4 -->
+<div class="slide">
+  <div class="slide-number">4</div>
+  <div class="slide-label">What Is Volpair?</div>
+  <h1>The first dating and social matching app built specifically for padel players.</h1>
+  <div class="two-col">
+    <div class="card card-turquoise">
+      <div class="card-icon">💘</div>
+      <div class="card-title">CONNECT MODE — Primary</div>
+      <div class="card-body">Discover players in your padel world — people you've never met, algorithmically matched to you by real play data. Mutual romantic signals only — nobody knows you're interested until they are too. No rejection. No awkwardness.</div>
+    </div>
+    <div class="card card-violet">
+      <div class="card-icon">🎾</div>
+      <div class="card-title">PLAY MODE — Secondary</div>
+      <div class="card-body">Find a compatible doubles partner for your next game. Matched by real skill level, availability patterns, and playing style — not self-reported preferences.</div>
+    </div>
+  </div>
+  <h3 style="margin-top:32px; color:#7A8FA6; font-size:13px; letter-spacing:2px; text-transform:uppercase;">The Core Loop</h3>
+  <div class="flow">
+    <div class="flow-step">Connect your booking platform</div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-step">Profile builds automatically from real match history</div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-step">Discover compatible players you've never played with</div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-step">Send a signal → Match → Start a conversation → Meet on court for the first time</div>
+  </div>
+  <p class="muted" style="margin-top:16px; font-size:14px;">Onboarding takes under 2 minutes. No forms. No manual entry. The profile builds itself.</p>
+</div>
+
+<!-- SLIDE 5 -->
+<div class="slide">
+  <div class="slide-number">5</div>
+  <div class="slide-label">The Market</div>
+  <h1>25 million reasons this matters.</h1>
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-number">25M+</div>
+      <div class="stat-label">Active padel players worldwide<br><span style="color:#3a5a72">FIP, 2023</span></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number">€2BN</div>
+      <div class="stat-label">Global padel market value<br><span style="color:#3a5a72">2023</span></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number">84,000</div>
+      <div class="stat-label">Courts projected by 2026<br><span style="color:#3a5a72">Deloitte</span></div>
+    </div>
+  </div>
+  <div class="support-grid">
+    <div class="support-item">🌍 &nbsp;90+ countries with active padel</div>
+    <div class="support-item">🇬🇧 &nbsp;UK: fastest-growing market in Europe</div>
+    <div class="support-item">🏅 &nbsp;2032 Olympic inclusion targeted</div>
+    <div class="support-item">💘 &nbsp;$6B+ global dating app revenue (2025)</div>
+    <div class="support-item">📱 &nbsp;350M+ people use dating apps worldwide</div>
+    <div class="support-item">🎾 &nbsp;Padel players: high income, socially active</div>
+  </div>
+  <div class="callout">Padel is not a niche anymore. It is a global phenomenon — and it has no social or dating layer. That gap is Volpair.</div>
+</div>
+
+<!-- SLIDE 6 -->
+<div class="slide">
+  <div class="slide-number">6</div>
+  <div class="slide-label">Our Partners</div>
+  <h1>Three platforms. Three phases.<br>One growing community.</h1>
+  <p class="muted">Volpair is built on top of the world's leading padel booking platforms — starting with the most community-focused and scaling to the largest.</p>
+  <div class="two-col-3">
+    <div class="platform-card phase1">
+      <div class="platform-name p1">ON THE COURT</div>
+      <div style="font-size:12px; color:#7A8FA6; margin-bottom:14px;">Manchester, UK &nbsp;·&nbsp; Founded 2025</div>
+      <div class="platform-stat">🇬🇧 UK padel club focus</div>
+      <div class="platform-stat">🛠 Bookings, memberships,<br>&nbsp;&nbsp;&nbsp;&nbsp;coaching, events</div>
+      <div class="platform-stat">🤝 Community-first positioning</div>
+      <div class="phase-badge p1">PHASE 1 — Launch Partner</div>
+      <div class="platform-tagline">The right scale to test, learn, and prove the model.</div>
+    </div>
+    <div class="platform-card phase2">
+      <div class="platform-name p2">MATCHI</div>
+      <div style="font-size:12px; color:#7A8FA6; margin-bottom:14px;">Gothenburg, Sweden &nbsp;·&nbsp; Founded 2012</div>
+      <div class="platform-stat">🕐 10+ years racket sports tech</div>
+      <div class="platform-stat">🌍 Scandinavia, Germany + Europe</div>
+      <div class="platform-stat">🎾 Padel, tennis, badminton,<br>&nbsp;&nbsp;&nbsp;&nbsp;pickleball, squash</div>
+      <div class="phase-badge p2">PHASE 2 — Nordic Expansion</div>
+      <div class="platform-tagline">10+ years of tech, multiple markets, ready to scale.</div>
+    </div>
+    <div class="platform-card phase3">
+      <div class="platform-name p3">PLAYTOMIC</div>
+      <div style="font-size:12px; color:#7A8FA6; margin-bottom:14px;">Madrid, Spain &nbsp;·&nbsp; Founded 2017</div>
+      <div class="platform-stat">🌍 60+ countries</div>
+      <div class="platform-stat">🏟 6,000+ partner clubs</div>
+      <div class="platform-stat">🎾 22,000+ courts</div>
+      <div class="platform-stat">👤 3.1M+ registered players</div>
+      <div class="phase-badge p3">PHASE 3 — Global Scale</div>
+      <div class="platform-tagline">The global leader — 3.1M players waiting for this product.</div>
+    </div>
+  </div>
+  <p class="muted" style="font-size:12px; margin-top:8px;">Sources: LinkedIn company pages, Playtomic.com, Matchi.se</p>
+</div>
+
+<!-- SLIDE 7 -->
+<div class="slide">
+  <div class="slide-number">7</div>
+  <div class="slide-label">Competitive Landscape</div>
+  <h1>No one is doing what Volpair does.<br>The space is completely open.</h1>
+  <table>
+    <thead>
+      <tr><th>App</th><th>Padel Focus</th><th>Dating Layer</th><th>Real Match Data</th><th>Court History</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Tinder</td><td class="cross">✗</td><td class="tick">✓</td><td class="cross">✗</td><td class="cross">✗</td></tr>
+      <tr><td>Bumble</td><td class="cross">✗</td><td class="tick">✓</td><td class="cross">✗</td><td class="cross">✗</td></tr>
+      <tr><td>Hinge</td><td class="cross">✗</td><td class="tick">✓</td><td class="partial">Partial</td><td class="cross">✗</td></tr>
+      <tr><td>Playtomic</td><td class="tick">✓</td><td class="cross">✗</td><td class="partial">Booking only</td><td class="tick">✓</td></tr>
+      <tr><td>Matchi</td><td class="tick">✓</td><td class="cross">✗</td><td class="partial">Booking only</td><td class="tick">✓</td></tr>
+      <tr><td>On The Court</td><td class="tick">✓</td><td class="cross">✗</td><td class="partial">Booking only</td><td class="tick">✓</td></tr>
+      <tr class="volpair-row"><td><strong>VOLPAIR</strong></td><td>✓ Padel-first</td><td>✓ Core feature</td><td>✓ Proprietary</td><td>✓ Foundation</td></tr>
+    </tbody>
+  </table>
+  <div class="callout-dark">
+    <p>Booking platforms capture the data. <strong>Volpair is the social layer that activates it.</strong></p>
+    <p style="margin-top:10px">We are not a competitor to any booking platform. We are the product that makes your users stickier, happier, and more likely to book more courts.</p>
+  </div>
+</div>
+
+<!-- SLIDE 8 -->
+<div class="slide">
+  <div class="slide-number">8</div>
+  <div class="slide-label">The Volpair Score</div>
+  <h1>Our proprietary compatibility engine.<br>Built entirely from court behaviour.</h1>
+  <p class="muted">Calculated automatically from real match history. No questionnaires. No self-reporting. Pure behavioural data.</p>
+  <div class="score-row"><div class="score-icon">⚡</div><div class="score-info"><div class="score-label">Skill compatibility</div><div class="score-desc">Level delta — you want challenge, not mismatch</div></div><div class="score-pts">25 pts</div></div>
+  <div class="score-row"><div class="score-icon">🎭</div><div class="score-info"><div class="score-label">Play style match</div><div class="score-desc">Aggressive vs defensive, net vs baseline</div></div><div class="score-pts">20 pts</div></div>
+  <div class="score-row"><div class="score-icon">📅</div><div class="score-info"><div class="score-label">Availability overlap</div><div class="score-desc">Morning/evening, weekday/weekend patterns</div></div><div class="score-pts">20 pts</div></div>
+  <div class="score-row"><div class="score-icon">📍</div><div class="score-info"><div class="score-label">Location proximity</div><div class="score-desc">Distance between home areas</div></div><div class="score-pts">15 pts</div></div>
+  <div class="score-row"><div class="score-icon">🔥</div><div class="score-info"><div class="score-label">Court chemistry</div><div class="score-desc">Times played together + post-match responses</div></div><div class="score-pts">10 pts</div></div>
+  <div class="score-row"><div class="score-icon">🌐</div><div class="score-info"><div class="score-label">Social proximity</div><div class="score-desc">Shared padel connections and mutual players</div></div><div class="score-pts">10 pts</div></div>
+  <div class="score-total"><span>TOTAL</span><span>100 pts</span></div>
+  <div class="callout" style="margin-top:24px">This quality of compatibility signal doesn't exist on any dating app in the world.</div>
+</div>
+
+<!-- SLIDE 9 -->
+<div class="slide">
+  <div class="slide-number">9</div>
+  <div class="slide-label">Key Features</div>
+  <h1>Built for padel players.<br>Not repurposed from elsewhere.</h1>
+  <div class="features-grid">
+    <div class="feature-card"><div class="feature-icon">💘</div><div class="feature-name">VOLLEY</div><div class="feature-desc">Invisible mutual romantic signal. Fires only when both people send one. Zero rejection by design.</div></div>
+    <div class="feature-card"><div class="feature-icon">🎾</div><div class="feature-name">SERVE</div><div class="feature-desc">Structured first message. Replaces the blank chat box. Ends ghosting by design.</div></div>
+    <div class="feature-card"><div class="feature-icon">📡</div><div class="feature-name">RADAR</div><div class="feature-desc">Live spatial view of nearby opted-in players plotted by real bearing and distance.</div></div>
+    <div class="feature-card"><div class="feature-icon">🎯</div><div class="feature-name">FIND A PARTNER</div><div class="feature-desc">Algorithmic discovery filtered by level, intent, and Volpair Score. Quality over quantity.</div></div>
+    <div class="feature-card"><div class="feature-icon">📅</div><div class="feature-name">POST-MATCH PROMPT</div><div class="feature-desc">24h after a game: "Want to connect with anyone you played with?" Catches the moment.</div></div>
+    <div class="feature-card"><div class="feature-icon">🏠</div><div class="feature-name">HOME CLUB</div><div class="feature-desc">Link your home court. Builds local community and loyalty around specific venues.</div></div>
+    <div class="feature-card"><div class="feature-icon">📊</div><div class="feature-name">STATS PROFILE</div><div class="feature-desc">Win rate, level badge, play style, top clubs — all from real booking data. Instant credibility.</div></div>
+    <div class="feature-card"><div class="feature-icon">👥</div><div class="feature-name">MUTUAL NETWORK</div><div class="feature-desc">"3 players you know also played with them" — social proof before you even connect.</div></div>
+    <div class="feature-card"><div class="feature-icon">🏟️</div><div class="feature-name">OPEN COURTS</div><div class="feature-desc">Browse open matches available on partner platforms — Playtomic, Matchi, and On The Court — and join directly through Volpair.</div></div>
+  </div>
+</div>
+
+<!-- SLIDE 10 -->
+<div class="slide">
+  <div class="slide-number">10</div>
+  <div class="slide-label">Club Benefits</div>
+  <h1>Your clubs benefit too —<br>and that matters to your platform.</h1>
+  <p>Volpair doesn't just benefit booking platforms. Every club whose players use Volpair becomes a more valuable, more social, more connected venue.</p>
+  <div class="problem-solution">
+    <div class="ps-col">
+      <div class="ps-header problem">The Club's Challenge</div>
+      <div class="ps-row problem">Players book a court, play, leave. No reason to come back beyond sport.</div>
+      <div class="ps-row problem">Courts go unfilled in off-peak slots.</div>
+      <div class="ps-row problem">Players drift between clubs. No emotional connection to the venue.</div>
+      <div class="ps-row problem">Clubs have no insight into their social community.</div>
+      <div class="ps-row problem">New members find it hard to break into established groups.</div>
+      <div class="ps-row problem">Club events get low visibility outside regulars.</div>
+    </div>
+    <div class="ps-col">
+      <div class="ps-header solution">What Volpair Changes</div>
+      <div class="ps-row solution">Players return more often — their social life is here too.</div>
+      <div class="ps-row solution">Open Courts fills gaps — players post availability, others join.</div>
+      <div class="ps-row solution">Home Club creates loyalty — "my club" becomes part of identity.</div>
+      <div class="ps-row solution">Partner clubs get aggregated data: busiest times, most active pairs.</div>
+      <div class="ps-row solution">Volpair connects newcomers to established players automatically.</div>
+      <div class="ps-row solution">Volpair promotes club events to matched players — targeted, local.</div>
+    </div>
+  </div>
+  <div class="callout">A padel player with an active social life at a club books 2–3× more courts per month than one without. Volpair makes every club's courts more social — and that drives bookings for your platform.</div>
+</div>
+
+<!-- SLIDE 11 -->
+<div class="slide">
+  <div class="slide-number">11</div>
+  <div class="slide-label">The Partnership Model</div>
+  <h1>How this works with your platform.</h1>
+  <div class="two-col">
+    <div>
+      <h3>What we ask from you</h3>
+      <div class="ask-item"><div class="ask-num">1</div><div class="ask-content">API access to player match history, skill levels, and booking data</div></div>
+      <div class="ask-item"><div class="ask-num">2</div><div class="ask-content">A data partnership agreement — GDPR-compliant, user-consented, scoped to padel activity only</div></div>
+      <div class="ask-item"><div class="ask-num">3</div><div class="ask-content">Optional: co-marketing to your user base</div></div>
+      <p class="muted" style="font-size:13px; margin-top:16px">User consent is built into the onboarding flow. No data collected without active, informed consent.</p>
+    </div>
+    <div>
+      <h3>What you get in return</h3>
+      <div class="benefit-row"><div class="benefit-icon">📈</div><div><div class="benefit-title">More bookings</div><div class="benefit-desc">Volpair matches lead directly to court bookings.</div></div></div>
+      <div class="benefit-row"><div class="benefit-icon">🔒</div><div><div class="benefit-title">User retention</div><div class="benefit-desc">Players with a social layer stay on your platform longer.</div></div></div>
+      <div class="benefit-row"><div class="benefit-icon">✨</div><div><div class="benefit-title">Product differentiation</div><div class="benefit-desc">The only booking platform powering a dating experience.</div></div></div>
+      <div class="benefit-row"><div class="benefit-icon">📣</div><div><div class="benefit-title">Co-marketing reach</div><div class="benefit-desc">Volpair promotes your platform to every user.</div></div></div>
+      <div class="benefit-row"><div class="benefit-icon">📊</div><div><div class="benefit-title">Aggregated insights</div><div class="benefit-desc">Anonymous play patterns from your user base.</div></div></div>
+      <div class="benefit-row"><div class="benefit-icon">💰</div><div><div class="benefit-title">Revenue share</div><div class="benefit-desc">% of premium subscriptions from your users.</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 12 -->
+<div class="slide">
+  <div class="slide-number">12</div>
+  <div class="slide-label">Partnership Strategy</div>
+  <h1>We're building this deliberately.<br>Starting small. Proving it. Scaling it.</h1>
+  <p class="muted">This is not a platform-first model. We grow with our partners, not ahead of them.</p>
+  <div class="phase-timeline">
+    <div class="phase-block p1">
+      <div class="phase-title p1">Phase 1 — Now</div>
+      <div class="phase-platform">On The Court</div>
+      <div class="phase-range">0 → 500 active paying users</div>
+      <br>
+      <ul class="arrow-list" style="font-size:13px">
+        <li>Exclusive first-mover status</li>
+        <li>Priority API integration support</li>
+        <li>Direct product input</li>
+        <li>Dedicated success reporting</li>
+      </ul>
+    </div>
+    <div class="phase-block p2">
+      <div class="phase-title p2">Phase 2 — Next</div>
+      <div class="phase-platform">Matchi</div>
+      <div class="phase-range">500 → 3,000–5,000 users</div>
+      <br>
+      <ul class="arrow-list" style="font-size:13px">
+        <li>Proven integration model</li>
+        <li>Real user testimonials</li>
+        <li>Cross-platform matching begins</li>
+        <li>Nordic + German markets</li>
+      </ul>
+    </div>
+    <div class="phase-block p3">
+      <div class="phase-title p3">Phase 3 — Future</div>
+      <div class="phase-platform">Playtomic</div>
+      <div class="phase-range">3,000–5,000+ → global scale</div>
+      <br>
+      <ul class="arrow-list" style="font-size:13px">
+        <li>Battle-tested across 2 platforms</li>
+        <li>Proven: Volpair drives bookings</li>
+        <li>Real traction + leverage</li>
+        <li>Joint global go-to-market</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 13 -->
+<div class="slide">
+  <div class="slide-number">13</div>
+  <div class="slide-label">Technical Integration</div>
+  <h1>Straightforward. Secure. User-consented.</h1>
+  <div class="two-col">
+    <div>
+      <h3>How the data flow works</h3>
+      <div class="flow">
+        <div class="flow-step">User opens Volpair</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-step">Taps "Connect with [Platform]"</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-step">Authorises via OAuth / credential flow</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-step">Volpair Edge Function pulls match history<br><span style="font-size:12px; color:#7A8FA6">Server-side only — credentials never touch client</span></div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-step">Profile builds automatically (5–7 seconds)</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-step">User is live — match history active in Volpair</div>
+      </div>
+    </div>
+    <div>
+      <h3>What we request</h3>
+      <ul class="arrow-list">
+        <li>Match history (date, club, result, partners)</li>
+        <li>Skill level + level confidence score</li>
+        <li>Booking frequency and timing patterns</li>
+        <li>Club affiliations</li>
+      </ul>
+      <h3 style="margin-top:24px">What we do NOT request</h3>
+      <ul class="arrow-list" style="color:#7A8FA6">
+        <li>Payment information</li>
+        <li>Personal contact details beyond name</li>
+        <li>Any data outside padel activity</li>
+      </ul>
+      <div class="callout-dark" style="margin-top:24px; font-size:13px">
+        Built on Supabase + React Native · All data encrypted at rest and in transit · GDPR-compliant by design · User deletion on request
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 14 -->
+<div class="slide">
+  <div class="slide-number">14</div>
+  <div class="slide-label">User Experience</div>
+  <h1>The journey — from booking to connection.</h1>
+  <div class="before-after">
+    <div class="before-card">
+      <div class="ba-label">Before Volpair</div>
+      <div class="ba-text">User books a court, plays a great game, match ends. No way to find compatible people they haven't met yet. The opportunity disappears.</div>
+    </div>
+    <div class="after-card">
+      <div class="ba-label">With Volpair</div>
+      <div class="ba-text">User books a court, plays a great game — and Volpair is already surfacing people who match their profile, playing style, and availability. The sport becomes the start of something more.</div>
+    </div>
+  </div>
+  <div class="journey-step"><div class="journey-num">1</div><div class="journey-text">Downloads Volpair. Connects their [Platform] account in 30 seconds.</div></div>
+  <div class="journey-step"><div class="journey-num">2</div><div class="journey-text">Profile builds automatically from real match history — skill level, win rate, top clubs, play style.</div></div>
+  <div class="journey-step"><div class="journey-num">3</div><div class="journey-text">Answers 4 quick questions: city · intent · visibility · one-liner bio</div></div>
+  <div class="journey-step"><div class="journey-num">4</div><div class="journey-text">Immediately discovers compatible players — algorithm-matched, never met before, same padel world.</div></div>
+  <div class="journey-step"><div class="journey-num">5</div><div class="journey-text">Sends a Volley → Gets matched → Starts a conversation → Meet on court for the first time.</div></div>
+  <div class="journey-step"><div class="journey-num">6</div><div class="journey-text">24h after every game: "Want to connect with anyone you played with?" — the loop continues.</div></div>
+  <div class="callout" style="margin-top:24px">More games = more data = better matches = more Volpair activity = more courts booked. The loop is self-reinforcing.</div>
+</div>
+
+<!-- SLIDE 15 — compact layout -->
+<div class="slide slide-status">
+  <div class="slide-number">15</div>
+  <div class="slide-label">Current Status</div>
+  <h1>This isn't a concept. It's a working product.</h1>
+  <table class="status-table">
+    <tbody>
+      <tr><td>Brand & name secured</td><td class="tick">✅ Volpair</td></tr>
+      <tr><td>Domains</td><td class="tick">✅ volpair.com + volpair.app</td></tr>
+      <tr><td>Trademark clear worldwide</td><td class="tick">✅ Filing pending</td></tr>
+      <tr><td>MVP built</td><td class="tick">✅ 30+ screens, all core flows</td></tr>
+      <tr><td>Backend (Supabase)</td><td class="tick">✅ LIVE</td></tr>
+      <tr><td>Playtomic API sync</td><td class="tick">✅ Working — used for internal testing</td></tr>
+      <tr><td>Volpair Score engine</td><td class="tick">✅ Live and calculating</td></tr>
+      <tr><td>Radar spatial discovery</td><td class="tick">✅ Built</td></tr>
+      <tr><td>Find a Partner algorithm</td><td class="tick">✅ Built</td></tr>
+      <tr class="active"><td>Pre-launch beta</td><td style="color:#00D4C8">🔄 In progress</td></tr>
+      <tr class="ask-row"><td><strong>On The Court integration</strong></td><td style="color:#00D4C8">🤝 <strong>Proposed — this conversation</strong></td></tr>
+      <tr class="future"><td>Matchi integration</td><td class="muted">📋 Phase 2</td></tr>
+      <tr class="future"><td>Playtomic formal partnership</td><td class="muted">📋 Phase 3</td></tr>
+      <tr class="future"><td>iOS App Store</td><td class="muted">📋 In progress</td></tr>
+      <tr class="future"><td>Google Play</td><td class="muted">📋 In progress</td></tr>
+    </tbody>
+  </table>
+  <div class="callout">The product is built. The backend is live. We are ready to integrate and launch.</div>
+</div>
+
+<!-- SLIDE 16 — compact ask layout -->
+<div class="slide slide-ask">
+  <div class="slide-number">16</div>
+  <div class="slide-label">The Ask</div>
+  <div class="swappable-badge">⚠️ SWAPPABLE SLIDE — ONE VERSION PER PLATFORM</div>
+
+  <div class="platform-version otc">
+    <h2 style="margin-top:0">Version A — On The Court</h2>
+    <h1 style="font-size:20px; margin-bottom:6px;">What we're proposing — to On The Court.</h1>
+    <p style="font-size:13px; margin-bottom:4px;">We're approaching On The Court as our <strong>founding platform partner</strong>.</p>
+    <div class="ask-item"><div class="ask-num">1</div><div class="ask-content">API access to player match history and profile data (with user consent flow)</div></div>
+    <div class="ask-item"><div class="ask-num">2</div><div class="ask-content">A data partnership agreement — GDPR-compliant, scoped to padel activity only</div></div>
+    <div class="ask-item"><div class="ask-num">3</div><div class="ask-content">Optional: co-marketing to your UK user base</div></div>
+    <h3 style="margin-top:10px; margin-bottom:4px;">What On The Court gets</h3>
+    <div class="benefit-row"><div class="benefit-icon">✦</div><div><div class="benefit-title">Exclusive Phase 1 launch partner status</div><div class="benefit-desc">First and only platform integrated during the UK launch phase</div></div></div>
+    <div class="benefit-row"><div class="benefit-icon">✦</div><div><div class="benefit-title">Direct product collaboration</div><div class="benefit-desc">Your feedback directly shapes the product roadmap throughout Phase 1</div></div></div>
+    <div class="benefit-row"><div class="benefit-icon">✦</div><div><div class="benefit-title">First access to engagement and booking uplift data</div><div class="benefit-desc">See exactly how Volpair drives court bookings for your clubs</div></div></div>
+    <div class="benefit-row"><div class="benefit-icon">✦</div><div><div class="benefit-title">Co-marketing across Volpair's growing user base</div><div class="benefit-desc">Your platform promoted to every Volpair user in the UK</div></div></div>
+    <div class="benefit-row"><div class="benefit-icon">✦</div><div><div class="benefit-title">Revenue share — 20% of all premium subscriptions from your users</div></div></div>
+    <div class="callout-dark">This is low risk and low lift. We handle all the engineering. We handle all the user experience. You provide API access — and your users get a social layer no other booking platform offers.</div>
+  </div>
+</div>
+
+<!-- SLIDE 17 -->
+<div class="slide">
+  <div class="slide-number">17</div>
+  <div class="slide-label">The Team</div>
+  <h1>Built by people who know sport,<br>business, and how to scale both.</h1>
+  <div class="team-card">
+    <div class="team-photo">A</div>
+    <div>
+      <div class="team-name">Aimee Lawson</div>
+      <div class="team-title">CHIEF EXECUTIVE OFFICER</div>
+      <div class="team-bio">20+ years in marketing and communications, with a career spanning adidas, Google, Samsung, Microsoft, and Jaguar Land Rover. Founder of Eutopia (Manchester) and co-founder of Déité. Now focused on commercialising brands, athletes, and opportunities in emerging sport — with a deep focus on padel. Aimee brings the commercial infrastructure, brand expertise, and industry relationships to take Volpair from product to market leader.</div>
+    </div>
+  </div>
+  <div class="team-card">
+    <div class="team-photo">C</div>
+    <div>
+      <div class="team-name">Catherine Morgans</div>
+      <div class="team-title">CHIEF OPERATING OFFICER</div>
+      <div class="team-bio">Seasoned executive with extensive experience in HR, organisational development, and large-scale business transformation across public and private sectors. A Board-level operator with a track record of delivering complex change programmes in healthcare, government, and commercial environments. Catherine brings the operational rigour, stakeholder management, and strategic execution capability that turns a strong product into a scalable business.</div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 18 — Revenue Share -->
+<div class="slide">
+  <div class="slide-number">18</div>
+  <div class="slide-label">Revenue Share Model</div>
+  <h1>A commercial model that grows<br>as our shared community grows.</h1>
+  <p class="muted">Volpair premium is priced at <strong style="color:#F0F6FC">£19.97 / €19.97 / $19.97 per month</strong>. A meaningful price point that reflects a premium product — and generates real returns for our platform partners.</p>
+
+  <div class="two-col-3" style="margin-top:28px">
+    <div class="platform-card phase1" style="text-align:center">
+      <div class="phase-badge p1" style="margin-bottom:16px; margin-top:0">PHASE 1 — On The Court</div>
+      <div style="font-size:56px; font-weight:900; color:#00D4C8; line-height:1">20%</div>
+      <div style="font-size:13px; color:#7A8FA6; margin:8px 0 20px">Founding partner rate</div>
+      <div style="border-top:1px solid #1a3a52; padding-top:16px">
+        <div style="font-size:12px; color:#7A8FA6; margin-bottom:8px; text-transform:uppercase; letter-spacing:1px">Example returns</div>
+        <div style="font-size:14px; color:#c0d0e0; line-height:2">
+          100 users → <strong style="color:#00D4C8">£399 / €399 / $399</strong>/mo<br>
+          300 users → <strong style="color:#00D4C8">£1,198 / €1,198 / $1,198</strong>/mo<br>
+          500 users → <strong style="color:#00D4C8">£1,997 / €1,997 / $1,997</strong>/mo
+        </div>
+      </div>
+    </div>
+    <div class="platform-card phase2" style="text-align:center">
+      <div class="phase-badge p2" style="margin-bottom:16px; margin-top:0">PHASE 2 — Matchi</div>
+      <div style="font-size:56px; font-weight:900; color:#7C3AED; line-height:1">15%</div>
+      <div style="font-size:13px; color:#7A8FA6; margin:8px 0 20px">Phase 2 strategic rate</div>
+      <div style="border-top:1px solid #1a3a52; padding-top:16px">
+        <div style="font-size:12px; color:#7A8FA6; margin-bottom:8px; text-transform:uppercase; letter-spacing:1px">Example returns</div>
+        <div style="font-size:14px; color:#c0d0e0; line-height:2">
+          500 users → <strong style="color:#7C3AED">£1,498 / €1,498 / $1,498</strong>/mo<br>
+          1,500 users → <strong style="color:#7C3AED">£4,493 / €4,493 / $4,493</strong>/mo<br>
+          3,000 users → <strong style="color:#7C3AED">£8,987 / €8,987 / $8,987</strong>/mo
+        </div>
+      </div>
+    </div>
+    <div class="platform-card phase3" style="text-align:center">
+      <div class="phase-badge p3" style="margin-bottom:16px; margin-top:0">PHASE 3 — Playtomic</div>
+      <div style="font-size:56px; font-weight:900; color:#7A8FA6; line-height:1">10%</div>
+      <div style="font-size:13px; color:#7A8FA6; margin:8px 0 20px">Global scale rate</div>
+      <div style="border-top:1px solid #1a3a52; padding-top:16px">
+        <div style="font-size:12px; color:#7A8FA6; margin-bottom:8px; text-transform:uppercase; letter-spacing:1px">Example returns</div>
+        <div style="font-size:14px; color:#c0d0e0; line-height:2">
+          1,000 users → <strong style="color:#F0F6FC">£1,997 / €1,997 / $1,997</strong>/mo<br>
+          10,000 users → <strong style="color:#F0F6FC">£19,970 / €19,970 / $19,970</strong>/mo<br>
+          50,000 users → <strong style="color:#F0F6FC">£99,850 / €99,850 / $99,850</strong>/mo
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout-dark" style="margin-top:28px">
+    <strong style="color:#00D4C8; display:block; margin-bottom:10px; font-size:15px; letter-spacing:1px; text-transform:uppercase">Attribution Rule — Simple & Fair</strong>
+    Revenue share is tied to the booking platform a user is <strong>actively connected to</strong> at the time of payment. If a user switches platforms, the revenue follows — the new platform earns, the previous one stops. No windows. No disputes. No ambiguity.
+  </div>
+
+  <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-top:20px">
+    <div class="card" style="font-size:13px; color:#7A8FA6; text-align:center">
+      <div style="font-size:22px; margin-bottom:8px">📅</div>
+      <strong style="color:#F0F6FC; display:block; margin-bottom:4px">Paid monthly</strong>
+      Revenue paid in arrears, every month, with a full breakdown report
+    </div>
+    <div class="card" style="font-size:13px; color:#7A8FA6; text-align:center">
+      <div style="font-size:22px; margin-bottom:8px">📊</div>
+      <strong style="color:#F0F6FC; display:block; margin-bottom:4px">Full transparency</strong>
+      Partners get a live dashboard showing active users, revenue, and attribution
+    </div>
+    <div class="card" style="font-size:13px; color:#7A8FA6; text-align:center">
+      <div style="font-size:22px; margin-bottom:8px">🔗</div>
+      <strong style="color:#F0F6FC; display:block; margin-bottom:4px">Tied to API agreement</strong>
+      Revenue share is active for the duration of the active platform partnership
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 19 -->
+<div class="slide slide-closing">
+  <div class="slide-number">19</div>
+  <div class="closing-statement">
+    25 million padel players.<br>
+    Zero dedicated social or dating apps.<br><br>
+    <span class="closing-turquoise">Your data makes it possible.</span><br><br>
+    Let's build it together.
+  </div>
+  <div class="closing-contact">
+    Aimee Lawson — CEO, Volpair<br>
+    Catherine Morgans — COO, Volpair<br>
+    volpair.com &nbsp;·&nbsp; volpair.app
+  </div>
+  <div class="closing-logo">VOLPAIR</div>
+  <div class="closing-footer">Confidential — May 2026 &nbsp;·&nbsp; volpair.com &nbsp;·&nbsp; volpair.app</div>
+</div>
+
+</div>
+</body>
+</html>

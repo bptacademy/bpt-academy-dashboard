@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, StatusBar } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { theme } from '../../lib/theme';
+import { theme, fonts } from '../../lib/theme';
 import OnboardingProgress from '../../components/common/OnboardingProgress';
 
 const OPTIONS = [
@@ -70,8 +70,8 @@ export default function Question3VisibilityScreen({ route, navigation }: any) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: theme.bg, paddingHorizontal: 24 },
   inner: { flex: 1, paddingTop: 24 },
-  question: { fontSize: 26, fontWeight: '800', color: theme.textPrimary, marginBottom: 8 },
-  subtitle: { fontSize: 15, color: theme.textMuted, marginBottom: 28, lineHeight: 22 },
+  question: { fontSize: 26, fontFamily: fonts.headlineBold, color: theme.textPrimary, marginBottom: 8 },
+  subtitle: { fontSize: 15, color: theme.textMuted, marginBottom: 28, lineHeight: 22, fontFamily: fonts.bodyLight },
   optionsList: { gap: 10 },
   optionCard: {
     flexDirection: 'row', alignItems: 'center', gap: 14,
@@ -81,9 +81,9 @@ const styles = StyleSheet.create({
   optionCardActive: { borderColor: theme.primary, backgroundColor: 'rgba(230,63,107,0.06)' },
   optionEmoji: { fontSize: 26, width: 36, textAlign: 'center' },
   optionText: { flex: 1 },
-  optionLabel: { fontSize: 16, fontWeight: '700', color: theme.textPrimary, marginBottom: 2 },
+  optionLabel: { fontSize: 16, fontFamily: fonts.bodyBold, color: theme.textPrimary, marginBottom: 2 },
   optionLabelActive: { color: theme.primary },
-  optionDesc: { fontSize: 13, color: theme.textMuted },
+  optionDesc: { fontSize: 13, color: theme.textMuted, fontFamily: fonts.bodyLight },
   radio: {
     width: 22, height: 22, borderRadius: 11,
     borderWidth: 2, borderColor: theme.textDim,
@@ -98,5 +98,5 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3, shadowRadius: 10, elevation: 5,
   },
   nextBtnDisabled: { opacity: 0.4 },
-  nextBtnText: { color: theme.textPrimary, fontSize: 17, fontWeight: '700' },
+  nextBtnText: { color: theme.textPrimary, fontSize: 17, fontFamily: fonts.headlineBold },
 });

@@ -4,7 +4,7 @@ import {
   ActivityIndicator, Image,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { theme } from '../../lib/theme';
+import { theme, fonts } from '../../lib/theme';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { notifyVolley } from '../../lib/notifications';
@@ -286,15 +286,15 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: theme.bg, paddingHorizontal: 20 },
   centered: { alignItems: 'center', justifyContent: 'center' },
 
-  loadingText: { marginTop: 14, fontSize: 14, color: theme.textMuted },
+  loadingText: { marginTop: 14, fontSize: 14, color: theme.textMuted, fontFamily: fonts.bodyLight },
 
   emptyEmoji: { fontSize: 56, marginBottom: 16 },
-  emptyTitle: { fontSize: 20, fontWeight: '800', color: theme.textPrimary, marginBottom: 8 },
-  emptyBody: { fontSize: 14, color: theme.textMuted, textAlign: 'center', lineHeight: 22, paddingHorizontal: 24, marginBottom: 32 },
+  emptyTitle: { fontSize: 20, fontFamily: fonts.headlineBold, color: theme.textPrimary, marginBottom: 8 },
+  emptyBody: { fontSize: 14, color: theme.textMuted, textAlign: 'center', lineHeight: 22, paddingHorizontal: 24, marginBottom: 32, fontFamily: fonts.bodyLight },
 
   header: { paddingTop: 24, paddingBottom: 16 },
-  title: { fontSize: 22, fontWeight: '800', color: theme.textPrimary, marginBottom: 6 },
-  subtitle: { fontSize: 15, color: theme.textMuted },
+  title: { fontSize: 22, fontFamily: fonts.headlineBold, color: theme.textPrimary, marginBottom: 6 },
+  subtitle: { fontSize: 15, color: theme.textMuted, fontFamily: fonts.bodyLight },
 
   scroll: { gap: 4, paddingBottom: 20 },
 
@@ -302,8 +302,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     paddingVertical: 10, paddingHorizontal: 2,
   },
-  sectionTitle: { fontSize: 14, fontWeight: '700', color: theme.textSecondary },
-  sectionDate: { fontSize: 12, color: theme.textMuted },
+  sectionTitle: { fontSize: 14, fontFamily: fonts.bodyBold, color: theme.textSecondary },
+  sectionDate: { fontSize: 12, color: theme.textMuted, fontFamily: fonts.bodyLight },
 
   card: {
     backgroundColor: theme.bgCard, borderRadius: 18, padding: 16,
@@ -315,9 +315,9 @@ const styles = StyleSheet.create({
     backgroundColor: theme.primaryDim, alignItems: 'center', justifyContent: 'center',
     borderWidth: 2, borderColor: theme.primaryBorder,
   },
-  avatarInitials: { fontSize: 18, fontWeight: '800', color: theme.primary },
+  avatarInitials: { fontSize: 18, fontFamily: fonts.headlineBold, color: theme.primary },
   cardInfo: { flex: 1 },
-  playerName: { fontSize: 17, fontWeight: '700', color: theme.textPrimary, marginBottom: 6 },
+  playerName: { fontSize: 17, fontFamily: fonts.bodyBold, color: theme.textPrimary, marginBottom: 6 },
 
   badgeRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   levelBadge: {
@@ -325,23 +325,23 @@ const styles = StyleSheet.create({
     paddingHorizontal: 7, paddingVertical: 2,
     borderWidth: 1, borderColor: theme.primaryBorder,
   },
-  levelBadgeText: { fontSize: 11, fontWeight: '800', color: theme.primary },
+  levelBadgeText: { fontSize: 11, fontFamily: fonts.headlineLightIt, color: theme.primary },
   volpairBadge: {
     backgroundColor: theme.primaryDim, borderRadius: 8,
     paddingHorizontal: 8, paddingVertical: 2,
     borderWidth: 1, borderColor: theme.primaryBorder,
   },
-  volpairBadgeText: { fontSize: 11, fontWeight: '700', color: theme.primary },
-  notOnVolpairText: { fontSize: 11, color: theme.textMuted },
+  volpairBadgeText: { fontSize: 11, fontFamily: fonts.bodyBold, color: theme.primary },
+  notOnVolpairText: { fontSize: 11, color: theme.textMuted, fontFamily: fonts.bodyLight },
 
   inviteBtn: {
     backgroundColor: theme.bgDeep, borderRadius: 10, padding: 10,
     alignItems: 'center', borderWidth: 1, borderColor: theme.border, marginBottom: 10,
   },
-  inviteBtnText: { fontSize: 13, fontWeight: '600', color: theme.textSecondary },
+  inviteBtnText: { fontSize: 13, fontFamily: fonts.bodyBold, color: theme.textSecondary },
 
   alreadyActionedRow: { alignItems: 'center', paddingVertical: 10 },
-  alreadyActionedText: { fontSize: 13, color: theme.primary, fontWeight: '600' },
+  alreadyActionedText: { fontSize: 13, color: theme.primary, fontFamily: fonts.bodyBold },
 
   btnRow: { flexDirection: 'row', gap: 8 },
   responseBtn: {
@@ -352,7 +352,7 @@ const styles = StyleSheet.create({
   responseBtnYes: { backgroundColor: theme.primaryDim, borderColor: theme.primaryBorder },
   responseBtnMaybe: { backgroundColor: 'rgba(245,158,11,0.1)', borderColor: 'rgba(245,158,11,0.3)' },
   responseBtnNo: { backgroundColor: 'rgba(107,114,128,0.1)', borderColor: 'rgba(107,114,128,0.3)' },
-  responseBtnText: { fontSize: 12, fontWeight: '600', color: theme.textMuted },
+  responseBtnText: { fontSize: 12, fontFamily: fonts.bodyBold, color: theme.textMuted },
   responseBtnTextSelected: { color: theme.textPrimary },
 
   bottom: { paddingBottom: 12, gap: 10 },
@@ -362,6 +362,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3, shadowRadius: 10, elevation: 5,
   },
   doneBtnDisabled: { opacity: 0.4 },
-  doneBtnText: { color: theme.bg, fontSize: 17, fontWeight: '800' },
-  skipText: { color: theme.textMuted, fontSize: 14, textAlign: 'center', paddingVertical: 4 },
+  doneBtnText: { color: theme.bg, fontSize: 17, fontFamily: fonts.headlineBold },
+  skipText: { color: theme.textMuted, fontSize: 14, textAlign: 'center', paddingVertical: 4, fontFamily: fonts.bodyLight },
 });

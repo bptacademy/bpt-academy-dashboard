@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, StatusBar, Animated } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { theme } from '../../lib/theme';
+import { theme, fonts } from '../../lib/theme';
 
 const HIGHLIGHTS = [
   { icon: '💘', text: "Discover players you've shared a court with", color: '#A78BFA' },
@@ -59,8 +59,8 @@ const styles = StyleSheet.create({
     marginBottom: 28, borderWidth: 2, borderColor: theme.primaryBorder,
   },
   emoji: { fontSize: 52 },
-  title: { fontSize: 44, fontWeight: '800', color: theme.textPrimary, marginBottom: 8 },
-  subtitle: { fontSize: 18, color: theme.primary, marginBottom: 40, fontWeight: '600' },
+  title: { fontSize: 44, fontFamily: fonts.headlineBold, color: theme.textPrimary, marginBottom: 8 },
+  subtitle: { fontSize: 18, color: theme.primary, marginBottom: 40, fontFamily: fonts.bodyBold },
   highlights: { gap: 12, width: '100%' },
   highlight: {
     flexDirection: 'row', alignItems: 'center', gap: 14,
@@ -68,12 +68,12 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: theme.border,
   },
   highlightIcon: { fontSize: 22 },
-  highlightText: { flex: 1, fontSize: 14, lineHeight: 20, fontWeight: '500' },
+  highlightText: { flex: 1, fontSize: 14, lineHeight: 20, fontFamily: fonts.bodyLight },
   bottom: { paddingBottom: 12 },
   btn: {
     backgroundColor: theme.primary, borderRadius: 16, padding: 20, alignItems: 'center',
     shadowColor: theme.primary, shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.4, shadowRadius: 14, elevation: 8,
   },
-  btnText: { color: theme.bg, fontSize: 18, fontWeight: '800', letterSpacing: 0.3 },
+  btnText: { color: theme.bg, fontSize: 18, fontFamily: fonts.headlineBold, letterSpacing: 0.3 },
 });

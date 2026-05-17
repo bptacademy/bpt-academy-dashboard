@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1920">
+<title>Volpair — Slide 09 Brand Patterns</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    width: 1920px; height: 1080px;
+    background: #0A1520;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+  }
+  .slide {
+    width: 1920px; height: 1080px;
+    background: #0A1520;
+    position: relative; overflow: hidden;
+    padding: 60px 80px;
+  }
+  .glow1 {
+    position: absolute; top: -100px; right: -100px;
+    width: 700px; height: 700px;
+    background: radial-gradient(ellipse, rgba(124,58,237,0.1) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .glow2 {
+    position: absolute; bottom: -100px; left: 200px;
+    width: 600px; height: 500px;
+    background: radial-gradient(ellipse, rgba(0,212,200,0.07) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .title-area { margin-bottom: 36px; display: flex; align-items: baseline; gap: 16px; }
+  .h-white {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700; font-size: 52px; color: #fff;
+  }
+  .h-gradient {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700; font-size: 52px;
+    background: linear-gradient(135deg, #00D4C8, #7C3AED);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+  .main-layout {
+    display: flex; gap: 60px; align-items: flex-start;
+  }
+  .left-col { width: 380px; flex-shrink: 0; }
+  .right-col { flex: 1; }
+  .section-label {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 11px; letter-spacing: 0.3em;
+    color: #4A6080; text-transform: uppercase;
+    margin-bottom: 16px; display: block;
+  }
+  /* Color swatches */
+  .swatches { display: flex; flex-direction: column; gap: 8px; }
+  .swatch {
+    width: 380px; height: 72px;
+    border-radius: 12px;
+    display: flex; align-items: center;
+    padding: 0 20px;
+    border: 1px solid #1A2C42;
+    position: relative;
+  }
+  .swatch-name {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 14px; font-weight: 600;
+    flex: 1;
+  }
+  .swatch-hex {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    opacity: 0.7;
+  }
+  /* Pattern tiles */
+  .pattern-tiles { display: flex; flex-direction: column; gap: 12px; }
+  .pattern-tile {
+    height: 140px;
+    border-radius: 12px;
+    background: #0D1B2A;
+    border: 1px solid #1A2C42;
+    overflow: hidden;
+    position: relative;
+  }
+  .pattern-label {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 10px; color: #4A6080;
+    letter-spacing: 0.15em; text-transform: uppercase;
+    margin-top: 6px;
+  }
+  /* Typography section */
+  .type-row {
+    position: absolute;
+    bottom: 68px; left: 80px; right: 80px;
+    display: flex; align-items: center; gap: 60px;
+    border-top: 1px solid #1A2C42;
+    padding-top: 16px;
+  }
+  .type-block { display: flex; align-items: center; gap: 20px; }
+  .type-Aa-gradient {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700; font-size: 72px;
+    background: linear-gradient(135deg, #00D4C8, #7C3AED);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    line-height: 1;
+  }
+  .type-Aa-white {
+    font-family: 'Inter', sans-serif;
+    font-size: 56px; color: #fff; line-height: 1; font-weight: 400;
+  }
+  .type-info { display: flex; flex-direction: column; gap: 4px; }
+  .type-name {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 16px; font-weight: 700; color: #fff;
+  }
+  .type-use {
+    font-family: 'Inter', sans-serif;
+    font-size: 12px; color: #4A6080;
+    letter-spacing: 0.1em;
+  }
+  .type-divider {
+    width: 1px; height: 60px; background: #1A2C42;
+  }
+  .slide-num {
+    position: absolute; bottom: 16px; right: 80px;
+    font-size: 11px; letter-spacing: 0.3em;
+    color: #4A6080; font-family: 'Space Grotesk', sans-serif;
+    text-transform: uppercase;
+  }
+  .bottom-bar {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    height: 4px; background: linear-gradient(90deg, #00D4C8, #7C3AED);
+  }
+</style>
+</head>
+<body>
+<div class="slide">
+  <div class="glow1"></div>
+  <div class="glow2"></div>
+
+  <div class="title-area">
+    <span class="h-white">Brand</span>
+    <span class="h-gradient">Patterns</span>
+  </div>
+
+  <div class="main-layout">
+    <!-- Left: Colors -->
+    <div class="left-col">
+      <span class="section-label">Color System</span>
+      <div class="swatches">
+        <div class="swatch" style="background:#0A1520; border-color:#243650;">
+          <span class="swatch-name" style="color:#7A9CC0;">Deep Navy</span>
+          <span class="swatch-hex" style="color:#7A9CC0;">#0A1520</span>
+        </div>
+        <div class="swatch" style="background:#111E2E; border-color:#243650;">
+          <span class="swatch-name" style="color:#7A9CC0;">Card Navy</span>
+          <span class="swatch-hex" style="color:#7A9CC0;">#111E2E</span>
+        </div>
+        <div class="swatch" style="background:#00D4C8;">
+          <span class="swatch-name" style="color:#0A1520;">Volpair Teal</span>
+          <span class="swatch-hex" style="color:#0A1520;">#00D4C8</span>
+        </div>
+        <div class="swatch" style="background:#7C3AED;">
+          <span class="swatch-name" style="color:#fff;">Volpair Purple</span>
+          <span class="swatch-hex" style="color:rgba(255,255,255,0.7);">#7C3AED</span>
+        </div>
+        <div class="swatch" style="background:#F59E0B;">
+          <span class="swatch-name" style="color:#0A1520;">Amber</span>
+          <span class="swatch-hex" style="color:#0A1520;">#F59E0B</span>
+        </div>
+        <div class="swatch" style="background:linear-gradient(135deg,#00D4C8,#7C3AED);">
+          <span class="swatch-name" style="color:#fff;">Brand Gradient</span>
+          <span class="swatch-hex" style="color:rgba(255,255,255,0.8);">135° Teal→Purple</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Patterns -->
+    <div class="right-col">
+      <span class="section-label">Pattern System</span>
+      <div class="pattern-tiles">
+        <!-- Dot grid -->
+        <div>
+          <div class="pattern-tile">
+            <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <pattern id="dotgrid" x="0" y="0" width="24" height="24" patternUnits="userSpaceOnUse">
+                  <circle cx="4" cy="4" r="1.5" fill="#243650"/>
+                </pattern>
+              </defs>
+              <rect width="100%" height="100%" fill="url(#dotgrid)"/>
+            </svg>
+          </div>
+          <span class="pattern-label">Dot Grid Pattern</span>
+        </div>
+        <!-- Diagonal lines -->
+        <div>
+          <div class="pattern-tile">
+            <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <pattern id="diaglines" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                  <line x1="0" y1="0" x2="0" y2="20" stroke="#1A2C42" stroke-width="1.5"/>
+                </pattern>
+              </defs>
+              <rect width="100%" height="100%" fill="url(#diaglines)"/>
+              <!-- Subtle gradient overlay -->
+              <rect width="100%" height="100%" fill="url(#diaglines)" opacity="0.5"/>
+            </svg>
+          </div>
+          <span class="pattern-label">Diagonal Lines Pattern</span>
+        </div>
+        <!-- Abstract court lines -->
+        <div>
+          <div class="pattern-tile">
+            <svg width="100%" height="140" viewBox="0 0 600 140" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+              <rect x="20" y="10" width="560" height="120" rx="3" stroke="#1A2C42" stroke-width="1" fill="none"/>
+              <line x1="20" y1="70" x2="580" y2="70" stroke="#243650" stroke-width="1.5"/>
+              <line x1="300" y1="10" x2="300" y2="130" stroke="#1A2C42" stroke-width="1" stroke-dasharray="5,4"/>
+              <line x1="20" y1="35" x2="300" y2="35" stroke="#1A2C42" stroke-width="1"/>
+              <line x1="300" y1="105" x2="580" y2="105" stroke="#1A2C42" stroke-width="1"/>
+              <circle cx="300" cy="70" r="20" stroke="#1A2C42" stroke-width="1" fill="none"/>
+              <path d="M100 10 A50 50 0 0 0 100 70" stroke="#1A2C42" stroke-width="1" fill="none"/>
+              <path d="M500 70 A50 50 0 0 0 500 130" stroke="#1A2C42" stroke-width="1" fill="none"/>
+            </svg>
+          </div>
+          <span class="pattern-label">Padel Court Lines Pattern</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Typography row -->
+  <div class="type-row">
+    <div class="type-block">
+      <span class="type-Aa-gradient">Aa</span>
+      <div class="type-info">
+        <span class="type-name">Space Grotesk</span>
+        <span class="type-use">Display &amp; UI — Weight 700/800</span>
+      </div>
+    </div>
+    <div class="type-divider"></div>
+    <div class="type-block">
+      <span class="type-Aa-white">Aa</span>
+      <div class="type-info">
+        <span class="type-name">Inter</span>
+        <span class="type-use">Body &amp; Caption — Weight 400/500</span>
+      </div>
+    </div>
+  </div>
+
+  <span class="slide-num">09 / 10</span>
+  <div class="bottom-bar"></div>
+</div>
+</body>
+</html>

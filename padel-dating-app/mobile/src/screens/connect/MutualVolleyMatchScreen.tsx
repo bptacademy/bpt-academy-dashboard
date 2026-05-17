@@ -3,7 +3,7 @@ import {
   View, Text, TouchableOpacity, StyleSheet, StatusBar, Animated, Image,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { theme } from '../../lib/theme';
+import { theme, fonts } from '../../lib/theme';
 import { useAuth } from '../../context/AuthContext';
 
 export default function MutualVolleyMatchScreen({ route, navigation }: any) {
@@ -127,7 +127,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.secondaryDim, borderColor: theme.secondaryBorder,
   },
   avatarImage: { width: 90, height: 90 },
-  avatarText: { fontSize: 28, fontWeight: '800', color: theme.primary },
+  avatarText: { fontSize: 28, fontFamily: fonts.headlineBold, color: theme.primary },
   matchBadge: {
     width: 48, height: 48, borderRadius: 24,
     backgroundColor: theme.secondaryDim, alignItems: 'center', justifyContent: 'center',
@@ -135,19 +135,19 @@ const styles = StyleSheet.create({
     zIndex: 1, marginHorizontal: -8,
   },
   matchBadgeEmoji: { fontSize: 24 },
-  title: { fontSize: 36, fontWeight: '800', color: theme.textPrimary, marginBottom: 8, textAlign: 'center' },
-  subtitle: { fontSize: 16, color: theme.textSecondary, textAlign: 'center', lineHeight: 24, marginBottom: 20 },
+  title: { fontSize: 36, fontFamily: fonts.headlineBold, color: theme.textPrimary, marginBottom: 8, textAlign: 'center' },
+  subtitle: { fontSize: 16, color: theme.textSecondary, textAlign: 'center', lineHeight: 24, marginBottom: 20, fontFamily: fonts.bodyLight },
   courtCard: {
     backgroundColor: theme.primaryDim, borderRadius: 16, paddingHorizontal: 28, paddingVertical: 14,
     borderWidth: 1.5, borderColor: theme.primaryBorder,
   },
-  courtText: { fontSize: 18, fontWeight: '700', color: theme.primary },
+  courtText: { fontSize: 18, fontFamily: fonts.bodyBold, color: theme.primary },
   bottom: { paddingBottom: 12, gap: 12 },
   serveBtn: {
     backgroundColor: theme.primary, borderRadius: 16, padding: 18, alignItems: 'center',
     shadowColor: theme.primary, shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4, shadowRadius: 14, elevation: 6,
   },
-  serveBtnText: { color: theme.bg, fontSize: 17, fontWeight: '800' },
-  laterText: { color: theme.textMuted, fontSize: 14, textAlign: 'center', paddingVertical: 8 },
+  serveBtnText: { color: theme.bg, fontSize: 17, fontFamily: fonts.headlineBold },
+  laterText: { color: theme.textMuted, fontSize: 14, textAlign: 'center', paddingVertical: 8, fontFamily: fonts.bodyLight },
 });

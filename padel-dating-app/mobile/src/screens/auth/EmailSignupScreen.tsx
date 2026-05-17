@@ -5,7 +5,7 @@ import {
   Platform, ScrollView, TextInput as RNTextInput,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { theme } from '../../lib/theme';
+import { theme, fonts } from '../../lib/theme';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 
@@ -325,14 +325,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
   },
   backBtn: { paddingVertical: 16 },
-  backText: { color: theme.textSecondary, fontSize: 16 },
+  backText: { color: theme.textSecondary, fontSize: 16, fontFamily: fonts.bodyLight },
 
   scroll: { flex: 1 },
   scrollContent: { paddingTop: 8, paddingBottom: 24 },
 
   title: {
     fontSize: 28,
-    fontWeight: '800',
+    fontFamily: fonts.headlineBold,
     color: theme.textPrimary,
     marginBottom: 10,
   },
@@ -341,6 +341,7 @@ const styles = StyleSheet.create({
     color: theme.textMuted,
     lineHeight: 22,
     marginBottom: 28,
+    fontFamily: fonts.bodyLight,
   },
 
   // Name row (side by side)
@@ -355,7 +356,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 12,
-    fontWeight: '700',
+    fontFamily: fonts.bodyBold,
     color: theme.textSecondary,
     letterSpacing: 0.6,
     textTransform: 'uppercase',
@@ -369,6 +370,7 @@ const styles = StyleSheet.create({
     color: theme.textPrimary,
     borderWidth: 1.5,
     borderColor: theme.border,
+    fontFamily: fonts.bodyLight,
   },
 
   // Password
@@ -396,13 +398,14 @@ const styles = StyleSheet.create({
   forgotText: {
     fontSize: 13,
     color: theme.primary,
-    fontWeight: '600',
+    fontFamily: fonts.bodyBold,
   },
 
   note: {
     fontSize: 13,
     color: theme.textDim,
     marginTop: 4,
+    fontFamily: fonts.bodyLight,
   },
 
   // Bottom
@@ -425,7 +428,7 @@ const styles = StyleSheet.create({
   btnText: {
     color: theme.bg,
     fontSize: 17,
-    fontWeight: '800',
+    fontFamily: fonts.headlineBold,
   },
 
   toggleBtn: {
@@ -435,9 +438,10 @@ const styles = StyleSheet.create({
   toggleText: {
     fontSize: 14,
     color: theme.textMuted,
+    fontFamily: fonts.bodyLight,
   },
   toggleLink: {
     color: theme.primary,
-    fontWeight: '700',
+    fontFamily: fonts.bodyBold,
   },
 });

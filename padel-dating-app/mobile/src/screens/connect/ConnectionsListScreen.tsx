@@ -4,7 +4,7 @@ import {
   ActivityIndicator, Image, FlatList,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { theme } from '../../lib/theme';
+import { theme, fonts } from '../../lib/theme';
 import { useConnections } from '../../hooks/useConnections';
 
 function formatTime(iso: string | null): string {
@@ -105,15 +105,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20, paddingVertical: 16,
     borderBottomWidth: 1, borderBottomColor: theme.bgCard,
   },
-  headerTitle: { fontSize: 26, fontWeight: '800', color: theme.textPrimary },
-  headerSub: { fontSize: 12, color: theme.textMuted, marginTop: 2 },
+  headerTitle: { fontSize: 26, fontFamily: fonts.headlineBold, color: theme.textPrimary },
+  headerSub: { fontSize: 12, color: theme.textMuted, marginTop: 2, fontFamily: fonts.bodyLight },
   loadingBox: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   emptyBox: {
     flex: 1, alignItems: 'center', justifyContent: 'center', padding: 40,
   },
   emptyIcon: { fontSize: 48, marginBottom: 16 },
-  emptyTitle: { fontSize: 20, fontWeight: '800', color: theme.textPrimary, marginBottom: 8 },
-  emptyText: { fontSize: 14, color: theme.textMuted, textAlign: 'center', lineHeight: 22 },
+  emptyTitle: { fontSize: 20, fontFamily: fonts.headlineBold, color: theme.textPrimary, marginBottom: 8 },
+  emptyText: { fontSize: 14, color: theme.textMuted, textAlign: 'center', lineHeight: 22, fontFamily: fonts.bodyLight },
   row: {
     flexDirection: 'row', alignItems: 'center', gap: 14,
     paddingHorizontal: 16, paddingVertical: 14,
@@ -125,17 +125,17 @@ const styles = StyleSheet.create({
     borderWidth: 1.5, borderColor: theme.primaryBorder, overflow: 'hidden',
   },
   avatarImage: { width: 50, height: 50 },
-  avatarInitials: { fontSize: 18, fontWeight: '800', color: theme.primary },
+  avatarInitials: { fontSize: 18, fontFamily: fonts.headlineBold, color: theme.primary },
   info: { flex: 1 },
   nameRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 },
-  name: { fontSize: 16, fontWeight: '700', color: theme.textPrimary },
-  time: { fontSize: 12, color: theme.textMuted },
-  lastServe: { fontSize: 13, color: theme.textMuted },
-  lastServeUnread: { color: theme.textSecondary, fontWeight: '600' },
+  name: { fontSize: 16, fontFamily: fonts.bodyBold, color: theme.textPrimary },
+  time: { fontSize: 12, color: theme.textMuted, fontFamily: fonts.bodyLight },
+  lastServe: { fontSize: 13, color: theme.textMuted, fontFamily: fonts.bodyLight },
+  lastServeUnread: { color: theme.textSecondary, fontFamily: fonts.bodyBold },
   unreadBadge: {
     minWidth: 20, height: 20, borderRadius: 10,
     backgroundColor: theme.primary, alignItems: 'center', justifyContent: 'center',
     paddingHorizontal: 5,
   },
-  unreadCount: { fontSize: 11, fontWeight: '800', color: theme.bg },
+  unreadCount: { fontSize: 11, fontFamily: fonts.headlineLightIt, color: theme.bg },
 });

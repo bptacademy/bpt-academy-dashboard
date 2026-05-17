@@ -1,13 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
   StatusBar, Alert, Modal, ActivityIndicator, Image,
+  Dimensions, FlatList, NativeScrollEvent, NativeSyntheticEvent,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { theme } from '../../lib/theme';
+import { theme, fonts } from '../../lib/theme';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { notifyVolley } from '../../lib/notifications';
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const HERO_HEIGHT = SCREEN_WIDTH * 0.77; // slightly taller than square
 
 function levelLabel(v: number) {
   if (v >= 5.5) return 'Elite';
@@ -18,6 +22,184 @@ function levelLabel(v: number) {
   if (v >= 3.0) return 'Intermediate';
   return 'Beginner';
 }
+
+// ─── Demo profile — shown for demo mode or when DB has no data ───────────────
+const DEMO_PROFILE = {
+  id: 'demo',
+  full_name: 'Carlos Ruiz',
+  city: 'Manchester',
+  bio: 'Ex-competitive squash player turned padel addict. Left wall is my weapon. Looking for doubles partners and good vibes on court.',
+  looking_for: 'both',
+  photos: [
+    'https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?w=800&q=80',
+    'https://images.unsplash.com/photo-1599586120429-48281b6f0ece?w=800&q=80',
+    'https://images.unsplash.com/photo-1587280501635-68a0e82cd5ff?w=800&q=80',
+  ] as string[],
+  videos: [] as string[],
+  gender: 'male',
+  home_club_name: 'On The Court — Manchester',
+};
+
+const DEMO_STATS = {
+  platform: 'playtomic',
+  level_value: 4.35,
+  total_matches: 87,
+  win_rate: 0.61,
+  play_style: 'aggressive',
+  preferred_time_of_day: 'evening',
+  top_clubs: [
+    { club_name: 'On The Court Manchester', play_count: 34 },
+    { club_name: 'Padel Haus Salford', play_count: 21 },
+    { club_name: 'Better Padel Ancoats', play_count: 14 },
+  ],
+};
+
+const DEMO_SCORE = {
+  total_score: 91,
+  skill_score: 23,
+  style_score: 18,
+  availability_score: 17,
+  location_score: 14,
+  chemistry_score: 10,
+  proximity_score: 9,
+  matches_together: 3,
+};
+
+const DEMO_MATCHES_TOGETHER = 3;
+const DEMO_LAST_CLUB = 'On The Court Manchester';
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+// ─── Full-screen photo lightbox ───────────────────────────────────────────────
+function PhotoLightbox({ visible, photos, startIndex, onClose }: {
+  visible: boolean;
+  photos: string[];
+  startIndex: number;
+  onClose: () => void;
+}) {
+  const [current, setCurrent] = useState(startIndex);
+  const flatRef = useRef<FlatList>(null);
+
+  useEffect(() => {
+    if (visible) {
+      setCurrent(startIndex);
+      setTimeout(() => {
+        flatRef.current?.scrollToIndex({ index: startIndex, animated: false });
+      }, 50);
+    }
+  }, [visible, startIndex]);
+
+  return (
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+      <View style={lightbox.overlay}>
+        <TouchableOpacity style={lightbox.closeBtn} onPress={onClose} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+          <Text style={lightbox.closeText}>✕</Text>
+        </TouchableOpacity>
+        <Text style={lightbox.counter}>{current + 1} / {photos.length}</Text>
+        <FlatList
+          ref={flatRef}
+          data={photos}
+          keyExtractor={(_, i) => String(i)}
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          initialScrollIndex={startIndex}
+          getItemLayout={(_, index) => ({ length: SCREEN_WIDTH, offset: SCREEN_WIDTH * index, index })}
+          onMomentumScrollEnd={e => {
+            const idx = Math.round(e.nativeEvent.contentOffset.x / SCREEN_WIDTH);
+            setCurrent(idx);
+          }}
+          renderItem={({ item }) => (
+            <View style={lightbox.slide}>
+              <Image source={{ uri: item }} style={lightbox.image} resizeMode="contain" />
+            </View>
+          )}
+        />
+        {/* dot indicators */}
+        <View style={lightbox.dots}>
+          {photos.map((_, i) => (
+            <View key={i} style={[lightbox.dot, i === current && lightbox.dotActive]} />
+          ))}
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
+// ─── Hero photo carousel ──────────────────────────────────────────────────────
+function PhotoCarousel({ photos, name, onPhotoPress }: {
+  photos: string[];
+  name: string;
+  onPhotoPress: (index: number) => void;
+}) {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const initials = name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+
+  if (photos.length === 0) {
+    // No photos — show large initials placeholder
+    return (
+      <View style={[carousel.container, { justifyContent: 'center', alignItems: 'center', backgroundColor: theme.bgCard }]}>
+        <View style={carousel.initialsCircle}>
+          <Text style={carousel.initialsText}>{initials}</Text>
+        </View>
+        <Text style={carousel.noPhotoHint}>No photos yet</Text>
+      </View>
+    );
+  }
+
+  return (
+    <View style={carousel.container}>
+      <FlatList
+        data={photos}
+        keyExtractor={(_, i) => String(i)}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        onMomentumScrollEnd={e => {
+          const idx = Math.round(e.nativeEvent.contentOffset.x / SCREEN_WIDTH);
+          setActiveIndex(idx);
+        }}
+        renderItem={({ item, index }) => (
+          <TouchableOpacity
+            activeOpacity={0.95}
+            onPress={() => onPhotoPress(index)}
+            style={carousel.slide}
+          >
+            <Image source={{ uri: item }} style={carousel.image} resizeMode="cover" />
+          </TouchableOpacity>
+        )}
+      />
+
+      {/* gradient overlay at bottom for text readability */}
+      <View style={carousel.gradient} pointerEvents="none" />
+
+      {/* photo count badge top-right */}
+      {photos.length > 1 && (
+        <View style={carousel.countBadge} pointerEvents="none">
+          <Text style={carousel.countText}>📷 {photos.length}</Text>
+        </View>
+      )}
+
+      {/* dot indicators */}
+      {photos.length > 1 && (
+        <View style={carousel.dots} pointerEvents="none">
+          {photos.map((_, i) => (
+            <View key={i} style={[carousel.dot, i === activeIndex && carousel.dotActive]} />
+          ))}
+        </View>
+      )}
+
+      {/* tap hint on first view */}
+      {photos.length > 1 && activeIndex === 0 && (
+        <View style={carousel.swipeHint} pointerEvents="none">
+          <Text style={carousel.swipeHintText}>Swipe for more →</Text>
+        </View>
+      )}
+    </View>
+  );
+}
+
+// ─── Modals ───────────────────────────────────────────────────────────────────
 
 function ScoreBreakdownModal({ visible, onClose, score }: any) {
   if (!score) return null;
@@ -135,25 +317,30 @@ function ReportModal({ visible, onClose, name }: any) {
   );
 }
 
+// ─── Main screen ──────────────────────────────────────────────────────────────
+
 export default function PlayerProfileScreen({ route, navigation }: any) {
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const { userId } = route.params ?? {};
 
-  const [loading, setLoading] = useState(true);
-  const [profile, setProfile] = useState<any>(null);
-  const [stats, setStats] = useState<any>(null);
-  const [volpairScore, setVolpairScore] = useState<any>(null);
-  const [matchesTogether, setMatchesTogether] = useState(0);
-  const [lastClub, setLastClub] = useState<string | null>(null);
+  const isDemo = !userId || userId === 'demo';
+
+  const [loading, setLoading] = useState(!isDemo);
+  const [profile, setProfile] = useState<any>(isDemo ? DEMO_PROFILE : null);
+  const [stats, setStats] = useState<any>(isDemo ? DEMO_STATS : null);
+  const [volpairScore, setVolpairScore] = useState<any>(isDemo ? DEMO_SCORE : null);
+  const [matchesTogether, setMatchesTogether] = useState(isDemo ? DEMO_MATCHES_TOGETHER : 0);
+  const [lastClub, setLastClub] = useState<string | null>(isDemo ? DEMO_LAST_CLUB : null);
   const [myAction, setMyAction] = useState<string | null>(null);
 
   const [showScore, setShowScore] = useState(false);
   const [showLevel, setShowLevel] = useState(false);
   const [showReport, setShowReport] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   useEffect(() => {
-    if (userId) load();
+    if (!isDemo && userId) load();
   }, [userId]);
 
   const load = async () => {
@@ -161,9 +348,20 @@ export default function PlayerProfileScreen({ route, navigation }: any) {
     try {
       const { data: p } = await supabase
         .from('users')
-        .select('id, full_name, city, bio, looking_for, photos, gender, home_club_name')
+        .select('id, full_name, city, bio, looking_for, photos, videos, gender, home_club_name')
         .eq('id', userId)
         .maybeSingle();
+
+      if (!p) {
+        setProfile(DEMO_PROFILE);
+        setStats(DEMO_STATS);
+        setVolpairScore(DEMO_SCORE);
+        setMatchesTogether(DEMO_MATCHES_TOGETHER);
+        setLastClub(DEMO_LAST_CLUB);
+        setLoading(false);
+        return;
+      }
+
       setProfile(p);
 
       const { data: s } = await supabase
@@ -222,6 +420,7 @@ export default function PlayerProfileScreen({ route, navigation }: any) {
   };
 
   const handleAction = async (type: 'play_again' | 'connect' | 'volley') => {
+    if (isDemo) { setMyAction(type); return; }
     if (!user?.id || !userId) return;
     try {
       await supabase.from('connections').insert({
@@ -239,63 +438,76 @@ export default function PlayerProfileScreen({ route, navigation }: any) {
   };
 
   const firstName = profile?.full_name?.split(' ')[0] ?? 'Player';
-  const mainPhoto = profile?.photos?.[0] ?? null;
-  const initials = profile?.full_name
-    ? profile.full_name.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()
-    : '?';
+  const photos: string[] = profile?.photos ?? [];
 
   if (loading) {
     return (
-      <View style={[styles.container, { paddingTop: insets.top, justifyContent: 'center', alignItems: 'center' }]}>
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
         <ActivityIndicator color={theme.primary} size="large" />
       </View>
     );
   }
 
-  if (!profile) {
-    return (
-      <View style={[styles.container, { paddingTop: insets.top, justifyContent: 'center', alignItems: 'center' }]}>
-        <Text style={{ color: theme.textMuted }}>Profile not found</Text>
-      </View>
-    );
-  }
-
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
-      <StatusBar barStyle="light-content" backgroundColor={theme.bg} />
+    <View style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
 
-      <View style={styles.topBar}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Text style={styles.backText}>← Back</Text>
+      {/* ── Hero photo carousel — edge to edge, behind status bar ── */}
+      <PhotoCarousel
+        photos={photos}
+        name={profile?.full_name ?? ''}
+        onPhotoPress={i => setLightboxIndex(i)}
+      />
+
+      {/* ── Back + Report — floating over the photo ── */}
+      <View style={[styles.topBar, { top: insets.top + 8 }]}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.floatBtn}>
+          <Text style={styles.floatBtnText}>←</Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => setShowReport(true)}>
-          <Text style={styles.reportBtn}>Report</Text>
-        </TouchableOpacity>
+        <View style={{ flexDirection: 'row', gap: 8 }}>
+          {isDemo && (
+            <View style={styles.demoPill}>
+              <Text style={styles.demoPillText}>✨ Demo</Text>
+            </View>
+          )}
+          <TouchableOpacity onPress={() => setShowReport(true)} style={styles.floatBtn}>
+            <Text style={styles.floatBtnText}>⋯</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
-
-        <View style={styles.heroSection}>
-          <View style={styles.avatarLarge}>
-            {mainPhoto ? (
-              <Image source={{ uri: mainPhoto }} style={styles.avatarImage} resizeMode="cover" />
-            ) : (
-              <Text style={styles.avatarInitials}>{initials}</Text>
+      {/* ── Scrollable content below the hero ── */}
+      <ScrollView
+        style={styles.scroll}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 70 }}
+      >
+        {/* Name / city / badges — right below the photo */}
+        <View style={styles.identityBlock}>
+          <View style={styles.nameRow}>
+            <Text style={styles.playerName}>{firstName}</Text>
+            {stats?.level_value && (
+              <TouchableOpacity onPress={() => setShowLevel(true)} style={styles.levelPill}>
+                <Text style={styles.levelPillText}>{stats.level_value.toFixed(2)}</Text>
+              </TouchableOpacity>
             )}
           </View>
-          <Text style={styles.playerName}>{firstName}</Text>
-          {profile.city && <Text style={styles.playerCity}>📍 {profile.city}</Text>}
 
-          {profile.home_club_name && (
+          {stats?.level_value && (
+            <Text style={styles.levelDesc}>{levelLabel(stats.level_value)} · Playtomic</Text>
+          )}
+
+          {profile?.city && <Text style={styles.playerCity}>📍 {profile.city}</Text>}
+
+          {profile?.home_club_name && (
             <View style={styles.homeClubBadge}>
               <Text style={styles.homeClubIcon}>🏟️</Text>
               <Text style={styles.homeClubName}>{profile.home_club_name}</Text>
             </View>
           )}
 
-          {profile.bio && <Text style={styles.playerBio}>"{profile.bio}"</Text>}
-          <View style={styles.badgeRow}>
-            {(profile.looking_for === 'date' || profile.looking_for === 'both') && (
+          <View style={styles.intentRow}>
+            {(profile?.looking_for === 'date' || profile?.looking_for === 'both') && (
               <View style={styles.intentBadge}>
                 <Text style={styles.intentText}>
                   {profile.looking_for === 'both' ? '💘 Open to dating' : '💘 Looking to date'}
@@ -303,39 +515,41 @@ export default function PlayerProfileScreen({ route, navigation }: any) {
               </View>
             )}
           </View>
+
+          {profile?.bio && (
+            <Text style={styles.playerBio}>"{profile.bio}"</Text>
+          )}
         </View>
 
-        <View style={styles.scoreRow}>
-          <TouchableOpacity style={styles.levelCard} onPress={() => setShowLevel(true)} activeOpacity={0.8}>
-            <Text style={styles.levelValue}>{stats?.level_value?.toFixed(2) ?? '—'}</Text>
-            <Text style={styles.levelLabel}>{stats?.level_value ? levelLabel(stats.level_value) : 'No stats yet'}</Text>
-            {stats?.level_value && <Text style={styles.levelTap}>What does this mean? →</Text>}
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.volpairScoreCard}
-            onPress={() => volpairScore && setShowScore(true)}
-            activeOpacity={volpairScore ? 0.8 : 1}
-          >
-            <Text style={styles.volpairScoreValue}>{volpairScore?.total_score ?? '—'}</Text>
-            <Text style={styles.volpairScoreLabel}>Volpair Score</Text>
-            {volpairScore && <Text style={styles.volpairScoreTap}>See breakdown →</Text>}
-          </TouchableOpacity>
-        </View>
+        {/* Volpair Score card */}
+        <TouchableOpacity
+          style={styles.volpairCard}
+          onPress={() => volpairScore && setShowScore(true)}
+          activeOpacity={volpairScore ? 0.8 : 1}
+        >
+          <View style={styles.volpairCardLeft}>
+            <Text style={styles.volpairLabel}>Volpair Score</Text>
+            <Text style={styles.volpairSub}>Your compatibility match</Text>
+            {volpairScore && <Text style={styles.volpairTap}>Tap to see breakdown →</Text>}
+          </View>
+          <Text style={styles.volpairValue}>{volpairScore?.total_score ?? '—'}</Text>
+        </TouchableOpacity>
 
+        {/* Court history */}
         {matchesTogether > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>🤝 Your court history</Text>
+            <Text style={styles.sectionTitle}>🤝 Court history together</Text>
             <View style={styles.historyRow}>
               <View style={styles.historyItem}>
                 <Text style={styles.historyValue}>{matchesTogether}</Text>
-                <Text style={styles.historyLabel}>matches together</Text>
+                <Text style={styles.historyLabel}>matches played</Text>
               </View>
-              {volpairScore?.matches_together != null && (
+              {volpairScore?.chemistry_score != null && (
                 <>
                   <View style={styles.historyDivider} />
                   <View style={styles.historyItem}>
                     <Text style={styles.historyValue}>{volpairScore.chemistry_score * 10}%</Text>
-                    <Text style={styles.historyLabel}>chemistry</Text>
+                    <Text style={styles.historyLabel}>chemistry score</Text>
                   </View>
                 </>
               )}
@@ -349,6 +563,7 @@ export default function PlayerProfileScreen({ route, navigation }: any) {
           </View>
         )}
 
+        {/* Stats grid */}
         {stats && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>📊 Their stats</Text>
@@ -383,6 +598,7 @@ export default function PlayerProfileScreen({ route, navigation }: any) {
           </View>
         )}
 
+        {/* Regular clubs */}
         {stats?.top_clubs?.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>📍 Regular clubs</Text>
@@ -395,11 +611,10 @@ export default function PlayerProfileScreen({ route, navigation }: any) {
             ))}
           </View>
         )}
-
-        <View style={{ height: 100 }} />
       </ScrollView>
 
-      <View style={[styles.actionBar, { paddingBottom: insets.bottom + 8 }]}>
+      {/* ── Action bar ── */}
+      <View style={[styles.actionBar, { bottom: insets.bottom - 21 }]}>
         {myAction ? (
           <View style={styles.actionedRow}>
             <Text style={styles.actionedText}>
@@ -426,105 +641,197 @@ export default function PlayerProfileScreen({ route, navigation }: any) {
         )}
       </View>
 
+      {/* Modals */}
       <ScoreBreakdownModal visible={showScore} onClose={() => setShowScore(false)} score={volpairScore} />
       <LevelExplainerModal visible={showLevel} onClose={() => setShowLevel(false)} level={stats?.level_value} />
       <ReportModal visible={showReport} onClose={() => setShowReport(false)} name={firstName} />
+      <PhotoLightbox
+        visible={lightboxIndex !== null}
+        photos={photos}
+        startIndex={lightboxIndex ?? 0}
+        onClose={() => setLightboxIndex(null)}
+      />
     </View>
   );
 }
 
+// ─── Styles ───────────────────────────────────────────────────────────────────
+
+const carousel = StyleSheet.create({
+  container: {
+    width: SCREEN_WIDTH,
+    height: HERO_HEIGHT,
+    backgroundColor: theme.bgDeep,
+  },
+  slide: { width: SCREEN_WIDTH, height: HERO_HEIGHT },
+  image: { width: SCREEN_WIDTH, height: HERO_HEIGHT },
+  gradient: {
+    position: 'absolute', bottom: 0, left: 0, right: 0, height: 120,
+    backgroundColor: 'rgba(13,27,42,0.55)',
+  },
+  countBadge: {
+    position: 'absolute', top: 16, right: 16,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4,
+  },
+  countText: { color: '#fff', fontSize: 12, fontFamily: fonts.bodyBold },
+  dots: {
+    position: 'absolute', bottom: 14, left: 0, right: 0,
+    flexDirection: 'row', justifyContent: 'center', gap: 5,
+  },
+  dot: {
+    width: 6, height: 6, borderRadius: 3,
+    backgroundColor: 'rgba(255,255,255,0.4)',
+  },
+  dotActive: { backgroundColor: '#fff', width: 18 },
+  swipeHint: {
+    position: 'absolute', bottom: 34, right: 16,
+  },
+  swipeHintText: { color: 'rgba(255,255,255,0.6)', fontSize: 11, fontFamily: fonts.bodyBold },
+  initialsCircle: {
+    width: 100, height: 100, borderRadius: 50,
+    backgroundColor: theme.primaryDim,
+    borderWidth: 3, borderColor: theme.primaryBorder,
+    alignItems: 'center', justifyContent: 'center',
+    marginBottom: 12,
+  },
+  initialsText: { fontSize: 38, fontFamily: fonts.headlineBold, color: theme.primary },
+  noPhotoHint: { fontSize: 13, color: theme.textMuted, fontFamily: fonts.bodyLight },
+});
+
+const lightbox = StyleSheet.create({
+  overlay: { flex: 1, backgroundColor: '#000', justifyContent: 'center' },
+  slide: { width: SCREEN_WIDTH, height: '100%' as any, justifyContent: 'center' },
+  image: { width: SCREEN_WIDTH, height: '100%' as any },
+  closeBtn: {
+    position: 'absolute', top: 56, right: 20, zIndex: 10,
+    width: 36, height: 36, borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    alignItems: 'center', justifyContent: 'center',
+  },
+  closeText: { color: '#fff', fontSize: 18, fontFamily: fonts.bodyBold },
+  counter: {
+    position: 'absolute', top: 60, left: 20, zIndex: 10,
+    color: 'rgba(255,255,255,0.7)', fontSize: 14, fontFamily: fonts.bodyBold,
+  },
+  dots: {
+    position: 'absolute', bottom: 48, left: 0, right: 0,
+    flexDirection: 'row', justifyContent: 'center', gap: 6,
+  },
+  dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.35)' },
+  dotActive: { backgroundColor: '#fff', width: 18 },
+});
+
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: theme.bg },
   topBar: {
+    position: 'absolute', left: 16, right: 16,
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    paddingHorizontal: 20, paddingVertical: 12,
+    zIndex: 10,
   },
-  backBtn: { paddingVertical: 4 },
-  backText: { fontSize: 16, color: theme.textSecondary },
-  reportBtn: { fontSize: 14, color: theme.textMuted },
-  scroll: { paddingHorizontal: 20 },
-  heroSection: { alignItems: 'center', paddingVertical: 20 },
-  avatarLarge: {
-    width: 100, height: 100, borderRadius: 50,
-    backgroundColor: theme.primaryDim, alignItems: 'center', justifyContent: 'center',
-    borderWidth: 3, borderColor: theme.primaryBorder, marginBottom: 14, overflow: 'hidden',
+  floatBtn: {
+    width: 38, height: 38, borderRadius: 19,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    alignItems: 'center', justifyContent: 'center',
   },
-  avatarImage: { width: 100, height: 100 },
-  avatarInitials: { fontSize: 36, fontWeight: '800', color: theme.primary },
-  playerName: { fontSize: 26, fontWeight: '800', color: theme.textPrimary, marginBottom: 4 },
-  playerCity: { fontSize: 14, color: theme.textMuted, marginBottom: 8 },
-  homeClubBadge: {
-    flexDirection: 'row', alignItems: 'center', gap: 6,
-    backgroundColor: theme.bgDeep, borderRadius: 20,
-    paddingHorizontal: 14, paddingVertical: 6,
+  floatBtnText: { color: '#fff', fontSize: 18, fontFamily: fonts.bodyBold },
+  demoPill: {
+    backgroundColor: 'rgba(0,212,200,0.2)',
+    borderRadius: 12, paddingHorizontal: 10, paddingVertical: 6,
+    borderWidth: 1, borderColor: 'rgba(0,212,200,0.4)',
+  },
+  demoPillText: { fontSize: 11, color: theme.primary, fontFamily: fonts.bodyBold },
+
+  scroll: { flex: 1, backgroundColor: theme.bg },
+
+  identityBlock: {
+    paddingHorizontal: 20, paddingTop: 18, paddingBottom: 6,
+  },
+  nameRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 2 },
+  playerName: { fontSize: 28, fontFamily: fonts.headlineBold, color: theme.textPrimary },
+  levelPill: {
+    backgroundColor: theme.primaryDim, borderRadius: 10,
+    paddingHorizontal: 10, paddingVertical: 4,
     borderWidth: 1, borderColor: theme.primaryBorder,
-    marginBottom: 10,
   },
-  homeClubIcon: { fontSize: 14 },
-  homeClubName: { fontSize: 13, fontWeight: '700', color: theme.primary },
-  playerBio: { fontSize: 15, color: theme.textSecondary, fontStyle: 'italic', textAlign: 'center', lineHeight: 22, marginBottom: 12 },
-  badgeRow: { flexDirection: 'row', gap: 8 },
+  levelPillText: { fontSize: 14, fontFamily: fonts.headlineLightIt, color: theme.primary },
+  levelDesc: { fontSize: 13, color: theme.textMuted, marginBottom: 6, fontFamily: fonts.bodyLight },
+  playerCity: { fontSize: 14, color: theme.textSecondary, marginBottom: 8, fontFamily: fonts.bodyLight },
+  homeClubBadge: {
+    flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start',
+    backgroundColor: theme.bgDeep, borderRadius: 20,
+    paddingHorizontal: 12, paddingVertical: 5,
+    borderWidth: 1, borderColor: theme.primaryBorder, marginBottom: 10,
+  },
+  homeClubIcon: { fontSize: 13 },
+  homeClubName: { fontSize: 12, fontFamily: fonts.bodyBold, color: theme.primary },
+  intentRow: { flexDirection: 'row', gap: 8, marginBottom: 10 },
   intentBadge: {
     backgroundColor: theme.secondaryDim, borderRadius: 10,
-    paddingHorizontal: 14, paddingVertical: 6, borderWidth: 1, borderColor: theme.secondaryBorder,
+    paddingHorizontal: 12, paddingVertical: 5,
+    borderWidth: 1, borderColor: theme.secondaryBorder,
   },
-  intentText: { fontSize: 13, color: '#A78BFA', fontWeight: '600' },
-  scoreRow: { flexDirection: 'row', gap: 12, marginBottom: 14 },
-  levelCard: {
-    flex: 1, backgroundColor: theme.bgCard, borderRadius: 16, padding: 16,
-    borderWidth: 1, borderColor: theme.border, alignItems: 'center',
+  intentText: { fontSize: 13, color: '#A78BFA', fontFamily: fonts.bodyBold },
+  playerBio: {
+    fontSize: 15, color: theme.textSecondary, fontStyle: 'italic',
+    lineHeight: 22, marginBottom: 16, fontFamily: fonts.bodyLight,
   },
-  levelValue: { fontSize: 28, fontWeight: '800', color: theme.primary, marginBottom: 4 },
-  levelLabel: { fontSize: 12, color: theme.textMuted, marginBottom: 6, textAlign: 'center' },
-  levelTap: { fontSize: 11, color: theme.primary, opacity: 0.7 },
-  volpairScoreCard: {
-    flex: 1, backgroundColor: theme.primaryDim, borderRadius: 16, padding: 16,
-    borderWidth: 1.5, borderColor: theme.primaryBorder, alignItems: 'center',
+
+  volpairCard: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    marginHorizontal: 16, marginBottom: 12,
+    backgroundColor: theme.primaryDim, borderRadius: 18, padding: 18,
+    borderWidth: 1.5, borderColor: theme.primaryBorder,
   },
-  volpairScoreValue: { fontSize: 36, fontWeight: '800', color: theme.primary, marginBottom: 4 },
-  volpairScoreLabel: { fontSize: 12, color: theme.primary, marginBottom: 6, opacity: 0.8 },
-  volpairScoreTap: { fontSize: 11, color: theme.primary, opacity: 0.7 },
+  volpairCardLeft: { flex: 1 },
+  volpairLabel: { fontSize: 15, fontFamily: fonts.headlineBold, color: theme.primary, marginBottom: 2 },
+  volpairSub: { fontSize: 12, color: theme.primary, opacity: 0.7, fontFamily: fonts.bodyLight },
+  volpairTap: { fontSize: 11, color: theme.primary, opacity: 0.6, marginTop: 4, fontFamily: fonts.bodyLight },
+  volpairValue: { fontSize: 48, fontFamily: fonts.headlineLightIt, color: theme.primary },
+
   section: {
     backgroundColor: theme.bgCard, borderRadius: 16, padding: 16,
-    marginBottom: 12, borderWidth: 1, borderColor: theme.border,
+    marginHorizontal: 16, marginBottom: 12, borderWidth: 1, borderColor: theme.border,
   },
-  sectionTitle: { fontSize: 14, fontWeight: '700', color: theme.textSecondary, marginBottom: 14 },
+  sectionTitle: { fontSize: 14, fontFamily: fonts.bodyBold, color: theme.textSecondary, marginBottom: 14 },
+
   historyRow: { flexDirection: 'row', marginBottom: 12 },
   historyItem: { flex: 1, alignItems: 'center' },
-  historyValue: { fontSize: 24, fontWeight: '800', color: theme.textPrimary, marginBottom: 4 },
-  historyLabel: { fontSize: 12, color: theme.textMuted },
+  historyValue: { fontSize: 24, fontFamily: fonts.headlineLightIt, color: theme.textPrimary, marginBottom: 4 },
+  historyLabel: { fontSize: 12, color: theme.textMuted, fontFamily: fonts.bodyLight },
   historyDivider: { width: 1, backgroundColor: theme.border },
   lastPlayedRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   lastPlayedIcon: { fontSize: 14 },
-  lastPlayedText: { fontSize: 13, color: theme.textSecondary },
+  lastPlayedText: { fontSize: 13, color: theme.textSecondary, fontFamily: fonts.bodyLight },
+
   statsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   statBox: {
     width: '47%', backgroundColor: theme.bgDeep, borderRadius: 12, padding: 12,
     borderWidth: 1, borderColor: theme.border,
   },
-  statValue: { fontSize: 18, fontWeight: '800', color: theme.textPrimary, marginBottom: 3 },
-  statLabel: { fontSize: 11, color: theme.textMuted },
+  statValue: { fontSize: 18, fontFamily: fonts.headlineLightIt, color: theme.textPrimary, marginBottom: 3 },
+  statLabel: { fontSize: 11, color: theme.textMuted, fontFamily: fonts.bodyLight },
+
   clubRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 8 },
   clubDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: theme.primary },
-  clubName: { flex: 1, fontSize: 14, color: theme.textPrimary },
-  clubCount: { fontSize: 12, color: theme.textMuted },
+  clubName: { flex: 1, fontSize: 14, color: theme.textPrimary, fontFamily: fonts.bodyLight },
+  clubCount: { fontSize: 12, color: theme.textMuted, fontFamily: fonts.bodyLight },
+
   actionBar: {
-    position: 'absolute', bottom: 0, left: 0, right: 0,
-    backgroundColor: theme.bgCard, borderTopWidth: 1, borderTopColor: theme.border,
-    paddingHorizontal: 16, paddingTop: 12,
+    position: 'absolute', left: 0, right: 0, alignItems: 'center',
   },
-  actionBtns: { flexDirection: 'row', gap: 10 },
+  actionBtns: { flexDirection: 'row', gap: 10, backgroundColor: theme.bgCard, borderRadius: 20, paddingVertical: 10, paddingHorizontal: 12, borderWidth: 1, borderColor: theme.border },
   actionBtn: {
-    flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    gap: 6, paddingVertical: 14, borderRadius: 14,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    gap: 6, paddingVertical: 10, paddingHorizontal: 16, borderRadius: 14,
     backgroundColor: theme.bgDeep, borderWidth: 1, borderColor: theme.border,
   },
   volleyBtn: { backgroundColor: theme.secondaryDim, borderColor: theme.secondaryBorder },
   actionBtnEmoji: { fontSize: 16 },
-  actionBtnText: { fontSize: 13, fontWeight: '700', color: theme.textSecondary },
+  actionBtnText: { fontSize: 13, fontFamily: fonts.bodyBold, color: theme.textSecondary },
   volleyBtnText: { color: '#A78BFA' },
   actionedRow: { alignItems: 'center', paddingVertical: 10 },
-  actionedText: { fontSize: 15, color: theme.primary, fontWeight: '700' },
+  actionedText: { fontSize: 15, color: theme.primary, fontFamily: fonts.bodyBold },
 });
 
 const modal = StyleSheet.create({
@@ -537,17 +844,17 @@ const modal = StyleSheet.create({
     width: 40, height: 4, borderRadius: 2, backgroundColor: theme.border,
     alignSelf: 'center', marginBottom: 20,
   },
-  title: { fontSize: 20, fontWeight: '800', color: theme.textPrimary, marginBottom: 16, textAlign: 'center' },
+  title: { fontSize: 20, fontFamily: fonts.headlineBold, color: theme.textPrimary, marginBottom: 16, textAlign: 'center' },
   scoreBig: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'center', gap: 4, marginBottom: 8 },
-  scoreBigValue: { fontSize: 52, fontWeight: '800', color: theme.primary },
-  scoreBigLabel: { fontSize: 18, color: theme.textMuted },
-  scoreDesc: { fontSize: 13, color: theme.textMuted, textAlign: 'center', lineHeight: 20, marginBottom: 20 },
+  scoreBigValue: { fontSize: 52, fontFamily: fonts.headlineLightIt, color: theme.primary },
+  scoreBigLabel: { fontSize: 18, color: theme.textMuted, fontFamily: fonts.bodyLight },
+  scoreDesc: { fontSize: 13, color: theme.textMuted, textAlign: 'center', lineHeight: 20, marginBottom: 20, fontFamily: fonts.bodyLight },
   dimRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 10 },
-  dimLabel: { fontSize: 13, color: theme.textSecondary, width: 90 },
+  dimLabel: { fontSize: 13, color: theme.textSecondary, width: 90, fontFamily: fonts.bodyLight },
   barBg: { flex: 1, height: 6, backgroundColor: theme.bgDeep, borderRadius: 3, overflow: 'hidden' },
   barFill: { height: 6, borderRadius: 3 },
-  dimValue: { fontSize: 12, fontWeight: '700', width: 36, textAlign: 'right' },
-  explainerText: { fontSize: 14, color: theme.textSecondary, lineHeight: 22, marginBottom: 20 },
+  dimValue: { fontSize: 12, fontFamily: fonts.bodyBold, width: 36, textAlign: 'right' },
+  explainerText: { fontSize: 14, color: theme.textSecondary, lineHeight: 22, marginBottom: 20, fontFamily: fonts.bodyLight },
   levelScale: { gap: 8, marginBottom: 20 },
   levelRow: {
     flexDirection: 'row', alignItems: 'center', gap: 12,
@@ -555,27 +862,27 @@ const modal = StyleSheet.create({
     borderWidth: 1, borderColor: theme.border,
   },
   levelRowHighlight: { backgroundColor: theme.primaryDim, borderColor: theme.primaryBorder },
-  levelRange: { fontSize: 13, fontWeight: '700', color: theme.textMuted, width: 70 },
-  levelLbl: { flex: 1, fontSize: 13, color: theme.textMuted },
-  levelYou: { fontSize: 12, color: theme.primary, fontWeight: '700' },
-  reportSub: { fontSize: 14, color: theme.textMuted, marginBottom: 16 },
+  levelRange: { fontSize: 13, fontFamily: fonts.bodyBold, color: theme.textMuted, width: 70 },
+  levelLbl: { flex: 1, fontSize: 13, color: theme.textMuted, fontFamily: fonts.bodyLight },
+  levelYou: { fontSize: 12, color: theme.primary, fontFamily: fonts.bodyBold },
+  reportSub: { fontSize: 14, color: theme.textMuted, marginBottom: 16, fontFamily: fonts.bodyLight },
   reportRow: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     padding: 14, borderRadius: 12, marginBottom: 8,
     backgroundColor: theme.bgDeep, borderWidth: 1, borderColor: theme.border,
   },
   reportRowSelected: { borderColor: '#F87171', backgroundColor: 'rgba(248,113,113,0.08)' },
-  reportReason: { fontSize: 14, color: theme.textMuted },
+  reportReason: { fontSize: 14, color: theme.textMuted, fontFamily: fonts.bodyLight },
   reportCheck: { fontSize: 16, color: '#F87171' },
   submitBtn: {
     backgroundColor: '#F87171', borderRadius: 14, padding: 16,
     alignItems: 'center', marginTop: 8, marginBottom: 12,
   },
-  submitBtnText: { color: '#FFFFFF', fontSize: 15, fontWeight: '700' },
+  submitBtnText: { color: '#FFFFFF', fontSize: 15, fontFamily: fonts.bodyBold },
   closeBtn: {
     backgroundColor: theme.bgDeep, borderRadius: 14, padding: 16,
     alignItems: 'center', marginTop: 16, borderWidth: 1, borderColor: theme.border,
   },
-  closeBtnText: { color: theme.textSecondary, fontSize: 15, fontWeight: '600' },
-  cancelText: { textAlign: 'center', color: theme.textMuted, fontSize: 14, paddingVertical: 8 },
+  closeBtnText: { color: theme.textSecondary, fontSize: 15, fontFamily: fonts.bodyBold },
+  cancelText: { textAlign: 'center', color: theme.textMuted, fontSize: 14, paddingVertical: 8, fontFamily: fonts.bodyLight },
 });

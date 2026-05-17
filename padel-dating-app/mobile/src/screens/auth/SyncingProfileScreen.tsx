@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, Animated, StatusBar, Alert, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { theme } from '../../lib/theme';
+import { theme, fonts } from '../../lib/theme';
 import { connectPlatform, connectPlatformWithUserId, syncPlatform } from '../../lib/platformSync';
 
 const STEPS = [
@@ -122,8 +122,8 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: theme.bg, paddingHorizontal: 32 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 16 },
   spinner: { fontSize: 56, marginBottom: 16 },
-  title: { fontSize: 26, fontWeight: '800', color: theme.textPrimary },
-  step: { fontSize: 15, color: theme.textMuted, textAlign: 'center' },
+  title: { fontSize: 26, fontFamily: fonts.headlineBold, color: theme.textPrimary },
+  step: { fontSize: 15, color: theme.textMuted, textAlign: 'center', fontFamily: fonts.bodyLight },
   dotsRow: { flexDirection: 'row', gap: 8, marginTop: 8 },
   dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: theme.bgCard },
   dotActive: { backgroundColor: theme.primary },
@@ -132,15 +132,15 @@ const styles = StyleSheet.create({
     backgroundColor: theme.bgCard, borderRadius: 16, padding: 20,
     borderWidth: 1, borderColor: theme.border,
   },
-  slowText: { fontSize: 13, color: theme.textMuted, textAlign: 'center', lineHeight: 20 },
+  slowText: { fontSize: 13, color: theme.textMuted, textAlign: 'center', lineHeight: 20, fontFamily: fonts.bodyLight },
   skipBtn: {
     backgroundColor: theme.primaryDim, borderRadius: 10,
     paddingHorizontal: 20, paddingVertical: 10,
     borderWidth: 1, borderColor: theme.primaryBorder,
   },
-  skipText: { color: theme.primary, fontSize: 14, fontWeight: '700' },
+  skipText: { color: theme.primary, fontSize: 14, fontFamily: fonts.bodyBold },
   footer: {
     fontSize: 13, color: theme.textDim, textAlign: 'center',
-    lineHeight: 20, paddingBottom: 48,
+    lineHeight: 20, paddingBottom: 48, fontFamily: fonts.bodyLight,
   },
 });

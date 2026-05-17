@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1920">
+<title>Volpair — Slide 03 Logo System</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    width: 1920px; height: 1080px;
+    background: #0A1520;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+  }
+  .slide {
+    width: 1920px; height: 1080px;
+    background: #0A1520;
+    position: relative; overflow: hidden;
+  }
+  .glow1 {
+    position: absolute; top: -150px; left: 200px;
+    width: 700px; height: 500px;
+    background: radial-gradient(ellipse, rgba(0,212,200,0.07) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .glow2 {
+    position: absolute; bottom: 0; right: 100px;
+    width: 600px; height: 500px;
+    background: radial-gradient(ellipse, rgba(124,58,237,0.09) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .title-area {
+    position: absolute; top: 60px; left: 80px;
+    display: flex; align-items: baseline; gap: 16px;
+  }
+  .title-white {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700; font-size: 52px; color: #fff;
+  }
+  .title-gradient {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700; font-size: 52px;
+    background: linear-gradient(135deg, #00D4C8, #7C3AED);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+  /* Usage grid */
+  .usage-grid {
+    position: absolute;
+    top: 160px; left: 80px;
+    display: grid;
+    grid-template-columns: repeat(3, 280px);
+    grid-template-rows: repeat(2, 200px);
+    gap: 24px;
+  }
+  .usage-cell {
+    border-radius: 16px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 10px;
+    position: relative;
+    overflow: hidden;
+  }
+  .cell-label {
+    position: absolute; bottom: 12px; left: 0; right: 0;
+    text-align: center;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+  .wm-gradient {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 800; font-size: 32px;
+    background: linear-gradient(135deg, #00D4C8, #7C3AED);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    letter-spacing: 0.04em;
+  }
+  .wm-dark {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 800; font-size: 32px;
+    color: #0A1520; letter-spacing: 0.04em;
+  }
+  .wm-white {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 800; font-size: 32px;
+    color: #fff; letter-spacing: 0.04em;
+  }
+  .wm-black {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 800; font-size: 32px;
+    color: #0A1520; letter-spacing: 0.04em;
+  }
+  .wm-teal {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 800; font-size: 32px;
+    color: #00D4C8; letter-spacing: 0.04em;
+  }
+  .min-label {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 11px; color: #7A9CC0;
+    margin-top: 4px;
+  }
+  /* Don't section */
+  .dont-section {
+    position: absolute;
+    bottom: 60px; left: 80px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .dont-label {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 11px; letter-spacing: 0.3em;
+    color: #ef4444; text-transform: uppercase;
+  }
+  .dont-row {
+    display: flex; gap: 20px;
+  }
+  .dont-cell {
+    width: 180px; height: 120px;
+    border: 1.5px solid #ef4444;
+    border-radius: 12px;
+    background: rgba(239,68,68,0.05);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 8px;
+    position: relative;
+  }
+  .dont-x {
+    font-size: 24px; color: #ef4444; font-weight: 700;
+    font-family: 'Space Grotesk', sans-serif;
+  }
+  .dont-caption {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 11px; color: #ef4444;
+    letter-spacing: 0.1em;
+  }
+  .dont-wm-stretch {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 800; font-size: 22px;
+    color: #fff; letter-spacing: 0.04em;
+    transform: scaleX(1.5);
+    display: inline-block;
+  }
+  .dont-wm-recolor {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 800; font-size: 22px;
+    color: #F59E0B; letter-spacing: 0.04em;
+  }
+  .dont-wm-shadow {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 800; font-size: 22px;
+    color: #fff; letter-spacing: 0.04em;
+    text-shadow: 3px 3px 8px rgba(0,0,0,0.8), 0 0 20px rgba(255,255,255,0.5);
+  }
+  .dont-busy {
+    width: 100%; height: 100%; position: absolute; top: 0; left: 0;
+    background: repeating-linear-gradient(45deg, rgba(255,255,255,0.03), rgba(255,255,255,0.03) 5px, rgba(255,100,0,0.03) 5px, rgba(255,100,0,0.03) 10px);
+    border-radius: 10px;
+  }
+  .slide-num {
+    position: absolute; bottom: 16px; right: 80px;
+    font-size: 11px; letter-spacing: 0.3em;
+    color: #4A6080; font-family: 'Space Grotesk', sans-serif;
+    text-transform: uppercase;
+  }
+  .bottom-bar {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    height: 4px; background: linear-gradient(90deg, #00D4C8, #7C3AED);
+  }
+</style>
+</head>
+<body>
+<div class="slide">
+  <div class="glow1"></div>
+  <div class="glow2"></div>
+
+  <div class="title-area">
+    <span class="title-white">Logo</span>
+    <span class="title-gradient">System</span>
+  </div>
+
+  <div class="usage-grid">
+    <!-- 1. Dark version -->
+    <div class="usage-cell" style="background:#0A1520; border:1px solid #1A2C42;">
+      <span class="wm-gradient">VOLPAIR</span>
+      <span class="cell-label" style="color:#4A6080;">Dark Version</span>
+    </div>
+    <!-- 2. Light version -->
+    <div class="usage-cell" style="background:#F8FAFC; border:1px solid #e2e8f0;">
+      <span class="wm-dark">VOLPAIR</span>
+      <span class="cell-label" style="color:#64748b;">Light Version</span>
+    </div>
+    <!-- 3. Mono white -->
+    <div class="usage-cell" style="background:#243650; border:1px solid #1A2C42;">
+      <span class="wm-white">VOLPAIR</span>
+      <span class="cell-label" style="color:#7A9CC0;">Mono White</span>
+    </div>
+    <!-- 4. Mono black -->
+    <div class="usage-cell" style="background:#ffffff; border:1px solid #e2e8f0;">
+      <span class="wm-black">VOLPAIR</span>
+      <span class="cell-label" style="color:#64748b;">Mono Black</span>
+    </div>
+    <!-- 5. Minimum size -->
+    <div class="usage-cell" style="background:#0D1B2A; border:1px solid #1A2C42;">
+      <svg width="32" height="32" viewBox="0 0 52 52" fill="none">
+        <defs><linearGradient id="lgImin" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#00D4C8"/><stop offset="100%" stop-color="#7C3AED"/></linearGradient></defs>
+        <circle cx="26" cy="22" r="18" fill="url(#lgImin)"/>
+        <path d="M26 30 C26 30 18 25 18 20 C18 17 20 15 22 15 C24 15 26 17 26 17 C26 17 28 15 30 15 C32 15 34 17 34 20 C34 25 26 30 26 30Z" fill="rgba(255,255,255,0.92)"/>
+        <rect x="22" y="38" width="8" height="12" rx="3" fill="url(#lgImin)"/>
+        <rect x="20" y="36" width="12" height="4" rx="2" fill="url(#lgImin)"/>
+      </svg>
+      <span class="min-label">min 32px</span>
+      <span class="cell-label" style="color:#4A6080;">Minimum Size</span>
+    </div>
+    <!-- 6. Color safe -->
+    <div class="usage-cell" style="background:#0A1520; border:1px solid #1A2C42;">
+      <span class="wm-teal">VOLPAIR</span>
+      <span class="cell-label" style="color:#4A6080;">Color-Safe Flat</span>
+    </div>
+  </div>
+
+  <!-- Don'ts section -->
+  <div class="dont-section">
+    <span class="dont-label">✕  Don't</span>
+    <div class="dont-row">
+      <div class="dont-cell">
+        <span class="dont-wm-stretch">VOLPAIR</span>
+        <span class="dont-x">✕</span>
+        <span class="dont-caption">Don't stretch</span>
+      </div>
+      <div class="dont-cell">
+        <span class="dont-wm-recolor">VOLPAIR</span>
+        <span class="dont-x">✕</span>
+        <span class="dont-caption">Don't recolor</span>
+      </div>
+      <div class="dont-cell">
+        <span class="dont-wm-shadow">VOLPAIR</span>
+        <span class="dont-x">✕</span>
+        <span class="dont-caption">Don't add shadow</span>
+      </div>
+      <div class="dont-cell">
+        <div class="dont-busy"></div>
+        <span class="dont-x" style="position:relative;z-index:1;">✕</span>
+        <span class="dont-caption" style="position:relative;z-index:1;">Don't busy background</span>
+      </div>
+    </div>
+  </div>
+
+  <span class="slide-num">03 / 10</span>
+  <div class="bottom-bar"></div>
+</div>
+</body>
+</html>

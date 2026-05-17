@@ -11,7 +11,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import {
   View, Text, StyleSheet, Animated, Easing,
 } from 'react-native';
-import { theme } from '../lib/theme';
+import { theme, fonts } from '../lib/theme';
 
 // ─── Variant A — Stepped progress bar ────────────────────────────────────────
 
@@ -70,14 +70,14 @@ export function DiscoveryLoaderA() {
 const stylesA = StyleSheet.create({
   container: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 40, gap: 16 },
   icon: { fontSize: 52, marginBottom: 4 },
-  title: { fontSize: 22, fontWeight: '800', color: theme.textPrimary, textAlign: 'center' },
-  stepLabel: { fontSize: 14, color: theme.textSecondary, textAlign: 'center', minHeight: 20 },
+  title: { fontSize: 22, fontFamily: fonts.headlineBold, color: theme.textPrimary, textAlign: 'center' },
+  stepLabel: { fontSize: 14, color: theme.textSecondary, textAlign: 'center', minHeight: 20, fontFamily: fonts.bodyLight },
   track: { width: '100%', height: 6, borderRadius: 3, backgroundColor: theme.bgCard, overflow: 'hidden', marginTop: 8 },
   fill: { height: 6, borderRadius: 3, backgroundColor: theme.primary },
   dots: { flexDirection: 'row', gap: 8, marginTop: 4 },
   dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: theme.bgCard, borderWidth: 1, borderColor: theme.border },
   dotActive: { backgroundColor: theme.primary, borderColor: theme.primaryBorder },
-  hint: { fontSize: 12, color: theme.textMuted, textAlign: 'center', marginTop: 8 },
+  hint: { fontSize: 12, color: theme.textMuted, textAlign: 'center', marginTop: 8, fontFamily: fonts.bodyLight },
 });
 
 // ─── Variant B — Radar pulse ──────────────────────────────────────────────────
@@ -146,9 +146,9 @@ const stylesB = StyleSheet.create({
   ring: { position: 'absolute', width: RADAR_SIZE, height: RADAR_SIZE, borderRadius: RADAR_SIZE / 2, borderWidth: 2, borderColor: theme.primary },
   core: { width: 64, height: 64, borderRadius: 32, backgroundColor: theme.primaryDim, borderWidth: 2, borderColor: theme.primaryBorder, alignItems: 'center', justifyContent: 'center' },
   coreIcon: { fontSize: 28 },
-  title: { fontSize: 22, fontWeight: '800', color: theme.textPrimary, textAlign: 'center' },
-  phase: { fontSize: 14, color: theme.primary, fontWeight: '600', textAlign: 'center' },
-  hint: { fontSize: 12, color: theme.textMuted, textAlign: 'center', lineHeight: 18 },
+  title: { fontSize: 22, fontFamily: fonts.headlineBold, color: theme.textPrimary, textAlign: 'center' },
+  phase: { fontSize: 14, color: theme.primary, fontFamily: fonts.bodyBold, textAlign: 'center' },
+  hint: { fontSize: 12, color: theme.textMuted, textAlign: 'center', lineHeight: 18, fontFamily: fonts.bodyLight },
 });
 
 // ─── Variant C — Score reveal ─────────────────────────────────────────────────
@@ -211,14 +211,14 @@ export function DiscoveryLoaderC() {
 
 const stylesC = StyleSheet.create({
   container: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 40, gap: 12 },
-  eyebrow: { fontSize: 13, color: theme.textMuted, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 1 },
-  scoreNum: { fontSize: 96, fontWeight: '800', lineHeight: 100, textAlign: 'center' },
-  scoreSub: { fontSize: 16, color: theme.textSecondary, fontWeight: '600' },
-  hint: { fontSize: 12, color: theme.textMuted, textAlign: 'center', lineHeight: 20, marginTop: 8 },
+  eyebrow: { fontSize: 13, color: theme.textMuted, fontFamily: fonts.bodyBold, textTransform: 'uppercase', letterSpacing: 1 },
+  scoreNum: { fontSize: 96, fontFamily: fonts.headlineBold, lineHeight: 100, textAlign: 'center' },
+  scoreSub: { fontSize: 16, color: theme.textSecondary, fontFamily: fonts.bodyBold },
+  hint: { fontSize: 12, color: theme.textMuted, textAlign: 'center', lineHeight: 20, marginTop: 8, fontFamily: fonts.bodyLight },
   doneBox: { alignItems: 'center', gap: 12 },
   doneIcon: { fontSize: 56 },
-  doneTitle: { fontSize: 24, fontWeight: '800', color: theme.textPrimary, textAlign: 'center' },
-  doneSub: { fontSize: 14, color: theme.textSecondary, textAlign: 'center' },
+  doneTitle: { fontSize: 24, fontFamily: fonts.headlineBold, color: theme.textPrimary, textAlign: 'center' },
+  doneSub: { fontSize: 14, color: theme.textSecondary, textAlign: 'center', fontFamily: fonts.bodyLight },
 });
 
 // ─── Default export ───────────────────────────────────────────────────────────

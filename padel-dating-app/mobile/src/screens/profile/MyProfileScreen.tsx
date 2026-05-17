@@ -4,7 +4,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useIsFocused } from '@react-navigation/native';
-import { theme } from '../../lib/theme';
+import { theme, fonts } from '../../lib/theme';
 import { useAuth } from '../../context/AuthContext';
 import AnimatedRing from '../../components/AnimatedRing';
 
@@ -173,7 +173,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20, paddingVertical: 16,
     borderBottomWidth: 1, borderBottomColor: theme.bgCard,
   },
-  headerTitle: { fontSize: 26, fontWeight: '800', color: theme.textPrimary },
+  headerTitle: { fontSize: 26, fontFamily: fonts.headlineBold, color: theme.textPrimary },
   scroll: { paddingHorizontal: 16, paddingTop: 20 },
   profileCard: {
     backgroundColor: theme.bgCard, borderRadius: 20, padding: 24,
@@ -183,9 +183,9 @@ const styles = StyleSheet.create({
     backgroundColor: theme.primaryDim,
     alignItems: 'center', justifyContent: 'center',
   },
-  avatarInitials: { fontSize: 30, fontWeight: '800', color: theme.primary },
-  profileName: { fontSize: 22, fontWeight: '800', color: theme.textPrimary, marginBottom: 4, marginTop: 14 },
-  profileCity: { fontSize: 13, color: theme.textMuted, marginBottom: 8 },
+  avatarInitials: { fontSize: 30, fontFamily: fonts.headlineBold, color: theme.primary },
+  profileName: { fontSize: 22, fontFamily: fonts.headlineBold, color: theme.textPrimary, marginBottom: 4, marginTop: 14 },
+  profileCity: { fontSize: 13, color: theme.textMuted, marginBottom: 8, fontFamily: fonts.bodyLight },
   clubBadge: {
     flexDirection: 'row', alignItems: 'center', gap: 6,
     backgroundColor: theme.bgDeep, borderRadius: 20,
@@ -194,23 +194,23 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   clubBadgeIcon: { fontSize: 14 },
-  clubBadgeName: { fontSize: 13, fontWeight: '700', color: theme.primary },
+  clubBadgeName: { fontSize: 13, fontFamily: fonts.bodyBold, color: theme.primary },
   badgeRow: { flexDirection: 'row', gap: 8, marginBottom: 12, flexWrap: 'wrap', justifyContent: 'center' },
   badge: {
     backgroundColor: theme.bgDeep, borderRadius: 10,
     paddingHorizontal: 12, paddingVertical: 5, borderWidth: 1, borderColor: theme.border,
   },
   badgePrimary: { backgroundColor: theme.primaryDim, borderColor: theme.primaryBorder },
-  badgeText: { fontSize: 13, color: theme.textSecondary, fontWeight: '600' },
+  badgeText: { fontSize: 13, color: theme.textSecondary, fontFamily: fonts.bodyBold },
   badgePrimaryText: { color: theme.primary },
-  bio: { fontSize: 14, color: theme.textSecondary, fontStyle: 'italic', textAlign: 'center', lineHeight: 20 },
+  bio: { fontSize: 14, color: theme.textSecondary, fontStyle: 'italic', textAlign: 'center', lineHeight: 20, fontFamily: fonts.bodyLight },
   statsCard: {
     flexDirection: 'row', backgroundColor: theme.bgCard, borderRadius: 16,
     padding: 20, marginBottom: 12, borderWidth: 1, borderColor: theme.border,
   },
   statBox: { flex: 1, alignItems: 'center' },
-  statValue: { fontSize: 22, fontWeight: '800', color: theme.textPrimary, marginBottom: 4 },
-  statLabel: { fontSize: 11, color: theme.textMuted, fontWeight: '600' },
+  statValue: { fontSize: 22, fontFamily: fonts.headlineLightIt, color: theme.textPrimary, marginBottom: 4 },
+  statLabel: { fontSize: 11, color: theme.textMuted, fontFamily: fonts.bodyBold },
   statDivider: { width: 1, backgroundColor: theme.border },
   syncCtaNever: {
     flexDirection: 'row', alignItems: 'center', gap: 12,
@@ -224,9 +224,9 @@ const styles = StyleSheet.create({
   },
   syncCtaIcon: { fontSize: 24 },
   syncCtaText: { flex: 1 },
-  syncCtaTitle: { fontSize: 15, fontWeight: '700', color: theme.primary, marginBottom: 3 },
-  syncCtaTitleSynced: { fontSize: 15, fontWeight: '700', color: theme.textPrimary, marginBottom: 3 },
-  syncCtaSub: { fontSize: 12, color: theme.textMuted, lineHeight: 18 },
+  syncCtaTitle: { fontSize: 15, fontFamily: fonts.bodyBold, color: theme.primary, marginBottom: 3 },
+  syncCtaTitleSynced: { fontSize: 15, fontFamily: fonts.bodyBold, color: theme.textPrimary, marginBottom: 3 },
+  syncCtaSub: { fontSize: 12, color: theme.textMuted, lineHeight: 18, fontFamily: fonts.bodyLight },
   syncCtaArrow: { fontSize: 22, color: theme.textMuted },
   menuCard: {
     backgroundColor: theme.bgCard, borderRadius: 16,
@@ -235,11 +235,11 @@ const styles = StyleSheet.create({
   menuRow: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 16 },
   menuRowBorder: { borderBottomWidth: 1, borderBottomColor: theme.border },
   menuIcon: { fontSize: 20, width: 28 },
-  menuLabel: { flex: 1, fontSize: 15, color: theme.textPrimary, fontWeight: '500' },
+  menuLabel: { flex: 1, fontSize: 15, color: theme.textPrimary, fontFamily: fonts.bodyLight },
   menuArrow: { fontSize: 20, color: theme.textMuted },
   signOutBtn: {
     backgroundColor: theme.bgCard, borderRadius: 14, padding: 16,
     alignItems: 'center', borderWidth: 1, borderColor: theme.border,
   },
-  signOutText: { fontSize: 15, color: '#EF4444', fontWeight: '600' },
+  signOutText: { fontSize: 15, color: '#EF4444', fontFamily: fonts.bodyBold },
 });

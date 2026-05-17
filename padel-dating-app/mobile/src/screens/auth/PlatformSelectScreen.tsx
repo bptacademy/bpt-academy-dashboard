@@ -3,7 +3,7 @@ import {
   View, Text, TouchableOpacity, StyleSheet, StatusBar,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { theme } from '../../lib/theme';
+import { theme, fonts } from '../../lib/theme';
 
 const PLATFORMS = [
   {
@@ -82,11 +82,11 @@ export default function PlatformSelectScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: theme.bg, paddingHorizontal: 24 },
   backBtn: { paddingVertical: 16 },
-  backText: { color: theme.textSecondary, fontSize: 16 },
+  backText: { color: theme.textSecondary, fontSize: 16, fontFamily: fonts.bodyLight },
   header: { marginBottom: 32 },
   headerNoBack: { paddingTop: 24 },
-  title: { fontSize: 28, fontWeight: '800', color: theme.textPrimary, marginBottom: 10 },
-  subtitle: { fontSize: 15, color: theme.textMuted, lineHeight: 22 },
+  title: { fontSize: 28, fontFamily: fonts.headlineBold, color: theme.textPrimary, marginBottom: 10 },
+  subtitle: { fontSize: 15, color: theme.textMuted, lineHeight: 22, fontFamily: fonts.bodyLight },
   list: { gap: 12 },
   platformCard: {
     flexDirection: 'row', alignItems: 'center', gap: 16,
@@ -104,13 +104,13 @@ const styles = StyleSheet.create({
   },
   platformEmoji: { fontSize: 24 },
   platformInfo: { flex: 1 },
-  platformLabel: { fontSize: 17, fontWeight: '700', color: theme.textPrimary, marginBottom: 3 },
+  platformLabel: { fontSize: 17, fontFamily: fonts.bodyBold, color: theme.textPrimary, marginBottom: 3 },
   platformLabelDisabled: { color: theme.textMuted },
-  platformDesc: { fontSize: 13, color: theme.textMuted },
+  platformDesc: { fontSize: 13, color: theme.textMuted, fontFamily: fonts.bodyLight },
   arrow: { fontSize: 24, color: theme.primary },
   comingSoonBadge: {
     backgroundColor: theme.bgDeep, borderRadius: 8,
     paddingHorizontal: 10, paddingVertical: 4, borderWidth: 1, borderColor: theme.border,
   },
-  comingSoonText: { color: theme.textMuted, fontSize: 11, fontWeight: '600' },
+  comingSoonText: { color: theme.textMuted, fontSize: 11, fontFamily: fonts.bodyBold },
 });

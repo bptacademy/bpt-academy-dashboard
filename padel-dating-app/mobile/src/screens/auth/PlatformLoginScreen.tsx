@@ -4,7 +4,7 @@ import {
   StatusBar, ScrollView,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { theme } from '../../lib/theme';
+import { theme, fonts } from '../../lib/theme';
 
 export default function PlatformLoginScreen({ route, navigation }: any) {
   const { platform, label } = route.params;
@@ -48,21 +48,21 @@ export default function PlatformLoginScreen({ route, navigation }: any) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: theme.bg, paddingHorizontal: 24 },
   backBtn: { paddingVertical: 16 },
-  backText: { color: theme.textSecondary, fontSize: 16 },
+  backText: { color: theme.textSecondary, fontSize: 16, fontFamily: fonts.bodyLight },
   header: { marginBottom: 40 },
   platformBadge: {
     alignSelf: 'flex-start', backgroundColor: 'rgba(230,63,107,0.1)',
     borderRadius: 10, paddingHorizontal: 12, paddingVertical: 6, marginBottom: 16,
   },
-  platformBadgeText: { color: theme.primary, fontWeight: '700', fontSize: 13 },
-  title: { fontSize: 28, fontWeight: '800', color: theme.textPrimary, marginBottom: 10 },
-  subtitle: { fontSize: 14, color: theme.textMuted, lineHeight: 22 },
+  platformBadgeText: { color: theme.primary, fontFamily: fonts.bodyBold, fontSize: 13 },
+  title: { fontSize: 28, fontFamily: fonts.headlineBold, color: theme.textPrimary, marginBottom: 10 },
+  subtitle: { fontSize: 14, color: theme.textMuted, lineHeight: 22, fontFamily: fonts.bodyLight },
   connectBtn: {
     backgroundColor: theme.primary, borderRadius: 16, paddingVertical: 20,
     alignItems: 'center',
     shadowColor: theme.primary, shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3, shadowRadius: 10, elevation: 5,
   },
-  connectBtnText: { color: '#0D1B2A', fontSize: 17, fontWeight: '800' },
-  connectBtnSub: { color: 'rgba(13,27,42,0.6)', fontSize: 12, marginTop: 4 },
+  connectBtnText: { color: '#0D1B2A', fontSize: 17, fontFamily: fonts.headlineBold },
+  connectBtnSub: { color: 'rgba(13,27,42,0.6)', fontSize: 12, marginTop: 4, fontFamily: fonts.bodyLight },
 });

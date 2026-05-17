@@ -5,7 +5,7 @@ import {
   ActivityIndicator, Image,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { theme } from '../../lib/theme';
+import { theme, fonts } from '../../lib/theme';
 import { useAuth } from '../../context/AuthContext';
 import { useConversation } from '../../hooks/useConversation';
 
@@ -201,7 +201,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1, borderBottomColor: theme.bgCard,
   },
   backBtn: { padding: 4 },
-  backText: { fontSize: 22, color: theme.textSecondary },
+  backText: { fontSize: 22, color: theme.textSecondary, fontFamily: fonts.bodyLight },
   headerInfo: { flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 },
   headerAvatarWrapper: {
     width: 40, height: 40, borderRadius: 20,
@@ -209,12 +209,12 @@ const styles = StyleSheet.create({
     borderWidth: 1.5, borderColor: theme.primaryBorder, overflow: 'hidden',
   },
   headerAvatarImage: { width: 40, height: 40 },
-  headerAvatarText: { fontSize: 16, fontWeight: '800', color: theme.primary },
-  headerName: { fontSize: 16, fontWeight: '700', color: theme.textPrimary },
-  headerSub: { fontSize: 12, color: theme.textMuted },
+  headerAvatarText: { fontSize: 16, fontFamily: fonts.headlineBold, color: theme.primary },
+  headerName: { fontSize: 16, fontFamily: fonts.bodyBold, color: theme.textPrimary },
+  headerSub: { fontSize: 12, color: theme.textMuted, fontFamily: fonts.bodyLight },
 
   loadingBox: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  errorText: { fontSize: 14, color: '#EF4444' },
+  errorText: { fontSize: 14, color: '#EF4444', fontFamily: fonts.bodyLight },
 
   messageList: { paddingHorizontal: 16, paddingVertical: 16, gap: 10 },
 
@@ -222,8 +222,8 @@ const styles = StyleSheet.create({
     backgroundColor: theme.bgCard, borderRadius: 14, padding: 16,
     alignItems: 'center', marginBottom: 16, borderWidth: 1, borderColor: theme.border,
   },
-  systemMsgText: { fontSize: 15, fontWeight: '700', color: theme.primary, marginBottom: 6 },
-  systemMsgSub: { fontSize: 13, color: theme.textMuted, textAlign: 'center', lineHeight: 20 },
+  systemMsgText: { fontSize: 15, fontFamily: fonts.bodyBold, color: theme.primary, marginBottom: 6 },
+  systemMsgSub: { fontSize: 13, color: theme.textMuted, textAlign: 'center', lineHeight: 20, fontFamily: fonts.bodyLight },
 
   bubble: {
     maxWidth: '75%', borderRadius: 18,
@@ -236,22 +236,22 @@ const styles = StyleSheet.create({
     backgroundColor: theme.bgCard, alignSelf: 'flex-start',
     borderBottomLeftRadius: 4, borderWidth: 1, borderColor: theme.border,
   },
-  bubbleText: { fontSize: 15, lineHeight: 22 },
-  bubbleTextMe: { color: theme.bg, fontWeight: '500' },
+  bubbleText: { fontSize: 15, lineHeight: 22, fontFamily: fonts.bodyLight },
+  bubbleTextMe: { color: theme.bg },
   bubbleTextThem: { color: theme.textPrimary },
-  bubbleTime: { fontSize: 10, marginTop: 4 },
+  bubbleTime: { fontSize: 10, marginTop: 4, fontFamily: fonts.bodyLight },
   bubbleTimeMe: { color: 'rgba(13,27,42,0.6)', textAlign: 'right' },
   bubbleTimeThem: { color: theme.textDim },
 
   prompts: { paddingHorizontal: 16, paddingBottom: 10 },
-  promptsLabel: { fontSize: 12, color: theme.textMuted, marginBottom: 8 },
+  promptsLabel: { fontSize: 12, color: theme.textMuted, marginBottom: 8, fontFamily: fonts.bodyLight },
   promptChips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   promptChip: {
     backgroundColor: theme.bgCard, borderRadius: 20,
     paddingHorizontal: 12, paddingVertical: 7,
     borderWidth: 1, borderColor: theme.border,
   },
-  promptChipText: { fontSize: 13, color: theme.textSecondary },
+  promptChipText: { fontSize: 13, color: theme.textSecondary, fontFamily: fonts.bodyLight },
 
   inputRow: {
     flexDirection: 'row', alignItems: 'flex-end', gap: 10,
@@ -264,12 +264,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16, paddingVertical: 10,
     fontSize: 15, color: theme.textPrimary,
     borderWidth: 1, borderColor: theme.border,
-    maxHeight: 100,
+    maxHeight: 100, fontFamily: fonts.bodyLight,
   },
   sendBtn: {
     width: 44, height: 44, borderRadius: 22,
     backgroundColor: theme.primary, alignItems: 'center', justifyContent: 'center',
   },
   sendBtnDisabled: { opacity: 0.35 },
-  sendBtnText: { fontSize: 20, color: theme.bg, fontWeight: '800' },
+  sendBtnText: { fontSize: 20, color: theme.bg, fontFamily: fonts.headlineBold },
 });

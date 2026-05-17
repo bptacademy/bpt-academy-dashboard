@@ -4,7 +4,7 @@ import {
   StatusBar, ActivityIndicator, Linking, AppState, TextInput, Alert, ScrollView,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { theme } from '../../lib/theme';
+import { theme, fonts } from '../../lib/theme';
 
 // Lazy-load native modules — not compiled into Expo Go
 let WebView: any = null;
@@ -163,7 +163,7 @@ function ManualEntryScreen({
             You logged in with Facebook (or Google/Apple) in your browser. Because of how mobile security works, we need to link that account manually — it only takes 30 seconds.
           </Text>
           <Text style={styles.manualBody}>
-            We just need your <Text style={{ color: theme.primary, fontWeight: '700' }}>Playtomic user ID</Text> — a number you can find in the app or website.
+            We just need your <Text style={{ color: theme.primary, fontFamily: fonts.bodyBold }}>Playtomic user ID</Text> — a number you can find in the app or website.
           </Text>
 
           <TouchableOpacity style={styles.manualPrimaryBtn} onPress={() => setStep('lookup')}>
@@ -181,7 +181,7 @@ function ManualEntryScreen({
 
           <View style={styles.stepBox}>
             <Text style={styles.stepNum}>1</Text>
-            <Text style={styles.stepText}>Open <Text style={{ color: theme.primary, fontWeight: '700' }}>Playtomic</Text> in Safari or your browser</Text>
+            <Text style={styles.stepText}>Open <Text style={{ color: theme.primary, fontFamily: fonts.bodyBold }}>Playtomic</Text> in Safari or your browser</Text>
           </View>
           <View style={styles.stepBox}>
             <Text style={styles.stepNum}>2</Text>
@@ -393,29 +393,29 @@ const styles = StyleSheet.create({
     backgroundColor: theme.bg, borderBottomWidth: 1, borderBottomColor: theme.border,
   },
   closeBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: theme.bgCard, alignItems: 'center', justifyContent: 'center' },
-  closeBtnText: { color: theme.textSecondary, fontSize: 16, fontWeight: '700' },
-  headerTitle: { fontSize: 16, fontWeight: '700', color: theme.textPrimary },
+  closeBtnText: { color: theme.textSecondary, fontSize: 16, fontFamily: fonts.bodyBold },
+  headerTitle: { fontSize: 16, fontFamily: fonts.bodyBold, color: theme.textPrimary },
   headerRight: { width: 36 },
   webview: { flex: 1 },
   loadingOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: theme.bg, alignItems: 'center', justifyContent: 'center' },
   detectedOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(13,27,42,0.95)', alignItems: 'center', justifyContent: 'center', gap: 12 },
   detectedIcon: { fontSize: 56 },
-  detectedText: { fontSize: 22, fontWeight: '800', color: theme.textPrimary },
-  detectedSub: { fontSize: 15, color: theme.primary },
+  detectedText: { fontSize: 22, fontFamily: fonts.headlineBold, color: theme.textPrimary },
+  detectedSub: { fontSize: 15, color: theme.primary, fontFamily: fonts.bodyLight },
   unavailableIcon: { fontSize: 48 },
-  unavailableTitle: { fontSize: 20, fontWeight: '800', color: theme.textPrimary, textAlign: 'center' },
-  unavailableText: { fontSize: 14, color: theme.textMuted, textAlign: 'center', lineHeight: 22 },
+  unavailableTitle: { fontSize: 20, fontFamily: fonts.headlineBold, color: theme.textPrimary, textAlign: 'center' },
+  unavailableText: { fontSize: 14, color: theme.textMuted, textAlign: 'center', lineHeight: 22, fontFamily: fonts.bodyLight },
   backBtn: { marginTop: 8, backgroundColor: theme.bgCard, borderRadius: 12, paddingHorizontal: 24, paddingVertical: 12, borderWidth: 1, borderColor: theme.border },
-  backBtnText: { color: theme.primary, fontWeight: '700', fontSize: 15 },
+  backBtnText: { color: theme.primary, fontFamily: fonts.bodyBold, fontSize: 15 },
 
   // ── Manual entry screen ──
   manualScreen: { flex: 1, backgroundColor: theme.bg },
   manualScreenContent: { paddingHorizontal: 24, paddingTop: 8, paddingBottom: 40, gap: 16 },
   manualBackBtn: { paddingVertical: 12 },
-  manualBackText: { color: theme.textSecondary, fontSize: 14 },
+  manualBackText: { color: theme.textSecondary, fontSize: 14, fontFamily: fonts.bodyLight },
   manualIcon: { fontSize: 52, textAlign: 'center', marginBottom: 4 },
-  manualTitle: { fontSize: 24, fontWeight: '800', color: theme.textPrimary },
-  manualBody: { fontSize: 14, color: theme.textSecondary, lineHeight: 22 },
+  manualTitle: { fontSize: 24, fontFamily: fonts.headlineBold, color: theme.textPrimary },
+  manualBody: { fontSize: 14, color: theme.textSecondary, lineHeight: 22, fontFamily: fonts.bodyLight },
   stepBox: {
     flexDirection: 'row', gap: 14, alignItems: 'flex-start',
     backgroundColor: theme.bgCard, borderRadius: 14, padding: 14,
@@ -425,20 +425,20 @@ const styles = StyleSheet.create({
     width: 26, height: 26, borderRadius: 13,
     backgroundColor: theme.primaryDim, borderWidth: 1, borderColor: theme.primaryBorder,
     textAlign: 'center', lineHeight: 26,
-    fontSize: 13, fontWeight: '800', color: theme.primary,
+    fontSize: 13, fontFamily: fonts.headlineBold, color: theme.primary,
   },
-  stepText: { flex: 1, fontSize: 14, color: theme.textSecondary, lineHeight: 20 },
+  stepText: { flex: 1, fontSize: 14, color: theme.textSecondary, lineHeight: 20, fontFamily: fonts.bodyLight },
   urlExample: { fontSize: 13, color: theme.textMuted, fontFamily: 'monospace' },
   manualInput: {
     backgroundColor: theme.bgCard, borderRadius: 14, borderWidth: 1, borderColor: theme.border,
     paddingHorizontal: 18, paddingVertical: 14,
-    fontSize: 20, color: theme.textPrimary, fontWeight: '700', letterSpacing: 2,
+    fontSize: 20, color: theme.textPrimary, fontFamily: fonts.bodyBold, letterSpacing: 2,
   },
   manualPrimaryBtn: {
     backgroundColor: theme.primary, borderRadius: 14,
     paddingVertical: 16, alignItems: 'center',
   },
-  manualPrimaryBtnText: { color: theme.bg, fontSize: 15, fontWeight: '800' },
+  manualPrimaryBtnText: { color: theme.bg, fontSize: 15, fontFamily: fonts.headlineBold },
   manualSecondaryBtn: { alignItems: 'center', paddingVertical: 8 },
-  manualSecondaryBtnText: { color: theme.textMuted, fontSize: 14 },
+  manualSecondaryBtnText: { color: theme.textMuted, fontSize: 14, fontFamily: fonts.bodyLight },
 });

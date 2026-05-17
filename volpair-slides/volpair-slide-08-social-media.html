@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1920">
+<title>Volpair — Slide 08 Social Media</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    width: 1920px; height: 1080px;
+    background: #0A1520;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+  }
+  .slide {
+    width: 1920px; height: 1080px;
+    background: #0A1520;
+    position: relative; overflow: hidden;
+    padding: 60px 80px 60px;
+  }
+  .glow1 {
+    position: absolute; top: -100px; left: -100px;
+    width: 700px; height: 700px;
+    background: radial-gradient(ellipse, rgba(0,212,200,0.09) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .glow2 {
+    position: absolute; bottom: -50px; right: 200px;
+    width: 600px; height: 500px;
+    background: radial-gradient(ellipse, rgba(124,58,237,0.1) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .title-area { margin-bottom: 8px; }
+  .h-white {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700; font-size: 52px; color: #fff; display: block; line-height: 1.1;
+  }
+  .h-gradient {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700; font-size: 52px;
+    background: linear-gradient(135deg, #00D4C8, #7C3AED);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    display: block; line-height: 1.1;
+  }
+  .subtitle {
+    font-family: 'Inter', sans-serif;
+    font-size: 15px; color: #4A6080;
+    margin-bottom: 32px; display: block;
+  }
+  /* Layout */
+  .layout {
+    display: flex; gap: 60px; align-items: flex-start;
+    height: 700px;
+  }
+  .left-col { width: 55%; display: flex; flex-direction: column; gap: 12px; }
+  .right-col { width: 45%; display: flex; flex-direction: column; gap: 20px; }
+  /* IG Post */
+  .ig-post {
+    width: 420px; height: 420px;
+    background: #0D1B2A;
+    border-radius: 20px;
+    border: 1px solid #243650;
+    position: relative; overflow: hidden;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 12px;
+  }
+  .ig-glow {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 300px; height: 300px;
+    background: radial-gradient(ellipse, rgba(0,212,200,0.15) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .ig-wordmark {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 800; font-size: 40px;
+    background: linear-gradient(135deg, #00D4C8, #7C3AED);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    z-index: 1;
+  }
+  .ig-tagline {
+    font-family: 'Inter', sans-serif;
+    font-size: 14px; color: #7A9CC0;
+    text-align: center; z-index: 1;
+    max-width: 300px;
+  }
+  .ig-cta-strip {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    height: 44px;
+    background: linear-gradient(135deg, #00D4C8, #7C3AED);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .ig-cta-text {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 12px; font-weight: 700; color: #fff;
+    letter-spacing: 0.05em;
+  }
+  .media-label {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 11px; color: #4A6080;
+    letter-spacing: 0.2em; text-transform: uppercase;
+  }
+  /* IG Story */
+  .ig-story {
+    width: 200px; height: 340px;
+    background: linear-gradient(135deg, #00D4C8, #7C3AED);
+    border-radius: 16px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: space-between;
+    padding: 24px 16px;
+    border: 1px solid #243650;
+    flex-shrink: 0;
+  }
+  .story-wordmark {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 800; font-size: 22px;
+    color: #fff; text-align: center;
+  }
+  .story-handle {
+    font-family: 'Inter', sans-serif;
+    font-size: 12px; color: rgba(255,255,255,0.8);
+  }
+  .story-swipe {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 11px; color: rgba(255,255,255,0.9);
+    letter-spacing: 0.1em;
+  }
+  /* Twitter banner */
+  .twitter-banner {
+    width: 360px; height: 120px;
+    background: #0D1B2A;
+    border-radius: 12px;
+    border: 1px solid #243650;
+    display: flex; align-items: center;
+    padding: 0 20px; gap: 16px;
+    position: relative; overflow: hidden;
+  }
+  .twitter-accent {
+    position: absolute; left: 0; top: 0; bottom: 0;
+    width: 4px;
+    background: linear-gradient(180deg, #00D4C8, #7C3AED);
+  }
+  .tw-wordmark {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 800; font-size: 24px;
+    background: linear-gradient(135deg, #00D4C8, #7C3AED);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    margin-left: 12px; flex-shrink: 0;
+  }
+  .tw-tagline {
+    font-family: 'Inter', sans-serif;
+    font-size: 10px; color: #7A9CC0;
+    flex: 1; line-height: 1.4;
+  }
+  .tw-url {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 10px; color: #4A6080;
+    flex-shrink: 0;
+  }
+  .right-row { display: flex; gap: 24px; align-items: flex-start; }
+  /* Platform handles strip */
+  .handles-strip {
+    position: absolute; bottom: 68px; left: 80px; right: 80px;
+    display: flex; justify-content: center; gap: 0;
+    border: 1px solid #1A2C42;
+    border-radius: 12px; overflow: hidden;
+  }
+  .handle-cell {
+    flex: 1; padding: 12px 20px;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    border-right: 1px solid #1A2C42;
+  }
+  .handle-cell:last-child { border-right: none; }
+  .handle-platform {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 11px; color: #4A6080;
+    letter-spacing: 0.15em; text-transform: uppercase;
+  }
+  .handle-name {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 14px; font-weight: 700;
+    color: #7A9CC0;
+  }
+  .slide-num {
+    position: absolute; bottom: 16px; right: 80px;
+    font-size: 11px; letter-spacing: 0.3em;
+    color: #4A6080; font-family: 'Space Grotesk', sans-serif;
+    text-transform: uppercase;
+  }
+  .bottom-bar {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    height: 4px; background: linear-gradient(90deg, #00D4C8, #7C3AED);
+  }
+</style>
+</head>
+<body>
+<div class="slide">
+  <div class="glow1"></div>
+  <div class="glow2"></div>
+
+  <div class="title-area">
+    <span class="h-white">Social Media</span>
+    <span class="h-gradient">System</span>
+  </div>
+  <span class="subtitle">Consistent presence across every platform</span>
+
+  <div class="layout">
+    <!-- Left col -->
+    <div class="left-col">
+      <div class="ig-post">
+        <div class="ig-glow"></div>
+        <svg width="48" height="48" viewBox="0 0 52 52" fill="none" style="z-index:1;">
+          <defs><linearGradient id="lgIig" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#00D4C8"/><stop offset="100%" stop-color="#7C3AED"/></linearGradient></defs>
+          <circle cx="26" cy="22" r="18" fill="url(#lgIig)"/>
+          <line x1="26" y1="5" x2="26" y2="39" stroke="rgba(255,255,255,0.3)" stroke-width="1.2"/>
+          <line x1="9" y1="22" x2="43" y2="22" stroke="rgba(255,255,255,0.3)" stroke-width="1.2"/>
+          <path d="M26 30 C26 30 18 25 18 20 C18 17 20 15 22 15 C24 15 26 17 26 17 C26 17 28 15 30 15 C32 15 34 17 34 20 C34 25 26 30 26 30Z" fill="rgba(255,255,255,0.92)"/>
+          <rect x="22" y="38" width="8" height="12" rx="3" fill="url(#lgIig)"/>
+          <rect x="20" y="36" width="12" height="4" rx="2" fill="url(#lgIig)"/>
+        </svg>
+        <span class="ig-wordmark">VOLPAIR</span>
+        <span class="ig-tagline">Every Rally Starts With a Match.</span>
+        <div class="ig-cta-strip">
+          <span class="ig-cta-text">Download Now — volpair.com</span>
+        </div>
+      </div>
+      <span class="media-label">Instagram Post · 1080×1080</span>
+    </div>
+
+    <!-- Right col -->
+    <div class="right-col">
+      <div class="right-row">
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          <div class="ig-story">
+            <div style="display:flex; flex-direction:column; align-items:center; gap:8px;">
+              <svg width="36" height="36" viewBox="0 0 52 52" fill="none">
+                <circle cx="26" cy="22" r="18" fill="rgba(255,255,255,0.25)"/>
+                <line x1="26" y1="5" x2="26" y2="39" stroke="rgba(255,255,255,0.5)" stroke-width="1.2"/>
+                <line x1="9" y1="22" x2="43" y2="22" stroke="rgba(255,255,255,0.5)" stroke-width="1.2"/>
+                <path d="M26 30 C26 30 18 25 18 20 C18 17 20 15 22 15 C24 15 26 17 26 17 C26 17 28 15 30 15 C32 15 34 17 34 20 C34 25 26 30 26 30Z" fill="rgba(255,255,255,0.95)"/>
+                <rect x="22" y="38" width="8" height="12" rx="3" fill="rgba(255,255,255,0.7)"/>
+                <rect x="20" y="36" width="12" height="4" rx="2" fill="rgba(255,255,255,0.7)"/>
+              </svg>
+              <span class="story-wordmark">VOLPAIR</span>
+            </div>
+            <span class="story-handle">@volpair</span>
+            <span class="story-swipe">Swipe Up →</span>
+          </div>
+          <span class="media-label">Instagram Story · 1080×1920</span>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:10px; align-self:center;">
+          <div class="twitter-banner">
+            <div class="twitter-accent"></div>
+            <span class="tw-wordmark">VOLPAIR</span>
+            <span class="tw-tagline">Every Rally Starts<br>With a Match.</span>
+            <span class="tw-url">volpair.com</span>
+          </div>
+          <span class="media-label">X/Twitter Banner · 1500×500</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Platform handles -->
+  <div class="handles-strip">
+    <div class="handle-cell">
+      <span class="handle-platform">Instagram</span>
+      <span class="handle-name">@volpair</span>
+    </div>
+    <div class="handle-cell">
+      <span class="handle-platform">TikTok</span>
+      <span class="handle-name">@volpair</span>
+    </div>
+    <div class="handle-cell">
+      <span class="handle-platform">X / Twitter</span>
+      <span class="handle-name">@volpair</span>
+    </div>
+  </div>
+
+  <span class="slide-num">08 / 10</span>
+  <div class="bottom-bar"></div>
+</div>
+</body>
+</html>

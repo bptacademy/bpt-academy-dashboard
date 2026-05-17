@@ -164,7 +164,7 @@ function MainTabs({ navRef }: { navRef: React.RefObject<NavigationContainerRef<a
           backgroundColor: theme.bgCard,
           borderTopColor: theme.border,
           borderTopWidth: 1,
-          height: 58 + insets.bottom,
+          height: 48 + insets.bottom,
           paddingBottom: insets.bottom,
           paddingTop: 8,
         },
@@ -176,7 +176,7 @@ function MainTabs({ navRef }: { navRef: React.RefObject<NavigationContainerRef<a
             Connect: '💘', Play: '🎾', Radar: '📡', Messages: '💬', Profile: '👤',
           };
           return (
-            <Text style={{ fontSize: 26, opacity: focused ? 1 : 0.4 }}>
+            <Text style={{ fontSize: 24, opacity: focused ? 1 : 0.4 }}>
               {icons[route.name]}
             </Text>
           );

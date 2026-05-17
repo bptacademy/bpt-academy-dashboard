@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Volpair — Brand Kit 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#0D1B2A;--bgCard:#111E2E;--bgDeep:#0A1520;--bgHover:#172435;
+  --border:#1A2C42;--borderLight:#243650;
+  --text:#FFFFFF;--textSec:#7A9CC0;--textMuted:#4A6080;
+  --primary:#00D4C8;--secondary:#7C3AED;--amber:#F59E0B;
+  --grad:linear-gradient(135deg,#00D4C8,#7C3AED);
+}
+body{background:var(--bg);font-family:'Inter',sans-serif;color:var(--text);overflow-x:hidden;}
+section{min-height:100vh;width:100%;padding:64px;position:relative;overflow:hidden;}
+.page-label{position:absolute;top:32px;left:64px;font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:var(--textMuted);}
+.page-divider{width:100%;height:1px;background:var(--border);margin:0;}
+.grad-text{background:linear-gradient(135deg,#00D4C8,#7C3AED);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+
+/* ===================== PAGE 1 ===================== */
+#p1{background:var(--bgDeep);display:flex;flex-direction:column;align-items:center;justify-content:center;}
+#p1::before{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:900px;height:500px;background:radial-gradient(ellipse at 30% 50%,rgba(0,212,200,0.12),transparent 60%),radial-gradient(ellipse at 70% 50%,rgba(124,58,237,0.12),transparent 60%);pointer-events:none;}
+.p1-title{font-family:'Space Grotesk',sans-serif;font-size:13px;letter-spacing:4px;text-transform:uppercase;color:var(--textMuted);margin-bottom:72px;}
+.logos-row{display:flex;gap:60px;align-items:flex-start;justify-content:center;width:100%;max-width:1100px;}
+.logo-block{display:flex;flex-direction:column;align-items:center;gap:24px;flex:1;}
+.logo-tag{font-family:'Space Grotesk',sans-serif;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--textMuted);border-top:1px solid var(--border);padding-top:16px;width:100%;text-align:center;}
+
+/* Logo A */
+.logo-a-wrap{padding:48px 40px;background:rgba(17,30,51,0.6);border:1px solid var(--borderLight);border-radius:20px;display:flex;flex-direction:column;align-items:center;gap:12px;width:100%;}
+.logo-a-wordmark{font-family:'Space Grotesk',sans-serif;font-size:52px;font-weight:700;letter-spacing:4px;background:linear-gradient(90deg,#00D4C8,#7C3AED);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.logo-a-tagline{font-family:'Space Grotesk',sans-serif;font-size:11px;letter-spacing:6px;color:var(--textMuted);font-weight:500;}
+
+/* Logo B */
+.logo-b-wrap{padding:48px 40px;background:rgba(17,30,51,0.6);border:1px solid var(--borderLight);border-radius:20px;display:flex;align-items:center;gap:20px;justify-content:center;width:100%;}
+.logo-b-wordmark{font-family:'Space Grotesk',sans-serif;font-size:36px;font-weight:700;color:#fff;letter-spacing:2px;}
+
+/* Logo C */
+.logo-c-wrap{padding:48px 40px;background:linear-gradient(135deg,#7C3AED,#00D4C8);border-radius:20px;display:flex;flex-direction:column;align-items:center;gap:16px;width:100%;}
+.logo-c-wordmark{font-family:'Space Grotesk',sans-serif;font-size:32px;font-weight:700;color:#fff;letter-spacing:4px;}
+
+/* ===================== PAGE 2 ===================== */
+#p2{background:var(--bg);}
+#p2 h2{font-family:'Space Grotesk',sans-serif;font-size:36px;font-weight:700;margin:80px 0 48px;}
+.p2-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-bottom:48px;}
+.p2-cell{background:var(--bgCard);border:1px solid var(--border);border-radius:16px;padding:32px;display:flex;flex-direction:column;align-items:center;gap:16px;}
+.p2-cell.light{background:#F8FAFC;}
+.p2-cell-label{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--textMuted);font-family:'Space Grotesk',sans-serif;}
+.p2-cell.light .p2-cell-label{color:#4A6080;}
+.mini-wordmark{font-family:'Space Grotesk',sans-serif;font-size:28px;font-weight:700;letter-spacing:3px;}
+.p2-sizes{display:flex;align-items:flex-end;gap:20px;flex-wrap:wrap;}
+.dont-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;}
+.dont-cell{background:var(--bgCard);border:1px solid rgba(239,68,68,0.3);border-radius:12px;padding:24px;display:flex;flex-direction:column;align-items:center;gap:12px;position:relative;}
+.dont-x{color:#EF4444;font-size:28px;font-weight:900;position:absolute;top:12px;right:16px;}
+.dont-label{font-size:11px;color:#EF4444;letter-spacing:1px;text-align:center;font-family:'Space Grotesk',sans-serif;}
+.clearspace-box{border:2px dashed var(--primary);padding:24px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;}
+
+/* ===================== PAGE 3 ===================== */
+#p3{background:var(--bgDeep);}
+#p3 h2{font-family:'Space Grotesk',sans-serif;font-size:36px;font-weight:700;margin:80px 0 48px;}
+.icon-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;}
+.icon-card{background:var(--bgCard);border:1px solid var(--border);border-radius:16px;padding:32px 20px;display:flex;flex-direction:column;align-items:center;gap:14px;transition:all 0.2s;}
+.icon-card:nth-child(1),.icon-card:nth-child(6),.icon-card:nth-child(11){box-shadow:0 0 20px rgba(0,212,200,0.25);border-color:rgba(0,212,200,0.4);}
+.icon-label{font-size:11px;letter-spacing:1px;color:var(--textMuted);text-transform:uppercase;font-family:'Space Grotesk',sans-serif;}
+
+/* ===================== PAGE 4 ===================== */
+#p4{background:var(--bgDeep);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;}
+#p4::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 20% 80%,rgba(0,212,200,0.1),transparent 50%),radial-gradient(ellipse at 80% 20%,rgba(124,58,237,0.12),transparent 50%);pointer-events:none;}
+.p4-court{position:absolute;inset:0;opacity:0.06;}
+.p4-hero{font-family:'Space Grotesk',sans-serif;font-size:clamp(40px,5vw,72px);font-weight:700;line-height:1.1;background:linear-gradient(90deg,#00D4C8,#7C3AED);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:32px;position:relative;z-index:1;max-width:900px;}
+.p4-sub{font-size:20px;color:var(--textSec);font-weight:400;position:relative;z-index:1;max-width:600px;line-height:1.6;}
+.p4-badge{display:inline-flex;gap:16px;margin-top:48px;position:relative;z-index:1;}
+.p4-pill{padding:10px 24px;border-radius:100px;border:1px solid;font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:600;letter-spacing:2px;}
+.p4-pill.t{border-color:var(--primary);color:var(--primary);}
+.p4-pill.v{border-color:var(--secondary);color:var(--secondary);}
+
+/* ===================== PAGE 5 ===================== */
+#p5{background:var(--bg);}
+#p5 h2{font-family:'Space Grotesk',sans-serif;font-size:36px;font-weight:700;margin:80px 0 60px;}
+.mockups-row{display:flex;gap:48px;justify-content:center;align-items:flex-start;}
+.phone{width:220px;background:#0A1520;border-radius:36px;border:6px solid #1A2C42;box-shadow:0 32px 80px rgba(0,0,0,0.5);overflow:hidden;position:relative;flex-shrink:0;}
+.phone-notch{width:80px;height:22px;background:#0D1B2A;border-radius:0 0 14px 14px;margin:0 auto;}
+.phone-screen{padding:16px 14px;min-height:380px;}
+.phone-home{width:60px;height:4px;background:#1A2C42;border-radius:2px;margin:12px auto 8px;}
+.phone-1{transform:rotate(-4deg);}
+.phone-2{transform:rotate(1deg);margin-top:-20px;}
+.phone-3{transform:rotate(4deg);}
+.mock-label{font-family:'Space Grotesk',sans-serif;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--textMuted);text-align:center;margin-top:20px;}
+
+/* match card */
+.match-avatar{width:100%;height:130px;border-radius:16px;background:linear-gradient(135deg,rgba(0,212,200,0.3),rgba(124,58,237,0.3));margin-bottom:12px;display:flex;align-items:center;justify-content:center;}
+.match-name{font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:700;margin-bottom:4px;}
+.match-badges{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
+.badge{padding:3px 10px;border-radius:100px;font-size:10px;font-weight:600;font-family:'Space Grotesk',sans-serif;}
+.badge-t{background:rgba(0,212,200,0.15);color:var(--primary);border:1px solid rgba(0,212,200,0.3);}
+.badge-v{background:rgba(124,58,237,0.15);color:#a78bfa;border:1px solid rgba(124,58,237,0.3);}
+.badge-a{background:rgba(245,158,11,0.15);color:var(--amber);border:1px solid rgba(245,158,11,0.3);}
+.swipe-btns{display:flex;gap:10px;margin-top:8px;}
+.swipe-btn{flex:1;padding:10px;border-radius:12px;border:none;font-weight:700;font-size:13px;font-family:'Space Grotesk',sans-serif;cursor:pointer;}
+.swipe-pass{background:#172435;color:var(--textMuted);}
+.swipe-match{background:linear-gradient(135deg,#00D4C8,#7C3AED);color:#fff;}
+
+/* volley screen */
+.volley-ring{width:120px;height:120px;border-radius:50%;border:2px solid var(--primary);margin:20px auto;display:flex;align-items:center;justify-content:center;box-shadow:0 0 30px rgba(0,212,200,0.4);}
+.volley-ring-inner{width:90px;height:90px;border-radius:50%;background:linear-gradient(135deg,rgba(0,212,200,0.2),rgba(124,58,237,0.2));display:flex;align-items:center;justify-content:center;}
+.volley-title{font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700;text-align:center;margin-top:8px;}
+.volley-sub{font-size:10px;color:var(--textMuted);text-align:center;margin-top:4px;}
+.volley-players{display:flex;justify-content:space-between;margin-top:16px;}
+.volley-player{display:flex;flex-direction:column;align-items:center;gap:4px;}
+.vp-avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#00D4C8,#7C3AED);}
+.vp-name{font-size:9px;color:var(--textSec);}
+
+/* profile screen */
+.prof-avatar{width:70px;height:70px;border-radius:50%;background:linear-gradient(135deg,#00D4C8,#7C3AED);margin:10px auto;border:3px solid var(--primary);}
+.prof-name{font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:700;text-align:center;}
+.prof-loc{font-size:10px;color:var(--textMuted);text-align:center;margin-bottom:10px;}
+.prof-stats{display:flex;gap:6px;justify-content:center;margin-bottom:10px;}
+.stat-box{background:#172435;border-radius:8px;padding:6px 10px;text-align:center;}
+.stat-val{font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:700;color:var(--primary);}
+.stat-key{font-size:8px;color:var(--textMuted);}
+.photo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;border-radius:8px;overflow:hidden;}
+.photo-cell{height:50px;background:#172435;}
+.photo-cell:nth-child(1){background:rgba(0,212,200,0.2);}
+.photo-cell:nth-child(4){background:rgba(124,58,237,0.2);}
+
+/* ===================== PAGE 6 ===================== */
+#p6{background:var(--bgDeep);}
+#p6 h2{font-family:'Space Grotesk',sans-serif;font-size:36px;font-weight:700;margin:80px 0 60px;}
+.ui-row{display:flex;gap:24px;justify-content:center;}
+.ui-phone{width:200px;background:#0A1520;border-radius:36px;border:5px solid #1A2C42;box-shadow:0 24px 60px rgba(0,0,0,0.6);overflow:hidden;flex-shrink:0;}
+.ui-notch{width:70px;height:18px;background:#0D1B2A;border-radius:0 0 12px 12px;margin:0 auto;}
+.ui-screen{padding:14px 12px;min-height:350px;display:flex;flex-direction:column;}
+.ui-home{width:50px;height:3px;background:#1A2C42;border-radius:2px;margin:10px auto 6px;}
+
+/* onboarding */
+.onb-blob{width:100%;height:80px;background:radial-gradient(ellipse,rgba(0,212,200,0.3) 0%,rgba(124,58,237,0.2) 50%,transparent 70%);margin-bottom:8px;}
+.onb-logo{font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:700;text-align:center;background:linear-gradient(90deg,#00D4C8,#7C3AED);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:6px;}
+.onb-sub{font-size:9px;color:var(--textMuted);text-align:center;margin-bottom:20px;line-height:1.4;}
+.onb-cta{background:linear-gradient(135deg,#00D4C8,#7C3AED);border-radius:12px;padding:10px;text-align:center;font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:700;color:#fff;}
+.onb-link{font-size:9px;color:var(--textMuted);text-align:center;margin-top:10px;}
+
+/* swipe */
+.swp-card{background:#111E2E;border-radius:14px;padding:10px;margin-bottom:10px;flex:1;}
+.swp-photo{height:90px;background:linear-gradient(135deg,rgba(0,212,200,0.25),rgba(124,58,237,0.25));border-radius:10px;margin-bottom:8px;display:flex;align-items:center;justify-content:center;}
+.swp-name{font-family:'Space Grotesk',sans-serif;font-size:12px;font-weight:700;}
+.swp-info{font-size:9px;color:var(--textMuted);}
+.swp-btns{display:flex;gap:8px;margin-top:8px;}
+.swp-btn{flex:1;padding:7px;border-radius:10px;font-size:9px;font-weight:700;font-family:'Space Grotesk',sans-serif;text-align:center;}
+.swp-n{background:#172435;color:var(--textMuted);}
+.swp-y{background:linear-gradient(135deg,#00D4C8,#7C3AED);color:#fff;}
+
+/* match notif */
+.match-bg{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(ellipse at center,rgba(124,58,237,0.3),transparent 60%);}
+.match-glow{width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#00D4C8,#7C3AED);box-shadow:0 0 40px rgba(0,212,200,0.5);margin-bottom:12px;display:flex;align-items:center;justify-content:center;font-size:28px;}
+.match-txt{font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:700;text-align:center;background:linear-gradient(90deg,#00D4C8,#7C3AED);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.match-sub2{font-size:9px;color:var(--textMuted);text-align:center;margin-top:4px;}
+
+/* chat */
+.chat-header{display:flex;align-items:center;gap:8px;margin-bottom:12px;}
+.chat-av{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#00D4C8,#7C3AED);}
+.chat-name{font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:700;}
+.chat-msgs{display:flex;flex-direction:column;gap:8px;flex:1;}
+.msg{max-width:80%;padding:8px 10px;border-radius:12px;font-size:9px;line-height:1.4;}
+.msg-recv{background:#172435;color:var(--textSec);align-self:flex-start;border-radius:4px 12px 12px 12px;}
+.msg-sent{background:linear-gradient(135deg,#00D4C8,#7C3AED);color:#fff;align-self:flex-end;border-radius:12px 4px 12px 12px;}
+.chat-input{background:#172435;border-radius:10px;padding:8px 10px;font-size:9px;color:var(--textMuted);margin-top:10px;}
+
+/* ===================== PAGE 7 ===================== */
+#p7{background:var(--bg);}
+#p7 h2{font-family:'Space Grotesk',sans-serif;font-size:36px;font-weight:700;margin:80px 0 48px;}
+.social-grid{display:grid;grid-template-columns:1fr 1fr 0.6fr 0.6fr;grid-template-rows:auto auto;gap:20px;}
+.social-asset{border-radius:16px;overflow:hidden;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;}
+.sq{aspect-ratio:1;}
+.story{aspect-ratio:9/16;max-height:340px;}
+.wide{aspect-ratio:3/1;grid-column:span 2;}
+.sa-label{position:absolute;bottom:12px;left:12px;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.4);font-family:'Space Grotesk',sans-serif;}
+.sa-logo{font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:700;letter-spacing:2px;background:linear-gradient(90deg,#00D4C8,#7C3AED);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.sa-tag{font-family:'Space Grotesk',sans-serif;font-size:11px;color:rgba(255,255,255,0.8);margin-top:8px;text-align:center;line-height:1.4;}
+.sa-cta{margin-top:12px;padding:8px 20px;border-radius:100px;background:linear-gradient(135deg,#00D4C8,#7C3AED);font-family:'Space Grotesk',sans-serif;font-size:10px;font-weight:700;color:#fff;}
+
+/* ===================== PAGE 8 ===================== */
+#p8{background:var(--bgDeep);}
+#p8 h2{font-family:'Space Grotesk',sans-serif;font-size:36px;font-weight:700;margin:80px 0 48px;}
+.p8-cols{display:grid;grid-template-columns:1fr 1fr;gap:64px;}
+.type-section h3{font-family:'Space Grotesk',sans-serif;font-size:13px;letter-spacing:3px;text-transform:uppercase;color:var(--textMuted);margin-bottom:32px;}
+.type-row{margin-bottom:20px;border-bottom:1px solid var(--border);padding-bottom:20px;}
+.type-row:last-child{border-bottom:none;}
+.type-meta{font-size:10px;color:var(--textMuted);letter-spacing:1px;font-family:'Space Grotesk',sans-serif;margin-bottom:4px;}
+.swatches{display:flex;flex-direction:column;gap:12px;}
+.swatch{border-radius:12px;padding:20px 20px 12px;display:flex;flex-direction:column;gap:4px;}
+.swatch-hex{font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700;}
+.swatch-name{font-size:10px;letter-spacing:1px;opacity:0.7;}
+.swatch-rgb{font-size:9px;opacity:0.5;font-family:'Inter',sans-serif;}
+
+/* ===================== PAGE 9 ===================== */
+#p9{background:var(--bgDeep);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;position:relative;}
+#p9::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 25% 60%,rgba(0,212,200,0.18),transparent 50%),radial-gradient(ellipse at 75% 40%,rgba(124,58,237,0.2),transparent 50%);pointer-events:none;}
+.p9-wordmark{font-family:'Space Grotesk',sans-serif;font-size:clamp(60px,8vw,120px);font-weight:700;letter-spacing:8px;background:linear-gradient(90deg,#00D4C8,#7C3AED);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;position:relative;z-index:1;}
+.p9-tagline{font-family:'Space Grotesk',sans-serif;font-size:24px;font-weight:500;color:var(--textSec);margin-top:16px;position:relative;z-index:1;}
+.p9-urls{font-family:'Space Grotesk',sans-serif;font-size:14px;letter-spacing:2px;color:var(--textMuted);margin-top:32px;position:relative;z-index:1;}
+.p9-handle{font-family:'Space Grotesk',sans-serif;font-size:13px;color:var(--primary);letter-spacing:1px;margin-top:8px;position:relative;z-index:1;}
+.colour-bar{position:absolute;bottom:0;left:0;right:0;height:8px;background:linear-gradient(90deg,#00D4C8,#7C3AED,#F59E0B,#7C3AED,#00D4C8);}
+
+/* section titles consistent */
+.section-meta{font-family:'Space Grotesk',sans-serif;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--textMuted);}
+</style>
+</head>
+<body>
+
+<!-- ===== PAGE 1: PRIMARY LOGO PRESENTATION ===== -->
+<section id="p1">
+  <div class="page-label">01 — PRIMARY LOGO PRESENTATION</div>
+  <p class="p1-title">VOLPAIR IDENTITY SYSTEM</p>
+  <div class="logos-row">
+
+    <!-- Logo A -->
+    <div class="logo-block">
+      <div class="logo-a-wrap">
+        <div class="logo-a-wordmark">VOLPAIR</div>
+        <div class="logo-a-tagline">PLAY · MATCH · CONNECT</div>
+      </div>
+      <div style="font-size:10px;letter-spacing:1px;color:var(--textMuted);text-align:center;font-family:'Space Grotesk',sans-serif;">A — PRIMARY WORDMARK<br><span style="color:var(--textSec)">Gradient · Dark Background</span></div>
+    </div>
+
+    <!-- Logo B -->
+    <div class="logo-block">
+      <div class="logo-a-wrap" style="flex-direction:row;gap:20px;">
+        <svg width="52" height="52" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="lg1" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#00D4C8"/>
+              <stop offset="100%" stop-color="#7C3AED"/>
+            </linearGradient>
+          </defs>
+          <!-- Racquet head -->
+          <circle cx="26" cy="22" r="18" fill="url(#lg1)"/>
+          <!-- Racquet strings hint -->
+          <line x1="26" y1="5" x2="26" y2="39" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
+          <line x1="9" y1="22" x2="43" y2="22" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
+          <!-- Heart cutout -->
+          <path d="M26 30 C26 30 18 25 18 20 C18 17 20 15 22 15 C24 15 26 17 26 17 C26 17 28 15 30 15 C32 15 34 17 34 20 C34 25 26 30 26 30Z" fill="rgba(255,255,255,0.9)"/>
+          <!-- Handle -->
+          <rect x="22" y="38" width="8" height="12" rx="3" fill="url(#lg1)"/>
+          <rect x="20" y="36" width="12" height="4" rx="2" fill="url(#lg1)"/>
+        </svg>
+        <div class="logo-b-wordmark">VOLPAIR</div>
+      </div>
+      <div style="font-size:10px;letter-spacing:1px;color:var(--textMuted);text-align:center;font-family:'Space Grotesk',sans-serif;">B — ICON + WORDMARK<br><span style="color:var(--textSec)">Horizontal Lockup</span></div>
+    </div>
+
+    <!-- Logo C -->
+    <div class="logo-block">
+      <div class="logo-c-wrap">
+        <svg width="64" height="64" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="26" cy="22" r="18" fill="rgba(255,255,255,0.25)"/>
+          <line x1="26" y1="5" x2="26" y2="39" stroke="rgba(255,255,255,0.4)" stroke-width="1"/>
+          <line x1="9" y1="22" x2="43" y2="22" stroke="rgba(255,255,255,0.4)" stroke-width="1"/>
+          <path d="M26 30 C26 30 18 25 18 20 C18 17 20 15 22 15 C24 15 26 17 26 17 C26 17 28 15 30 15 C32 15 34 17 34 20 C34 25 26 30 26 30Z" fill="rgba(255,255,255,0.95)"/>
+          <rect x="22" y="38" width="8" height="12" rx="3" fill="rgba(255,255,255,0.25)"/>
+          <rect x="20" y="36" width="12" height="4" rx="2" fill="rgba(255,255,255,0.25)"/>
+        </svg>
+        <div class="logo-c-wordmark">VOLPAIR</div>
+        <div style="font-size:10px;letter-spacing:4px;color:rgba(255,255,255,0.6);font-family:'Space Grotesk',sans-serif;">PADEL DATING</div>
+      </div>
+      <div style="font-size:10px;letter-spacing:1px;color:var(--textMuted);text-align:center;font-family:'Space Grotesk',sans-serif;">C — APP ICON / STACKED<br><span style="color:var(--textSec)">Square Badge Format</span></div>
+    </div>
+
+  </div>
+</section>
+<div class="page-divider"></div>
+
+<!-- ===== PAGE 2: LOGO SYSTEM ===== -->
+<section id="p2">
+  <div class="page-label">02 — LOGO SYSTEM & VARIATIONS</div>
+  <h2>Logo Usage <span class="grad-text">System</span></h2>
+
+  <div class="p2-grid">
+    <!-- Dark -->
+    <div class="p2-cell">
+      <div class="mini-wordmark" style="background:linear-gradient(90deg,#00D4C8,#7C3AED);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">VOLPAIR</div>
+      <div class="p2-cell-label">Colour · Dark Background</div>
+    </div>
+    <!-- Light -->
+    <div class="p2-cell light">
+      <div class="mini-wordmark" style="background:linear-gradient(90deg,#00D4C8,#7C3AED);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">VOLPAIR</div>
+      <div class="p2-cell-label">Colour · Light Background</div>
+    </div>
+    <!-- Inverted -->
+    <div class="p2-cell" style="background:linear-gradient(135deg,#7C3AED,#00D4C8);">
+      <div class="mini-wordmark" style="color:#fff;">VOLPAIR</div>
+      <div class="p2-cell-label" style="color:rgba(255,255,255,0.6);">Inverted · Gradient BG</div>
+    </div>
+    <!-- Mono white -->
+    <div class="p2-cell">
+      <div class="mini-wordmark" style="color:#fff;">VOLPAIR</div>
+      <div class="p2-cell-label">Monochrome · White</div>
+    </div>
+    <!-- Mono black -->
+    <div class="p2-cell light">
+      <div class="mini-wordmark" style="color:#0D1B2A;">VOLPAIR</div>
+      <div class="p2-cell-label">Monochrome · Black</div>
+    </div>
+    <!-- Clear space -->
+    <div class="p2-cell">
+      <div class="clearspace-box">
+        <div style="padding:16px;border:1px dashed rgba(0,212,200,0.4);">
+          <div class="mini-wordmark" style="color:#fff;font-size:18px;">VOLPAIR</div>
+        </div>
+      </div>
+      <div class="p2-cell-label">Clear Space — 1× X-height</div>
+    </div>
+  </div>
+
+  <!-- Icon sizes -->
+  <div style="background:var(--bgCard);border:1px solid var(--border);border-radius:16px;padding:32px;margin-bottom:32px;">
+    <div class="p2-cell-label" style="margin-bottom:20px;">ICON — SIZE SYSTEM</div>
+    <div class="p2-sizes">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+        <svg width="80" height="80" viewBox="0 0 52 52" fill="none"><defs><linearGradient id="lg2" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#00D4C8"/><stop offset="100%" stop-color="#7C3AED"/></linearGradient></defs><circle cx="26" cy="22" r="18" fill="url(#lg2)"/><path d="M26 30 C26 30 18 25 18 20 C18 17 20 15 22 15 C24 15 26 17 26 17 C26 17 28 15 30 15 C32 15 34 17 34 20 C34 25 26 30 26 30Z" fill="rgba(255,255,255,0.9)"/><rect x="22" y="38" width="8" height="12" rx="3" fill="url(#lg2)"/></svg>
+        <span style="font-size:10px;color:var(--textMuted);">80px</span>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+        <svg width="56" height="56" viewBox="0 0 52 52" fill="none"><circle cx="26" cy="22" r="18" fill="url(#lg2)"/><path d="M26 30 C26 30 18 25 18 20 C18 17 20 15 22 15 C24 15 26 17 26 17 C26 17 28 15 30 15 C32 15 34 17 34 20 C34 25 26 30 26 30Z" fill="rgba(255,255,255,0.9)"/><rect x="22" y="38" width="8" height="12" rx="3" fill="url(#lg2)"/></svg>
+        <span style="font-size:10px;color:var(--textMuted);">56px</span>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+        <svg width="40" height="40" viewBox="0 0 52 52" fill="none"><circle cx="26" cy="22" r="18" fill="url(#lg2)"/><path d="M26 30 C26 30 18 25 18 20 C18 17 20 15 22 15 C24 15 26 17 26 17 C26 17 28 15 30 15 C32 15 34 17 34 20 C34 25 26 30 26 30Z" fill="rgba(255,255,255,0.9)"/><rect x="22" y="38" width="8" height="12" rx="3" fill="url(#lg2)"/></svg>
+        <span style="font-size:10px;color:var(--textMuted);">40px</span>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+        <svg width="24" height="24" viewBox="0 0 52 52" fill="none"><circle cx="26" cy="22" r="18" fill="url(#lg2)"/><path d="M26 30 C26 30 18 25 18 20 C18 17 20 15 22 15 C24 15 26 17 26 17 C26 17 28 15 30 15 C32 15 34 17 34 20 C34 25 26 30 26 30Z" fill="rgba(255,255,255,0.9)"/></svg>
+        <span style="font-size:10px;color:var(--textMuted);">24px</span>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+        <svg width="16" height="16" viewBox="0 0 52 52" fill="none"><circle cx="26" cy="22" r="18" fill="url(#lg2)"/><path d="M26 30 C26 30 18 25 18 20 C18 17 20 15 22 15 C24 15 26 17 26 17 C26 17 28 15 30 15 C32 15 34 17 34 20 C34 25 26 30 26 30Z" fill="rgba(255,255,255,0.9)"/></svg>
+        <span style="font-size:10px;color:var(--textMuted);">16px</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Don'ts -->
+  <div style="font-family:'Space Grotesk',sans-serif;font-size:13px;letter-spacing:2px;text-transform:uppercase;color:var(--textMuted);margin-bottom:20px;">LOGO DON'TS</div>
+  <div class="dont-grid">
+    <div class="dont-cell">
+      <div class="dont-x">✕</div>
+      <div class="mini-wordmark" style="color:#fff;transform:scaleX(1.6);display:inline-block;font-size:18px;">VOLPAIR</div>
+      <div class="dont-label">Don't stretch</div>
+    </div>
+    <div class="dont-cell">
+      <div class="dont-x">✕</div>
+      <div class="mini-wordmark" style="color:#1A2C42;font-size:18px;">VOLPAIR</div>
+      <div class="dont-label">Don't use low contrast</div>
+    </div>
+    <div class="dont-cell">
+      <div class="dont-x">✕</div>
+      <div class="mini-wordmark" style="color:#EF4444;font-size:18px;">VOLPAIR</div>
+      <div class="dont-label">Don't change colours</div>
+    </div>
+    <div class="dont-cell">
+      <div class="dont-x">✕</div>
+      <div class="mini-wordmark" style="color:#fff;transform:rotate(25deg);display:inline-block;font-size:18px;">VOLPAIR</div>
+      <div class="dont-label">Don't rotate</div>
+    </div>
+  </div>
+</section>
+<div class="page-divider"></div>
+
+<!-- ===== PAGE 3: ICON COLLECTION ===== -->
+<section id="p3">
+  <div class="page-label">03 — CUSTOM ICON COLLECTION</div>
+  <h2>Brand <span class="grad-text">Icons</span></h2>
+  <div class="icon-grid">
+
+    <!-- Racquet -->
+    <div class="icon-card">
+      <svg width="40" height="40" viewBox="0 0 40 40" fill="none" stroke="#00D4C8" stroke-width="2" stroke-linecap="round">
+        <circle cx="20" cy="17" r="12"/>
+        <line x1="20" y1="6" x2="20" y2="28"/>
+        <line x1="9" y1="17" x2="31" y2="17"/>
+        <line x1="13" y1="8" x2="27" y2="26"/>
+        <line x1="27" y1="8" x2="13" y2="26"/>
+        <rect x="17" y="28" width="6" height="9" rx="2"/>
+      </svg>
+      <div class="icon-label">Racquet</div>
+    </div>
+
+    <!-- Heart -->
+    <div class="icon-card">
+      <svg width="40" height="40" viewBox="0 0 40 40" fill="none" stroke="#00D4C8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20 34 C20 34 5 24 5 14 C5 9 9 6 13 6 C16 6 20 9 20 9 C20 9 24 6 27 6 C31 6 35 9 35 14 C35 24 20 34 20 34Z"/>
+      </svg>
+      <div class="icon-label">Heart</div>
+    </div>
+
+    <!-- Location -->
+    <div class="icon-card">
+      <svg width="40" height="40" viewBox="0 0 40 40" fill="none" stroke="#00D4C8" stroke-width="2" stroke-linecap="round">
+        <path d="M20 6 C14 6 9 11 9 17 C9 25 20 36 20 36 C20 36 31 25 31 17 C31 11 26 6 20 6Z"/>
+        <circle cx="20" cy="17" r="4"/>
+      </svg>
+      <div class="icon-label">Location</div>
+    </div>
+
+    <!-- Star -->
+    <div class="icon-card">
+      <svg width="40" height="40" viewBox="0 0 40 40" fill="none" stroke="#00D4C8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="20,5 23.5,15 34,15 25.5,21.5 28.5,32 20,26 11.5,32 14.5,21.5 6,15 16.5,15"/>
+      </svg>
+      <div class="icon-label">Rating</div>
+    </div>
+
+    <!-- Chat -->
+    <div class="icon-card">
+      <svg width="40" height="40" viewBox="0 0 40 40" fill="none" stroke="#7C3AED" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M6 8 L34 8 L34 26 L22 26 L16 34 L16 26 L6 26 Z"/>
+        <line x1="13" y1="16" x2="27" y2="16"/>
+        <line x1="13" y1="20" x2="22" y2="20"/>
+      </svg>
+      <div class="icon-label">Chat</div>
+    </div>
+
+    <!-- Trophy -->
+    <div class="icon-card">
+      <svg width="40" height="40" viewBox="0 0 40 40" fill="none" stroke="#00D4C8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 6 L28 6 L28 22 C28 27 24 30 20 30 C16 30 12 27 12 22 Z"/>
+        <path d="M6 6 L12 6 C12 12 9 15 6 15 Z"/>
+        <path d="M34 6 L28 6 C28 12 31 15 34 15 Z"/>
+        <line x1="20" y1="30" x2="20" y2="35"/>
+        <line x1="13" y1="35" x2="27" y2="35"/>
+      </svg>
+      <div class="icon-label">Trophy</div>
+    </div>
+
+    <!-- Calendar -->
+    <div class="icon-card">
+      <svg width="40" height="40" viewBox="0 0 40 40" fill="none" stroke="#7C3AED" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="6" y="9" width="28" height="26" rx="3"/>
+        <line x1="6" y1="17" x2="34" y2="17"/>
+        <line x1="14" y1="6" x2="14" y2="12"/>
+        <line x1="26" y1="6" x2="26" y2="12"/>
+        <rect x="13" y="22" width="5" height="5" rx="1"/>
+        <rect x="22" y="22" width="5" height="5" rx="1"/>
+      </svg>
+      <div class="icon-label">Calendar</div>
+    </div>
+
+    <!-- Profile -->
+    <div class="icon-card">
+      <svg width="40" height="40" viewBox="0 0 40 40" fill="none" stroke="#00D4C8" stroke-width="2" stroke-linecap="round">
+        <circle cx="20" cy="14" r="7"/>
+        <path d="M6 36 C6 28 12 24 20 24 C28 24 34 28 34 36"/>
+      </svg>
+      <div class="icon-label">Profile</div>
+    </div>
+
+    <!-- Net/Volley -->
+    <div class="icon-card">
+      <svg width="40" height="40" viewBox="0 0 40 40" fill="none" stroke="#00D4C8" stroke-width="2" stroke-linecap="round">
+        <line x1="5" y1="20" x2="35" y2="20"/>
+        <line x1="5" y1="16" x2="35" y2="16"/>
+        <line x1="5" y1="24" x2="35" y2="24"/>
+        <line x1="14" y1="14" x2="14" y2="26"/>
+        <line x1="20" y1="14" x2="20" y2="26"/>
+        <line x1="26" y1="14" x2="26" y2="26"/>
+        <line x1="5" y1="14" x2="5" y2="26"/>
+        <line x1="35" y1="14" x2="35" y2="26"/>
+        <line x1="5" y1="26" x2="5" y2="32"/>
+        <line x1="35" y1="26" x2="35" y2="32"/>
+      </svg>
+      <div class="icon-label">Net</div>
+    </div>
+
+    <!-- Court -->
+    <div class="icon-card">
+      <svg width="40" height="40" viewBox="0 0 40 40" fill="none" stroke="#7C3AED" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="5" y="8" width="30" height="24" rx="2"/>
+        <line x1="20" y1="8" x2="20" y2="32"/>
+        <line x1="5" y1="20" x2="35" y2="20"/>
+        <circle cx="12" cy="14" r="2"/>
+        <circle cx="28" cy="26" r="2"/>
+      </svg>
+      <div class="icon-label">Court</div>
+    </div>
+
+    <!-- Match % -->
+    <div class="icon-card">
+      <svg width="40" height="40" viewBox="0 0 40 40" fill="none" stroke="#00D4C8" stroke-width="2" stroke-linecap="round">
+        <circle cx="13" cy="13" r="5"/>
+        <circle cx="27" cy="27" r="5"/>
+        <line x1="8" y1="32" x2="32" y2="8"/>
+        <circle cx="13" cy="13" r="2" fill="#00D4C8" stroke="none"/>
+        <circle cx="27" cy="27" r="2" fill="#00D4C8" stroke="none"/>
+      </svg>
+      <div class="icon-label">Match %</div>
+    </div>
+
+    <!-- Fire -->
+    <div class="icon-card">
+      <svg width="40" height="40" viewBox="0 0 40 40" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20 6 C20 6 28 14 28 22 C28 28 24 34 20 34 C16 34 12 28 12 22 C12 14 20 6 20 6Z"/>
+        <path d="M20 22 C20 22 24 26 20 30 C16 26 20 22 20 22Z" fill="#F59E0B" stroke="none"/>
+      </svg>
+      <div class="icon-label">Hot</div>
+    </div>
+
+    <!-- Filter -->
+    <div class="icon-card">
+      <svg width="40" height="40" viewBox="0 0 40 40" fill="none" stroke="#7C3AED" stroke-width="2" stroke-linecap="round">
+        <line x1="7" y1="12" x2="33" y2="12"/>
+        <line x1="12" y1="20" x2="28" y2="20"/>
+        <line x1="17" y1="28" x2="23" y2="28"/>
+        <circle cx="20" cy="12" r="3"/>
+        <circle cx="14" cy="20" r="3"/>
+        <circle cx="26" cy="28" r="3"/>
+      </svg>
+      <div class="icon-label">Filter</div>
+    </div>
+
+    <!-- Bell -->
+    <div class="icon-card">
+      <svg width="40" height="40" viewBox="0 0 40 40" fill="none" stroke="#00D4C8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20 5 C15 5 11 9 11 15 L11 25 L7 29 L33 29 L29 25 L29 15 C29 9 25 5 20 5Z"/>
+        <path d="M16 29 C16 31 18 33 20 33 C22 33 24 31 24 29"/>
+        <circle cx="28" cy="10" r="5" fill="#EF4444" stroke="none"/>
+      </svg>
+      <div class="icon-label">Alerts</div>
+    </div>
+
+    <!-- Camera -->
+    <div class="icon-card">
+      <svg width="40" height="40" viewBox="0 0 40 40" fill="none" stroke="#7C3AED" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="5" y="13" width="30" height="22" rx="3"/>
+        <path d="M14 13 L16 8 L24 8 L26 13"/>
+        <circle cx="20" cy="24" r="6"/>
+        <circle cx="20" cy="24" r="3"/>
+      </svg>
+      <div class="icon-label">Camera</div>
+    </div>
+
+    <!-- Gear -->
+    <div class="icon-card">
+      <svg width="40" height="40" viewBox="0 0 40 40" fill="none" stroke="#00D4C8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="20" cy="20" r="5"/>
+        <path d="M20 6 L22 10 L26 8 L28 12 L32 12 L32 16 L36 18 L34 22 L36 26 L32 28 L32 32 L28 32 L26 36 L22 34 L20 36 L18 34 L14 36 L12 32 L8 32 L8 28 L4 26 L6 22 L4 18 L8 16 L8 12 L12 12 L14 8 L18 10 Z"/>
+      </svg>
+      <div class="icon-label">Settings</div>
+    </div>
+
+  </div>
+</section>
+<div class="page-divider"></div>
+
+<!-- ===== PAGE 4: TAGLINE & ILLUSTRATION ===== -->
+<section id="p4">
+  <div class="page-label">04 — BRAND TAGLINE</div>
+  <!-- Court line SVG background -->
+  <svg class="p4-court" viewBox="0 0 1200 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+    <rect x="200" y="100" width="800" height="700" rx="8" fill="none" stroke="#00D4C8" stroke-width="1"/>
+    <line x1="200" y1="450" x2="1000" y2="450" stroke="#00D4C8" stroke-width="1"/>
+    <line x1="600" y1="100" x2="600" y2="800" stroke="#00D4C8" stroke-width="1"/>
+    <rect x="300" y="180" width="600" height="540" rx="4" fill="none" stroke="#7C3AED" stroke-width="0.8"/>
+    <ellipse cx="600" cy="450" rx="80" ry="60" fill="none" stroke="#00D4C8" stroke-width="0.8"/>
+    <!-- Motion trails -->
+    <path d="M 800 200 Q 700 350 850 500" stroke="#00D4C8" stroke-width="1.5" fill="none" opacity="0.4" stroke-dasharray="8 4"/>
+    <path d="M 400 700 Q 500 550 350 400" stroke="#7C3AED" stroke-width="1.5" fill="none" opacity="0.4" stroke-dasharray="8 4"/>
+    <circle cx="850" cy="500" r="8" fill="#00D4C8" opacity="0.6"/>
+    <circle cx="350" cy="400" r="8" fill="#7C3AED" opacity="0.6"/>
+  </svg>
+
+  <div class="p4-hero">Every Rally Starts<br/>With a Match.</div>
+  <p class="p4-sub">Find your perfect padel partner.<br/>On and off the court.</p>
+  <div class="p4-badge">
+    <div class="p4-pill t">PLAY</div>
+    <div class="p4-pill v">MATCH</div>
+    <div class="p4-pill t">CONNECT</div>
+  </div>
+</section>
+<div class="page-divider"></div>
+
+<!-- ===== PAGE 5: PRODUCT MOCKUPS ===== -->
+<section id="p5">
+  <div class="page-label">05 — PRODUCT MOCKUP SHOWCASE</div>
+  <h2>Product <span class="grad-text">Mockups</span></h2>
+  <div class="mockups-row">
+
+    <!-- Phone 1: Match Card -->
+    <div style="display:flex;flex-direction:column;align-items:center;">
+      <div class="phone phone-1">
+        <div class="phone-notch"></div>
+        <div class="phone-screen">
+          <div class="match-avatar">
+            <svg width="40" height="40" viewBox="0 0 40 40" fill="none"><circle cx="20" cy="15" r="8" fill="rgba(0,212,200,0.4)"/><path d="M6 38 C6 30 12 26 20 26 C28 26 34 30 34 38" fill="rgba(0,212,200,0.4)"/></svg>
+          </div>
+          <div class="match-name">Alejandro G.</div>
+          <div style="font-size:10px;color:var(--textMuted);margin-bottom:8px;">📍 London · 4.2★</div>
+          <div class="match-badges">
+            <span class="badge badge-t">Partner</span>
+            <span class="badge badge-v">Dating</span>
+            <span class="badge badge-a">Semi-Pro</span>
+          </div>
+          <!-- Score ring -->
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+            <svg width="44" height="44" viewBox="0 0 44 44">
+              <circle cx="22" cy="22" r="18" fill="none" stroke="#1A2C42" stroke-width="4"/>
+              <circle cx="22" cy="22" r="18" fill="none" stroke="url(#sgring)" stroke-width="4" stroke-dasharray="94 113" stroke-dashoffset="-28" stroke-linecap="round"/>
+              <defs><linearGradient id="sgring" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#00D4C8"/><stop offset="100%" stop-color="#7C3AED"/></linearGradient></defs>
+              <text x="22" y="27" text-anchor="middle" font-size="10" font-weight="700" fill="#fff" font-family="Space Grotesk, sans-serif">83%</text>
+            </svg>
+            <div>
+              <div style="font-size:9px;color:var(--textMuted);">Volpair Score</div>
+              <div style="font-size:11px;font-weight:700;color:var(--primary);">Great Match!</div>
+            </div>
+          </div>
+          <div class="swipe-btns">
+            <button class="swipe-btn swipe-pass">✕ Pass</button>
+            <button class="swipe-btn swipe-match">♥ Match</button>
+          </div>
+        </div>
+        <div class="phone-home"></div>
+      </div>
+      <div class="mock-label">Match Card</div>
+    </div>
+
+    <!-- Phone 2: Volley Screen -->
+    <div style="display:flex;flex-direction:column;align-items:center;">
+      <div class="phone phone-2">
+        <div class="phone-notch"></div>
+        <div class="phone-screen">
+          <div style="font-family:'Space Grotesk',sans-serif;font-size:11px;letter-spacing:2px;color:var(--textMuted);text-align:center;margin-bottom:4px;">LIVE VOLLEY</div>
+          <div class="volley-ring">
+            <div class="volley-ring-inner">
+              <svg width="36" height="36" viewBox="0 0 52 52" fill="none"><circle cx="26" cy="22" r="18" fill="url(#lg2)"/><path d="M26 30 C26 30 18 25 18 20 C18 17 20 15 22 15 C24 15 26 17 26 17 C26 17 28 15 30 15 C32 15 34 17 34 20 C34 25 26 30 26 30Z" fill="rgba(255,255,255,0.9)"/></svg>
+            </div>
+          </div>
+          <div class="volley-title">Finding your match...</div>
+          <div class="volley-sub">2 players in your area</div>
+          <div class="volley-players">
+            <div class="volley-player">
+              <div class="vp-avatar"></div>
+              <div class="vp-name">You</div>
+            </div>
+            <div style="color:var(--primary);font-size:18px;align-self:center;">⚡</div>
+            <div class="volley-player">
+              <div class="vp-avatar" style="background:linear-gradient(135deg,#7C3AED,#00D4C8);"></div>
+              <div class="vp-name">Sofia M.</div>
+            </div>
+          </div>
+          <div style="margin-top:16px;background:linear-gradient(135deg,#00D4C8,#7C3AED);border-radius:12px;padding:10px;text-align:center;font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:700;">SEND SERVE ▶</div>
+        </div>
+        <div class="phone-home"></div>
+      </div>
+      <div class="mock-label">Volley Screen</div>
+    </div>
+
+    <!-- Phone 3: Profile -->
+    <div style="display:flex;flex-direction:column;align-items:center;">
+      <div class="phone phone-3">
+        <div class="phone-notch"></div>
+        <div class="phone-screen">
+          <div class="prof-avatar"></div>
+          <div class="prof-name">Fabian D.</div>
+          <div class="prof-loc">📍 London, UK</div>
+          <div class="prof-stats">
+            <div class="stat-box"><div class="stat-val">4.2</div><div class="stat-key">Level</div></div>
+            <div class="stat-box"><div class="stat-val">142</div><div class="stat-key">Matches</div></div>
+            <div class="stat-box"><div class="stat-val">87%</div><div class="stat-key">Win Rate</div></div>
+          </div>
+          <div class="match-badges" style="justify-content:center;margin-bottom:10px;">
+            <span class="badge badge-t">Playtomic</span>
+            <span class="badge badge-v">Semi-Pro</span>
+          </div>
+          <div class="photo-grid">
+            <div class="photo-cell"></div>
+            <div class="photo-cell"></div>
+            <div class="photo-cell"></div>
+            <div class="photo-cell"></div>
+            <div class="photo-cell"></div>
+            <div class="photo-cell"></div>
+          </div>
+        </div>
+        <div class="phone-home"></div>
+      </div>
+      <div class="mock-label">Profile Screen</div>
+    </div>
+
+  </div>
+</section>
+<div class="page-divider"></div>
+
+<!-- ===== PAGE 6: APP UI/UX PREVIEW ===== -->
+<section id="p6">
+  <div class="page-label">06 — APP UI/UX PREVIEW</div>
+  <h2>App <span class="grad-text">Interface</span></h2>
+  <div class="ui-row">
+
+    <!-- Screen 1: Onboarding -->
+    <div style="display:flex;flex-direction:column;align-items:center;gap:12px;">
+      <div class="ui-phone">
+        <div class="ui-notch"></div>
+        <div class="ui-screen">
+          <div class="onb-blob"></div>
+          <div class="onb-logo">VOLPAIR</div>
+          <div class="onb-sub">Find your perfect padel<br/>partner. On and off the court.</div>
+          <div class="onb-cta">GET STARTED</div>
+          <div class="onb-link">Already have an account? Sign in</div>
+        </div>
+        <div class="ui-home"></div>
+      </div>
+      <div style="font-size:10px;color:var(--textMuted);letter-spacing:1px;font-family:'Space Grotesk',sans-serif;text-align:center;">WELCOME</div>
+    </div>
+
+    <!-- Screen 2: Discovery -->
+    <div style="display:flex;flex-direction:column;align-items:center;gap:12px;">
+      <div class="ui-phone">
+        <div class="ui-notch"></div>
+        <div class="ui-screen">
+          <div style="font-family:'Space Grotesk',sans-serif;font-size:10px;letter-spacing:2px;color:var(--textMuted);margin-bottom:8px;">DISCOVER</div>
+          <div class="swp-card">
+            <div class="swp-photo">
+              <svg width="30" height="30" viewBox="0 0 40 40" fill="none"><circle cx="20" cy="14" r="8" fill="rgba(0,212,200,0.5)"/><path d="M6 36 C6 28 12 24 20 24 C28 24 34 28 34 36" fill="rgba(0,212,200,0.5)"/></svg>
+            </div>
+            <div class="swp-name">Sofia Martinez</div>
+            <div class="swp-info">📍 Barcelona · Level 4.5 · Semi-Pro</div>
+            <div class="match-badges" style="margin-top:6px;">
+              <span class="badge badge-t" style="font-size:8px;">Partner</span>
+              <span class="badge badge-v" style="font-size:8px;">Dating</span>
+            </div>
+          </div>
+          <div class="swp-btns">
+            <div class="swp-btn swp-n">✕ Pass</div>
+            <div class="swp-btn swp-y">♥ Match</div>
+          </div>
+        </div>
+        <div class="ui-home"></div>
+      </div>
+      <div style="font-size:10px;color:var(--textMuted);letter-spacing:1px;font-family:'Space Grotesk',sans-serif;text-align:center;">DISCOVERY</div>
+    </div>
+
+    <!-- Screen 3: Match! -->
+    <div style="display:flex;flex-direction:column;align-items:center;gap:12px;">
+      <div class="ui-phone">
+        <div class="ui-notch"></div>
+        <div class="ui-screen" style="padding:0;">
+          <div class="match-bg" style="min-height:382px;">
+            <div style="font-size:24px;margin-bottom:12px;">🎉</div>
+            <div class="match-glow">♥</div>
+            <div class="match-txt">It's a Match!</div>
+            <div class="match-sub2">You and Sofia both swiped right</div>
+            <div style="margin-top:20px;display:flex;flex-direction:column;gap:8px;width:80%;">
+              <div style="background:linear-gradient(135deg,#00D4C8,#7C3AED);border-radius:10px;padding:8px;text-align:center;font-family:'Space Grotesk',sans-serif;font-size:9px;font-weight:700;color:#fff;">SEND A MESSAGE</div>
+              <div style="border:1px solid var(--borderLight);border-radius:10px;padding:8px;text-align:center;font-family:'Space Grotesk',sans-serif;font-size:9px;color:var(--textMuted);">KEEP PLAYING</div>
+            </div>
+          </div>
+        </div>
+        <div class="ui-home"></div>
+      </div>
+      <div style="font-size:10px;color:var(--textMuted);letter-spacing:1px;font-family:'Space Grotesk',sans-serif;text-align:center;">MATCH!</div>
+    </div>
+
+    <!-- Screen 4: Chat -->
+    <div style="display:flex;flex-direction:column;align-items:center;gap:12px;">
+      <div class="ui-phone">
+        <div class="ui-notch"></div>
+        <div class="ui-screen" style="display:flex;flex-direction:column;">
+          <div class="chat-header">
+            <div class="chat-av"></div>
+            <div>
+              <div class="chat-name">Sofia M.</div>
+              <div style="font-size:8px;color:var(--primary);">● Online</div>
+            </div>
+          </div>
+          <div class="chat-msgs" style="flex:1;">
+            <div class="msg msg-recv">Hey! Loved your backhand on that clip 🎾</div>
+            <div class="msg msg-sent">Ha thanks! Down for a match this weekend?</div>
+            <div class="msg msg-recv">Absolutely! Barcelona or London? 😄</div>
+            <div class="msg msg-sent">Let's do London. Saturday?</div>
+            <div class="msg msg-recv">Saturday works! ⚡</div>
+          </div>
+          <div class="chat-input">Type a message...</div>
+        </div>
+        <div class="ui-home"></div>
+      </div>
+      <div style="font-size:10px;color:var(--textMuted);letter-spacing:1px;font-family:'Space Grotesk',sans-serif;text-align:center;">CHAT</div>
+    </div>
+
+  </div>
+</section>
+<div class="page-divider"></div>
+
+<!-- ===== PAGE 7: SOCIAL MEDIA ===== -->
+<section id="p7">
+  <div class="page-label">07 — SOCIAL MEDIA VISUALS</div>
+  <h2>Social <span class="grad-text">Assets</span></h2>
+  <div class="social-grid">
+
+    <!-- IG Post 1 -->
+    <div class="social-asset sq" style="background:linear-gradient(135deg,#0A1520,#111E2E);border:1px solid var(--border);">
+      <div class="sa-logo">VOLPAIR</div>
+      <div class="sa-tag">Every Rally Starts<br/>With a Match.</div>
+      <div class="sa-cta">Download Now</div>
+      <div class="sa-label">INSTAGRAM POST</div>
+    </div>
+
+    <!-- IG Post 2 -->
+    <div class="social-asset sq" style="background:linear-gradient(135deg,#7C3AED22,#00D4C822),#0D1B2A;border:1px solid var(--border);">
+      <svg width="60" height="60" viewBox="0 0 52 52" fill="none" style="margin-bottom:12px;"><defs><linearGradient id="lg3" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#00D4C8"/><stop offset="100%" stop-color="#7C3AED"/></linearGradient></defs><circle cx="26" cy="22" r="18" fill="url(#lg3)"/><path d="M26 30 C26 30 18 25 18 20 C18 17 20 15 22 15 C24 15 26 17 26 17 C26 17 28 15 30 15 C32 15 34 17 34 20 C34 25 26 30 26 30Z" fill="rgba(255,255,255,0.9)"/><rect x="22" y="38" width="8" height="12" rx="3" fill="url(#lg3)"/></svg>
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700;color:#fff;text-align:center;">Your Game.<br/>Your Match.</div>
+      <div style="font-size:10px;color:var(--textMuted);margin-top:8px;">@volpair</div>
+      <div class="sa-label">INSTAGRAM POST</div>
+    </div>
+
+    <!-- IG Story 1 -->
+    <div class="social-asset story" style="background:linear-gradient(180deg,#0A1520,#111E2E 60%,#0A1520);border:1px solid var(--border);">
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:700;background:linear-gradient(90deg,#00D4C8,#7C3AED);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-align:center;">VOLPAIR</div>
+      <div style="font-size:11px;color:var(--textSec);text-align:center;margin:12px 0;">Find Your Perfect Padel Partner</div>
+      <div style="background:linear-gradient(135deg,#00D4C8,#7C3AED);border-radius:100px;padding:8px 20px;font-family:'Space Grotesk',sans-serif;font-size:10px;font-weight:700;color:#fff;">JOIN NOW →</div>
+      <div class="sa-label">IG STORY</div>
+    </div>
+
+    <!-- IG Story 2 -->
+    <div class="social-asset story" style="background:linear-gradient(180deg,#7C3AED22,#0D1B2A,#00D4C822);border:1px solid var(--border);">
+      <div style="font-size:32px;margin-bottom:8px;">🎾</div>
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:700;color:#fff;text-align:center;line-height:1.3;">Play Together.<br/>Match Together.</div>
+      <div style="font-size:10px;color:var(--textMuted);margin-top:12px;text-align:center;">Link in bio</div>
+      <div class="sa-label">IG STORY</div>
+    </div>
+
+    <!-- Twitter Banner -->
+    <div class="social-asset wide" style="background:linear-gradient(90deg,#0A1520,#111E2E);border:1px solid var(--border);">
+      <div style="display:flex;align-items:center;gap:20px;">
+        <svg width="48" height="48" viewBox="0 0 52 52" fill="none"><circle cx="26" cy="22" r="18" fill="url(#lg3)"/><path d="M26 30 C26 30 18 25 18 20 C18 17 20 15 22 15 C24 15 26 17 26 17 C26 17 28 15 30 15 C32 15 34 17 34 20 C34 25 26 30 26 30Z" fill="rgba(255,255,255,0.9)"/><rect x="22" y="38" width="8" height="12" rx="3" fill="url(#lg3)"/></svg>
+        <div>
+          <div class="sa-logo" style="font-size:28px;">VOLPAIR</div>
+          <div style="font-size:11px;color:var(--textSec);">The Dating App for Padel Players · @volpair</div>
+        </div>
+      </div>
+      <div class="sa-label">TWITTER / X BANNER</div>
+    </div>
+
+    <!-- App Store -->
+    <div class="social-asset wide" style="background:linear-gradient(135deg,#111E2E,#0A1520);border:1px solid var(--border);">
+      <div style="display:flex;align-items:center;gap:32px;width:100%;padding:0 20px;">
+        <div>
+          <div class="sa-logo" style="font-size:32px;margin-bottom:4px;">VOLPAIR</div>
+          <div style="font-size:12px;color:var(--textSec);">Every Rally Starts With a Match.</div>
+          <div style="margin-top:12px;display:flex;gap:8px;">
+            <span class="badge badge-t">Free Download</span>
+            <span class="badge badge-v">iOS & Android</span>
+          </div>
+        </div>
+        <div style="flex:1;display:flex;justify-content:flex-end;gap:12px;">
+          <div style="width:50px;height:90px;background:#111E2E;border-radius:12px;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;">
+            <div style="font-size:8px;color:var(--primary);font-family:'Space Grotesk',sans-serif;text-align:center;">APP</div>
+          </div>
+          <div style="width:50px;height:90px;background:linear-gradient(135deg,rgba(0,212,200,0.1),rgba(124,58,237,0.1));border-radius:12px;border:2px solid var(--borderLight);display:flex;align-items:center;justify-content:center;">
+            <div style="font-size:8px;color:var(--textMuted);font-family:'Space Grotesk',sans-serif;text-align:center;">UI</div>
+          </div>
+        </div>
+      </div>
+      <div class="sa-label">APP STORE FEATURE GRAPHIC</div>
+    </div>
+
+  </div>
+</section>
+<div class="page-divider"></div>
+
+<!-- ===== PAGE 8: TYPOGRAPHY & COLOUR ===== -->
+<section id="p8">
+  <div class="page-label">08 — TYPOGRAPHY & COLOUR SYSTEM</div>
+  <h2>Brand <span class="grad-text">System</span></h2>
+  <div class="p8-cols">
+
+    <!-- Typography -->
+    <div class="type-section">
+      <h3>Typefaces</h3>
+
+      <div style="margin-bottom:32px;">
+        <div class="type-meta">PRIMARY — SPACE GROTESK</div>
+        <div class="type-row"><div class="type-meta">Display / 72px / Bold</div><div style="font-family:'Space Grotesk',sans-serif;font-size:40px;font-weight:700;line-height:1.1;" class="grad-text">VOLPAIR</div></div>
+        <div class="type-row"><div class="type-meta">H1 / 48px / SemiBold</div><div style="font-family:'Space Grotesk',sans-serif;font-size:30px;font-weight:600;color:#fff;">Find Your Match</div></div>
+        <div class="type-row"><div class="type-meta">H2 / 36px / Medium</div><div style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:500;color:#fff;">Player Profile</div></div>
+        <div class="type-row"><div class="type-meta">H3 / 24px / Regular</div><div style="font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:400;color:var(--textSec);">Match Score · 87%</div></div>
+      </div>
+
+      <div>
+        <div class="type-meta">SECONDARY — INTER (UI)</div>
+        <div class="type-row"><div class="type-meta">Body / 16px / Regular</div><div style="font-family:'Inter',sans-serif;font-size:15px;font-weight:400;color:var(--textSec);line-height:1.6;">Connect with padel players who share your passion for the game and more.</div></div>
+        <div class="type-row"><div class="type-meta">Caption / 12px / Medium</div><div style="font-family:'Inter',sans-serif;font-size:11px;font-weight:500;color:var(--textMuted);letter-spacing:1px;text-transform:uppercase;">SEMI-PRO · LONDON · LEVEL 4.2</div></div>
+      </div>
+    </div>
+
+    <!-- Colours -->
+    <div>
+      <h3 class="type-meta" style="margin-bottom:32px;">COLOUR PALETTE</h3>
+      <div class="swatches">
+        <div class="swatch" style="background:#00D4C8;"><div class="swatch-hex" style="color:#0D1B2A;">TURQUOISE</div><div class="swatch-name" style="color:#0D1B2A;">#00D4C8</div><div class="swatch-rgb" style="color:#0D1B2A;">RGB 0, 212, 200 · HSL 177°, 100%, 42%</div></div>
+        <div class="swatch" style="background:#7C3AED;"><div class="swatch-hex">VIOLET</div><div class="swatch-name">#7C3AED</div><div class="swatch-rgb">RGB 124, 58, 237 · HSL 263°, 82%, 58%</div></div>
+        <div class="swatch" style="background:#F59E0B;"><div class="swatch-hex" style="color:#0D1B2A;">AMBER</div><div class="swatch-name" style="color:#0D1B2A;">#F59E0B</div><div class="swatch-rgb" style="color:#0D1B2A;">RGB 245, 158, 11 · HSL 38°, 92%, 50%</div></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+          <div class="swatch" style="background:#0D1B2A;border:1px solid var(--border);border-radius:8px;"><div class="swatch-hex" style="font-size:11px;">BG</div><div class="swatch-name">#0D1B2A</div></div>
+          <div class="swatch" style="background:#111E2E;border:1px solid var(--border);border-radius:8px;"><div class="swatch-hex" style="font-size:11px;">CARD</div><div class="swatch-name">#111E2E</div></div>
+          <div class="swatch" style="background:#7A9CC0;border-radius:8px;"><div class="swatch-hex" style="font-size:11px;color:#0D1B2A;">TEXT 2</div><div class="swatch-name" style="color:#0D1B2A;">#7A9CC0</div></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+<div class="page-divider"></div>
+
+<!-- ===== PAGE 9: CLOSING BOARD ===== -->
+<section id="p9">
+  <div class="page-label" style="color:rgba(255,255,255,0.3);">09 — VOLPAIR BRAND KIT 2026</div>
+  <div class="p9-wordmark">VOLPAIR</div>
+  <div class="p9-tagline">Every Rally Starts With a Match.</div>
+  <div class="p9-urls">volpair.com · volpair.app</div>
+  <div class="p9-handle">@volpair</div>
+  <div style="display:flex;gap:16px;margin-top:48px;position:relative;z-index:1;">
+    <div class="p4-pill t">PLAY</div>
+    <div class="p4-pill v">MATCH</div>
+    <div class="p4-pill t">CONNECT</div>
+  </div>
+  <div class="colour-bar"></div>
+</section>
+
+</body>
+</html>

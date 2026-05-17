@@ -4,7 +4,7 @@ import {
   StatusBar, Alert, ActivityIndicator,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { theme } from '../../lib/theme';
+import { theme, fonts } from '../../lib/theme';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { syncPlatform } from '../../lib/platformSync';
@@ -170,11 +170,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20, paddingVertical: 16,
     borderBottomWidth: 1, borderBottomColor: theme.bgCard,
   },
-  headerTitle: { fontSize: 17, fontWeight: '700', color: theme.textPrimary },
-  backText: { fontSize: 16, color: theme.textSecondary },
+  headerTitle: { fontSize: 17, fontFamily: fonts.bodyBold, color: theme.textPrimary },
+  backText: { fontSize: 16, color: theme.textSecondary, fontFamily: fonts.bodyLight },
   loadingBox: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   scroll: { padding: 16 },
-  intro: { fontSize: 14, color: theme.textMuted, lineHeight: 22, marginBottom: 20 },
+  intro: { fontSize: 14, color: theme.textMuted, lineHeight: 22, marginBottom: 20, fontFamily: fonts.bodyLight },
   platformCard: {
     backgroundColor: theme.bgCard, borderRadius: 16, padding: 16,
     marginBottom: 12, borderWidth: 1, borderColor: theme.border,
@@ -190,29 +190,29 @@ const styles = StyleSheet.create({
   },
   platformEmoji: { fontSize: 22 },
   platformInfo: { flex: 1 },
-  platformLabel: { fontSize: 16, fontWeight: '700', color: theme.textPrimary, marginBottom: 3 },
-  platformStatus: { fontSize: 12, color: theme.textMuted },
+  platformLabel: { fontSize: 16, fontFamily: fonts.bodyBold, color: theme.textPrimary, marginBottom: 3 },
+  platformStatus: { fontSize: 12, color: theme.textMuted, fontFamily: fonts.bodyLight },
   comingSoonBadge: {
     backgroundColor: theme.bgDeep, borderRadius: 8,
     paddingHorizontal: 10, paddingVertical: 4, borderWidth: 1, borderColor: theme.border,
   },
-  comingSoonText: { fontSize: 11, color: theme.textMuted, fontWeight: '600' },
+  comingSoonText: { fontSize: 11, color: theme.textMuted, fontFamily: fonts.bodyBold },
   platformActions: { flexDirection: 'row', gap: 10 },
   syncBtn: {
     flex: 1, backgroundColor: theme.primary, borderRadius: 12,
     paddingVertical: 12, alignItems: 'center',
   },
   syncBtnDisabled: { opacity: 0.6 },
-  syncBtnText: { color: theme.bg, fontSize: 14, fontWeight: '700' },
+  syncBtnText: { color: theme.bg, fontSize: 14, fontFamily: fonts.bodyBold },
   disconnectBtn: {
     paddingHorizontal: 16, paddingVertical: 12, borderRadius: 12,
     backgroundColor: theme.bgDeep, borderWidth: 1, borderColor: theme.border,
   },
-  disconnectBtnText: { color: theme.textMuted, fontSize: 14, fontWeight: '600' },
+  disconnectBtnText: { color: theme.textMuted, fontSize: 14, fontFamily: fonts.bodyBold },
   infoBox: {
     flexDirection: 'row', gap: 10, backgroundColor: theme.bgCard,
     borderRadius: 14, padding: 16, borderWidth: 1, borderColor: theme.border,
   },
   infoIcon: { fontSize: 18 },
-  infoText: { flex: 1, fontSize: 13, color: theme.textMuted, lineHeight: 20 },
+  infoText: { flex: 1, fontSize: 13, color: theme.textMuted, lineHeight: 20, fontFamily: fonts.bodyLight },
 });

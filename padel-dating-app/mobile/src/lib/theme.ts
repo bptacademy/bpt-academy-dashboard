@@ -34,3 +34,15 @@ export const theme = {
   tabActive: '#00D4C8',
   tabInactive: '#4A6080',
 };
+
+// ─── Typography ───────────────────────────────────────────────────────────────
+// Adelphi  → headlines
+// Brinnan  → body text, labels, UI
+export const fonts = {
+  headlineBold:    'AdelphiPETRIAL-Eb',      // big titles, screen headers
+  headlineLight:   'AdelphiPETRIAL-Lt',      // headline subtext, display numbers
+  headlineBoldIt:  'AdelphiPETRIAL-EbIt',    // italic accent headlines
+  headlineLightIt: 'AdelphiPETRIAL-LtIt',    // italic light headlines
+  bodyBold:        'Brinnan Bold',            // labels, buttons, emphasis
+  bodyLight:       'Brinnan Light',           // body copy, secondary text
+};

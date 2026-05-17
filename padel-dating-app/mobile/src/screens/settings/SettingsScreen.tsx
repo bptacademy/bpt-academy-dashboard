@@ -4,7 +4,7 @@ import {
   StatusBar, Switch,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { theme } from '../../lib/theme';
+import { theme, fonts } from '../../lib/theme';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
 
@@ -120,11 +120,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20, paddingVertical: 16,
     borderBottomWidth: 1, borderBottomColor: theme.bgCard,
   },
-  headerTitle: { fontSize: 17, fontWeight: '700', color: theme.textPrimary },
-  backText: { fontSize: 16, color: theme.textSecondary },
+  headerTitle: { fontSize: 17, fontFamily: fonts.bodyBold, color: theme.textPrimary },
+  backText: { fontSize: 16, color: theme.textSecondary, fontFamily: fonts.bodyLight },
   scroll: { padding: 16 },
   section: { marginBottom: 24 },
-  sectionTitle: { fontSize: 12, fontWeight: '700', color: theme.textMuted, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8, paddingLeft: 4 },
+  sectionTitle: { fontSize: 12, fontFamily: fonts.bodyBold, color: theme.textMuted, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8, paddingLeft: 4 },
   sectionCard: {
     backgroundColor: theme.bgCard, borderRadius: 16,
     borderWidth: 1, borderColor: theme.border, overflow: 'hidden',
@@ -135,7 +135,7 @@ const styles = StyleSheet.create({
   },
   rowBorder: { borderBottomWidth: 1, borderBottomColor: theme.border },
   rowLeft: { flex: 1, marginRight: 12 },
-  rowLabel: { fontSize: 15, color: theme.textPrimary, fontWeight: '500' },
-  rowSub: { fontSize: 12, color: theme.textMuted, marginTop: 2 },
+  rowLabel: { fontSize: 15, color: theme.textPrimary, fontFamily: fonts.bodyLight },
+  rowSub: { fontSize: 12, color: theme.textMuted, marginTop: 2, fontFamily: fonts.bodyLight },
   rowArrow: { fontSize: 20, color: theme.textMuted },
 });

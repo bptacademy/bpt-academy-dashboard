@@ -11,7 +11,7 @@ import {
   StatusBar, ActivityIndicator, RefreshControl, Image, Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { theme } from '../../lib/theme';
+import { theme, fonts } from '../../lib/theme';
 import { useCourtPicks, CourtPick } from '../../hooks/useCourtPicks';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
@@ -243,6 +243,13 @@ export default function ConnectHomeScreen({ navigation }: any) {
               <Text style={styles.emptyText}>
                 No picks yet in your area.{'\n'}Check back after more players join Volpair nearby.
               </Text>
+              <TouchableOpacity
+                style={styles.demoBtn}
+                onPress={() => navigation.navigate('PlayerProfile', { userId: 'demo' })}
+                activeOpacity={0.85}
+              >
+                <Text style={styles.demoBtnText}>✨ Preview a sample profile</Text>
+              </TouchableOpacity>
             </View>
           ) : (
             picks.map(pick => (
@@ -273,19 +280,26 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20, paddingVertical: 16,
     borderBottomWidth: 1, borderBottomColor: theme.bgCard,
   },
-  headerTitle: { fontSize: 26, fontWeight: '800', color: theme.textPrimary },
-  headerSub: { fontSize: 12, color: theme.textMuted, marginTop: 2 },
+  headerTitle: { fontSize: 26, fontFamily: fonts.headlineBold, color: theme.textPrimary },
+  headerSub: { fontSize: 12, color: theme.textMuted, marginTop: 2, fontFamily: fonts.bodyLight },
   notifBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: theme.bgCard, alignItems: 'center', justifyContent: 'center' },
   notifIcon: { fontSize: 18 },
   scroll: { paddingHorizontal: 16, paddingTop: 16 },
   sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 },
-  sectionTitle: { fontSize: 15, fontWeight: '700', color: theme.textPrimary, flex: 1 },
+  sectionTitle: { fontSize: 15, fontFamily: fonts.bodyBold, color: theme.textPrimary, flex: 1 },
   countBadge: { backgroundColor: theme.primaryDim, borderRadius: 10, paddingHorizontal: 8, paddingVertical: 3, borderWidth: 1, borderColor: theme.primaryBorder },
-  countText: { fontSize: 12, fontWeight: '700', color: theme.primary },
-  sectionSub: { fontSize: 12, color: theme.textMuted, marginBottom: 16, lineHeight: 18 },
-  emptyBox: { alignItems: 'center', paddingVertical: 48, gap: 12 },
+  countText: { fontSize: 12, fontFamily: fonts.bodyBold, color: theme.primary },
+  sectionSub: { fontSize: 12, color: theme.textMuted, marginBottom: 16, lineHeight: 18, fontFamily: fonts.bodyLight },
+  emptyBox: { alignItems: 'center', paddingVertical: 48, gap: 16 },
   emptyEmoji: { fontSize: 48 },
-  emptyText: { fontSize: 14, color: theme.textMuted, textAlign: 'center', lineHeight: 22, paddingHorizontal: 32 },
+  emptyText: { fontSize: 14, color: theme.textMuted, textAlign: 'center', lineHeight: 22, paddingHorizontal: 32, fontFamily: fonts.bodyLight },
+  demoBtn: {
+    backgroundColor: theme.primaryDim,
+    borderRadius: 14, paddingHorizontal: 24, paddingVertical: 12,
+    borderWidth: 1, borderColor: theme.primaryBorder,
+    marginTop: 4,
+  },
+  demoBtnText: { fontSize: 14, fontFamily: fonts.bodyBold, color: theme.primary },
 
   card: {
     backgroundColor: theme.bgCard, borderRadius: 18, padding: 14,
@@ -302,28 +316,28 @@ const styles = StyleSheet.create({
     borderWidth: 2, borderColor: 'rgba(0,212,200,0.3)', overflow: 'hidden', flexShrink: 0,
   },
   cardAvatarImg: { width: AVATAR_SIZE, height: AVATAR_SIZE },
-  cardAvatarInitials: { fontSize: 34, fontWeight: '800', color: theme.primary },
+  cardAvatarInitials: { fontSize: 34, fontFamily: fonts.headlineBold, color: theme.primary },
   cardInfo: { flex: 1, justifyContent: 'flex-start', gap: 4 },
   cardNameRow: { flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' },
-  cardName: { fontSize: 18, fontWeight: '800', color: theme.textPrimary },
+  cardName: { fontSize: 18, fontFamily: fonts.headlineBold, color: theme.textPrimary },
   intentBadge: { backgroundColor: theme.secondaryDim, borderRadius: 8, paddingHorizontal: 7, paddingVertical: 2, borderWidth: 1, borderColor: theme.secondaryBorder },
-  intentText: { fontSize: 11, color: '#A78BFA', fontWeight: '600' },
-  cardMeta: { fontSize: 12, color: theme.textSecondary, lineHeight: 18 },
+  intentText: { fontSize: 11, color: '#A78BFA', fontFamily: fonts.bodyBold },
+  cardMeta: { fontSize: 12, color: theme.textSecondary, lineHeight: 18, fontFamily: fonts.bodyLight },
   levelRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   levelBadge: { backgroundColor: theme.primaryDim, borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3, borderWidth: 1, borderColor: theme.primaryBorder },
-  levelValue: { fontSize: 13, fontWeight: '800', color: theme.primary },
-  levelLabel: { fontSize: 12, color: theme.textMuted },
+  levelValue: { fontSize: 13, fontFamily: fonts.headlineLightIt, color: theme.primary },
+  levelLabel: { fontSize: 12, color: theme.textMuted, fontFamily: fonts.bodyLight },
   scoreBadge: { width: 50, height: 50, borderRadius: 25, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
-  scoreValue: { fontSize: 16, fontWeight: '800', lineHeight: 18 },
-  scoreLabel: { fontSize: 9, fontWeight: '600', lineHeight: 11 },
+  scoreValue: { fontSize: 16, fontFamily: fonts.headlineLightIt, lineHeight: 18 },
+  scoreLabel: { fontSize: 9, fontFamily: fonts.bodyBold, lineHeight: 11 },
   actionRow: { flexDirection: 'row', gap: 8, borderTopWidth: 1, borderTopColor: theme.border, paddingTop: 12 },
   actionBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 11, borderRadius: 12, backgroundColor: theme.bgDeep, borderWidth: 1, borderColor: theme.border },
   volleyBtn: { backgroundColor: theme.secondaryDim, borderColor: theme.secondaryBorder },
   actionEmoji: { fontSize: 15 },
-  actionText: { fontSize: 13, fontWeight: '600', color: theme.textSecondary },
+  actionText: { fontSize: 13, fontFamily: fonts.bodyBold, color: theme.textSecondary },
   volleyText: { color: '#A78BFA' },
   actionedRow: { borderTopWidth: 1, borderTopColor: theme.border, paddingTop: 12, alignItems: 'center' },
-  actionedText: { fontSize: 13, color: theme.primary, fontWeight: '600' },
+  actionedText: { fontSize: 13, color: theme.primary, fontFamily: fonts.bodyBold },
 
   lockedWrapper: { position: 'relative', minHeight: 520 },
   ghostCard: { opacity: 0.35, marginBottom: 12 },
@@ -340,11 +354,11 @@ const styles = StyleSheet.create({
   },
   lockedCta: { alignItems: 'center', gap: 10 },
   lockedIcon: { fontSize: 48, marginBottom: 4 },
-  lockedTitle: { fontSize: 22, fontWeight: '800', color: theme.textPrimary, textAlign: 'center' },
-  lockedSub: { fontSize: 14, color: theme.textSecondary, textAlign: 'center', lineHeight: 22 },
+  lockedTitle: { fontSize: 22, fontFamily: fonts.headlineBold, color: theme.textPrimary, textAlign: 'center' },
+  lockedSub: { fontSize: 14, color: theme.textSecondary, textAlign: 'center', lineHeight: 22, fontFamily: fonts.bodyLight },
   lockedBtn: {
     marginTop: 8, backgroundColor: theme.primary,
     borderRadius: 14, paddingHorizontal: 32, paddingVertical: 14,
   },
-  lockedBtnText: { color: theme.bg, fontSize: 16, fontWeight: '800' },
+  lockedBtnText: { color: theme.bg, fontSize: 16, fontFamily: fonts.headlineBold },
 });

@@ -3,7 +3,7 @@ import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity, StatusBar, ActivityIndicator,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { theme } from '../../lib/theme';
+import { theme, fonts } from '../../lib/theme';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 
@@ -251,9 +251,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20, paddingVertical: 16,
     borderBottomWidth: 1, borderBottomColor: theme.bgCard,
   },
-  headerTitle: { fontSize: 17, fontWeight: '700', color: theme.textPrimary },
-  backText: { fontSize: 16, color: theme.textSecondary },
-  markAllText: { fontSize: 13, color: theme.primary },
+  headerTitle: { fontSize: 17, fontFamily: fonts.bodyBold, color: theme.textPrimary },
+  backText: { fontSize: 16, color: theme.textSecondary, fontFamily: fonts.bodyLight },
+  markAllText: { fontSize: 13, color: theme.primary, fontFamily: fonts.bodyLight },
 
   loadingBox: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   scroll: { paddingTop: 8 },
@@ -272,14 +272,14 @@ const styles = StyleSheet.create({
   notifIconUnread: { backgroundColor: theme.primaryDim, borderColor: theme.primaryBorder },
   notifEmoji: { fontSize: 20 },
   notifContent: { flex: 1 },
-  notifTitle: { fontSize: 15, fontWeight: '500', color: theme.textSecondary, marginBottom: 3 },
-  notifTitleUnread: { fontWeight: '700', color: theme.textPrimary },
-  notifBody: { fontSize: 13, color: theme.textMuted, lineHeight: 18, marginBottom: 4 },
-  notifTime: { fontSize: 11, color: theme.textDim },
+  notifTitle: { fontSize: 15, fontFamily: fonts.bodyLight, color: theme.textSecondary, marginBottom: 3 },
+  notifTitleUnread: { fontFamily: fonts.bodyBold, color: theme.textPrimary },
+  notifBody: { fontSize: 13, color: theme.textMuted, lineHeight: 18, marginBottom: 4, fontFamily: fonts.bodyLight },
+  notifTime: { fontSize: 11, color: theme.textDim, fontFamily: fonts.bodyLight },
   unreadDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: theme.primary, marginTop: 6 },
 
   emptyState: { padding: 48, alignItems: 'center' },
   emptyEmoji: { fontSize: 48, marginBottom: 16 },
-  emptyTitle: { fontSize: 18, fontWeight: '700', color: theme.textPrimary, marginBottom: 8 },
-  emptySub: { fontSize: 14, color: theme.textMuted, textAlign: 'center', lineHeight: 22 },
+  emptyTitle: { fontSize: 18, fontFamily: fonts.bodyBold, color: theme.textPrimary, marginBottom: 8 },
+  emptySub: { fontSize: 14, color: theme.textMuted, textAlign: 'center', lineHeight: 22, fontFamily: fonts.bodyLight },
 });

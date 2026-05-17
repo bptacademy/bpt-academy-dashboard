@@ -4,7 +4,7 @@ import {
   StatusBar, ActivityIndicator,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { theme } from '../../lib/theme';
+import { theme, fonts } from '../../lib/theme';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 
@@ -179,11 +179,11 @@ const styles = StyleSheet.create({
     flex: 1, backgroundColor: theme.bg,
     justifyContent: 'center', alignItems: 'center', gap: 16,
   },
-  loadingText: { fontSize: 15, color: theme.textMuted },
+  loadingText: { fontSize: 15, color: theme.textMuted, fontFamily: fonts.bodyLight },
   container: { flex: 1, backgroundColor: theme.bg, paddingHorizontal: 24 },
   header: { paddingTop: 24, marginBottom: 24 },
-  title: { fontSize: 28, fontWeight: '800', color: theme.textPrimary, marginBottom: 8 },
-  subtitle: { fontSize: 15, color: theme.textMuted, lineHeight: 22 },
+  title: { fontSize: 28, fontFamily: fonts.headlineBold, color: theme.textPrimary, marginBottom: 8 },
+  subtitle: { fontSize: 15, color: theme.textMuted, lineHeight: 22, fontFamily: fonts.bodyLight },
   profileCard: {
     backgroundColor: theme.bgCard, borderRadius: 20, padding: 24,
     alignItems: 'center', borderWidth: 1.5, borderColor: theme.border, marginBottom: 12,
@@ -193,49 +193,49 @@ const styles = StyleSheet.create({
     backgroundColor: theme.primaryDim, alignItems: 'center', justifyContent: 'center',
     marginBottom: 12, borderWidth: 2, borderColor: theme.primaryBorder,
   },
-  avatarInitials: { fontSize: 28, fontWeight: '800', color: theme.primary },
-  name: { fontSize: 22, fontWeight: '800', color: theme.textPrimary, marginBottom: 10 },
+  avatarInitials: { fontSize: 28, fontFamily: fonts.headlineBold, color: theme.primary },
+  name: { fontSize: 22, fontFamily: fonts.headlineBold, color: theme.textPrimary, marginBottom: 10 },
   levelBadge: {
     backgroundColor: theme.primaryDim, borderRadius: 12,
     paddingHorizontal: 16, paddingVertical: 8, alignItems: 'center',
     borderWidth: 1, borderColor: theme.primaryBorder,
   },
-  levelValue: { fontSize: 24, fontWeight: '800', color: theme.primary },
-  levelLabel: { fontSize: 12, color: theme.textSecondary, fontWeight: '600', marginTop: 2 },
+  levelValue: { fontSize: 24, fontFamily: fonts.headlineLightIt, color: theme.primary },
+  levelLabel: { fontSize: 12, color: theme.textSecondary, fontFamily: fonts.bodyBold, marginTop: 2 },
   statsRow: {
     flexDirection: 'row', backgroundColor: theme.bgCard, borderRadius: 16,
     padding: 20, marginBottom: 12, borderWidth: 1, borderColor: theme.border,
   },
   statBox: { flex: 1, alignItems: 'center' },
-  statValue: { fontSize: 22, fontWeight: '800', color: theme.textPrimary, marginBottom: 4 },
-  statLabel: { fontSize: 12, color: theme.textMuted, fontWeight: '600' },
+  statValue: { fontSize: 22, fontFamily: fonts.headlineLightIt, color: theme.textPrimary, marginBottom: 4 },
+  statLabel: { fontSize: 12, color: theme.textMuted, fontFamily: fonts.bodyBold },
   statDivider: { width: 1, backgroundColor: theme.border },
   section: {
     backgroundColor: theme.bgCard, borderRadius: 16, padding: 16,
     marginBottom: 12, borderWidth: 1, borderColor: theme.border,
   },
-  sectionTitle: { fontSize: 14, fontWeight: '700', color: theme.textSecondary, marginBottom: 12 },
+  sectionTitle: { fontSize: 14, fontFamily: fonts.bodyBold, color: theme.textSecondary, marginBottom: 12 },
   clubRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 8 },
   clubDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: theme.primary },
-  clubName: { flex: 1, fontSize: 14, color: theme.textPrimary },
-  clubCount: { fontSize: 12, color: theme.textMuted },
+  clubName: { flex: 1, fontSize: 14, color: theme.textPrimary, fontFamily: fonts.bodyLight },
+  clubCount: { fontSize: 12, color: theme.textMuted, fontFamily: fonts.bodyLight },
   styleBadge: {
     backgroundColor: theme.primaryDim, borderRadius: 10, alignSelf: 'flex-start',
     paddingHorizontal: 14, paddingVertical: 7, borderWidth: 1, borderColor: theme.primaryBorder,
   },
-  styleText: { fontSize: 14, fontWeight: '600', color: theme.primary },
+  styleText: { fontSize: 14, fontFamily: fonts.bodyBold, color: theme.primary },
   infoBox: {
     flexDirection: 'row', gap: 10, backgroundColor: theme.bgCard,
     borderRadius: 14, padding: 16, borderWidth: 1, borderColor: theme.border, marginBottom: 100,
   },
   infoIcon: { fontSize: 18 },
-  infoText: { flex: 1, fontSize: 13, color: theme.textMuted, lineHeight: 20 },
+  infoText: { flex: 1, fontSize: 13, color: theme.textMuted, lineHeight: 20, fontFamily: fonts.bodyLight },
   actions: { paddingBottom: 16, gap: 12 },
   confirmBtn: {
     backgroundColor: theme.primary, borderRadius: 16, padding: 18, alignItems: 'center',
     shadowColor: theme.primary, shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3, shadowRadius: 10, elevation: 5,
   },
-  confirmBtnText: { color: theme.bg, fontSize: 17, fontWeight: '800' },
-  wrongLink: { color: theme.textMuted, fontSize: 14, textAlign: 'center', paddingVertical: 8 },
+  confirmBtnText: { color: theme.bg, fontSize: 17, fontFamily: fonts.headlineBold },
+  wrongLink: { color: theme.textMuted, fontSize: 14, textAlign: 'center', paddingVertical: 8, fontFamily: fonts.bodyLight },
 });

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1920">
+<title>Volpair — Slide 05 Brand Statement</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    width: 1920px; height: 1080px;
+    background: #0A1520;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+  }
+  .slide {
+    width: 1920px; height: 1080px;
+    background: #0A1520;
+    position: relative; overflow: hidden;
+  }
+  /* Subtle padel court background */
+  .court-bg {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 0.05;
+    pointer-events: none;
+  }
+  .glow-center {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 1200px; height: 800px;
+    background: radial-gradient(ellipse, rgba(0,212,200,0.08) 0%, rgba(124,58,237,0.06) 40%, transparent 70%);
+    pointer-events: none;
+  }
+  /* Main content */
+  .content {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    width: 900px;
+  }
+  .brand-label {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.4em;
+    color: #4A6080;
+    text-transform: uppercase;
+    margin-bottom: 32px;
+    display: block;
+  }
+  .h-white {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 80px;
+    color: #fff;
+    display: block;
+    line-height: 1.05;
+  }
+  .h-gradient {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 80px;
+    background: linear-gradient(135deg, #00D4C8, #7C3AED);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    display: block;
+    line-height: 1.05;
+    margin-bottom: 40px;
+  }
+  .values-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 80px;
+    width: 700px;
+    margin: 0 auto;
+  }
+  .value-item {
+    font-family: 'Inter', sans-serif;
+    font-size: 16px;
+    color: #7A9CC0;
+    padding: 10px 0;
+    border-bottom: 1px solid #1A2C42;
+    text-align: left;
+  }
+  .gradient-divider {
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(90deg, #00D4C8, #7C3AED);
+    margin: 40px auto 20px;
+  }
+  .footer-text {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 12px;
+    letter-spacing: 0.3em;
+    color: #4A6080;
+    text-transform: uppercase;
+    display: block;
+  }
+  .slide-num {
+    position: absolute; bottom: 16px; right: 80px;
+    font-size: 11px; letter-spacing: 0.3em;
+    color: #4A6080; font-family: 'Space Grotesk', sans-serif;
+    text-transform: uppercase;
+  }
+  .bottom-bar {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    height: 4px; background: linear-gradient(90deg, #00D4C8, #7C3AED);
+  }
+</style>
+</head>
+<body>
+<div class="slide">
+  <!-- Subtle court background -->
+  <svg class="court-bg" width="900" height="600" viewBox="0 0 900 600" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="20" y="20" width="860" height="560" rx="4" stroke="#ffffff" stroke-width="2" fill="none"/>
+    <rect x="50" y="50" width="800" height="500" rx="2" stroke="#ffffff" stroke-width="1" fill="none"/>
+    <line x1="20" y1="300" x2="880" y2="300" stroke="#ffffff" stroke-width="3"/>
+    <line x1="450" y1="50" x2="450" y2="550" stroke="#ffffff" stroke-width="1" stroke-dasharray="8,5"/>
+    <line x1="50" y1="160" x2="450" y2="160" stroke="#ffffff" stroke-width="1"/>
+    <line x1="450" y1="440" x2="850" y2="440" stroke="#ffffff" stroke-width="1"/>
+    <circle cx="450" cy="300" r="50" stroke="#ffffff" stroke-width="1" fill="none"/>
+  </svg>
+
+  <div class="glow-center"></div>
+
+  <div class="content">
+    <span class="brand-label">Brand Statement</span>
+    <span class="h-white">Where every rally</span>
+    <span class="h-gradient">starts with a match.</span>
+
+    <div class="values-grid">
+      <div class="value-item">⚡ Community First</div>
+      <div class="value-item">🏆 Play to Win</div>
+      <div class="value-item">🎯 Skill Matched</div>
+      <div class="value-item">🤝 Find Your Partner</div>
+      <div class="value-item">🌍 Local &amp; Global</div>
+      <div class="value-item">📱 Built for Padel</div>
+    </div>
+
+    <div class="gradient-divider"></div>
+    <span class="footer-text">Volpair — The Padel Dating App</span>
+  </div>
+
+  <span class="slide-num">05 / 10</span>
+  <div class="bottom-bar"></div>
+</div>
+</body>
+</html>
