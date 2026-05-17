@@ -37,7 +37,8 @@
     "production": {
       "ios": {
         "appleId": "bplsportsltd@gmail.com",
-        "appleTeamId": "R7365964A2"
+        "appleTeamId": "R7365964A2",
+        "ascAppId": "6769894988"
       }
     }
   }
