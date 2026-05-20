@@ -79,6 +79,7 @@ export default function StudentDetailScreen({ route, navigation }: any) {
   const tabBarPadding = useTabBarPadding();
   const { studentId } = route.params;
   const { profile: coachProfile } = useAuth();
+  const canChangeRole = ['admin', 'super_admin'].includes(coachProfile?.role ?? '');
   const [student, setStudent] = useState<Profile | null>(null);
   const [enrollments, setEnrollments] = useState<EnrollmentWithProgram[]>([]);
   const [overallPct, setOverallPct] = useState(0);
@@ -250,14 +251,30 @@ export default function StudentDetailScreen({ route, navigation }: any) {
   useEffect(() => { fetchData(); fetchGoals(); }, [studentId]);
 
   const handleSaveEdit = async () => {
-    const { error } = await supabase
+    const roleChanged = editForm.role !== student?.role;
+
+    // Always update skill_level directly on profiles
+    const { error: profileError } = await supabase
       .from('profiles')
-      .update({ skill_level: editForm.skill_level, role: editForm.role })
+      .update({ skill_level: editForm.skill_level })
       .eq('id', studentId);
-    if (error) { Alert.alert('Error', error.message); return; }
+    if (profileError) { Alert.alert('Error', profileError.message); return; }
+
+    // Role changes go through set_user_role() RPC — updates both profiles AND app_metadata
+    if (roleChanged) {
+      const { error: roleError } = await supabase.rpc('set_user_role', {
+        p_user_id: studentId,
+        p_role: editForm.role,
+      });
+      if (roleError) { Alert.alert('Role Update Error', roleError.message); return; }
+    }
+
     setEditModal(false);
     fetchData();
-    Alert.alert('Updated ✅', 'Profile has been updated.');
+    Alert.alert('Updated ✅', roleChanged
+      ? `Profile updated. ${student?.full_name?.split(' ')[0]} is now a ${editForm.role}.`
+      : 'Profile has been updated.'
+    );
   };
 
   const handleRemoveEnrollment = (enrollment: EnrollmentWithProgram) => {
@@ -765,30 +782,33 @@ export default function StudentDetailScreen({ route, navigation }: any) {
               ))}
             </View>
 
-            {/* Role */}
-            <Text style={styles.fieldLabel}>Role</Text>
-            <View style={styles.chipGrid}>
-              {ROLES.map((role) => (
-                <TouchableOpacity
-                  key={role}
-                  style={[
-                    styles.selectChip,
-                    editForm.role === role && { backgroundColor: ROLE_COLORS[role]?.text, borderColor: ROLE_COLORS[role]?.text },
-                  ]}
-                  onPress={() => setEditForm({ ...editForm, role })}
-                >
-                  <Text style={[styles.selectChipText, editForm.role === role && styles.selectChipTextActive]}>
-                    {role.charAt(0).toUpperCase() + role.slice(1)}
+            {/* Role — only admins and super_admins can change this */}
+            {canChangeRole && (
+              <>
+                <Text style={styles.fieldLabel}>Role</Text>
+                <View style={styles.chipGrid}>
+                  {ROLES.map((role) => (
+                    <TouchableOpacity
+                      key={role}
+                      style={[
+                        styles.selectChip,
+                        editForm.role === role && { backgroundColor: ROLE_COLORS[role]?.text, borderColor: ROLE_COLORS[role]?.text },
+                      ]}
+                      onPress={() => setEditForm({ ...editForm, role })}
+                    >
+                      <Text style={[styles.selectChipText, editForm.role === role && styles.selectChipTextActive]}>
+                        {role.charAt(0).toUpperCase() + role.slice(1)}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+                <View style={styles.warningBox}>
+                  <Text style={styles.warningText}>
+                    ⚠️ Changing a role to "Coach" or "Admin" will give them access to the admin dashboard.
                   </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            <View style={styles.warningBox}>
-              <Text style={styles.warningText}>
-                ⚠️ Changing a role to "Coach" or "Admin" will give them access to the admin dashboard.
-              </Text>
-            </View>
+                </View>
+              </>
+            )}
           </View>
         </ScrollView>
       </Modal>
