@@ -19,21 +19,33 @@ export default function ProgramsScreen({ navigation }: any) {
   const [programs, setPrograms] = useState<Program[]>([]);
   const [enrolledIds, setEnrolledIds] = useState<string[]>([]);
   const [pendingIds, setPendingIds] = useState<string[]>([]);
+  const [completedIds, setCompletedIds] = useState<string[]>([]);
   const [activeEnrollmentExists, setActiveEnrollmentExists] = useState(false);
   const [filter, setFilter] = useState<Division | 'all'>('all');
   const [refreshing, setRefreshing] = useState(false);
 
   const fetchData = async () => {
-    const [progRes, enrollRes, activeRes, pendingRes] = await Promise.all([
+    const [progRes, enrollRes, activeRes, pendingRes, completedRes] = await Promise.all([
+      // Only fetch active programs
       supabase.from('programs').select('*').eq('is_active', true),
+      // Currently active enrollments
       supabase.from('enrollments').select('program_id').eq('student_id', profile!.id).eq('status', 'active'),
-      // Lock button if student has ANY active/pending enrollment
-      supabase.from('enrollments').select('id').eq('student_id', profile!.id).in('status', ['pending_payment', 'pending_next_cycle', 'active']),
+      // Lock only if student has an active/pending enrollment in a program that is still running
+      supabase.from('enrollments').select('id, program_id, programs!inner(is_active, end_date)')
+        .eq('student_id', profile!.id)
+        .in('status', ['pending_payment', 'pending_next_cycle', 'active'])
+        .eq('programs.is_active', true),
+      // Pending enrollments
       supabase.from('enrollments').select('program_id').eq('student_id', profile!.id).in('status', ['pending_payment', 'pending_next_cycle']),
+      // Completed enrollments — so we can show "re-enroll" nudge
+      supabase.from('enrollments').select('program_id').eq('student_id', profile!.id).eq('status', 'completed'),
     ]);
+
     if (progRes.data) setPrograms(progRes.data);
     if (enrollRes.data) setEnrolledIds(enrollRes.data.map((e) => e.program_id));
     if (pendingRes.data) setPendingIds(pendingRes.data.map((e) => e.program_id));
+    if (completedRes.data) setCompletedIds(completedRes.data.map((e) => e.program_id));
+    // Only lock if there's an active/pending enrollment in a currently active program
     setActiveEnrollmentExists((activeRes.data?.length ?? 0) > 0);
   };
 
@@ -46,7 +58,6 @@ export default function ProgramsScreen({ navigation }: any) {
   useEffect(() => { if (profile) fetchData(); }, [profile]);
 
   const handleEnrollPress = (programId: string) => {
-    // Always go to ProgramDetail — payment + enrollment logic lives there
     navigation.navigate('ProgramDetail', { programId });
   };
 
@@ -88,6 +99,8 @@ export default function ProgramsScreen({ navigation }: any) {
           {filtered.map((program) => {
             const enrolled = enrolledIds.includes(program.id);
             const isPending = pendingIds.includes(program.id);
+            const isCompleted = completedIds.includes(program.id);
+
             return (
               <TouchableOpacity
                 key={program.id}
@@ -118,6 +131,11 @@ export default function ProgramsScreen({ navigation }: any) {
                       <Text style={styles.pendingBadgeText}>⏳ Pending</Text>
                     </View>
                   )}
+                  {isCompleted && !enrolled && !isPending && (
+                    <View style={styles.completedBadge}>
+                      <Text style={styles.completedBadgeText}>✓ Completed</Text>
+                    </View>
+                  )}
                 </View>
 
                 <Text style={styles.cardTitle}>{program.title}</Text>
@@ -133,19 +151,26 @@ export default function ProgramsScreen({ navigation }: any) {
                   }
                 </View>
 
-                {!enrolled && !isPending && (
-                  activeEnrollmentExists ? (
-                    <View style={[styles.enrollButton, styles.enrollButtonLocked]}>
-                      <Text style={styles.enrollButtonLockedText}>🔒 Already enrolled in a program</Text>
-                    </View>
-                  ) : (
-                    <TouchableOpacity
-                      style={styles.enrollButton}
-                      onPress={() => handleEnrollPress(program.id)}
-                    >
-                      <Text style={styles.enrollButtonText}>Pay & Enroll</Text>
-                    </TouchableOpacity>
-                  )
+                {/* CTA area */}
+                {enrolled ? null : isPending ? null : isCompleted ? (
+                  // Previously completed this program — nudge to re-enroll
+                  <TouchableOpacity
+                    style={styles.reenrollButton}
+                    onPress={() => handleEnrollPress(program.id)}
+                  >
+                    <Text style={styles.reenrollButtonText}>🔄 Re-Enroll</Text>
+                  </TouchableOpacity>
+                ) : activeEnrollmentExists ? (
+                  <View style={[styles.enrollButton, styles.enrollButtonLocked]}>
+                    <Text style={styles.enrollButtonLockedText}>🔒 Already enrolled in a program</Text>
+                  </View>
+                ) : (
+                  <TouchableOpacity
+                    style={styles.enrollButton}
+                    onPress={() => handleEnrollPress(program.id)}
+                  >
+                    <Text style={styles.enrollButtonText}>Pay & Enroll</Text>
+                  </TouchableOpacity>
                 )}
               </TouchableOpacity>
             );
@@ -165,9 +190,6 @@ export default function ProgramsScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0B1628' },
   bgImage: { position: 'absolute', top: 0, left: 0, width: Dimensions.get('window').width, height: Dimensions.get('window').height },
-  header: { padding: 24, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
-  title: { fontSize: 26, fontWeight: '700', color: '#111827' },
-  subtitle: { fontSize: 14, color: '#6B7280', marginTop: 2 },
   filters: { backgroundColor: 'transparent' },
   filtersContent: { paddingHorizontal: 16, paddingVertical: 8, gap: 8 },
   chip: { borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)', borderRadius: 20, paddingHorizontal: 14, paddingVertical: 6, backgroundColor: 'rgba(255,255,255,0.08)' },
@@ -183,6 +205,8 @@ const styles = StyleSheet.create({
   enrolledText: { fontSize: 12, fontWeight: '600', color: '#4ADE80' },
   pendingBadge: { backgroundColor: 'rgba(217,119,6,0.2)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
   pendingBadgeText: { fontSize: 12, fontWeight: '600', color: '#FBBF24' },
+  completedBadge: { backgroundColor: 'rgba(99,102,241,0.2)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
+  completedBadgeText: { fontSize: 12, fontWeight: '600', color: '#A5B4FC' },
   cardTitle: { fontSize: 17, fontWeight: '700', color: '#F0F6FC', marginBottom: 6 },
   cardDesc: { fontSize: 14, color: '#7A8FA6', lineHeight: 20, marginBottom: 12 },
   cardFooter: { flexDirection: 'row', gap: 16, marginBottom: 12 },
@@ -193,6 +217,8 @@ const styles = StyleSheet.create({
   enrollButtonLocked: { backgroundColor: 'rgba(255,255,255,0.12)' },
   enrollButtonText: { color: '#FFFFFF', fontWeight: '700', fontSize: 14 },
   enrollButtonLockedText: { color: '#A0B0C8', fontWeight: '600', fontSize: 13 },
+  reenrollButton: { backgroundColor: 'rgba(99,102,241,0.20)', borderRadius: 8, padding: 12, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(99,102,241,0.40)' },
+  reenrollButtonText: { color: '#A5B4FC', fontWeight: '700', fontSize: 14 },
   empty: { alignItems: 'center', paddingVertical: 40 },
   emptyText: { color: '#7A8FA6', fontSize: 15 },
 });
