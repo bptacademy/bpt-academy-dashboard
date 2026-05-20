@@ -12,13 +12,17 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true,
+      "supportsTablet": false,
       "bundleIdentifier": "com.bptacademy.app",
-      "buildNumber": "2",
+      "buildNumber": "6",
       "appleTeamId": "R7365964A2",
       "usesNonExemptEncryption": false,
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "UIDeviceFamily": [
+          1
+        ],
+        "NSPhotoLibraryUsageDescription": "BPT Academy uses your photo library so you can choose a profile photo. Your photos are only accessed when you tap to change your avatar and are never shared without your permission."
       }
     },
     "android": {

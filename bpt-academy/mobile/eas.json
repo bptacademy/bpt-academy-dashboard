@@ -38,7 +38,10 @@
       "ios": {
         "appleId": "bplsportsltd@gmail.com",
         "appleTeamId": "R7365964A2",
-        "ascAppId": "6769894988"
+        "ascAppId": "6769894988",
+        "ascApiKeyPath": "./AuthKey_BZ24P9K8FP.p8",
+        "ascApiKeyIssuerId": "337909be-7e69-4cf9-baf3-129b5b3a3de3",
+        "ascApiKeyId": "BZ24P9K8FP"
       }
     }
   }

@@ -1,0 +1,6 @@
+f = open('/Users/iamfabiandavid/.openclaw/workspace/padel-dating-app/mobile/src/screens/connect/PlayerProfileScreen.tsx', 'r')
+txt = f.read()
+f.close()
+txt = txt.replace('SCREEN_HEIGHT * 0.76', 'SCREEN_HEIGHT * 0.78')
+open('/Users/iamfabiandavid/.openclaw/workspace/padel-dating-app/mobile/src/screens/connect/PlayerProfileScreen.tsx', 'w').write(txt)
+print('done')

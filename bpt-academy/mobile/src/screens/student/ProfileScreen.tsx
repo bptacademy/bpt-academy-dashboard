@@ -369,6 +369,9 @@ export default function ProfileScreen({ navigation }: any) {
           <TouchableOpacity style={styles.signOutBtn} onPress={handleSignOut}>
             <Text style={styles.signOutText}>Sign Out</Text>
           </TouchableOpacity>
+          <TouchableOpacity style={styles.deleteAccountBtn} onPress={() => navigation.navigate('DeleteAccount')}>
+            <Text style={styles.deleteAccountText}>🗑️  Delete Account</Text>
+          </TouchableOpacity>
           <Text style={styles.version}>BPT Academy v1.0.0</Text>
         </View>
       </ScrollView>
@@ -484,6 +487,8 @@ const styles = StyleSheet.create({
   skillChipText: { fontSize: 14, color: '#F0F6FC', fontWeight: '500' },
   skillChipTextActive: { color: '#FFFFFF', fontWeight: '700' },
   signOutBtn: { backgroundColor: 'rgba(220,38,38,0.15)', borderRadius: 12, padding: 16, alignItems: 'center', marginBottom: 10, borderWidth: 1, borderColor: 'rgba(220,38,38,0.30)' },
+  deleteAccountBtn: { backgroundColor: 'transparent', borderRadius: 12, padding: 12, alignItems: 'center', marginBottom: 6 },
+  deleteAccountText: { color: '#7A8FA6', fontSize: 13, fontWeight: '500' },
   signOutText: { color: '#EF4444', fontWeight: '700', fontSize: 15 },
   version: { textAlign: 'center', color: '#7A8FA6', fontSize: 12, marginBottom: 32 },
   modal: { flex: 1, backgroundColor: '#FFFFFF' },

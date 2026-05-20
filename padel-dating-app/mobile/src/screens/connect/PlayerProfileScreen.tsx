@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
   StatusBar, Alert, Modal, ActivityIndicator, Image,
-  Dimensions, FlatList, NativeScrollEvent, NativeSyntheticEvent,
+  Dimensions, FlatList,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme, fonts } from '../../lib/theme';
@@ -10,8 +10,8 @@ import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { notifyVolley } from '../../lib/notifications';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const HERO_HEIGHT = SCREEN_WIDTH * 0.77; // slightly taller than square
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+const HERO_HEIGHT = SCREEN_HEIGHT * 0.95; // large hero — ~72% of screen
 
 function levelLabel(v: number) {
   if (v >= 5.5) return 'Elite';
@@ -23,7 +23,7 @@ function levelLabel(v: number) {
   return 'Beginner';
 }
 
-// ─── Demo profile — shown for demo mode or when DB has no data ───────────────
+// ─── Demo data ────────────────────────────────────────────────────────────────
 const DEMO_PROFILE = {
   id: 'demo',
   full_name: 'Carlos Ruiz',
@@ -39,7 +39,6 @@ const DEMO_PROFILE = {
   gender: 'male',
   home_club_name: 'On The Court — Manchester',
 };
-
 const DEMO_STATS = {
   platform: 'playtomic',
   level_value: 4.35,
@@ -53,7 +52,6 @@ const DEMO_STATS = {
     { club_name: 'Better Padel Ancoats', play_count: 14 },
   ],
 };
-
 const DEMO_SCORE = {
   total_score: 91,
   skill_score: 23,
@@ -64,31 +62,21 @@ const DEMO_SCORE = {
   proximity_score: 9,
   matches_together: 3,
 };
-
 const DEMO_MATCHES_TOGETHER = 3;
 const DEMO_LAST_CLUB = 'On The Court Manchester';
 
-// ─────────────────────────────────────────────────────────────────────────────
-
 // ─── Full-screen photo lightbox ───────────────────────────────────────────────
 function PhotoLightbox({ visible, photos, startIndex, onClose }: {
-  visible: boolean;
-  photos: string[];
-  startIndex: number;
-  onClose: () => void;
+  visible: boolean; photos: string[]; startIndex: number; onClose: () => void;
 }) {
   const [current, setCurrent] = useState(startIndex);
   const flatRef = useRef<FlatList>(null);
-
   useEffect(() => {
     if (visible) {
       setCurrent(startIndex);
-      setTimeout(() => {
-        flatRef.current?.scrollToIndex({ index: startIndex, animated: false });
-      }, 50);
+      setTimeout(() => flatRef.current?.scrollToIndex({ index: startIndex, animated: false }), 50);
     }
   }, [visible, startIndex]);
-
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <View style={lightbox.overlay}>
@@ -100,116 +88,147 @@ function PhotoLightbox({ visible, photos, startIndex, onClose }: {
           ref={flatRef}
           data={photos}
           keyExtractor={(_, i) => String(i)}
-          horizontal
-          pagingEnabled
-          showsHorizontalScrollIndicator={false}
+          horizontal pagingEnabled showsHorizontalScrollIndicator={false}
           initialScrollIndex={startIndex}
           getItemLayout={(_, index) => ({ length: SCREEN_WIDTH, offset: SCREEN_WIDTH * index, index })}
-          onMomentumScrollEnd={e => {
-            const idx = Math.round(e.nativeEvent.contentOffset.x / SCREEN_WIDTH);
-            setCurrent(idx);
-          }}
+          onMomentumScrollEnd={e => setCurrent(Math.round(e.nativeEvent.contentOffset.x / SCREEN_WIDTH))}
           renderItem={({ item }) => (
             <View style={lightbox.slide}>
               <Image source={{ uri: item }} style={lightbox.image} resizeMode="contain" />
             </View>
           )}
         />
-        {/* dot indicators */}
         <View style={lightbox.dots}>
-          {photos.map((_, i) => (
-            <View key={i} style={[lightbox.dot, i === current && lightbox.dotActive]} />
-          ))}
+          {photos.map((_, i) => <View key={i} style={[lightbox.dot, i === current && lightbox.dotActive]} />)}
         </View>
       </View>
     </Modal>
   );
 }
 
-// ─── Hero photo carousel ──────────────────────────────────────────────────────
-function PhotoCarousel({ photos, name, onPhotoPress }: {
-  photos: string[];
-  name: string;
-  onPhotoPress: (index: number) => void;
-}) {
-  const [activeIndex, setActiveIndex] = useState(0);
-  const initials = name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
-
-  if (photos.length === 0) {
-    // No photos — show large initials placeholder
-    return (
-      <View style={[carousel.container, { justifyContent: 'center', alignItems: 'center', backgroundColor: theme.bgCard }]}>
-        <View style={carousel.initialsCircle}>
-          <Text style={carousel.initialsText}>{initials}</Text>
-        </View>
-        <Text style={carousel.noPhotoHint}>No photos yet</Text>
-      </View>
-    );
-  }
-
+// ─── Full Profile bottom sheet ────────────────────────────────────────────────
+function FullProfileSheet({ visible, onClose, profile, stats, volpairScore, matchesTogether, lastClub, onShowScore, onShowLevel }: any) {
   return (
-    <View style={carousel.container}>
-      <FlatList
-        data={photos}
-        keyExtractor={(_, i) => String(i)}
-        horizontal
-        pagingEnabled
-        showsHorizontalScrollIndicator={false}
-        onMomentumScrollEnd={e => {
-          const idx = Math.round(e.nativeEvent.contentOffset.x / SCREEN_WIDTH);
-          setActiveIndex(idx);
-        }}
-        renderItem={({ item, index }) => (
-          <TouchableOpacity
-            activeOpacity={0.95}
-            onPress={() => onPhotoPress(index)}
-            style={carousel.slide}
-          >
-            <Image source={{ uri: item }} style={carousel.image} resizeMode="cover" />
-          </TouchableOpacity>
-        )}
-      />
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+      <View style={sheet.overlay}>
+        <TouchableOpacity style={sheet.backdrop} onPress={onClose} activeOpacity={1} />
+        <View style={sheet.container}>
+          <View style={sheet.handle} />
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={sheet.scroll}>
 
-      {/* gradient overlay at bottom for text readability */}
-      <View style={carousel.gradient} pointerEvents="none" />
+            {/* Bio */}
+            {profile?.bio && (
+              <View style={sheet.section}>
+                <Text style={sheet.sectionTitle}>About</Text>
+                <Text style={sheet.bio}>"{profile.bio}"</Text>
+              </View>
+            )}
 
-      {/* photo count badge top-right */}
-      {photos.length > 1 && (
-        <View style={carousel.countBadge} pointerEvents="none">
-          <Text style={carousel.countText}>📷 {photos.length}</Text>
+            {/* Court history */}
+            {matchesTogether > 0 && (
+              <View style={sheet.section}>
+                <Text style={sheet.sectionTitle}>🤝 Court history together</Text>
+                <View style={sheet.historyRow}>
+                  <View style={sheet.historyItem}>
+                    <Text style={sheet.historyValue}>{matchesTogether}</Text>
+                    <Text style={sheet.historyLabel}>matches played</Text>
+                  </View>
+                  {volpairScore?.chemistry_score != null && (
+                    <>
+                      <View style={sheet.historyDivider} />
+                      <View style={sheet.historyItem}>
+                        <Text style={sheet.historyValue}>{volpairScore.chemistry_score * 10}%</Text>
+                        <Text style={sheet.historyLabel}>chemistry score</Text>
+                      </View>
+                    </>
+                  )}
+                </View>
+                {lastClub && (
+                  <View style={sheet.lastPlayedRow}>
+                    <Text style={sheet.lastPlayedIcon}>🏟</Text>
+                    <Text style={sheet.lastPlayedText}>Last played at {lastClub}</Text>
+                  </View>
+                )}
+              </View>
+            )}
+
+            {/* Stats */}
+            {stats && (
+              <View style={sheet.section}>
+                <Text style={sheet.sectionTitle}>📊 Stats</Text>
+                <View style={sheet.statsGrid}>
+                  <View style={sheet.statBox}>
+                    <Text style={sheet.statValue}>{stats.total_matches ?? '—'}</Text>
+                    <Text style={sheet.statLabel}>Matches</Text>
+                  </View>
+                  <View style={sheet.statBox}>
+                    <Text style={sheet.statValue}>
+                      {stats.win_rate != null ? `${Math.round(stats.win_rate * 100)}%` : '—'}
+                    </Text>
+                    <Text style={sheet.statLabel}>Win rate</Text>
+                  </View>
+                  <View style={sheet.statBox}>
+                    <Text style={sheet.statValue}>
+                      {stats.play_style
+                        ? stats.play_style.charAt(0).toUpperCase() + stats.play_style.slice(1).replace('_', ' ')
+                        : '—'}
+                    </Text>
+                    <Text style={sheet.statLabel}>Play style</Text>
+                  </View>
+                  <View style={sheet.statBox}>
+                    <Text style={sheet.statValue}>
+                      {stats.preferred_time_of_day
+                        ? stats.preferred_time_of_day.charAt(0).toUpperCase() + stats.preferred_time_of_day.slice(1)
+                        : '—'}
+                    </Text>
+                    <Text style={sheet.statLabel}>Plays</Text>
+                  </View>
+                </View>
+                <TouchableOpacity style={sheet.explainerLink} onPress={onShowLevel}>
+                  <Text style={sheet.explainerLinkText}>What does level {stats.level_value?.toFixed(2)} mean? →</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+
+            {/* Regular clubs */}
+            {stats?.top_clubs?.length > 0 && (
+              <View style={sheet.section}>
+                <Text style={sheet.sectionTitle}>📍 Regular clubs</Text>
+                {stats.top_clubs.slice(0, 3).map((club: any, i: number) => (
+                  <View key={i} style={sheet.clubRow}>
+                    <View style={sheet.clubDot} />
+                    <Text style={sheet.clubName}>{club.club_name}</Text>
+                    <Text style={sheet.clubCount}>{club.play_count} matches</Text>
+                  </View>
+                ))}
+              </View>
+            )}
+
+            {/* Volpair score breakdown link */}
+            {volpairScore && (
+              <TouchableOpacity style={sheet.scoreBreakdownBtn} onPress={onShowScore}>
+                <Text style={sheet.scoreBreakdownText}>🎯 See Volpair Score breakdown →</Text>
+              </TouchableOpacity>
+            )}
+
+            <View style={{ height: 32 }} />
+          </ScrollView>
         </View>
-      )}
-
-      {/* dot indicators */}
-      {photos.length > 1 && (
-        <View style={carousel.dots} pointerEvents="none">
-          {photos.map((_, i) => (
-            <View key={i} style={[carousel.dot, i === activeIndex && carousel.dotActive]} />
-          ))}
-        </View>
-      )}
-
-      {/* tap hint on first view */}
-      {photos.length > 1 && activeIndex === 0 && (
-        <View style={carousel.swipeHint} pointerEvents="none">
-          <Text style={carousel.swipeHintText}>Swipe for more →</Text>
-        </View>
-      )}
-    </View>
+      </View>
+    </Modal>
   );
 }
 
-// ─── Modals ───────────────────────────────────────────────────────────────────
-
+// ─── Score breakdown modal ─────────────────────────────────────────────────────
 function ScoreBreakdownModal({ visible, onClose, score }: any) {
   if (!score) return null;
   const dims = [
-    { label: 'Skill match', value: score.skill_score, max: 25, color: theme.primary },
-    { label: 'Play style', value: score.style_score, max: 20, color: theme.primary },
-    { label: 'Availability', value: score.availability_score, max: 20, color: '#F59E0B' },
-    { label: 'Location', value: score.location_score, max: 15, color: theme.primary },
-    { label: 'Chemistry', value: score.chemistry_score, max: 10, color: '#A78BFA' },
-    { label: 'Circle', value: score.proximity_score, max: 10, color: '#A78BFA' },
+    { label: 'Skill match',  value: score.skill_score,         max: 25, color: theme.primary },
+    { label: 'Play style',   value: score.style_score,         max: 20, color: theme.primary },
+    { label: 'Availability', value: score.availability_score,  max: 20, color: '#F59E0B' },
+    { label: 'Location',     value: score.location_score,      max: 15, color: theme.primary },
+    { label: 'Chemistry',    value: score.chemistry_score,     max: 10, color: '#A78BFA' },
+    { label: 'Circle',       value: score.proximity_score,     max: 10, color: '#A78BFA' },
   ];
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
@@ -221,9 +240,7 @@ function ScoreBreakdownModal({ visible, onClose, score }: any) {
             <Text style={modal.scoreBigValue}>{score.total_score}</Text>
             <Text style={modal.scoreBigLabel}>/ 100</Text>
           </View>
-          <Text style={modal.scoreDesc}>
-            Based on your real court history together and compatible play patterns.
-          </Text>
+          <Text style={modal.scoreDesc}>Based on your real court history and compatible play patterns.</Text>
           {dims.map((d, i) => (
             <View key={i} style={modal.dimRow}>
               <Text style={modal.dimLabel}>{d.label}</Text>
@@ -251,21 +268,21 @@ function LevelExplainerModal({ visible, onClose, level }: any) {
           <View style={modal.handle} />
           <Text style={modal.title}>What does {lvl?.toFixed(2)} mean?</Text>
           <Text style={modal.explainerText}>
-            Playtomic calculates your level from your actual match results — wins, losses, opponent levels, and set scores. It updates after every match.
+            Playtomic calculates your level from actual match results — wins, losses, opponent levels, and set scores. It updates after every match.
           </Text>
           <View style={modal.levelScale}>
             {[
-              { range: '1.0–2.5', label: 'Beginner', min: 0, max: 2.5 },
-              { range: '2.5–3.5', label: 'Intermediate', min: 2.5, max: 3.5 },
-              { range: '3.5–4.5', label: 'Competitive', min: 3.5, max: 4.5 },
-              { range: '4.5–5.5', label: 'Advanced', min: 4.5, max: 5.5 },
-              { range: '5.5–7.0', label: 'Elite', min: 5.5, max: 7.0 },
+              { range: '1.0–2.5', label: 'Beginner',      min: 0,   max: 2.5 },
+              { range: '2.5–3.5', label: 'Intermediate',  min: 2.5, max: 3.5 },
+              { range: '3.5–4.5', label: 'Competitive',   min: 3.5, max: 4.5 },
+              { range: '4.5–5.5', label: 'Advanced',      min: 4.5, max: 5.5 },
+              { range: '5.5–7.0', label: 'Elite',         min: 5.5, max: 7.0 },
             ].map((l, i) => {
               const highlight = lvl >= l.min && lvl < l.max;
               return (
                 <View key={i} style={[modal.levelRow, highlight && modal.levelRowHighlight]}>
                   <Text style={[modal.levelRange, highlight && { color: theme.primary }]}>{l.range}</Text>
-                  <Text style={[modal.levelLbl, highlight && { color: theme.primary }]}>{l.label}</Text>
+                  <Text style={[modal.levelLbl,   highlight && { color: theme.primary }]}>{l.label}</Text>
                   {highlight && <Text style={modal.levelYou}>← you</Text>}
                 </View>
               );
@@ -318,30 +335,28 @@ function ReportModal({ visible, onClose, name }: any) {
 }
 
 // ─── Main screen ──────────────────────────────────────────────────────────────
-
 export default function PlayerProfileScreen({ route, navigation }: any) {
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const { userId } = route.params ?? {};
-
   const isDemo = !userId || userId === 'demo';
 
-  const [loading, setLoading] = useState(!isDemo);
-  const [profile, setProfile] = useState<any>(isDemo ? DEMO_PROFILE : null);
-  const [stats, setStats] = useState<any>(isDemo ? DEMO_STATS : null);
-  const [volpairScore, setVolpairScore] = useState<any>(isDemo ? DEMO_SCORE : null);
+  const [loading, setLoading]               = useState(!isDemo);
+  const [profile, setProfile]               = useState<any>(isDemo ? DEMO_PROFILE : null);
+  const [stats, setStats]                   = useState<any>(isDemo ? DEMO_STATS : null);
+  const [volpairScore, setVolpairScore]     = useState<any>(isDemo ? DEMO_SCORE : null);
   const [matchesTogether, setMatchesTogether] = useState(isDemo ? DEMO_MATCHES_TOGETHER : 0);
-  const [lastClub, setLastClub] = useState<string | null>(isDemo ? DEMO_LAST_CLUB : null);
-  const [myAction, setMyAction] = useState<string | null>(null);
+  const [lastClub, setLastClub]             = useState<string | null>(isDemo ? DEMO_LAST_CLUB : null);
+  const [myAction, setMyAction]             = useState<string | null>(null);
 
-  const [showScore, setShowScore] = useState(false);
-  const [showLevel, setShowLevel] = useState(false);
-  const [showReport, setShowReport] = useState(false);
-  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [activePhotoIndex, setActivePhotoIndex] = useState(0);
+  const [lightboxIndex, setLightboxIndex]   = useState<number | null>(null);
+  const [showScore, setShowScore]           = useState(false);
+  const [showLevel, setShowLevel]           = useState(false);
+  const [showReport, setShowReport]         = useState(false);
+  const [showFullProfile, setShowFullProfile] = useState(false);
 
-  useEffect(() => {
-    if (!isDemo && userId) load();
-  }, [userId]);
+  useEffect(() => { if (!isDemo && userId) load(); }, [userId]);
 
   const load = async () => {
     setLoading(true);
@@ -349,92 +364,54 @@ export default function PlayerProfileScreen({ route, navigation }: any) {
       const { data: p } = await supabase
         .from('users')
         .select('id, full_name, city, bio, looking_for, photos, videos, gender, home_club_name')
-        .eq('id', userId)
-        .maybeSingle();
+        .eq('id', userId).maybeSingle();
 
       if (!p) {
-        setProfile(DEMO_PROFILE);
-        setStats(DEMO_STATS);
-        setVolpairScore(DEMO_SCORE);
-        setMatchesTogether(DEMO_MATCHES_TOGETHER);
-        setLastClub(DEMO_LAST_CLUB);
-        setLoading(false);
-        return;
+        setProfile(DEMO_PROFILE); setStats(DEMO_STATS); setVolpairScore(DEMO_SCORE);
+        setMatchesTogether(DEMO_MATCHES_TOGETHER); setLastClub(DEMO_LAST_CLUB);
+        setLoading(false); return;
       }
-
       setProfile(p);
 
-      const { data: s } = await supabase
-        .from('player_stats')
-        .select('*')
-        .eq('user_id', userId)
-        .eq('platform', 'playtomic')
-        .maybeSingle();
+      const { data: s } = await supabase.from('player_stats').select('*')
+        .eq('user_id', userId).eq('platform', 'playtomic').maybeSingle();
       setStats(s);
 
       if (user?.id) {
         const [a, b] = [user.id, userId].sort();
-        const { data: vs } = await supabase
-          .from('volpair_scores')
-          .select('*')
-          .eq('user_a_id', a)
-          .eq('user_b_id', b)
-          .maybeSingle();
+        const { data: vs } = await supabase.from('volpair_scores').select('*')
+          .eq('user_a_id', a).eq('user_b_id', b).maybeSingle();
         setVolpairScore(vs);
 
-        const { data: myMatches } = await supabase
-          .from('match_players')
-          .select('match_id')
-          .eq('user_id', user.id);
-
-        const { data: theirMatches } = await supabase
-          .from('match_players')
-          .select('match_id, matches(tenant_name, played_at)')
-          .eq('user_id', userId);
+        const { data: myMatches }    = await supabase.from('match_players').select('match_id').eq('user_id', user.id);
+        const { data: theirMatches } = await supabase.from('match_players')
+          .select('match_id, matches(tenant_name, played_at)').eq('user_id', userId);
 
         const myMatchIds = new Set((myMatches ?? []).map((r: any) => r.match_id));
         const shared = (theirMatches ?? []).filter((r: any) => myMatchIds.has(r.match_id));
         setMatchesTogether(shared.length);
-
         if (shared.length > 0) {
           const sorted = shared.sort((a: any, b: any) =>
-            new Date(b.matches?.played_at ?? 0).getTime() - new Date(a.matches?.played_at ?? 0).getTime()
-          );
+            new Date(b.matches?.played_at ?? 0).getTime() - new Date(a.matches?.played_at ?? 0).getTime());
           setLastClub(sorted[0]?.matches?.tenant_name ?? null);
         }
 
-        const { data: existingConn } = await supabase
-          .from('connections')
-          .select('action_type')
-          .eq('sender_id', user.id)
-          .eq('receiver_id', userId)
-          .in('status', ['pending', 'accepted'])
-          .maybeSingle();
+        const { data: existingConn } = await supabase.from('connections').select('action_type')
+          .eq('sender_id', user.id).eq('receiver_id', userId).in('status', ['pending', 'accepted']).maybeSingle();
         if (existingConn) setMyAction(existingConn.action_type);
       }
-    } catch (e) {
-      console.error('PlayerProfileScreen load error:', e);
-    } finally {
-      setLoading(false);
-    }
+    } catch (e) { console.error('PlayerProfileScreen load error:', e); }
+    finally { setLoading(false); }
   };
 
   const handleAction = async (type: 'play_again' | 'connect' | 'volley') => {
     if (isDemo) { setMyAction(type); return; }
     if (!user?.id || !userId) return;
     try {
-      await supabase.from('connections').insert({
-        sender_id: user.id,
-        receiver_id: userId,
-        action_type: type,
-      });
+      await supabase.from('connections').insert({ sender_id: user.id, receiver_id: userId, action_type: type });
       setMyAction(type);
-      if (type === 'volley') {
-        await notifyVolley(userId, user.full_name ?? 'Someone');
-      }
-    } catch (e) {
-      console.error('action error:', e);
-    }
+      if (type === 'volley') await notifyVolley(userId, user.full_name ?? 'Someone');
+    } catch (e) { console.error('action error:', e); }
   };
 
   const firstName = profile?.full_name?.split(' ')[0] ?? 'Player';
@@ -452,196 +429,167 @@ export default function PlayerProfileScreen({ route, navigation }: any) {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
 
-      {/* ── Hero photo carousel — edge to edge, behind status bar ── */}
-      <PhotoCarousel
-        photos={photos}
-        name={profile?.full_name ?? ''}
-        onPhotoPress={i => setLightboxIndex(i)}
-      />
-
-      {/* ── Back + Report — floating over the photo ── */}
-      <View style={[styles.topBar, { top: insets.top + 8 }]}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.floatBtn}>
-          <Text style={styles.floatBtnText}>←</Text>
-        </TouchableOpacity>
-        <View style={{ flexDirection: 'row', gap: 8 }}>
-          {isDemo && (
-            <View style={styles.demoPill}>
-              <Text style={styles.demoPillText}>✨ Demo</Text>
-            </View>
-          )}
-          <TouchableOpacity onPress={() => setShowReport(true)} style={styles.floatBtn}>
-            <Text style={styles.floatBtnText}>⋯</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      {/* ── Scrollable content below the hero ── */}
-      <ScrollView
-        style={styles.scroll}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 70 }}
-      >
-        {/* Name / city / badges — right below the photo */}
-        <View style={styles.identityBlock}>
-          <View style={styles.nameRow}>
-            <Text style={styles.playerName}>{firstName}</Text>
-            {stats?.level_value && (
-              <TouchableOpacity onPress={() => setShowLevel(true)} style={styles.levelPill}>
-                <Text style={styles.levelPillText}>{stats.level_value.toFixed(2)}</Text>
+      {/* ── Hero photo — large, edge to edge ── */}
+      <View style={styles.heroContainer}>
+        {photos.length > 0 ? (
+          <FlatList
+            data={photos}
+            keyExtractor={(_, i) => String(i)}
+            horizontal pagingEnabled showsHorizontalScrollIndicator={false}
+            onMomentumScrollEnd={e => setActivePhotoIndex(Math.round(e.nativeEvent.contentOffset.x / SCREEN_WIDTH))}
+            renderItem={({ item, index }) => (
+              <TouchableOpacity activeOpacity={0.95} onPress={() => setLightboxIndex(index)} style={styles.heroSlide}>
+                <Image source={{ uri: item }} style={styles.heroImage} resizeMode="cover" />
               </TouchableOpacity>
             )}
-          </View>
-
-          {stats?.level_value && (
-            <Text style={styles.levelDesc}>{levelLabel(stats.level_value)} · Playtomic</Text>
-          )}
-
-          {profile?.city && <Text style={styles.playerCity}>📍 {profile.city}</Text>}
-
-          {profile?.home_club_name && (
-            <View style={styles.homeClubBadge}>
-              <Text style={styles.homeClubIcon}>🏟️</Text>
-              <Text style={styles.homeClubName}>{profile.home_club_name}</Text>
+          />
+        ) : (
+          <View style={[styles.heroSlide, { backgroundColor: theme.bgCard, alignItems: 'center', justifyContent: 'center' }]}>
+            <View style={styles.initialsCircle}>
+              <Text style={styles.initialsText}>
+                {(profile?.full_name ?? 'P').split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()}
+              </Text>
             </View>
-          )}
-
-          <View style={styles.intentRow}>
-            {(profile?.looking_for === 'date' || profile?.looking_for === 'both') && (
-              <View style={styles.intentBadge}>
-                <Text style={styles.intentText}>
-                  {profile.looking_for === 'both' ? '💘 Open to dating' : '💘 Looking to date'}
-                </Text>
-              </View>
-            )}
           </View>
+        )}
 
-          {profile?.bio && (
-            <Text style={styles.playerBio}>"{profile.bio}"</Text>
-          )}
-        </View>
+        {/* deep gradient at bottom of photo for overlay readability */}
+        <View style={styles.heroGradient} pointerEvents="none" />
 
-        {/* Volpair Score card */}
-        <TouchableOpacity
-          style={styles.volpairCard}
-          onPress={() => volpairScore && setShowScore(true)}
-          activeOpacity={volpairScore ? 0.8 : 1}
-        >
-          <View style={styles.volpairCardLeft}>
-            <Text style={styles.volpairLabel}>Volpair Score</Text>
-            <Text style={styles.volpairSub}>Your compatibility match</Text>
-            {volpairScore && <Text style={styles.volpairTap}>Tap to see breakdown →</Text>}
-          </View>
-          <Text style={styles.volpairValue}>{volpairScore?.total_score ?? '—'}</Text>
-        </TouchableOpacity>
+        {/* photo count + dots */}
+        {photos.length > 1 && (
+          <>
+            <View style={styles.photoBadge} pointerEvents="none">
+              <Text style={styles.photoBadgeText}>📷 {photos.length}</Text>
+            </View>
+            <View style={styles.heroDots} pointerEvents="none">
+              {photos.map((_, i) => (
+                <View key={i} style={[styles.heroDot, i === activePhotoIndex && styles.heroDotActive]} />
+              ))}
+            </View>
+          </>
+        )}
 
-        {/* Court history */}
-        {matchesTogether > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>🤝 Court history together</Text>
-            <View style={styles.historyRow}>
-              <View style={styles.historyItem}>
-                <Text style={styles.historyValue}>{matchesTogether}</Text>
-                <Text style={styles.historyLabel}>matches played</Text>
-              </View>
-              {volpairScore?.chemistry_score != null && (
-                <>
-                  <View style={styles.historyDivider} />
-                  <View style={styles.historyItem}>
-                    <Text style={styles.historyValue}>{volpairScore.chemistry_score * 10}%</Text>
-                    <Text style={styles.historyLabel}>chemistry score</Text>
+        {/* ── Identity overlay — bottom of photo ── */}
+        <View style={styles.heroIdentity}>
+          {/* Top row: left = name+level, right = score box */}
+          <View style={styles.heroTopRow}>
+            <View style={styles.heroLeft}>
+              <View style={styles.heroNameRow}>
+                <Text style={styles.heroName}>{firstName}</Text>
+                {stats?.level_value && (
+                  <View style={styles.heroLevelPill}>
+                    <Text style={styles.heroLevelText}>{stats.level_value.toFixed(2)}</Text>
                   </View>
-                </>
+                )}
+              </View>
+              {stats?.level_value && (
+                <Text style={styles.heroLevelDesc}>{levelLabel(stats.level_value)} · Playtomic</Text>
               )}
             </View>
-            {lastClub && (
-              <View style={styles.lastPlayedRow}>
-                <Text style={styles.lastPlayedIcon}>🏟</Text>
-                <Text style={styles.lastPlayedText}>Last played at {lastClub}</Text>
+
+            {/* Compact Volpair Score box — top right */}
+            <TouchableOpacity
+              style={styles.heroScoreBox}
+              onPress={() => volpairScore && setShowScore(true)}
+              activeOpacity={volpairScore ? 0.8 : 1}
+              >
+              <Text style={styles.heroScoreLabel}>Volpair</Text>
+              <Text style={styles.heroScoreValue}>{volpairScore?.total_score ?? '—'}</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* City */}
+          {profile?.city && (
+            <Text style={styles.heroCity}>📍 {profile.city}</Text>
+          )}
+
+          {/* Home club badge */}
+          {profile?.home_club_name && (
+            <View style={styles.heroClubBadge}>
+              <Text style={styles.heroClubText}>🏟️ {profile.home_club_name}</Text>
+            </View>
+          )}
+
+          {/* Intent badge */}
+          {(profile?.looking_for === 'date' || profile?.looking_for === 'both') && (
+            <View style={styles.heroIntentBadge}>
+              <Text style={styles.heroIntentText}>
+                {profile.looking_for === 'both' ? '💘 Open to dating' : '💘 Looking to date'}
+              </Text>
+            </View>
+          )}
+
+          {/* ── CTAs inside overlay ── */}
+          <View style={styles.heroCtaSpacer} />
+          {myAction ? (
+            <View style={styles.actionedRow}>
+              <Text style={styles.actionedText}>
+                {myAction === 'play_again' ? '🎾 Play request sent!' :
+                 myAction === 'connect'    ? '👋 Connection sent!'   :
+                 '💘 Volley sent — fingers crossed!'}
+              </Text>
+            </View>
+          ) : (
+            <View style={styles.actionBtns}>
+              <TouchableOpacity style={styles.actionBtn} onPress={() => handleAction('play_again')} activeOpacity={0.8}>
+                <Text style={styles.actionBtnEmoji}>🎾</Text>
+                <Text style={styles.actionBtnText}>Play again</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.actionBtn} onPress={() => handleAction('connect')} activeOpacity={0.8}>
+                <Text style={styles.actionBtnEmoji}>👋</Text>
+                <Text style={styles.actionBtnText}>Connect</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.actionBtn, styles.volleyBtn]} onPress={() => handleAction('volley')} activeOpacity={0.8}>
+                <Text style={styles.actionBtnEmoji}>💘</Text>
+                <Text style={[styles.actionBtnText, styles.volleyBtnText]}>Volley</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {/* View full profile */}
+          <TouchableOpacity
+            style={styles.viewProfileBtn}
+            onPress={() => setShowFullProfile(true)}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.viewProfileText}>View full profile ↓</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* ── Back + Report floating top ── */}
+        <View style={[styles.topBar, { top: insets.top + 8 }]}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.floatBtn}>
+            <Text style={styles.floatBtnText}>←</Text>
+          </TouchableOpacity>
+          <View style={{ flexDirection: 'row', gap: 8 }}>
+            {isDemo && (
+              <View style={styles.demoPill}>
+                <Text style={styles.demoPillText}>✨ Demo</Text>
               </View>
             )}
-          </View>
-        )}
-
-        {/* Stats grid */}
-        {stats && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>📊 Their stats</Text>
-            <View style={styles.statsGrid}>
-              <View style={styles.statBox}>
-                <Text style={styles.statValue}>{stats.total_matches ?? '—'}</Text>
-                <Text style={styles.statLabel}>Matches</Text>
-              </View>
-              <View style={styles.statBox}>
-                <Text style={styles.statValue}>
-                  {stats.win_rate != null ? `${Math.round(stats.win_rate * 100)}%` : '—'}
-                </Text>
-                <Text style={styles.statLabel}>Win rate</Text>
-              </View>
-              <View style={styles.statBox}>
-                <Text style={styles.statValue}>
-                  {stats.play_style
-                    ? stats.play_style.charAt(0).toUpperCase() + stats.play_style.slice(1).replace('_', ' ')
-                    : '—'}
-                </Text>
-                <Text style={styles.statLabel}>Play style</Text>
-              </View>
-              <View style={styles.statBox}>
-                <Text style={styles.statValue}>
-                  {stats.preferred_time_of_day
-                    ? stats.preferred_time_of_day.charAt(0).toUpperCase() + stats.preferred_time_of_day.slice(1)
-                    : '—'}
-                </Text>
-                <Text style={styles.statLabel}>Plays</Text>
-              </View>
-            </View>
-          </View>
-        )}
-
-        {/* Regular clubs */}
-        {stats?.top_clubs?.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>📍 Regular clubs</Text>
-            {stats.top_clubs.slice(0, 3).map((club: any, i: number) => (
-              <View key={i} style={styles.clubRow}>
-                <View style={styles.clubDot} />
-                <Text style={styles.clubName}>{club.club_name}</Text>
-                <Text style={styles.clubCount}>{club.play_count} matches</Text>
-              </View>
-            ))}
-          </View>
-        )}
-      </ScrollView>
-
-      {/* ── Action bar ── */}
-      <View style={[styles.actionBar, { bottom: insets.bottom - 21 }]}>
-        {myAction ? (
-          <View style={styles.actionedRow}>
-            <Text style={styles.actionedText}>
-              {myAction === 'play_again' ? '🎾 Play request sent!' :
-               myAction === 'connect' ? '👋 Connection sent!' :
-               '💘 Volley sent — fingers crossed!'}
-            </Text>
-          </View>
-        ) : (
-          <View style={styles.actionBtns}>
-            <TouchableOpacity style={styles.actionBtn} onPress={() => handleAction('play_again')} activeOpacity={0.8}>
-              <Text style={styles.actionBtnEmoji}>🎾</Text>
-              <Text style={styles.actionBtnText}>Play again</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.actionBtn} onPress={() => handleAction('connect')} activeOpacity={0.8}>
-              <Text style={styles.actionBtnEmoji}>👋</Text>
-              <Text style={styles.actionBtnText}>Connect</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={[styles.actionBtn, styles.volleyBtn]} onPress={() => handleAction('volley')} activeOpacity={0.8}>
-              <Text style={styles.actionBtnEmoji}>💘</Text>
-              <Text style={[styles.actionBtnText, styles.volleyBtnText]}>Volley</Text>
+            <TouchableOpacity onPress={() => setShowReport(true)} style={styles.floatBtn}>
+              <Text style={styles.floatBtnText}>⋯</Text>
             </TouchableOpacity>
           </View>
-        )}
+        </View>
       </View>
 
-      {/* Modals */}
+
+
+
+      {/* ── Modals ── */}
+      <FullProfileSheet
+        visible={showFullProfile}
+        onClose={() => setShowFullProfile(false)}
+        profile={profile}
+        stats={stats}
+        volpairScore={volpairScore}
+        matchesTogether={matchesTogether}
+        lastClub={lastClub}
+        onShowScore={() => { setShowFullProfile(false); setTimeout(() => setShowScore(true), 300); }}
+        onShowLevel={() => { setShowFullProfile(false); setTimeout(() => setShowLevel(true), 300); }}
+      />
       <ScoreBreakdownModal visible={showScore} onClose={() => setShowScore(false)} score={volpairScore} />
       <LevelExplainerModal visible={showLevel} onClose={() => setShowLevel(false)} level={stats?.level_value} />
       <ReportModal visible={showReport} onClose={() => setShowReport(false)} name={firstName} />
@@ -657,48 +605,216 @@ export default function PlayerProfileScreen({ route, navigation }: any) {
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
-const carousel = StyleSheet.create({
-  container: {
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#000', flexDirection: 'column' },
+
+  // Hero
+  heroContainer: {
     width: SCREEN_WIDTH,
-    height: HERO_HEIGHT,
-    backgroundColor: theme.bgDeep,
+    height: SCREEN_HEIGHT,
   },
-  slide: { width: SCREEN_WIDTH, height: HERO_HEIGHT },
-  image: { width: SCREEN_WIDTH, height: HERO_HEIGHT },
-  gradient: {
-    position: 'absolute', bottom: 0, left: 0, right: 0, height: 120,
-    backgroundColor: 'rgba(13,27,42,0.55)',
+  heroSlide: { width: SCREEN_WIDTH, height: HERO_HEIGHT },
+  heroImage: { width: SCREEN_WIDTH, height: HERO_HEIGHT },
+
+  // Deep gradient — taller and darker so overlay text is always readable
+  heroGradient: {
+    position: 'absolute', bottom: 0, left: 0, right: 0, height: HERO_HEIGHT * 0.55,
+    // Simulated gradient: transparent → very dark at bottom
+    backgroundColor: 'transparent',
+    // We layer two views to fake a gradient
   },
-  countBadge: {
-    position: 'absolute', top: 16, right: 16,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4,
+
+  photoBadge: {
+    position: 'absolute', top: 48, right: 60,
+    backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: 12,
+    paddingHorizontal: 10, paddingVertical: 4,
   },
-  countText: { color: '#fff', fontSize: 12, fontFamily: fonts.bodyBold },
-  dots: {
-    position: 'absolute', bottom: 14, left: 0, right: 0,
+  photoBadgeText: { color: '#fff', fontSize: 12, fontFamily: fonts.bodyBold },
+
+  heroDots: {
+    position: 'absolute', bottom: SCREEN_HEIGHT * 0.13, left: 0, right: 0,
     flexDirection: 'row', justifyContent: 'center', gap: 5,
   },
-  dot: {
-    width: 6, height: 6, borderRadius: 3,
-    backgroundColor: 'rgba(255,255,255,0.4)',
+  heroDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.35)' },
+  heroDotActive: { backgroundColor: '#fff', width: 18 },
+
+  // Identity overlay — bottom-left on photo
+  heroIdentity: {
+    position: 'absolute', bottom: SCREEN_HEIGHT * 0.10, left: 0, right: 0,
+    paddingHorizontal: 18, paddingTop: 48, paddingBottom: 24,
+    backgroundColor: 'rgba(8,16,28,0.85)',
   },
-  dotActive: { backgroundColor: '#fff', width: 18 },
-  swipeHint: {
-    position: 'absolute', bottom: 34, right: 16,
+  heroTopRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 4 },
+  heroLeft: { flex: 1, marginRight: 10 },
+  heroScoreBox: {
+    backgroundColor: 'rgba(0,212,200,0.2)',
+    borderRadius: 12, borderWidth: 1, borderColor: 'rgba(0,212,200,0.45)',
+    paddingHorizontal: 10, paddingVertical: 8,
+    alignItems: 'center', minWidth: 58,
   },
-  swipeHintText: { color: 'rgba(255,255,255,0.6)', fontSize: 11, fontFamily: fonts.bodyBold },
+  heroScoreLabel: { fontSize: 10, fontFamily: fonts.bodyBold, color: 'rgba(0,212,200,0.9)', marginBottom: 2 },
+  heroScoreValue: { fontSize: 26, fontFamily: fonts.headlineLightIt, color: '#FFFFFF', lineHeight: 28 },
+  heroNameRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 2 },
+  heroName: { fontSize: 30, fontFamily: fonts.headlineBold, color: '#FFFFFF' },
+  heroLevelPill: {
+    backgroundColor: 'rgba(0,212,200,0.25)', borderRadius: 10,
+    paddingHorizontal: 10, paddingVertical: 4,
+    borderWidth: 1, borderColor: 'rgba(0,212,200,0.5)',
+  },
+  heroLevelText: { fontSize: 14, fontFamily: fonts.headlineLightIt, color: '#FFFFFF' },
+  heroLevelDesc: { fontSize: 13, color: 'rgba(255,255,255,0.6)', marginBottom: 4, fontFamily: fonts.bodyLight },
+  heroCity: { fontSize: 13, color: 'rgba(255,255,255,0.75)', marginBottom: 6, fontFamily: fonts.bodyLight },
+  heroClubBadge: {
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(0,212,200,0.15)', borderRadius: 20,
+    paddingHorizontal: 10, paddingVertical: 4,
+    borderWidth: 1, borderColor: 'rgba(0,212,200,0.3)',
+    marginBottom: 6,
+  },
+  heroClubText: { fontSize: 12, fontFamily: fonts.bodyBold, color: theme.primary },
+  heroIntentBadge: {
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(124,58,237,0.2)', borderRadius: 10,
+    paddingHorizontal: 10, paddingVertical: 4,
+    borderWidth: 1, borderColor: 'rgba(124,58,237,0.4)',
+  },
+  heroIntentText: { fontSize: 12, color: '#C4B5FD', fontFamily: fonts.bodyBold },
+  heroCtaSpacer: { height: 12 },
+
+  // Floating top bar
+  topBar: {
+    position: 'absolute', left: 16, right: 16,
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    zIndex: 10,
+  },
+  floatBtn: {
+    width: 38, height: 38, borderRadius: 19,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    alignItems: 'center', justifyContent: 'center',
+  },
+  floatBtnText: { color: '#fff', fontSize: 18, fontFamily: fonts.bodyBold },
+  demoPill: {
+    backgroundColor: 'rgba(0,212,200,0.2)', borderRadius: 12,
+    paddingHorizontal: 10, paddingVertical: 6,
+    borderWidth: 1, borderColor: 'rgba(0,212,200,0.4)',
+  },
+  demoPillText: { fontSize: 11, color: theme.primary, fontFamily: fonts.bodyBold },
+
+  // Below hero
+  belowHero: {
+    flex: 0,
+    backgroundColor: theme.bg,
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 12,
+  },
+
   initialsCircle: {
     width: 100, height: 100, borderRadius: 50,
     backgroundColor: theme.primaryDim,
     borderWidth: 3, borderColor: theme.primaryBorder,
     alignItems: 'center', justifyContent: 'center',
-    marginBottom: 12,
   },
   initialsText: { fontSize: 38, fontFamily: fonts.headlineBold, color: theme.primary },
-  noPhotoHint: { fontSize: 13, color: theme.textMuted, fontFamily: fonts.bodyLight },
+
+  // Volpair score card
+  volpairCard: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    backgroundColor: theme.primaryDim, borderRadius: 18, padding: 16,
+    borderWidth: 1.5, borderColor: theme.primaryBorder,
+    marginBottom: 6,
+  },
+  volpairCardLeft: { flex: 1 },
+  volpairLabel: { fontSize: 15, fontFamily: fonts.headlineBold, color: '#FFFFFF', marginBottom: 2 },
+  volpairSub: { fontSize: 12, color: 'rgba(0,212,200,0.85)', fontFamily: fonts.bodyLight },
+  volpairTap: { fontSize: 11, color: 'rgba(0,212,200,0.65)', marginTop: 3, fontFamily: fonts.bodyLight },
+  volpairValue: { fontSize: 44, fontFamily: fonts.headlineLightIt, color: '#FFFFFF' },
+
+  // View full profile button
+  viewProfileBtn: {
+    alignSelf: 'center', marginTop: 8,
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    borderRadius: 20, paddingHorizontal: 22, paddingVertical: 8,
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.25)',
+  },
+  viewProfileText: { fontSize: 13, color: 'rgba(255,255,255,0.8)', fontFamily: fonts.bodyBold },
+
+  // CTA bar
+  actionBar: {
+    backgroundColor: theme.bgCard,
+    borderTopWidth: 1, borderTopColor: theme.border,
+    paddingTop: 8, paddingHorizontal: 16,
+  },
+  actionBtns: { flexDirection: 'row', gap: 10, marginBottom: 10 },
+  actionBtn: {
+    flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    gap: 6, paddingVertical: 9, borderRadius: 12,
+    backgroundColor: theme.bgDeep, borderWidth: 1, borderColor: theme.border,
+  },
+  volleyBtn: { backgroundColor: theme.secondaryDim, borderColor: theme.secondaryBorder },
+  actionBtnEmoji: { fontSize: 16 },
+  actionBtnText: { fontSize: 13, fontFamily: fonts.bodyBold, color: theme.textSecondary },
+  volleyBtnText: { color: '#A78BFA' },
+  actionedRow: { alignItems: 'center', paddingVertical: 12 },
+  actionedText: { fontSize: 15, color: theme.primary, fontFamily: fonts.bodyBold },
 });
 
+// ─── Full profile sheet styles ─────────────────────────────────────────────────
+const sheet = StyleSheet.create({
+  overlay: { flex: 1, justifyContent: 'flex-end' },
+  backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.5)' },
+  container: {
+    backgroundColor: theme.bgCard,
+    borderTopLeftRadius: 24, borderTopRightRadius: 24,
+    maxHeight: SCREEN_HEIGHT * 0.82,
+    borderWidth: 1, borderColor: theme.border,
+  },
+  handle: {
+    width: 40, height: 4, borderRadius: 2, backgroundColor: theme.border,
+    alignSelf: 'center', marginTop: 14, marginBottom: 6,
+  },
+  scroll: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 40 },
+
+  section: {
+    backgroundColor: theme.bgDeep, borderRadius: 16, padding: 16,
+    marginBottom: 12, borderWidth: 1, borderColor: theme.border,
+  },
+  sectionTitle: { fontSize: 14, fontFamily: fonts.bodyBold, color: theme.textSecondary, marginBottom: 12 },
+
+  bio: { fontSize: 15, color: theme.textSecondary, fontStyle: 'italic', lineHeight: 22, fontFamily: fonts.bodyLight },
+
+  historyRow: { flexDirection: 'row', marginBottom: 12 },
+  historyItem: { flex: 1, alignItems: 'center' },
+  historyValue: { fontSize: 24, fontFamily: fonts.headlineLightIt, color: theme.textPrimary, marginBottom: 4 },
+  historyLabel: { fontSize: 12, color: theme.textMuted, fontFamily: fonts.bodyLight },
+  historyDivider: { width: 1, backgroundColor: theme.border },
+  lastPlayedRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  lastPlayedIcon: { fontSize: 14 },
+  lastPlayedText: { fontSize: 13, color: theme.textSecondary, fontFamily: fonts.bodyLight },
+
+  statsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 12 },
+  statBox: {
+    width: '47%', backgroundColor: theme.bgCard, borderRadius: 12, padding: 12,
+    borderWidth: 1, borderColor: theme.border,
+  },
+  statValue: { fontSize: 18, fontFamily: fonts.headlineLightIt, color: theme.textPrimary, marginBottom: 3 },
+  statLabel: { fontSize: 11, color: theme.textMuted, fontFamily: fonts.bodyLight },
+  explainerLink: { marginTop: 4 },
+  explainerLinkText: { fontSize: 12, color: theme.primary, fontFamily: fonts.bodyBold },
+
+  clubRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 8 },
+  clubDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: theme.primary },
+  clubName: { flex: 1, fontSize: 14, color: theme.textPrimary, fontFamily: fonts.bodyLight },
+  clubCount: { fontSize: 12, color: theme.textMuted, fontFamily: fonts.bodyLight },
+
+  scoreBreakdownBtn: {
+    backgroundColor: theme.primaryDim, borderRadius: 14, padding: 14,
+    alignItems: 'center', borderWidth: 1, borderColor: theme.primaryBorder, marginBottom: 8,
+  },
+  scoreBreakdownText: { fontSize: 14, color: theme.primary, fontFamily: fonts.bodyBold },
+});
+
+// ─── Lightbox styles ──────────────────────────────────────────────────────────
 const lightbox = StyleSheet.create({
   overlay: { flex: 1, backgroundColor: '#000', justifyContent: 'center' },
   slide: { width: SCREEN_WIDTH, height: '100%' as any, justifyContent: 'center' },
@@ -722,118 +838,7 @@ const lightbox = StyleSheet.create({
   dotActive: { backgroundColor: '#fff', width: 18 },
 });
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: theme.bg },
-  topBar: {
-    position: 'absolute', left: 16, right: 16,
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    zIndex: 10,
-  },
-  floatBtn: {
-    width: 38, height: 38, borderRadius: 19,
-    backgroundColor: 'rgba(0,0,0,0.45)',
-    alignItems: 'center', justifyContent: 'center',
-  },
-  floatBtnText: { color: '#fff', fontSize: 18, fontFamily: fonts.bodyBold },
-  demoPill: {
-    backgroundColor: 'rgba(0,212,200,0.2)',
-    borderRadius: 12, paddingHorizontal: 10, paddingVertical: 6,
-    borderWidth: 1, borderColor: 'rgba(0,212,200,0.4)',
-  },
-  demoPillText: { fontSize: 11, color: theme.primary, fontFamily: fonts.bodyBold },
-
-  scroll: { flex: 1, backgroundColor: theme.bg },
-
-  identityBlock: {
-    paddingHorizontal: 20, paddingTop: 18, paddingBottom: 6,
-  },
-  nameRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 2 },
-  playerName: { fontSize: 28, fontFamily: fonts.headlineBold, color: theme.textPrimary },
-  levelPill: {
-    backgroundColor: theme.primaryDim, borderRadius: 10,
-    paddingHorizontal: 10, paddingVertical: 4,
-    borderWidth: 1, borderColor: theme.primaryBorder,
-  },
-  levelPillText: { fontSize: 14, fontFamily: fonts.headlineLightIt, color: theme.primary },
-  levelDesc: { fontSize: 13, color: theme.textMuted, marginBottom: 6, fontFamily: fonts.bodyLight },
-  playerCity: { fontSize: 14, color: theme.textSecondary, marginBottom: 8, fontFamily: fonts.bodyLight },
-  homeClubBadge: {
-    flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start',
-    backgroundColor: theme.bgDeep, borderRadius: 20,
-    paddingHorizontal: 12, paddingVertical: 5,
-    borderWidth: 1, borderColor: theme.primaryBorder, marginBottom: 10,
-  },
-  homeClubIcon: { fontSize: 13 },
-  homeClubName: { fontSize: 12, fontFamily: fonts.bodyBold, color: theme.primary },
-  intentRow: { flexDirection: 'row', gap: 8, marginBottom: 10 },
-  intentBadge: {
-    backgroundColor: theme.secondaryDim, borderRadius: 10,
-    paddingHorizontal: 12, paddingVertical: 5,
-    borderWidth: 1, borderColor: theme.secondaryBorder,
-  },
-  intentText: { fontSize: 13, color: '#A78BFA', fontFamily: fonts.bodyBold },
-  playerBio: {
-    fontSize: 15, color: theme.textSecondary, fontStyle: 'italic',
-    lineHeight: 22, marginBottom: 16, fontFamily: fonts.bodyLight,
-  },
-
-  volpairCard: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    marginHorizontal: 16, marginBottom: 12,
-    backgroundColor: theme.primaryDim, borderRadius: 18, padding: 18,
-    borderWidth: 1.5, borderColor: theme.primaryBorder,
-  },
-  volpairCardLeft: { flex: 1 },
-  volpairLabel: { fontSize: 15, fontFamily: fonts.headlineBold, color: theme.primary, marginBottom: 2 },
-  volpairSub: { fontSize: 12, color: theme.primary, opacity: 0.7, fontFamily: fonts.bodyLight },
-  volpairTap: { fontSize: 11, color: theme.primary, opacity: 0.6, marginTop: 4, fontFamily: fonts.bodyLight },
-  volpairValue: { fontSize: 48, fontFamily: fonts.headlineLightIt, color: theme.primary },
-
-  section: {
-    backgroundColor: theme.bgCard, borderRadius: 16, padding: 16,
-    marginHorizontal: 16, marginBottom: 12, borderWidth: 1, borderColor: theme.border,
-  },
-  sectionTitle: { fontSize: 14, fontFamily: fonts.bodyBold, color: theme.textSecondary, marginBottom: 14 },
-
-  historyRow: { flexDirection: 'row', marginBottom: 12 },
-  historyItem: { flex: 1, alignItems: 'center' },
-  historyValue: { fontSize: 24, fontFamily: fonts.headlineLightIt, color: theme.textPrimary, marginBottom: 4 },
-  historyLabel: { fontSize: 12, color: theme.textMuted, fontFamily: fonts.bodyLight },
-  historyDivider: { width: 1, backgroundColor: theme.border },
-  lastPlayedRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  lastPlayedIcon: { fontSize: 14 },
-  lastPlayedText: { fontSize: 13, color: theme.textSecondary, fontFamily: fonts.bodyLight },
-
-  statsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-  statBox: {
-    width: '47%', backgroundColor: theme.bgDeep, borderRadius: 12, padding: 12,
-    borderWidth: 1, borderColor: theme.border,
-  },
-  statValue: { fontSize: 18, fontFamily: fonts.headlineLightIt, color: theme.textPrimary, marginBottom: 3 },
-  statLabel: { fontSize: 11, color: theme.textMuted, fontFamily: fonts.bodyLight },
-
-  clubRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 8 },
-  clubDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: theme.primary },
-  clubName: { flex: 1, fontSize: 14, color: theme.textPrimary, fontFamily: fonts.bodyLight },
-  clubCount: { fontSize: 12, color: theme.textMuted, fontFamily: fonts.bodyLight },
-
-  actionBar: {
-    position: 'absolute', left: 0, right: 0, alignItems: 'center',
-  },
-  actionBtns: { flexDirection: 'row', gap: 10, backgroundColor: theme.bgCard, borderRadius: 20, paddingVertical: 10, paddingHorizontal: 12, borderWidth: 1, borderColor: theme.border },
-  actionBtn: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    gap: 6, paddingVertical: 10, paddingHorizontal: 16, borderRadius: 14,
-    backgroundColor: theme.bgDeep, borderWidth: 1, borderColor: theme.border,
-  },
-  volleyBtn: { backgroundColor: theme.secondaryDim, borderColor: theme.secondaryBorder },
-  actionBtnEmoji: { fontSize: 16 },
-  actionBtnText: { fontSize: 13, fontFamily: fonts.bodyBold, color: theme.textSecondary },
-  volleyBtnText: { color: '#A78BFA' },
-  actionedRow: { alignItems: 'center', paddingVertical: 10 },
-  actionedText: { fontSize: 15, color: theme.primary, fontFamily: fonts.bodyBold },
-});
-
+// ─── Score/Level/Report modal styles ─────────────────────────────────────────
 const modal = StyleSheet.create({
   overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'flex-end' },
   sheet: {
@@ -846,7 +851,7 @@ const modal = StyleSheet.create({
   },
   title: { fontSize: 20, fontFamily: fonts.headlineBold, color: theme.textPrimary, marginBottom: 16, textAlign: 'center' },
   scoreBig: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'center', gap: 4, marginBottom: 8 },
-  scoreBigValue: { fontSize: 52, fontFamily: fonts.headlineLightIt, color: theme.primary },
+  scoreBigValue: { fontSize: 52, fontFamily: fonts.headlineLightIt, color: '#FFFFFF' },
   scoreBigLabel: { fontSize: 18, color: theme.textMuted, fontFamily: fonts.bodyLight },
   scoreDesc: { fontSize: 13, color: theme.textMuted, textAlign: 'center', lineHeight: 20, marginBottom: 20, fontFamily: fonts.bodyLight },
   dimRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 10 },

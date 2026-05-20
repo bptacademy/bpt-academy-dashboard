@@ -221,7 +221,11 @@ function CourtHistoryTab({ navigation }: { navigation: any }) {
 
 // ─── Find a Partner tab ───────────────────────────────────────────────────────
 
-function PartnerCard({ partner, onServe }: { partner: Partner; onServe: () => void }) {
+function PartnerCard({ partner, navigation, onServe }: {
+  partner: Partner;
+  navigation: any;
+  onServe: () => void;
+}) {
   const firstName = partner.fullName.split(' ')[0];
   const scoreColor = partner.volpairScore >= 85 ? theme.primary
     : partner.volpairScore >= 70 ? '#F59E0B'
@@ -246,7 +250,11 @@ function PartnerCard({ partner, onServe }: { partner: Partner; onServe: () => vo
   const photoUrl = partner.photos?.[0];
 
   return (
-    <View style={styles.card}>
+    <TouchableOpacity
+      style={styles.card}
+      onPress={() => navigation.navigate('PlayerProfile', { userId: partner.userId })}
+      activeOpacity={0.92}
+    >
       <View style={styles.partnerCardHeader}>
         {photoUrl ? (
           <Image source={{ uri: photoUrl }} style={styles.partnerAvatar} />
@@ -302,15 +310,19 @@ function PartnerCard({ partner, onServe }: { partner: Partner; onServe: () => vo
           <Text style={styles.actionedText}>🎾 Play request sent!</Text>
         </View>
       ) : (
-        <TouchableOpacity style={styles.serveBtn} onPress={onServe} activeOpacity={0.8}>
+        <TouchableOpacity
+          style={styles.serveBtn}
+          onPress={e => { e.stopPropagation?.(); onServe(); }}
+          activeOpacity={0.8}
+        >
           <Text style={styles.serveBtnText}>🎾 Send a Serve</Text>
         </TouchableOpacity>
       )}
-    </View>
+    </TouchableOpacity>
   );
 }
 
-function FindPartnerTab() {
+function FindPartnerTab({ navigation }: { navigation: any }) {
   const { partners, loading, error, reload, sendServe } = usePartners();
   const [refreshing, setRefreshing] = useState(false);
   const onRefresh = async () => { setRefreshing(true); await reload(); setRefreshing(false); };
@@ -347,9 +359,14 @@ function FindPartnerTab() {
         <>
           <Text style={styles.sectionSub}>Compatible players sorted by your Volpair score</Text>
           {partners.map(p => (
-            <PartnerCard key={p.userId} partner={p} onServe={async () => {
-              try { await sendServe(p.userId); } catch (e) { console.error(e); }
-            }} />
+            <PartnerCard
+              key={p.userId}
+              partner={p}
+              navigation={navigation}
+              onServe={async () => {
+                try { await sendServe(p.userId); } catch (e) { console.error(e); }
+              }}
+            />
           ))}
         </>
       )}
@@ -403,7 +420,7 @@ export default function PlayHomeScreen({ navigation }: any) {
       </View>
 
       {tab === 'history' && <CourtHistoryTab navigation={navigation} />}
-      {tab === 'partner' && <FindPartnerTab />}
+      {tab === 'partner' && <FindPartnerTab navigation={navigation} />}
       {tab === 'courts' && (
         <View style={styles.comingSoonBox}>
           <Text style={styles.comingSoonEmoji}>🏟</Text>
