@@ -204,7 +204,7 @@ export default function ConnectHomeScreen({ navigation }: any) {
           <Text style={styles.headerSub}>Discover compatible players near you</Text>
         </View>
         <TouchableOpacity style={styles.notifBtn} onPress={() => navigation.navigate('Notifications')}>
-          <Text style={styles.notifIcon}>🔔</Text>
+          <Image source={require('../../../assets/icons/Notifications.png')} style={styles.notifIconImg} />
         </TouchableOpacity>
       </View>
 
@@ -284,6 +284,7 @@ const styles = StyleSheet.create({
   headerSub: { fontSize: 12, color: theme.textMuted, marginTop: 2, fontFamily: fonts.bodyLight },
   notifBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: theme.bgCard, alignItems: 'center', justifyContent: 'center' },
   notifIcon: { fontSize: 18 },
+  notifIconImg: { width: 22, height: 22, tintColor: '#7A9CC0' },
   scroll: { paddingHorizontal: 16, paddingTop: 16 },
   sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 },
   sectionTitle: { fontSize: 15, fontFamily: fonts.bodyBold, color: theme.textPrimary, flex: 1 },

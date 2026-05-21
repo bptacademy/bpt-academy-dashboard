@@ -67,7 +67,7 @@ function HistoryCard({ player, navigation, onAction }: {
               </View>
             )}
           </View>
-          {player.city && <View style={{flexDirection:'row',alignItems:'center',gap:3}}><Image source={require('../../../assets/icons/3. Location.png')} style={{width:27,height:27,tintColor:'#7A9CC0'}} /><Text style={styles.cardMeta}>{player.city}</Text></View>}
+          {player.city && <View style={{flexDirection:'row',alignItems:'center',gap:3}}><Image source={require('../../../assets/icons/3. Location.png')} style={{width:14,height:14,tintColor:'#7A9CC0'}} /><Text style={styles.cardMeta}>{player.city}</Text></View>}
           {player.levelValue !== null && (
             <View style={styles.levelRow}>
               <View style={styles.levelBadge}>
@@ -527,6 +527,7 @@ const styles = StyleSheet.create({
   statsRow: { flexDirection: 'row', gap: 16, marginBottom: 12 },
   statItem: { flexDirection: 'row', alignItems: 'center', gap: 5, flex: 1 },
   statIcon: { fontSize: 13 },
+  statIconImg: { width: 14, height: 14, tintColor: '#0ACCB5', flexShrink: 0 },
   statText: { fontSize: 12, color: theme.textSecondary, flex: 1, fontFamily: fonts.bodyLight },
   serveBtn: { backgroundColor: theme.primaryDim, borderRadius: 12, padding: 12, alignItems: 'center', borderWidth: 1, borderColor: theme.primaryBorder },
   serveBtnText: { color: theme.primary, fontSize: 14, fontFamily: fonts.bodyBold },
