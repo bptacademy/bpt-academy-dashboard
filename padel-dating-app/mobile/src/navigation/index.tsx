@@ -2,7 +2,7 @@ import React, { useRef } from 'react';
 import { NavigationContainer, NavigationContainerRef } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Text } from 'react-native';
+import { Text, Image } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext';
 import { theme } from '../lib/theme';
@@ -171,14 +171,22 @@ function MainTabs({ navRef }: { navRef: React.RefObject<NavigationContainerRef<a
         tabBarActiveTintColor: theme.tabActive,
         tabBarInactiveTintColor: theme.tabInactive,
         tabBarShowLabel: false,
-        tabBarIcon: ({ focused }) => {
-          const icons: Record<string, string> = {
-            Connect: '💘', Play: '🎾', Radar: '📡', Messages: '💬', Profile: '👤',
+        tabBarIcon: ({ focused, color }) => {
+          const icons: Record<string, any> = {
+            Connect:  require('../../assets/icons/Connect.png'),
+            Play:     require('../../assets/icons/1. play.png'),
+            Radar:    require('../../assets/icons/17. Radar.png'),
+            Messages: require('../../assets/icons/5. messages.png'),
+            Profile:  require('../../assets/icons/15. Profile.png'),
           };
+          const src = icons[route.name];
+          if (!src) return null;
           return (
-            <Text style={{ fontSize: 24, opacity: focused ? 1 : 0.4 }}>
-              {icons[route.name]}
-            </Text>
+            <Image
+              source={src}
+              style={{ width: 26, height: 26, tintColor: color }}
+              resizeMode="contain"
+            />
           );
         },
       })}
