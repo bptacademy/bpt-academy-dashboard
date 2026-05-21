@@ -81,12 +81,19 @@ export default function AllWaitingListsScreen({ navigation }: any) {
         {
           text: 'Approve', style: 'default',
           onPress: async () => {
+            // Optimistically remove from UI immediately
+            setGroups(prev => prev.map(g => ({
+              ...g,
+              entries: g.entries.filter(e => e.id !== entry.id),
+            })).filter(g => g.entries.length > 0));
+            setTotalCount(prev => Math.max(0, prev - 1));
+
             const { error } = await supabase.from('enrollments').upsert({
               student_id: entry.student.id,
               program_id: entry.program_id,
               status: 'pending_payment',
             }, { onConflict: 'student_id,program_id' });
-            if (error) { Alert.alert('Error', error.message); return; }
+            if (error) { Alert.alert('Error', error.message); fetchData(); return; }
             await supabase.from('program_waiting_list').delete().eq('id', entry.id);
             await supabase.from('notifications').insert({
               recipient_id: entry.student.id,
@@ -95,8 +102,6 @@ export default function AllWaitingListsScreen({ navigation }: any) {
               type: 'waitlist_approved',
               read: false,
             });
-            fetchData();
-            Alert.alert('Done', `${entry.student.full_name} has been approved and notified to pay.`);
           },
         },
       ]
@@ -112,8 +117,13 @@ export default function AllWaitingListsScreen({ navigation }: any) {
         {
           text: 'Remove', style: 'destructive',
           onPress: async () => {
+            // Optimistically remove from UI immediately
+            setGroups(prev => prev.map(g => ({
+              ...g,
+              entries: g.entries.filter(e => e.id !== entry.id),
+            })).filter(g => g.entries.length > 0));
+            setTotalCount(prev => Math.max(0, prev - 1));
             await supabase.from('program_waiting_list').delete().eq('id', entry.id);
-            fetchData();
           },
         },
       ]

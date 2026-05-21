@@ -53,8 +53,8 @@ export default function WaitingListScreen({ route, navigation }: any) {
         {
           text: 'Remove', style: 'destructive',
           onPress: async () => {
+            setEntries(prev => prev.filter(e => e.id !== entry.id));
             await supabase.from('program_waiting_list').delete().eq('id', entry.id);
-            fetchData();
           },
         },
       ]
@@ -70,15 +70,16 @@ export default function WaitingListScreen({ route, navigation }: any) {
         {
           text: 'Approve', style: 'default',
           onPress: async () => {
-            // Set enrollment to pending_payment (student still needs to pay)
+            // Optimistically remove from UI immediately
+            setEntries(prev => prev.filter(e => e.id !== entry.id));
+
             const { error } = await supabase.from('enrollments').upsert({
               student_id: entry.student.id,
               program_id: programId,
               status: 'pending_payment',
             }, { onConflict: 'student_id,program_id' });
-            if (error) { Alert.alert('Error', error.message); return; }
+            if (error) { Alert.alert('Error', error.message); fetchData(); return; }
             await supabase.from('program_waiting_list').delete().eq('id', entry.id);
-            // Notify student — triggers email via process-notifications
             await supabase.from('notifications').insert({
               recipient_id: entry.student.id,
               title: 'Your spot has been approved! 🎉',
@@ -86,8 +87,6 @@ export default function WaitingListScreen({ route, navigation }: any) {
               type: 'waitlist_approved',
               read: false,
             });
-            fetchData();
-            Alert.alert('Done', `${entry.student.full_name} has been approved. They will be prompted to pay and enroll.`);
           },
         },
       ]
