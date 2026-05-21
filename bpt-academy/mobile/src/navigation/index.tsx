@@ -416,6 +416,7 @@ function AdminDashboardStack() {
       <Stack.Screen name="Manage"             component={ManageProgramsScreen} />
       <Stack.Screen name="ProgramRoster"      component={ProgramRosterScreen} />
       <Stack.Screen name="WaitingList"        component={WaitingListScreen} />
+      <Stack.Screen name="AllWaitingLists"     component={AllWaitingListsScreen} />
       <Stack.Screen name="ProgramModules"     component={ProgramModulesScreen} />
       <Stack.Screen name="ScheduleGenerator"  component={ScheduleGeneratorScreen} />
       <Stack.Screen name="VideoPlayer"        component={VideoPlayerScreen} />
@@ -521,6 +522,7 @@ function SuperAdminDashboardStack() {
       <Stack.Screen name="Manage"             component={ManageProgramsScreen} />
       <Stack.Screen name="ProgramRoster"      component={ProgramRosterScreen} />
       <Stack.Screen name="WaitingList"        component={WaitingListScreen} />
+      <Stack.Screen name="AllWaitingLists"     component={AllWaitingListsScreen} />
       <Stack.Screen name="ProgramModules"     component={ProgramModulesScreen} />
       <Stack.Screen name="ScheduleGenerator"  component={ScheduleGeneratorScreen} />
       <Stack.Screen name="VideoPlayer"        component={VideoPlayerScreen} />
