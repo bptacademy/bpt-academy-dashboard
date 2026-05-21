@@ -164,9 +164,9 @@ function MainTabs({ navRef }: { navRef: React.RefObject<NavigationContainerRef<a
           backgroundColor: theme.bgCard,
           borderTopColor: theme.border,
           borderTopWidth: 1,
-          height: 48 + insets.bottom,
+          height: 64 + insets.bottom,
           paddingBottom: insets.bottom,
-          paddingTop: 8,
+          paddingTop: 10,
         },
         tabBarActiveTintColor: theme.tabActive,
         tabBarInactiveTintColor: theme.tabInactive,
@@ -184,7 +184,7 @@ function MainTabs({ navRef }: { navRef: React.RefObject<NavigationContainerRef<a
           return (
             <Image
               source={src}
-              style={{ width: 26, height: 26, tintColor: color }}
+              style={{ width: 39, height: 39, tintColor: color }}
               resizeMode="contain"
             />
           );
