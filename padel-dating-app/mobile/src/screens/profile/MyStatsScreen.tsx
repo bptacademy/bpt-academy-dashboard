@@ -109,7 +109,7 @@ export default function MyStatsScreen({ navigation }: any) {
                 </View>
               )}
             </View>
-            <Image source={require('../../../assets/icons/13. Trophy.png')} style={styles.levelEmojiImg} />
+            <Image source={require('../../../assets/icons/13. Trophy.png')} style={styles.trophyWatermark} />
           </View>
 
           {/* Overview */}
@@ -235,6 +235,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     backgroundColor: theme.primaryDim, borderRadius: 18, padding: 20,
     marginBottom: 12, borderWidth: 1.5, borderColor: theme.primaryBorder,
+    overflow: 'hidden', position: 'relative',
   },
   levelLeft: { flex: 1 },
   levelValue: { fontSize: 40, fontFamily: fonts.headlineLightIt, color: theme.primary, marginBottom: 4 },
