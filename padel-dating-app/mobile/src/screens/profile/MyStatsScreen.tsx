@@ -245,6 +245,7 @@ const styles = StyleSheet.create({
   confidenceFill: { height: 4, backgroundColor: theme.primary, borderRadius: 2 },
   confidenceText: { fontSize: 11, color: theme.textMuted, fontFamily: fonts.bodyLight },
   levelEmoji: { fontSize: 40 },
+  trophyWatermark: { width: 140, height: 140, tintColor: '#0ACCB5', opacity: 0.12, position: 'absolute', right: 16, top: '50%', marginTop: -70 },
   overviewRow: {
     flexDirection: 'row', backgroundColor: theme.bgCard, borderRadius: 16,
     padding: 16, marginBottom: 12, borderWidth: 1, borderColor: theme.border,
