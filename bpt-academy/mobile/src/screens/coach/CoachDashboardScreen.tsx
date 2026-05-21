@@ -116,6 +116,7 @@ export default function CoachDashboardScreen({ navigation }: any) {
   const baseGridItems = [
     { icon: '👥', label: 'My Students',  onPress: () => goToTab('StudentsTab', 'Students') },
     { icon: '📋', label: 'Programs',     onPress: () => navigation.navigate('Manage') },
+    { icon: '⏳', label: 'Waiting List', onPress: () => navigation.navigate('AllWaitingLists') },
     { icon: '💬', label: 'Messages',     onPress: () => goToTab('MessagesTab', 'Messages') },
     { icon: '🎬', label: 'Upload Video', onPress: () => navigation.navigate('UploadVideo') },
     { icon: '🔔', label: 'Announce',     onPress: () => navigation.navigate('Announce') },

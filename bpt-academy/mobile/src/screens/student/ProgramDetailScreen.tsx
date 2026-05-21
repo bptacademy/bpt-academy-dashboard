@@ -145,6 +145,23 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
       read: false,
     });
 
+    // Notify all admins and super_admins
+    const { data: admins } = await supabase
+      .from('profiles')
+      .select('id')
+      .in('role', ['admin', 'super_admin']);
+    if (admins && admins.length > 0) {
+      await supabase.from('notifications').insert(
+        admins.map((a: { id: string }) => ({
+          recipient_id: a.id,
+          title: 'New waiting list request',
+          body: `${profile?.full_name ?? 'A student'} joined the waiting list for ${program?.title ?? 'a program'}.`,
+          type: 'admin_new_enrollment',
+          read: false,
+        }))
+      );
+    }
+
     setWaitlistLoading(false);
     setWaitlistPosition(position);
     Alert.alert(

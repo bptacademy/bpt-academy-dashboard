@@ -113,6 +113,7 @@ export default function CoachHomeScreen({ navigation }: any) {
 
   const gridItems = [
     { icon: '📋', label: 'Programs',     onPress: goToPrograms },
+    { icon: '⏳', label: 'Waiting List', onPress: () => navigation.navigate('AllWaitingLists') },
     { icon: '👥', label: 'Students',     onPress: goToStudents },
     { icon: '🏅', label: 'Divisions',    onPress: () => navigation.navigate('DivisionDashboard') },
     { icon: '🎾', label: 'Tournaments',  onPress: () => navigation.navigate('TournamentManage') },
