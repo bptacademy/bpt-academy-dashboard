@@ -20,6 +20,22 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
 
   const isCoachOrAdmin = ['coach', 'admin', 'super_admin'].includes(profile?.role ?? '');
 
+  // Level eligibility: student can join waiting list only if their division matches
+  // For amateur programs, skill_level must also match
+  const isEligible = (() => {
+    if (isCoachOrAdmin) return true;
+    if (!program) return false;
+    const progDiv = (program as any).division ?? 'amateur';
+    const studentDiv = (profile as any)?.division ?? 'amateur';
+    if (progDiv !== studentDiv) return false;
+    if (progDiv === 'amateur') {
+      const progSkill = (program as any).skill_level;
+      const studentSkill = (profile as any)?.skill_level;
+      if (progSkill && studentSkill && progSkill !== studentSkill) return false;
+    }
+    return true;
+  })();
+
   const [program, setProgram]                     = useState<Program | null>(null);
   const [enrollmentStatus, setEnrollmentStatus]   = useState<string | null>(null);
   const [modules, setModules]                     = useState<(Module & { progress?: StudentProgress })[]>([]);
@@ -118,10 +134,23 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
       month,
       position,
     });
+    if (error) { setWaitlistLoading(false); Alert.alert('Error', error.message); return; }
+
+    // In-app + email notification to student
+    await supabase.from('notifications').insert({
+      recipient_id: profile!.id,
+      title: 'You\'re on the waiting list!',
+      body: `You have joined the waiting list for ${program?.title ?? 'this program'}. Please wait while we assess your level — a coach will be in touch if needed.`,
+      type: 'waitlist_join',
+      read: false,
+    });
+
     setWaitlistLoading(false);
-    if (error) { Alert.alert('Error', error.message); return; }
     setWaitlistPosition(position);
-    Alert.alert('✅ Added to Waiting List', `You are #${position} on the waiting list. You will be notified when a spot opens up.`);
+    Alert.alert(
+      '✅ Added to Waiting List',
+      'Please wait until we assess your level. A coach will get in touch if an assessment is needed before your spot is confirmed.'
+    );
   };
 
   const handleLeaveWaitlist = async () => {
@@ -368,17 +397,38 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
         </View>
       )}
 
-      {/* Pending payment */}
+      {/* Pending payment — coach approved, student needs to pay */}
       {enrollmentStatus === 'pending_payment' && (
         <View style={styles.awaitingCard}>
-          <Text style={styles.awaitingIcon}>⏳</Text>
-          <Text style={styles.awaitingTitle}>Awaiting Confirmation</Text>
+          <Text style={styles.awaitingIcon}>🎉</Text>
+          <Text style={styles.awaitingTitle}>You've been approved!</Text>
           <Text style={styles.awaitingBody}>
-            Your payment is being verified by a coach. You'll be notified once confirmed.
+            A coach has reviewed your level and approved your spot. Complete your payment to confirm your enrollment.
           </Text>
-          <View style={styles.awaitingBtn}>
-            <Text style={styles.awaitingBtnText}>Awaiting Confirmation…</Text>
-          </View>
+          {(() => {
+            const price = (program as any)?.price_gbp != null
+              ? parseFloat((program as any).price_gbp)
+              : DEFAULT_PRICE_GBP;
+            const isFree = (program as any)?.price_gbp == null;
+            const divKey = ((program as any)?.division ?? 'amateur') as Division;
+            return isFree ? (
+              <TouchableOpacity style={styles.enrollBtn} onPress={handleEnrollPress}>
+                <Text style={styles.enrollBtnText}>Enroll Now — Free</Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                style={styles.enrollBtn}
+                onPress={() => navigation.navigate('Payment', {
+                  programId,
+                  studentId: profile!.id,
+                  amount: price,
+                  programDivision: divKey,
+                })}
+              >
+                <Text style={styles.enrollBtnText}>💳 Pay &amp; Enroll — £{price.toFixed(2)}</Text>
+              </TouchableOpacity>
+            );
+          })()}
         </View>
       )}
 
@@ -408,35 +458,48 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
         </View>
       )}
 
-      {/* Not enrolled, program is active, no conflicts — show enroll card */}
-      {!enrollmentStatus && !hasActiveEnrollment && !programIsInactive && (
+      {/* Not enrolled, program is active — waitlist-first flow */}
+      {!enrollmentStatus && !programIsInactive && (
         <View style={styles.enrollCard}>
-          {(() => {
-            const price = (program as any)?.price_gbp != null
-              ? parseFloat((program as any).price_gbp)
-              : DEFAULT_PRICE_GBP;
-            const isFree = (program as any)?.price_gbp == null;
-            return (
+          {isEligible ? (
+            waitlistPosition !== null ? (
+              // Already on waitlist
               <>
-                <View style={styles.priceRow}>
-                  <Text style={styles.priceLabel}>Program Fee</Text>
-                  <Text style={styles.priceValue}>
-                    {isFree ? 'Free' : `£${price.toFixed(2)}`}
-                  </Text>
-                </View>
-                <Text style={styles.enrollText}>
-                  {isFree
-                    ? 'This program is free. Tap below to enroll instantly.'
-                    : 'Payment is required to confirm your enrollment.'}
+                <Text style={styles.waitlistOnTitle}>⏳ You're on the waiting list</Text>
+                <Text style={styles.waitlistOnBody}>
+                  You are #{waitlistPosition} on the waiting list. Please wait until we assess your level — a coach will get in touch if needed.
                 </Text>
-                <TouchableOpacity style={styles.enrollBtn} onPress={handleEnrollPress}>
+                <TouchableOpacity style={styles.leaveWaitlistBtn} onPress={handleLeaveWaitlist}>
+                  <Text style={styles.leaveWaitlistBtnText}>Leave Waiting List</Text>
+                </TouchableOpacity>
+              </>
+            ) : (
+              // Eligible, not yet on waitlist
+              <>
+                <Text style={styles.enrollText}>
+                  Join the waiting list and our coaches will assess your level. You'll be notified when your spot is confirmed.
+                </Text>
+                <TouchableOpacity
+                  style={[styles.enrollBtn, waitlistLoading && { opacity: 0.6 }]}
+                  onPress={handleJoinWaitlist}
+                  disabled={waitlistLoading}
+                >
                   <Text style={styles.enrollBtnText}>
-                    {isFree ? 'Enroll Now — Free' : `Pay & Enroll — £${price.toFixed(2)}`}
+                    {waitlistLoading ? 'Joining…' : '⏳ Join Waiting List'}
                   </Text>
                 </TouchableOpacity>
               </>
-            );
-          })()}
+            )
+          ) : (
+            // Not eligible — show program but block join
+            <View style={styles.ineligibleCard}>
+              <Text style={styles.ineligibleIcon}>🎾</Text>
+              <Text style={styles.ineligibleTitle}>Level not eligible</Text>
+              <Text style={styles.ineligibleBody}>
+                Your current level doesn't match this program. Keep training and you'll get there!
+              </Text>
+            </View>
+          )}
         </View>
       )}
 
@@ -601,6 +664,16 @@ const styles = StyleSheet.create({
   awaitingBody: { fontSize: 13, color: '#7A8FA6', textAlign: 'center', lineHeight: 20, marginBottom: 16 },
   awaitingBtn: { backgroundColor: 'rgba(245,158,11,0.18)', borderRadius: 10, paddingVertical: 14, paddingHorizontal: 24, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(245,158,11,0.40)', width: '100%' },
   awaitingBtnText: { color: '#FCD34D', fontWeight: '700', fontSize: 15 },
+  // Waitlist on-list state
+  waitlistOnTitle: { fontSize: 16, fontWeight: '700', color: '#F0F6FC', marginBottom: 8, textAlign: 'center' },
+  waitlistOnBody: { fontSize: 13, color: '#7A8FA6', textAlign: 'center', lineHeight: 20, marginBottom: 16 },
+  leaveWaitlistBtn: { backgroundColor: 'rgba(220,38,38,0.10)', borderRadius: 10, paddingVertical: 10, paddingHorizontal: 20, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(220,38,38,0.25)' },
+  leaveWaitlistBtnText: { color: '#EF4444', fontWeight: '600', fontSize: 13 },
+  // Ineligible level
+  ineligibleCard: { alignItems: 'center', paddingVertical: 8 },
+  ineligibleIcon: { fontSize: 36, marginBottom: 8 },
+  ineligibleTitle: { fontSize: 15, fontWeight: '700', color: '#7A8FA6', marginBottom: 4 },
+  ineligibleBody: { fontSize: 13, color: '#7A8FA6', textAlign: 'center', lineHeight: 20 },
   // Pending cycle
   pendingCycleBanner: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, margin: 16, backgroundColor: 'rgba(59,130,246,0.12)', borderRadius: 14, padding: 16, borderWidth: 1, borderColor: 'rgba(59,130,246,0.30)' },
   pendingCycleIcon: { fontSize: 28 },

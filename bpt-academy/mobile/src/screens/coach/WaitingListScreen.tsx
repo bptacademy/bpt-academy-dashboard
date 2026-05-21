@@ -65,24 +65,26 @@ export default function WaitingListScreen({ route, navigation }: any) {
       [
         { text: 'Cancel', style: 'cancel' },
         {
-          text: 'Enrol', style: 'default',
+          text: 'Approve', style: 'default',
           onPress: async () => {
+            // Set enrollment to pending_payment (student still needs to pay)
             const { error } = await supabase.from('enrollments').upsert({
               student_id: entry.student.id,
               program_id: programId,
-              status: 'active',
+              status: 'pending_payment',
             }, { onConflict: 'student_id,program_id' });
             if (error) { Alert.alert('Error', error.message); return; }
             await supabase.from('program_waiting_list').delete().eq('id', entry.id);
+            // Notify student — triggers email via process-notifications
             await supabase.from('notifications').insert({
               recipient_id: entry.student.id,
-              title: 'You have been enrolled!',
-              body: `A coach has enrolled you directly into ${programTitle}.`,
-              type: 'enrollment',
+              title: 'Your spot has been approved! 🎉',
+              body: `Great news! A coach has reviewed your level and approved your spot in ${programTitle}. Open the app to complete your payment and confirm your enrollment.`,
+              type: 'waitlist_approved',
               read: false,
             });
             fetchData();
-            Alert.alert('Done', `${entry.student.full_name} has been enrolled.`);
+            Alert.alert('Done', `${entry.student.full_name} has been approved. They will be prompted to pay and enroll.`);
           },
         },
       ]
@@ -137,7 +139,7 @@ export default function WaitingListScreen({ route, navigation }: any) {
                 </View>
                 <View style={styles.actions}>
                   <TouchableOpacity style={styles.enrolBtn} onPress={() => handleEnrol(entry)}>
-                    <Text style={styles.enrolBtnText}>Enrol</Text>
+                    <Text style={styles.enrolBtnText}>Approve</Text>
                   </TouchableOpacity>
                   <TouchableOpacity style={styles.removeBtn} onPress={() => handleRemove(entry)}>
                     <Text style={styles.removeBtnText}>Remove</Text>

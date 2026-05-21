@@ -17,6 +17,8 @@ const EMAIL_TYPES = new Set([
   'welcome',           // sent to new student on registration
   'coach_note',
   'session_reminder',
+  'waitlist_join',     // sent when student joins a waiting list
+  'waitlist_approved', // sent when coach approves student from waiting list
 ]);
 
 // Notification types that should trigger a push notification
@@ -32,6 +34,8 @@ const PUSH_TYPES = new Set([
   'announcement',
   'promotion_result',
   'welcome',
+  'waitlist_join',
+  'waitlist_approved',
 ]);
 
 Deno.serve(async () => {
@@ -155,9 +159,24 @@ Deno.serve(async () => {
 
 function buildEmailHtml(title: string, body: string, type?: string): string {
   const isWelcome = type === 'welcome' || type === 'enrollment_confirmed';
+  const isWaitlist = type === 'waitlist_join';
+  const isApproved = type === 'waitlist_approved';
+
   const ctaHtml = isWelcome
     ? `<div style="text-align:center;margin-top:24px;">
         <a href="https://bptacademy.uk" style="background:#16A34A;color:#fff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:700;font-size:15px;">Open BPT Academy</a>
+       </div>`
+    : isApproved
+    ? `<div style="text-align:center;margin-top:24px;">
+        <a href="https://bptacademy.uk" style="background:#3B82F6;color:#fff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:700;font-size:15px;">Pay &amp; Enroll Now</a>
+       </div>`
+    : '';
+
+  const extraHtml = isWaitlist
+    ? `<div style="background:#FFF7ED;border-left:4px solid #F59E0B;padding:16px 20px;border-radius:0 8px 8px 0;margin-top:20px;">
+        <p style="margin:0;color:#92400E;font-size:14px;line-height:1.6;">
+          One of our coaches will review your profile and may get in touch with you if a level assessment is needed before your spot can be confirmed.
+        </p>
        </div>`
     : '';
 
@@ -187,6 +206,7 @@ function buildEmailHtml(title: string, body: string, type?: string): string {
     <div class="content">
       <h2>${title}</h2>
       <p>${body}</p>
+      ${extraHtml}
       ${ctaHtml}
     </div>
     <div class="footer">
