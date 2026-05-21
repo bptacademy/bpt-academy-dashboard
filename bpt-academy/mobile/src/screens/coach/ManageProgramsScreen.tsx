@@ -250,6 +250,12 @@ export default function ManageProgramsScreen({ navigation }: any) {
                     <Text style={styles.rosterBtnText}>👥 Roster</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
+                    style={styles.waitlistBtn}
+                    onPress={() => navigation.navigate('WaitingList', { programId: p.id, programTitle: p.title })}
+                  >
+                    <Text style={styles.waitlistBtnText}>⏳ Waitlist</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
                     style={styles.modulesBtn}
                     onPress={() => navigation.navigate('ProgramModules', { programId: p.id, programTitle: p.title })}
                   >
@@ -479,6 +485,8 @@ const styles = StyleSheet.create({
   cardActions: { flexDirection: 'row', gap: 8 },
   rosterBtn: { flex: 1, backgroundColor: '#F3F4F6', borderRadius: 8, paddingVertical: 8, alignItems: 'center' },
   rosterBtnText: { fontSize: 13, fontWeight: '600', color: '#374151' },
+  waitlistBtn: { flex: 1, backgroundColor: '#EFF6FF', borderRadius: 8, paddingVertical: 8, alignItems: 'center' },
+  waitlistBtnText: { fontSize: 13, fontWeight: '600', color: '#3B82F6' },
   scheduleBtn: { backgroundColor: '#EFF6FF', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 6, borderWidth: 1, borderColor: '#BFDBFE' },
   scheduleBtnText: { fontSize: 12, fontWeight: '600', color: '#2563EB' },
   modulesBtn: { flex: 1, backgroundColor: '#FFF7ED', borderRadius: 8, paddingVertical: 8, alignItems: 'center' },

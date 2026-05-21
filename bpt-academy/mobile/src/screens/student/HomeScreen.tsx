@@ -137,13 +137,22 @@ export default function HomeScreen({ navigation }: any) {
       const now = new Date();
       const fromDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - PAST_DAYS);
       const toDate   = new Date(now.getFullYear(), now.getMonth(), now.getDate() + FUTURE_DAYS + 1);
-      const { data: sessions } = await supabase
-        .from('program_sessions')
-        .select('id, scheduled_at, title, duration_minutes, location, program_id, program:programs(title)')
+      // Use modules (session_date) as source of truth — program_sessions may be empty
+      const { data: moduleSessions } = await supabase
+        .from('modules')
+        .select('id, session_date, title, program_id, program:programs(title)')
         .in('program_id', programIds)
-        .gte('scheduled_at', fromDate.toISOString())
-        .lte('scheduled_at', toDate.toISOString())
-        .order('scheduled_at', { ascending: true });
+        .gte('session_date', localDateStr(fromDate))
+        .lte('session_date', localDateStr(toDate))
+        .order('session_date', { ascending: true });
+      const sessions = moduleSessions
+        ? moduleSessions.map((m) => ({
+            ...m,
+            scheduled_at: m.session_date + 'T09:00:00',
+            duration_minutes: null,
+            location: null,
+          }))
+        : null;
 
       // Also fetch pending_next_cycle modules for the calendar
       const pendingEnrollmentsForCal = pendingRes.data ?? [];

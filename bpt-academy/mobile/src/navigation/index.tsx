@@ -53,6 +53,7 @@ import TournamentManageScreen from '../screens/coach/TournamentManageScreen';
 import ProgramModulesScreen from '../screens/coach/ProgramModulesScreen';
 import ScheduleGeneratorScreen from '../screens/coach/ScheduleGeneratorScreen';
 import PromotionManageScreen from '../screens/coach/PromotionManageScreen';
+import WaitingListScreen from '../screens/coach/WaitingListScreen';
 
 // Admin-only screens
 import CoachHomeScreen from '../screens/coach/CoachHomeScreen';
@@ -310,6 +311,7 @@ function CoachHomeStack() {
       <Stack.Screen name="Dashboard"          component={CoachDashboardScreen} />
       <Stack.Screen name="Manage"             component={ManageProgramsScreen} />
       <Stack.Screen name="ProgramRoster"      component={ProgramRosterScreen} />
+      <Stack.Screen name="WaitingList"        component={WaitingListScreen} />
       <Stack.Screen name="ProgramModules"     component={ProgramModulesScreen} />
       <Stack.Screen name="ScheduleGenerator"  component={ScheduleGeneratorScreen} />
       <Stack.Screen name="ManageVideos"       component={ManageVideosScreen} />
@@ -411,6 +413,7 @@ function AdminDashboardStack() {
       <Stack.Screen name="Reports"            component={ReportsScreen} />
       <Stack.Screen name="Manage"             component={ManageProgramsScreen} />
       <Stack.Screen name="ProgramRoster"      component={ProgramRosterScreen} />
+      <Stack.Screen name="WaitingList"        component={WaitingListScreen} />
       <Stack.Screen name="ProgramModules"     component={ProgramModulesScreen} />
       <Stack.Screen name="ScheduleGenerator"  component={ScheduleGeneratorScreen} />
       <Stack.Screen name="VideoPlayer"        component={VideoPlayerScreen} />
@@ -463,6 +466,7 @@ function AdminProgramsStack() {
     <Stack.Navigator screenOptions={sharedStackScreenOptions}>
       <Stack.Screen name="Manage"            component={ManageProgramsScreen} />
       <Stack.Screen name="ProgramRoster"     component={ProgramRosterScreen} />
+      <Stack.Screen name="WaitingList"        component={WaitingListScreen} />
       <Stack.Screen name="ProgramModules"    component={ProgramModulesScreen} />
       <Stack.Screen name="ScheduleGenerator" component={ScheduleGeneratorScreen} />
       <Stack.Screen name="ManageVideos"      component={ManageVideosScreen} />
@@ -513,6 +517,7 @@ function SuperAdminDashboardStack() {
       <Stack.Screen name="Reports"            component={ReportsScreen} />
       <Stack.Screen name="Manage"             component={ManageProgramsScreen} />
       <Stack.Screen name="ProgramRoster"      component={ProgramRosterScreen} />
+      <Stack.Screen name="WaitingList"        component={WaitingListScreen} />
       <Stack.Screen name="ProgramModules"     component={ProgramModulesScreen} />
       <Stack.Screen name="ScheduleGenerator"  component={ScheduleGeneratorScreen} />
       <Stack.Screen name="VideoPlayer"        component={VideoPlayerScreen} />
