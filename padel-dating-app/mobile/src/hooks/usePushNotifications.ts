@@ -120,7 +120,7 @@ async function registerForPushNotifications(userId: string) {
         name: 'Volpair',
         importance: Notifications.AndroidImportance.MAX,
         vibrationPattern: [0, 250, 250, 250],
-        lightColor: '#00D4C8',
+        lightColor: '#0ACCB5',
       });
     }
 

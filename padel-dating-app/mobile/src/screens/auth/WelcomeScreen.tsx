@@ -168,11 +168,11 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   primaryBtn: {
-    backgroundColor: '#00D4C8',
+    backgroundColor: '#0ACCB5',
     borderRadius: 16,
     padding: 18,
     alignItems: 'center',
-    shadowColor: '#00D4C8',
+    shadowColor: '#0ACCB5',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4,
     shadowRadius: 14,
@@ -193,7 +193,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,212,200,0.12)',
   },
   secondaryBtnText: {
-    color: '#00D4C8',
+    color: '#0ACCB5',
     fontSize: 17,
     fontFamily: fonts.bodyBold,
   },

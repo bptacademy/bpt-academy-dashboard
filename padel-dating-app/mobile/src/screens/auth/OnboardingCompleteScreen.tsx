@@ -5,8 +5,8 @@ import { theme, fonts } from '../../lib/theme';
 
 const HIGHLIGHTS = [
   { icon: '💘', text: "Discover players you've shared a court with", color: '#A78BFA' },
-  { icon: '🎾', text: 'Find a doubles partner at your level', color: '#00D4C8' },
-  { icon: '⚡', text: 'Your Volpair score builds with every match', color: '#00D4C8' },
+  { icon: '🎾', text: 'Find a doubles partner at your level', color: '#0ACCB5' },
+  { icon: '⚡', text: 'Your Volpair score builds with every match', color: '#0ACCB5' },
 ];
 
 export default function OnboardingCompleteScreen({ navigation }: any) {
