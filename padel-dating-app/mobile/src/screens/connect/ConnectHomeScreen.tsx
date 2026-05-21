@@ -284,7 +284,7 @@ const styles = StyleSheet.create({
   headerSub: { fontSize: 12, color: theme.textMuted, marginTop: 2, fontFamily: fonts.bodyLight },
   notifBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: theme.bgCard, alignItems: 'center', justifyContent: 'center' },
   notifIcon: { fontSize: 18 },
-  notifIconImg: { width: 22, height: 22, tintColor: '#7A9CC0' },
+  notifIconImg: { width: 33, height: 33, tintColor: '#7A9CC0' },
   scroll: { paddingHorizontal: 16, paddingTop: 16 },
   sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 },
   sectionTitle: { fontSize: 15, fontFamily: fonts.bodyBold, color: theme.textPrimary, flex: 1 },

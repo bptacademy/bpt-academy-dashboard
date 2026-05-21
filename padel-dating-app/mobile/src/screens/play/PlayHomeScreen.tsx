@@ -527,7 +527,7 @@ const styles = StyleSheet.create({
   statsRow: { flexDirection: 'row', gap: 16, marginBottom: 12 },
   statItem: { flexDirection: 'row', alignItems: 'center', gap: 5, flex: 1 },
   statIcon: { fontSize: 13 },
-  statIconImg: { width: 14, height: 14, tintColor: '#0ACCB5', flexShrink: 0 },
+  statIconImg: { width: 21, height: 21, tintColor: '#0ACCB5', flexShrink: 0 },
   statText: { fontSize: 12, color: theme.textSecondary, flex: 1, fontFamily: fonts.bodyLight },
   serveBtn: { backgroundColor: theme.primaryDim, borderRadius: 12, padding: 12, alignItems: 'center', borderWidth: 1, borderColor: theme.primaryBorder },
   serveBtnText: { color: theme.primary, fontSize: 14, fontFamily: fonts.bodyBold },
