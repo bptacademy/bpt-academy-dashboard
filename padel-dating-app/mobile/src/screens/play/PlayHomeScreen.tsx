@@ -67,7 +67,7 @@ function HistoryCard({ player, navigation, onAction }: {
               </View>
             )}
           </View>
-          {player.city && <Text style={styles.cardMeta}>📍 {player.city}</Text>}
+          {player.city && <View style={{flexDirection:'row',alignItems:'center',gap:3}}><Image source={require('../../../assets/icons/3. Location.png')} style={{width:12,height:12,tintColor:'#7A9CC0'}} /><Text style={styles.cardMeta}>{player.city}</Text></View>}
           {player.levelValue !== null && (
             <View style={styles.levelRow}>
               <View style={styles.levelBadge}>
@@ -294,12 +294,12 @@ function PartnerCard({ partner, navigation, onServe }: {
 
       <View style={styles.statsRow}>
         <View style={styles.statItem}>
-          <Text style={styles.statIcon}>📅</Text>
+          <Image source={require('../../../assets/icons/14. Calendar.png')} style={styles.statIconImg} />
           <Text style={styles.statText}>{availabilityText}</Text>
         </View>
         {partner.winRate !== null && (
           <View style={styles.statItem}>
-            <Text style={styles.statIcon}>🏆</Text>
+            <Image source={require('../../../assets/icons/13. Trophy.png')} style={styles.statIconImg} />
             <Text style={styles.statText}>{partner.winRate}% win rate</Text>
           </View>
         )}

@@ -35,10 +35,10 @@ export default function MyProfileScreen({ navigation }: any) {
   const innerSize = AVATAR_SIZE - RING_THICKNESS * 2;
 
   const MENU_ITEMS = [
-    { icon: '✏️', label: 'Edit Profile', screen: 'EditProfile' },
-    { icon: '📊', label: 'My Stats', screen: 'MyStats' },
-    { icon: '🔔', label: 'Notifications', screen: 'Notifications' },
-    { icon: '⚙️', label: 'Settings', screen: 'Settings' },
+    { icon: '✏️', iconPng: null, label: 'Edit Profile', screen: 'EditProfile' },
+    { icon: '📊', iconPng: require('../../../assets/icons/4. Rating.png'), label: 'My Stats', screen: 'MyStats' },
+    { icon: '🔔', iconPng: require('../../../assets/icons/Notifications.png'), label: 'Notifications', screen: 'Notifications' },
+    { icon: '⚙️', iconPng: require('../../../assets/icons/16. Settings.png'), label: 'Settings', screen: 'Settings' },
   ];
 
   return (
@@ -74,7 +74,7 @@ export default function MyProfileScreen({ navigation }: any) {
             {user?.full_name ?? user?.email?.split('@')[0] ?? 'Player'}
           </Text>
 
-          {user?.city && <Text style={styles.profileCity}>📍 {user.city}</Text>}
+          {user?.city && <View style={styles.cityRow}><Image source={require('../../../assets/icons/3. Location.png')} style={styles.cityIcon} /><Text style={styles.profileCity}>{user.city}</Text></View>}
 
           {/* Home club badge */}
           {user?.home_club_name && (
@@ -150,7 +150,9 @@ export default function MyProfileScreen({ navigation }: any) {
               onPress={() => navigation.navigate(item.screen)}
               activeOpacity={0.75}
             >
-              <Text style={styles.menuIcon}>{item.icon}</Text>
+              {item.iconPng
+                ? <Image source={item.iconPng} style={styles.menuIconImg} />
+                : <Text style={styles.menuIcon}>{item.icon}</Text>}
               <Text style={styles.menuLabel}>{item.label}</Text>
               <Text style={styles.menuArrow}>›</Text>
             </TouchableOpacity>
@@ -235,6 +237,9 @@ const styles = StyleSheet.create({
   menuRow: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 16 },
   menuRowBorder: { borderBottomWidth: 1, borderBottomColor: theme.border },
   menuIcon: { fontSize: 20, width: 28 },
+  cityRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  cityIcon: { width: 14, height: 14, tintColor: '#7A9CC0' },
+  menuIconImg: { width: 22, height: 22, tintColor: '#7A9CC0', marginRight: 2 },
   menuLabel: { flex: 1, fontSize: 15, color: theme.textPrimary, fontFamily: fonts.bodyLight },
   menuArrow: { fontSize: 20, color: theme.textMuted },
   signOutBtn: {
