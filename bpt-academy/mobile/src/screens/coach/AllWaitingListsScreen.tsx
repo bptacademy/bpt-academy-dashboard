@@ -53,6 +53,11 @@ export default function AllWaitingListsScreen({ navigation }: any) {
       });
     }
 
+    // Re-number positions by join date order (stored position is per-month, unreliable across months)
+    for (const group of map.values()) {
+      group.entries.sort((a, b) => new Date(a.joined_at).getTime() - new Date(b.joined_at).getTime());
+      group.entries.forEach((e, i) => { e.position = i + 1; });
+    }
     const result = [...map.values()].sort((a, b) => b.entries.length - a.entries.length);
     setGroups(result);
     setTotalCount(data.length);

@@ -29,7 +29,10 @@ export default function WaitingListScreen({ route, navigation }: any) {
       .eq('program_id', programId)
       .order('month', { ascending: false })
       .order('position', { ascending: true });
-    setEntries((data as any) ?? []);
+    const sorted = ((data as any) ?? []).sort((a: any, b: any) =>
+      new Date(a.joined_at).getTime() - new Date(b.joined_at).getTime()
+    ).map((e: any, i: number) => ({ ...e, position: i + 1 }));
+    setEntries(sorted);
     setLoading(false);
   }, [programId]);
 
