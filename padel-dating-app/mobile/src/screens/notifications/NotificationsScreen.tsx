@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
-  View, Text, ScrollView, StyleSheet, TouchableOpacity, StatusBar, ActivityIndicator,
+  View, Text, Image, ScrollView, StyleSheet, TouchableOpacity, StatusBar, ActivityIndicator,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme, fonts } from '../../lib/theme';
@@ -223,7 +223,7 @@ export default function NotificationsScreen({ navigation }: any) {
 
           {notifications.length === 0 && (
             <View style={styles.emptyState}>
-              <Text style={styles.emptyEmoji}>🔔</Text>
+              <Image source={require('../../../assets/icons/Notifications.png')} style={styles.emptyBellImg} />
               <Text style={styles.emptyTitle}>All caught up</Text>
               <Text style={styles.emptySub}>New volleys, serves and match prompts will appear here.</Text>
             </View>
@@ -280,6 +280,7 @@ const styles = StyleSheet.create({
 
   emptyState: { padding: 48, alignItems: 'center' },
   emptyEmoji: { fontSize: 48, marginBottom: 16 },
+  emptyBellImg: { width: 72, height: 72, tintColor: '#0ACCB5', marginBottom: 16, opacity: 0.9 },
   emptyTitle: { fontSize: 18, fontFamily: fonts.bodyBold, color: theme.textPrimary, marginBottom: 8 },
   emptySub: { fontSize: 14, color: theme.textMuted, textAlign: 'center', lineHeight: 22, fontFamily: fonts.bodyLight },
 });
