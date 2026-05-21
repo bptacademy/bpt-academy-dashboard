@@ -67,7 +67,7 @@ function HistoryCard({ player, navigation, onAction }: {
               </View>
             )}
           </View>
-          {player.city && <View style={{flexDirection:'row',alignItems:'center',gap:3}}><Image source={require('../../../assets/icons/3. Location.png')} style={{width:12,height:12,tintColor:'#7A9CC0'}} /><Text style={styles.cardMeta}>{player.city}</Text></View>}
+          {player.city && <View style={{flexDirection:'row',alignItems:'center',gap:3}}><Image source={require('../../../assets/icons/3. Location.png')} style={{width:27,height:27,tintColor:'#7A9CC0'}} /><Text style={styles.cardMeta}>{player.city}</Text></View>}
           {player.levelValue !== null && (
             <View style={styles.levelRow}>
               <View style={styles.levelBadge}>

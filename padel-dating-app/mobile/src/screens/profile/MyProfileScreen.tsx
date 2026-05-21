@@ -238,8 +238,8 @@ const styles = StyleSheet.create({
   menuRowBorder: { borderBottomWidth: 1, borderBottomColor: theme.border },
   menuIcon: { fontSize: 20, width: 28 },
   cityRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  cityIcon: { width: 14, height: 14, tintColor: '#7A9CC0' },
-  menuIconImg: { width: 22, height: 22, tintColor: '#7A9CC0', marginRight: 2 },
+  cityIcon: { width: 21, height: 21, tintColor: '#7A9CC0' },
+  menuIconImg: { width: 33, height: 33, tintColor: '#7A9CC0', marginRight: 2 },
   menuLabel: { flex: 1, fontSize: 15, color: theme.textPrimary, fontFamily: fonts.bodyLight },
   menuArrow: { fontSize: 20, color: theme.textMuted },
   signOutBtn: {

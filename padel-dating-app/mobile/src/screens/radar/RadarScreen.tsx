@@ -78,7 +78,7 @@ function PlayerPopup({ player, onClose, onViewProfile }: {
             )}
           </View>
           <Text style={popup.name}>{player.full_name}</Text>
-          {player.city && <View style={{flexDirection:'row',alignItems:'center',gap:3}}><Image source={require('../../../assets/icons/3. Location.png')} style={{width:12,height:12,tintColor:'#7A9CC0'}} /><Text style={popup.city}>{player.city}</Text></View>}
+          {player.city && <View style={{flexDirection:'row',alignItems:'center',gap:3}}><Image source={require('../../../assets/icons/3. Location.png')} style={{width:27,height:27,tintColor:'#7A9CC0'}} /><Text style={popup.city}>{player.city}</Text></View>}
           <View style={popup.statsRow}>
             {player.level_value !== null && <View style={popup.stat}><Text style={popup.statValue}>{player.level_value.toFixed(1)}</Text><Text style={popup.statLabel}>Level</Text></View>}
             {player.total_matches !== null && <View style={popup.stat}><Text style={popup.statValue}>{player.total_matches}</Text><Text style={popup.statLabel}>Matches</Text></View>}
@@ -397,7 +397,7 @@ const styles = StyleSheet.create({
   sliderTrack: { height: 4, backgroundColor: theme.border, borderRadius: 2, overflow: 'hidden' },
   sliderFill: { height: 4, backgroundColor: theme.primary, borderRadius: 2 },
   sliderThumb: {
-    position: 'absolute', width: 22, height: 22, borderRadius: 11,
+    position: 'absolute', width: 33, height: 33, borderRadius: 11,
     backgroundColor: theme.primary, top: 9, marginLeft: -11,
     ...Platform.select({
       ios: { shadowColor: theme.primary, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.6, shadowRadius: 4 },

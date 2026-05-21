@@ -212,7 +212,7 @@ export default function EditProfileScreen({ navigation }: any) {
         </View>
 
         {/* Photos */}
-        <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Image source={require('../../../assets/icons/6. Camera.png')} style={{width:16,height:16,tintColor:'#7A9CC0'}} /><Text style={styles.fieldLabel}>Photos ({photos.length}/{MAX_PHOTOS})</Text></View>
+        <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Image source={require('../../../assets/icons/6. Camera.png')} style={{width:24,height:24,tintColor:'#7A9CC0'}} /><Text style={styles.fieldLabel}>Photos ({photos.length}/{MAX_PHOTOS})</Text></View>
         <Text style={styles.fieldHint}>Your first photo is your main profile photo.</Text>
         <View style={styles.photoGrid}>
           {photos.map((uri, i) => (
@@ -245,7 +245,7 @@ export default function EditProfileScreen({ navigation }: any) {
         </View>
 
         {/* City */}
-        <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Image source={require('../../../assets/icons/3. Location.png')} style={{width:16,height:16,tintColor:'#7A9CC0'}} /><Text style={styles.fieldLabel}>City</Text></View>
+        <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Image source={require('../../../assets/icons/3. Location.png')} style={{width:24,height:24,tintColor:'#7A9CC0'}} /><Text style={styles.fieldLabel}>City</Text></View>
         <View style={styles.placesWrapper}>
           <GooglePlacesAutocomplete
             placeholder={city || 'Search your city…'}
