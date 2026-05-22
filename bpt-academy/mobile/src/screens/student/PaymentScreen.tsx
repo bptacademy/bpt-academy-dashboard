@@ -150,7 +150,6 @@ export default function PaymentScreen({ navigation, route }: any) {
 
     let bankEnrollmentId: string | null = enrollmentId ?? null;
     if (programId && studentId) {
-      // For bank transfer, enrollment stays 'waitlisted' until admin confirms payment
       const { data: existing } = await supabase
         .from('enrollments')
         .select('id, status')
@@ -159,16 +158,19 @@ export default function PaymentScreen({ navigation, route }: any) {
         .maybeSingle();
 
       if (existing) {
-        // Only update if currently cancelled/waitlisted — don't downgrade an active enrollment
+        // Only update if currently cancelled/waitlisted/pending — don't downgrade an active enrollment
         if (['cancelled', 'waitlisted', 'pending_payment'].includes(existing.status)) {
-          await supabase.from('enrollments').update({ status: 'pending_payment' }).eq('id', existing.id);
+          await supabase.from('enrollments')
+            .update({ status: 'pending_payment', payment_status: 'pending' })
+            .eq('id', existing.id);
         }
         bankEnrollmentId = existing.id;
       } else {
         const { data: newEnroll, error: enrollError } = await supabase.from('enrollments').insert({
           student_id: studentId,
           program_id: programId,
-          status: 'pending_payment', // awaiting coach bank transfer confirmation
+          status: 'pending_payment',
+          payment_status: 'pending',
         }).select('id').single();
         if (enrollError) {
           setLoadingBank(false);

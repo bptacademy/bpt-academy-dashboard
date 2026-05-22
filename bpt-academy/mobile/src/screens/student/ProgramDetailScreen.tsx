@@ -38,6 +38,7 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
 
   const [program, setProgram]                     = useState<Program | null>(null);
   const [enrollmentStatus, setEnrollmentStatus]   = useState<string | null>(null);
+  const [paymentStatus, setPaymentStatus]         = useState<string | null>(null);
   const [modules, setModules]                     = useState<(Module & { progress?: StudentProgress })[]>([]);
   const [sessions, setSessions]                   = useState<ProgramSession[]>([]);
   const [coaches, setCoaches]                     = useState<{ id: string; full_name: string; avatar_url?: string }[]>([]);
@@ -55,7 +56,7 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
       supabase.from('programs').select('*').eq('id', programId).single(),
       supabase.from('modules').select('*').eq('program_id', programId).order('order_index'),
       supabase.from('program_sessions').select('*').eq('program_id', programId).order('scheduled_at'),
-      supabase.from('enrollments').select('id, status').eq('student_id', profile!.id).eq('program_id', programId).neq('status', 'cancelled').maybeSingle(),
+      supabase.from('enrollments').select('id, status, payment_status').eq('student_id', profile!.id).eq('program_id', programId).neq('status', 'cancelled').maybeSingle(),
       // Only lock if student has an active/pending enrollment in a currently active program
       supabase.from('enrollments')
         .select('id, programs!inner(is_active)')
@@ -68,6 +69,7 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
     if (progRes.data) setProgram(progRes.data);
     setEnrolled(enrollRes.data?.status === 'active');
     setEnrollmentStatus(enrollRes.data?.status ?? null);
+    setPaymentStatus(enrollRes.data?.payment_status ?? null);
     setHasActiveEnrollment((activeEnrollRes.data?.length ?? 0) > 0);
     if (coachRes.data) setCoaches(coachRes.data.map((r: any) => r.coach).filter(Boolean));
 
@@ -311,6 +313,9 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
 
   const programIsInactive = (program as any)?.is_active === false;
 
+  // true once the student has submitted a payment but coach hasn't confirmed yet
+  const paymentSubmitted = enrollmentStatus === 'pending_payment' && paymentStatus === 'pending';
+
   if (loading) return (
     <View style={styles.loading}>
       <BackButton />
@@ -430,12 +435,16 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
       {/* Pending payment — coach approved, student needs to pay */}
       {enrollmentStatus === 'pending_payment' && (
         <View style={styles.awaitingCard}>
-          <Text style={styles.awaitingIcon}>🎉</Text>
-          <Text style={styles.awaitingTitle}>You've been approved!</Text>
-          <Text style={styles.awaitingBody}>
-            A coach has reviewed your level and approved your spot. Complete your payment to confirm your enrollment.
+          <Text style={styles.awaitingIcon}>{paymentSubmitted ? '⏳' : '🎉'}</Text>
+          <Text style={styles.awaitingTitle}>
+            {paymentSubmitted ? 'Payment received — awaiting confirmation' : "You've been approved!"}
           </Text>
-          {(() => {
+          <Text style={styles.awaitingBody}>
+            {paymentSubmitted
+              ? 'Your payment has been submitted and is being verified by the team. You\'ll be notified once confirmed.'
+              : 'A coach has reviewed your level and approved your spot. Complete your payment to confirm your enrollment.'}
+          </Text>
+          {!paymentSubmitted && (() => {
             const price = (program as any)?.price_gbp != null
               ? parseFloat((program as any).price_gbp)
               : DEFAULT_PRICE_GBP;
