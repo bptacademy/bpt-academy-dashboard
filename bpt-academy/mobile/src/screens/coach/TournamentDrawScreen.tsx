@@ -3,7 +3,6 @@ import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity, Modal,
   TextInput, Alert, Image, Dimensions, FlatList, ActivityIndicator,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
 import BackHeader from '../../components/common/BackHeader';
 
@@ -36,7 +35,6 @@ function getTeamLabel(reg: Reg | undefined): string {
 
 export default function TournamentDrawScreen({ navigation, route }: any) {
   const { tournamentId, tournamentTitle } = route.params;
-  const insets = useSafeAreaInsets();
   const [tab, setTab] = useState<'Teams'|'Matches'|'Results'>('Teams');
   const [regs, setRegs] = useState<Reg[]>([]);
   const [matches, setMatches] = useState<Match[]>([]);
@@ -46,6 +44,8 @@ export default function TournamentDrawScreen({ navigation, route }: any) {
   // Modals
   const [partnerModal, setPartnerModal] = useState<{visible:boolean;regId:string;search:string}>({visible:false,regId:'',search:''});
   const [addPlayerModal, setAddPlayerModal] = useState<{visible:boolean;search:string;replaceId?:string}>({visible:false,search:''});
+  // Add Team modal — pick player 1 then player 2
+  const [addTeamModal, setAddTeamModal] = useState<{visible:boolean;step:1|2;p1:string;p1Name:string;search:string}>({visible:false,step:1,p1:'',p1Name:'',search:''});
   const [matchModal, setMatchModal] = useState<{visible:boolean;editMatch?:Match;t1:string;t2:string;round:string;court:string;datetime:string;notes:string}>({visible:false,t1:'',t2:'',round:'',court:'',datetime:'',notes:''});
   const [resultState, setResultState] = useState<Record<string,{score:string;winner:string}>>({});
 
@@ -72,10 +72,15 @@ export default function TournamentDrawScreen({ navigation, route }: any) {
 
   useEffect(() => { load(); loadStudents(); }, [load, loadStudents]);
 
-  // ─── TEAMS TAB ───────────────────────────────────────────────────────────────
+  // ─── TEAMS ────────────────────────────────────────────────────────────────────
   const confirmedRegs = regs.filter(r => r.status === 'confirmed');
   const withdrawnRegs = regs.filter(r => r.status === 'withdrawn');
   const playerCount = confirmedRegs.reduce((acc, r) => acc + 1 + (r.partner_id ? 1 : 0), 0);
+
+  const registeredIds = new Set(confirmedRegs.map(r => r.student_id));
+  const unregisteredStudents = allStudents.filter(s => !registeredIds.has(s.id));
+  const pairedPartnerIds = new Set(confirmedRegs.filter(r => r.partner_id).map(r => r.partner_id));
+  const availablePartners = confirmedRegs.filter(r => !pairedPartnerIds.has(r.student_id) && r.student_id !== partnerModal.regId);
 
   const openPartnerModal = (regId: string) => setPartnerModal({visible:true,regId,search:''});
 
@@ -96,12 +101,11 @@ export default function TournamentDrawScreen({ navigation, route }: any) {
   };
 
   const removeReg = (reg: Reg) => {
-    Alert.alert('Remove Player', `Remove ${reg.player1?.full_name}? This cannot be undone.`, [
+    Alert.alert('Remove Player', `Remove ${reg.player1?.full_name}?`, [
       {text:'Cancel',style:'cancel'},
       {text:'Remove',style:'destructive', onPress: async () => {
         await supabase.from('tournament_registrations').update({ status: 'withdrawn' }).eq('id', reg.id);
         if (reg.partner_id) {
-          // Unpair partner registrations that point to this player
           await supabase.from('tournament_registrations').update({ partner_id: null })
             .eq('tournament_id', tournamentId).eq('partner_id', reg.student_id);
         }
@@ -120,26 +124,47 @@ export default function TournamentDrawScreen({ navigation, route }: any) {
     load();
   };
 
-  // students not currently registered (confirmed)
-  const registeredIds = new Set(confirmedRegs.map(r => r.student_id));
-  const unregisteredStudents = allStudents.filter(s => !registeredIds.has(s.id));
+  // Add Team — step 1: pick player 1, step 2: pick player 2, then insert both
+  const startAddTeam = () => setAddTeamModal({visible:true,step:1,p1:'',p1Name:'',search:''});
 
-  // students available as partner (not already partnered in someone else's reg)
-  const pairedPartnerIds = new Set(confirmedRegs.filter(r => r.partner_id).map(r => r.partner_id));
-  const availablePartners = confirmedRegs.filter(r => !pairedPartnerIds.has(r.student_id) && r.student_id !== partnerModal.regId);
+  const addTeamSelectP1 = (student: {id:string;full_name:string}) => {
+    setAddTeamModal(prev => ({...prev, step:2, p1:student.id, p1Name:student.full_name, search:''}));
+  };
 
-  // ─── MATCHES TAB ─────────────────────────────────────────────────────────────
+  const addTeamSelectP2 = async (student: {id:string;full_name:string}) => {
+    const { p1 } = addTeamModal;
+    setAddTeamModal({visible:false,step:1,p1:'',p1Name:'',search:''});
+    // Insert registration for player 1 with partner_id = player 2
+    const { data, error } = await supabase.from('tournament_registrations').insert({
+      tournament_id: tournamentId,
+      student_id: p1,
+      partner_id: student.id,
+      status: 'confirmed',
+    }).select('id').single();
+    if (error) { Alert.alert('Error', error.message); return; }
+    load();
+  };
+
+  // Students available for add-team step 2 (exclude p1 and already registered)
+  const addTeamStep2Pool = unregisteredStudents.filter(s => s.id !== addTeamModal.p1);
+
+  // ─── MATCHES ─────────────────────────────────────────────────────────────────
   const rounds = [...new Set(matches.map(m => m.round))];
 
   const openAddMatch = () => setMatchModal({visible:true,t1:'',t2:'',round:'',court:'',datetime:'',notes:''});
-  const openEditMatch = (m: Match) => setMatchModal({visible:true,editMatch:m,t1:m.team1_registration_id??'',t2:m.team2_registration_id??'',round:m.round,court:m.court??'',datetime:m.scheduled_at ? new Date(m.scheduled_at).toLocaleString('en-GB',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}).replace(',','') : '',notes:m.notes??''});
+  const openEditMatch = (m: Match) => setMatchModal({
+    visible:true, editMatch:m,
+    t1:m.team1_registration_id??'', t2:m.team2_registration_id??'',
+    round:m.round, court:m.court??'',
+    datetime: m.scheduled_at ? new Date(m.scheduled_at).toLocaleString('en-GB',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}).replace(',','') : '',
+    notes:m.notes??'',
+  });
 
   const saveMatch = async () => {
     const { t1, t2, round, court, datetime, notes, editMatch } = matchModal;
     if (!t1 || !t2 || !round) { Alert.alert('Required', 'Select both teams and a round'); return; }
     let scheduled_at: string | null = null;
     if (datetime.trim()) {
-      // parse "DD/MM/YYYY HH:MM"
       const [datePart, timePart] = datetime.trim().split(' ');
       if (datePart && timePart) {
         const [d,mo,y] = datePart.split('/');
@@ -163,7 +188,7 @@ export default function TournamentDrawScreen({ navigation, route }: any) {
     ]);
   };
 
-  // ─── RESULTS TAB ─────────────────────────────────────────────────────────────
+  // ─── RESULTS ─────────────────────────────────────────────────────────────────
   const completedCount = matches.filter(m => m.winner_id).length;
 
   const saveResult = async (m: Match) => {
@@ -175,7 +200,6 @@ export default function TournamentDrawScreen({ navigation, route }: any) {
       score: st.score,
       winner_id: winnerReg.student_id,
       played_at: new Date().toISOString(),
-      // also set legacy player ids
       player1_id: confirmedRegs.find(r => r.id === m.team1_registration_id)?.student_id ?? null,
       player2_id: confirmedRegs.find(r => r.id === m.team2_registration_id)?.student_id ?? null,
     }).eq('id', m.id);
@@ -210,8 +234,8 @@ export default function TournamentDrawScreen({ navigation, route }: any) {
       {/* ── TEAMS ── */}
       {tab === 'Teams' && (
         <View style={{flex:1}}>
-          <ScrollView style={{flex:1}} contentContainerStyle={{padding:16,paddingBottom:100}}>
-            <Text style={s.summaryText}>{confirmedRegs.length} teams · {playerCount} players</Text>
+          <ScrollView style={{flex:1}} contentContainerStyle={{padding:16,paddingBottom:110}}>
+            <Text style={s.summaryText}>{confirmedRegs.length} entries · {playerCount} players</Text>
 
             {confirmedRegs.map(reg => (
               <View key={reg.id} style={s.teamCard}>
@@ -223,9 +247,9 @@ export default function TournamentDrawScreen({ navigation, route }: any) {
                     <Text style={s.playerName}>{reg.player1?.full_name ?? '—'}</Text>
                     {reg.partner_id
                       ? <Text style={s.partnerName}>& {reg.partner?.full_name}</Text>
-                      : <Text style={s.noPartner}>⚠️ No partner</Text>}
+                      : <Text style={s.noPartner}>⚠️ No partner yet</Text>}
                   </View>
-                  <View style={[s.divBadge]}>
+                  <View style={s.divBadge}>
                     <Text style={s.divBadgeText}>{reg.division}</Text>
                   </View>
                 </View>
@@ -245,7 +269,7 @@ export default function TournamentDrawScreen({ navigation, route }: any) {
 
             {withdrawnRegs.length > 0 && (
               <>
-                <Text style={[s.summaryText,{marginTop:16}]}>Withdrawn</Text>
+                <Text style={[s.summaryText,{marginTop:16,color:'#EF4444'}]}>Withdrawn</Text>
                 {withdrawnRegs.map(reg => (
                   <View key={reg.id} style={[s.teamCard,{opacity:0.6}]}>
                     <View style={s.teamCardRow}>
@@ -263,10 +287,15 @@ export default function TournamentDrawScreen({ navigation, route }: any) {
             )}
           </ScrollView>
 
-          {/* Floating + Add Player */}
-          <TouchableOpacity style={s.fab} onPress={() => setAddPlayerModal({visible:true,search:''})}>
-            <Text style={s.fabText}>+ Add Player</Text>
-          </TouchableOpacity>
+          {/* Floating action buttons — Add Player & Add Team */}
+          <View style={s.fabRow}>
+            <TouchableOpacity style={[s.fab, s.fabSecondary]} onPress={() => setAddPlayerModal({visible:true,search:''})}>
+              <Text style={s.fabSecondaryText}>+ Add Player</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={s.fab} onPress={startAddTeam}>
+              <Text style={s.fabText}>👥 Add Team</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       )}
 
@@ -357,9 +386,7 @@ export default function TournamentDrawScreen({ navigation, route }: any) {
                     </TouchableOpacity>
                   </>
                 )}
-                {done && winnerReg && (
-                  <Text style={s.winnerLabel}>🏆 {getTeamLabel(winnerReg)}</Text>
-                )}
+                {done && winnerReg && <Text style={s.winnerLabel}>🏆 {getTeamLabel(winnerReg)}</Text>}
               </View>
             );
           })}
@@ -411,6 +438,58 @@ export default function TournamentDrawScreen({ navigation, route }: any) {
         </View>
       </Modal>
 
+      {/* ─── ADD TEAM MODAL (2-step) ─── */}
+      <Modal visible={addTeamModal.visible} animationType="slide" presentationStyle="pageSheet">
+        <View style={s.modalContainer}>
+          <View style={s.modalHeader}>
+            <TouchableOpacity onPress={() => {
+              if (addTeamModal.step === 2) {
+                setAddTeamModal(prev => ({...prev, step:1, p1:'', p1Name:'', search:''}));
+              } else {
+                setAddTeamModal({visible:false,step:1,p1:'',p1Name:'',search:''});
+              }
+            }}>
+              <Text style={s.cancelBtn}>{addTeamModal.step === 2 ? '← Back' : 'Cancel'}</Text>
+            </TouchableOpacity>
+            <View style={{alignItems:'center'}}>
+              <Text style={s.modalTitle}>Add Team</Text>
+              <Text style={s.modalSubtitle}>Step {addTeamModal.step} of 2 — {addTeamModal.step === 1 ? 'Pick Player 1' : `Pick Player 2`}</Text>
+            </View>
+            <View style={{width:60}} />
+          </View>
+
+          {addTeamModal.step === 2 && (
+            <View style={s.teamStepBanner}>
+              <Text style={s.teamStepBannerText}>Player 1: {addTeamModal.p1Name}</Text>
+            </View>
+          )}
+
+          <TextInput
+            style={s.searchInput}
+            placeholder="Search by name…"
+            placeholderTextColor="#7A8FA6"
+            value={addTeamModal.search}
+            onChangeText={v => setAddTeamModal(p => ({...p,search:v}))}
+          />
+
+          <FlatList
+            data={(addTeamModal.step === 1 ? unregisteredStudents : addTeamStep2Pool)
+              .filter(s => s.full_name.toLowerCase().includes(addTeamModal.search.toLowerCase()))}
+            keyExtractor={s => s.id}
+            renderItem={({item}) => (
+              <TouchableOpacity
+                style={s.listRow}
+                onPress={() => addTeamModal.step === 1 ? addTeamSelectP1(item) : addTeamSelectP2(item)}
+              >
+                <Text style={s.listRowText}>{item.full_name}</Text>
+                <Text style={s.listRowSub}>→ {addTeamModal.step === 1 ? 'Select as Player 1' : 'Select as Partner'}</Text>
+              </TouchableOpacity>
+            )}
+            ListEmptyComponent={<Text style={s.emptyText}>No unregistered students found</Text>}
+          />
+        </View>
+      </Modal>
+
       {/* ─── MATCH MODAL ─── */}
       <Modal visible={matchModal.visible} animationType="slide" presentationStyle="pageSheet">
         <ScrollView style={s.modalContainer}>
@@ -428,7 +507,6 @@ export default function TournamentDrawScreen({ navigation, route }: any) {
                 </TouchableOpacity>
               ))}
             </ScrollView>
-
             <Text style={s.fieldLabel}>Team 2</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{marginBottom:4}}>
               {confirmedRegs.map(r => (
@@ -437,7 +515,6 @@ export default function TournamentDrawScreen({ navigation, route }: any) {
                 </TouchableOpacity>
               ))}
             </ScrollView>
-
             <Text style={s.fieldLabel}>Round</Text>
             <View style={s.chipRow}>
               {ROUND_CHIPS.map(rc => (
@@ -447,13 +524,10 @@ export default function TournamentDrawScreen({ navigation, route }: any) {
               ))}
             </View>
             <TextInput style={s.input} placeholder="Or type custom round…" placeholderTextColor="#7A8FA6" value={matchModal.round} onChangeText={v => setMatchModal(p => ({...p,round:v}))} />
-
             <Text style={s.fieldLabel}>Court</Text>
             <TextInput style={s.input} placeholder="e.g. Court 1" placeholderTextColor="#7A8FA6" value={matchModal.court} onChangeText={v => setMatchModal(p => ({...p,court:v}))} />
-
             <Text style={s.fieldLabel}>Date & Time</Text>
             <TextInput style={s.input} placeholder="e.g. 23/05/2026 14:30" placeholderTextColor="#7A8FA6" value={matchModal.datetime} onChangeText={v => setMatchModal(p => ({...p,datetime:v}))} />
-
             <Text style={s.fieldLabel}>Notes (optional)</Text>
             <TextInput style={[s.input,{height:72,textAlignVertical:'top'}]} placeholder="Any notes…" placeholderTextColor="#7A8FA6" multiline value={matchModal.notes} onChangeText={v => setMatchModal(p => ({...p,notes:v}))} />
             <View style={{height:40}} />
@@ -488,8 +562,13 @@ const s = StyleSheet.create({
   actionBtn: { flex: 1, borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)', borderRadius: 8, paddingVertical: 7, alignItems: 'center' },
   actionBtnDanger: { borderColor: '#7F1D1D' },
   actionBtnText: { fontSize: 12, color: '#F0F6FC', fontWeight: '600' },
-  fab: { position: 'absolute', bottom: 24, right: 20, backgroundColor: '#16A34A', borderRadius: 28, paddingHorizontal: 20, paddingVertical: 14, shadowColor: '#000', shadowOpacity: 0.4, shadowRadius: 8, elevation: 8 },
+  // FAB row
+  fabRow: { position: 'absolute', bottom: 24, right: 16, left: 16, flexDirection: 'row', gap: 10 },
+  fab: { flex: 1, backgroundColor: '#16A34A', borderRadius: 28, paddingVertical: 14, alignItems: 'center', shadowColor: '#000', shadowOpacity: 0.4, shadowRadius: 8, elevation: 8 },
   fabText: { color: '#fff', fontWeight: '700', fontSize: 15 },
+  fabSecondary: { backgroundColor: '#1E3A5F', borderWidth: 1, borderColor: '#3B82F6' },
+  fabSecondaryText: { color: '#93C5FD', fontWeight: '700', fontSize: 15 },
+  // Matches
   addMatchBtn: { backgroundColor: '#3B82F6', borderRadius: 10, paddingVertical: 12, alignItems: 'center', marginBottom: 16 },
   addMatchBtnText: { color: '#fff', fontWeight: '700', fontSize: 15 },
   roundLabel: { fontSize: 12, fontWeight: '800', color: '#16A34A', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 8 },
@@ -501,6 +580,7 @@ const s = StyleSheet.create({
   matchMeta: { flexDirection: 'row', gap: 12, marginTop: 2 },
   matchMetaText: { fontSize: 12, color: '#7A8FA6' },
   matchActions: { flexDirection: 'row', gap: 8, marginTop: 10 },
+  // Results
   resultCard: { backgroundColor: 'rgba(17,30,51,0.85)', borderRadius: 14, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.07)' },
   scoreInput: { borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', borderRadius: 10, padding: 12, color: '#F0F6FC', fontSize: 15, marginTop: 8, marginBottom: 8 },
   winnerBtns: { flexDirection: 'row', gap: 8, marginBottom: 10 },
@@ -517,12 +597,15 @@ const s = StyleSheet.create({
   modalContainer: { flex: 1, backgroundColor: '#0B1628' },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)' },
   modalTitle: { fontSize: 17, fontWeight: '700', color: '#F0F6FC' },
+  modalSubtitle: { fontSize: 12, color: '#7A8FA6', marginTop: 2 },
   cancelBtn: { fontSize: 15, color: '#7A8FA6' },
   saveBtn: { fontSize: 15, color: '#16A34A', fontWeight: '700' },
   searchInput: { margin: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', borderRadius: 10, padding: 12, color: '#F0F6FC', fontSize: 15 },
   listRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.05)' },
   listRowText: { fontSize: 15, color: '#F0F6FC', fontWeight: '600' },
   listRowSub: { fontSize: 12, color: '#7A8FA6' },
+  teamStepBanner: { backgroundColor: 'rgba(59,130,246,0.15)', borderBottomWidth: 1, borderBottomColor: 'rgba(59,130,246,0.25)', paddingHorizontal: 20, paddingVertical: 10 },
+  teamStepBannerText: { fontSize: 13, color: '#93C5FD', fontWeight: '600' },
   fieldLabel: { fontSize: 13, color: '#7A8FA6', fontWeight: '600', marginBottom: 4 },
   input: { borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', borderRadius: 10, padding: 12, color: '#F0F6FC', fontSize: 15 },
   teamChip: { borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8, marginRight: 8 },
