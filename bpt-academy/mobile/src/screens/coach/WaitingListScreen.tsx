@@ -1,4 +1,5 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
   RefreshControl, Alert, Image, Dimensions,
@@ -36,7 +37,8 @@ export default function WaitingListScreen({ route, navigation }: any) {
     setLoading(false);
   }, [programId]);
 
-  useEffect(() => { fetchData(); }, [fetchData]);
+  // Re-fetch every time this screen comes into focus (handles back navigation)
+  useFocusEffect(useCallback(() => { fetchData(); }, [fetchData]));
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -53,8 +55,11 @@ export default function WaitingListScreen({ route, navigation }: any) {
         {
           text: 'Remove', style: 'destructive',
           onPress: async () => {
+            // Delete from DB first, then update UI
+            const { error } = await supabase
+              .from('program_waiting_list').delete().eq('id', entry.id);
+            if (error) { Alert.alert('Error', error.message); return; }
             setEntries(prev => prev.filter(e => e.id !== entry.id));
-            await supabase.from('program_waiting_list').delete().eq('id', entry.id);
           },
         },
       ]
@@ -70,7 +75,12 @@ export default function WaitingListScreen({ route, navigation }: any) {
         {
           text: 'Approve', style: 'default',
           onPress: async () => {
-            // Optimistically remove from UI immediately
+            // Delete from waitlist DB first — so if user navigates away, row is already gone
+            const { error: deleteError } = await supabase
+              .from('program_waiting_list').delete().eq('id', entry.id);
+            if (deleteError) { Alert.alert('Error', deleteError.message); return; }
+
+            // Now remove from UI
             setEntries(prev => prev.filter(e => e.id !== entry.id));
 
             const { error } = await supabase.from('enrollments').upsert({
@@ -78,8 +88,8 @@ export default function WaitingListScreen({ route, navigation }: any) {
               program_id: programId,
               status: 'pending_payment',
             }, { onConflict: 'student_id,program_id' });
-            if (error) { Alert.alert('Error', error.message); fetchData(); return; }
-            await supabase.from('program_waiting_list').delete().eq('id', entry.id);
+            if (error) { Alert.alert('Error', error.message); return; }
+
             await supabase.from('notifications').insert({
               recipient_id: entry.student.id,
               title: 'Your spot has been approved! 🎉',

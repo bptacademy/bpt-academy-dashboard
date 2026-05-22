@@ -1,4 +1,5 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
   RefreshControl, Alert, Image, Dimensions,
@@ -64,7 +65,8 @@ export default function AllWaitingListsScreen({ navigation }: any) {
     setLoading(false);
   }, []);
 
-  useEffect(() => { fetchData(); }, [fetchData]);
+  // Re-fetch every time this screen comes into focus (handles back navigation)
+  useFocusEffect(useCallback(() => { fetchData(); }, [fetchData]));
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -81,11 +83,16 @@ export default function AllWaitingListsScreen({ navigation }: any) {
         {
           text: 'Approve', style: 'default',
           onPress: async () => {
-            // Optimistically remove from UI immediately
-            setGroups(prev => prev.map(g => ({
-              ...g,
-              entries: g.entries.filter(e => e.id !== entry.id),
-            })).filter(g => g.entries.length > 0));
+            // Delete from waitlist DB first — so if user navigates away, row is already gone
+            const { error: deleteError } = await supabase
+              .from('program_waiting_list').delete().eq('id', entry.id);
+            if (deleteError) { Alert.alert('Error', deleteError.message); return; }
+
+            // Now update UI optimistically
+            setGroups(prev => prev
+              .map(g => ({ ...g, entries: g.entries.filter(e => e.id !== entry.id) }))
+              .filter(g => g.entries.length > 0)
+            );
             setTotalCount(prev => Math.max(0, prev - 1));
 
             const { error } = await supabase.from('enrollments').upsert({
@@ -93,8 +100,8 @@ export default function AllWaitingListsScreen({ navigation }: any) {
               program_id: entry.program_id,
               status: 'pending_payment',
             }, { onConflict: 'student_id,program_id' });
-            if (error) { Alert.alert('Error', error.message); fetchData(); return; }
-            await supabase.from('program_waiting_list').delete().eq('id', entry.id);
+            if (error) { Alert.alert('Error', error.message); return; }
+
             await supabase.from('notifications').insert({
               recipient_id: entry.student.id,
               title: 'Your spot has been approved! 🎉',
@@ -117,13 +124,16 @@ export default function AllWaitingListsScreen({ navigation }: any) {
         {
           text: 'Remove', style: 'destructive',
           onPress: async () => {
-            // Optimistically remove from UI immediately
-            setGroups(prev => prev.map(g => ({
-              ...g,
-              entries: g.entries.filter(e => e.id !== entry.id),
-            })).filter(g => g.entries.length > 0));
+            // Delete from DB first, then update UI
+            const { error } = await supabase
+              .from('program_waiting_list').delete().eq('id', entry.id);
+            if (error) { Alert.alert('Error', error.message); return; }
+
+            setGroups(prev => prev
+              .map(g => ({ ...g, entries: g.entries.filter(e => e.id !== entry.id) }))
+              .filter(g => g.entries.length > 0)
+            );
             setTotalCount(prev => Math.max(0, prev - 1));
-            await supabase.from('program_waiting_list').delete().eq('id', entry.id);
           },
         },
       ]
