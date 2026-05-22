@@ -20,20 +20,6 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
 
   const isCoachOrAdmin = ['coach', 'admin', 'super_admin'].includes(profile?.role ?? '');
 
-  const isEligible = (() => {
-    if (isCoachOrAdmin) return true;
-    if (!program) return false;
-    const progDiv = (program as any).division ?? 'amateur';
-    const studentDiv = (profile as any)?.division ?? 'amateur';
-    if (progDiv !== studentDiv) return false;
-    if (progDiv === 'amateur') {
-      const progSkill = (program as any).skill_level;
-      const studentSkill = (profile as any)?.skill_level;
-      if (progSkill && studentSkill && progSkill !== studentSkill) return false;
-    }
-    return true;
-  })();
-
   const [program, setProgram]                     = useState<Program | null>(null);
   const [enrollmentStatus, setEnrollmentStatus]   = useState<string | null>(null);
   const [paymentStatus, setPaymentStatus]         = useState<string | null>(null);
@@ -114,7 +100,6 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
     ) {
       setWaitlistPosition(null);
     } else {
-      // For 'completed' or null, show waitlist position if they've re-joined
       setWaitlistPosition(wlData?.position ?? null);
     }
 
@@ -273,8 +258,21 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
   const programIsInactive = (program as any)?.is_active === false;
   const paymentSubmitted = enrollmentStatus === 'pending_payment' && paymentStatus === 'pending';
 
-  // A student can join the waitlist when: not enrolled, not pending, not on waitlist already,
-  // and the program is active. Includes re-enrollment after completing a program.
+  // isEligible placed HERE — after program state is set — so it reads the correct value
+  const isEligible = (() => {
+    if (isCoachOrAdmin) return true;
+    if (!program) return true; // program not loaded yet — default to allowing, fetchData will refresh
+    const progDiv = (program as any).division ?? 'amateur';
+    const studentDiv = (profile as any)?.division ?? 'amateur';
+    if (progDiv !== studentDiv) return false;
+    if (progDiv === 'amateur') {
+      const progSkill = (program as any).skill_level;
+      const studentSkill = (profile as any)?.skill_level;
+      if (progSkill && studentSkill && progSkill !== studentSkill) return false;
+    }
+    return true;
+  })();
+
   const canJoinWaitlist = !programIsInactive &&
     enrollmentStatus !== 'pending_payment' &&
     enrollmentStatus !== 'pending_next_cycle' &&
@@ -444,7 +442,7 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
         </View>
       )}
 
-      {/* Waitlist / re-enroll flow — shown when student can join (includes after completing) */}
+      {/* Waitlist / re-enroll flow */}
       {canJoinWaitlist && !hasActiveEnrollment && !programIsInactive && (
         <View style={styles.enrollCard}>
           {enrollmentStatus === 'completed' && (
@@ -503,11 +501,8 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
         </View>
       )}
 
-      {/* Legacy waitlist card — only shown when program is full AND student hasn't yet been approved */}
+      {/* Legacy waitlist card — only shown when program is full AND student not yet approved */}
       {!enrolled &&
-        enrollmentStatus !== 'pending_payment' &&
-        enrollmentStatus !== 'pending_next_cycle' &&
-        enrollmentStatus !== 'completed' &&
         !enrollmentStatus &&
         !programIsInactive &&
         ((program as any)?.max_students == null || enrolledCount >= ((program as any)?.max_students ?? 0)) && (
@@ -540,7 +535,7 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
         </View>
       )}
 
-      {/* Coach: End Cycle button — only shown for active programs */}
+      {/* Coach: End Cycle button */}
       {isCoachOrAdmin && !programIsInactive && (
         <View style={styles.coachActionsSection}>
           <Text style={styles.coachActionsTitle}>COACH TOOLS</Text>
@@ -646,14 +641,14 @@ const styles = StyleSheet.create({
   progressBar: { height: 8, backgroundColor: 'rgba(255,255,255,0.10)', borderRadius: 4, marginBottom: 6 },
   progressFill: { height: '100%', backgroundColor: '#16A34A', borderRadius: 4 },
   progressSub: { fontSize: 13, color: '#7A8FA6' },
-  // Awaiting
+  // Awaiting payment
   awaitingCard: { margin: 16, backgroundColor: 'rgba(245,158,11,0.10)', borderRadius: 14, padding: 20, borderWidth: 1, borderColor: 'rgba(245,158,11,0.35)', alignItems: 'center' },
   awaitingIcon: { fontSize: 36, marginBottom: 8 },
   awaitingTitle: { fontSize: 17, fontWeight: '700', color: '#FCD34D', marginBottom: 6 },
   awaitingBody: { fontSize: 13, color: '#7A8FA6', textAlign: 'center', lineHeight: 20, marginBottom: 16 },
   awaitingBtn: { backgroundColor: 'rgba(245,158,11,0.18)', borderRadius: 10, paddingVertical: 14, paddingHorizontal: 24, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(245,158,11,0.40)', width: '100%' },
   awaitingBtnText: { color: '#FCD34D', fontWeight: '700', fontSize: 15 },
-  // Completed banner (inside enrol card for re-enroll)
+  // Completed banner (re-enroll notice inside enrol card)
   completedBanner: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: 'rgba(99,102,241,0.12)', borderRadius: 10, padding: 12, marginBottom: 14, borderWidth: 1, borderColor: 'rgba(99,102,241,0.25)' },
   completedBannerIcon: { fontSize: 20 },
   completedBannerText: { flex: 1, fontSize: 13, color: '#A5B4FC', lineHeight: 18 },
@@ -662,7 +657,7 @@ const styles = StyleSheet.create({
   waitlistOnBody: { fontSize: 13, color: '#7A8FA6', textAlign: 'center', lineHeight: 20, marginBottom: 16 },
   leaveWaitlistBtn: { backgroundColor: 'rgba(220,38,38,0.10)', borderRadius: 10, paddingVertical: 10, paddingHorizontal: 20, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(220,38,38,0.25)' },
   leaveWaitlistBtnText: { color: '#EF4444', fontWeight: '600', fontSize: 13 },
-  // Ineligible level
+  // Ineligible
   ineligibleCard: { alignItems: 'center', paddingVertical: 8 },
   ineligibleIcon: { fontSize: 36, marginBottom: 8 },
   ineligibleTitle: { fontSize: 15, fontWeight: '700', color: '#7A8FA6', marginBottom: 4 },
@@ -677,12 +672,12 @@ const styles = StyleSheet.create({
   blockedIcon: { fontSize: 36, marginBottom: 10 },
   blockedTitle: { fontSize: 16, fontWeight: '700', color: '#FCD34D', marginBottom: 6 },
   blockedText: { fontSize: 13, color: '#7A8FA6', textAlign: 'center', lineHeight: 20 },
-  // Ended (non-enrolled)
+  // Ended
   endedCard: { margin: 16, backgroundColor: 'rgba(107,114,128,0.12)', borderRadius: 14, padding: 24, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(107,114,128,0.25)' },
   endedIcon: { fontSize: 36, marginBottom: 10 },
   endedTitle: { fontSize: 16, fontWeight: '700', color: '#9CA3AF', marginBottom: 6 },
   endedBody: { fontSize: 13, color: '#6B7280', textAlign: 'center', lineHeight: 20 },
-  // Enroll
+  // Enroll card
   enrollCard: { margin: 16, backgroundColor: 'rgba(17,30,51,0.85)', borderRadius: 14, padding: 20, borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)' },
   priceRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
   priceLabel: { fontSize: 14, color: '#F0F6FC', fontWeight: '600' },
@@ -690,7 +685,7 @@ const styles = StyleSheet.create({
   enrollText: { fontSize: 13, color: '#7A8FA6', marginBottom: 16, lineHeight: 20 },
   enrollBtn: { backgroundColor: '#16A34A', borderRadius: 10, paddingVertical: 14, alignItems: 'center' },
   enrollBtnText: { color: '#FFFFFF', fontWeight: '700', fontSize: 15 },
-  // Waitlist
+  // Legacy waitlist card
   waitlistCard: { backgroundColor: '#F0F9FF', borderRadius: 14, padding: 16, margin: 16, marginTop: 0, borderWidth: 1, borderColor: '#BAE6FD' },
   waitlistTitle: { fontSize: 15, fontWeight: '700', color: '#0369A1', marginBottom: 4 },
   waitlistPosition: { fontSize: 28, fontWeight: '800', color: '#0284C7', marginBottom: 4 },
