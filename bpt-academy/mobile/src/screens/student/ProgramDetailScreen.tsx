@@ -107,7 +107,20 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
       .eq('student_id', profile!.id)
       .eq('month', month)
       .maybeSingle();
-    setWaitlistPosition(wlData?.position ?? null);
+
+    // Clear waitlist position once student is approved or beyond — the waitlist row
+    // is deleted when approved, so we should never show the waitlist card in those states.
+    const resolvedStatus = enrollRes.data?.status ?? null;
+    if (
+      resolvedStatus === 'pending_payment' ||
+      resolvedStatus === 'active' ||
+      resolvedStatus === 'pending_next_cycle' ||
+      resolvedStatus === 'completed'
+    ) {
+      setWaitlistPosition(null);
+    } else {
+      setWaitlistPosition(wlData?.position ?? null);
+    }
 
     setLoading(false);
   }, [programId, profile]);
@@ -529,8 +542,12 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
         </View>
       )}
 
-      {/* Waiting List */}
-      {!enrolled && enrollmentStatus !== 'pending_next_cycle' && enrollmentStatus !== 'completed' && !programIsInactive &&
+      {/* Legacy waitlist card — only shown when program is full AND student is not yet approved/enrolled */}
+      {!enrolled &&
+        enrollmentStatus !== 'pending_payment' &&
+        enrollmentStatus !== 'pending_next_cycle' &&
+        enrollmentStatus !== 'completed' &&
+        !programIsInactive &&
         ((program as any)?.max_students == null || enrolledCount >= ((program as any)?.max_students ?? 0)) && (
         <View style={styles.waitlistCard}>
           {waitlistPosition !== null ? (
