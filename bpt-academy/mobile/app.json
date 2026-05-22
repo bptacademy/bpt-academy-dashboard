@@ -3,7 +3,7 @@
     "name": "BPT Academy",
     "slug": "mobile",
     "version": "1.5.0",
-    "orientation": "portrait",
+    "orientation": "default",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
@@ -12,23 +12,21 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": false,
+      "supportsTablet": true,
       "bundleIdentifier": "com.bptacademy.app",
-      "buildNumber": "7",
+      "buildNumber": "9",
       "appleTeamId": "R7365964A2",
       "usesNonExemptEncryption": false,
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
-        "UIDeviceFamily": [
-          1
-        ],
         "NSPhotoLibraryUsageDescription": "BPT Academy uses your photo library so you can choose a profile photo. Your photos are only accessed when you tap to change your avatar and are never shared without your permission."
       }
     },
     "android": {
       "package": "com.bptacademy.app",
-      "versionCode": 8,
+      "versionCode": 14,
       "googleServicesFile": "./google-services.json",
+      "allowBackup": false,
       "permissions": [
         "android.permission.CAMERA",
         "android.permission.READ_EXTERNAL_STORAGE",
@@ -37,8 +35,7 @@
         "android.permission.RECEIVE_BOOT_COMPLETED",
         "android.permission.VIBRATE",
         "android.permission.USE_FULL_SCREEN_INTENT",
-        "android.permission.POST_NOTIFICATIONS",
-        "android.permission.RECORD_AUDIO"
+        "android.permission.POST_NOTIFICATIONS"
       ],
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
