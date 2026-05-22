@@ -36,11 +36,10 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
   const [endingCycle, setEndingCycle]             = useState(false);
 
   const fetchData = useCallback(async () => {
-    const [progRes, modulesRes, sessionsRes, enrollRes, activeEnrollRes, coachRes] = await Promise.all([
+    const [progRes, modulesRes, sessionsRes, activeEnrollRes, coachRes] = await Promise.all([
       supabase.from('programs').select('*').eq('id', programId).single(),
       supabase.from('modules').select('*').eq('program_id', programId).order('order_index'),
       supabase.from('program_sessions').select('*').eq('program_id', programId).order('scheduled_at'),
-      supabase.from('enrollments').select('id, status, payment_status').eq('student_id', profile!.id).eq('program_id', programId).neq('status', 'cancelled').maybeSingle(),
       supabase.from('enrollments')
         .select('id, programs!inner(is_active)')
         .eq('student_id', profile!.id)
@@ -49,10 +48,21 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
       supabase.from('program_coaches').select('coach:profiles!coach_id(id, full_name, avatar_url)').eq('program_id', programId),
     ]);
 
+    // Always use the most recent non-cancelled enrollment for this program
+    const { data: enrollRows } = await supabase
+      .from('enrollments')
+      .select('id, status, payment_status')
+      .eq('student_id', profile!.id)
+      .eq('program_id', programId)
+      .neq('status', 'cancelled')
+      .order('enrolled_at', { ascending: false })
+      .limit(1);
+    const enrollRes = enrollRows?.[0] ?? null;
+
     if (progRes.data) setProgram(progRes.data);
-    setEnrolled(enrollRes.data?.status === 'active');
-    setEnrollmentStatus(enrollRes.data?.status ?? null);
-    setPaymentStatus(enrollRes.data?.payment_status ?? null);
+    setEnrolled(enrollRes?.status === 'active');
+    setEnrollmentStatus(enrollRes?.status ?? null);
+    setPaymentStatus(enrollRes?.payment_status ?? null);
     setHasActiveEnrollment((activeEnrollRes.data?.length ?? 0) > 0);
     if (coachRes.data) setCoaches(coachRes.data.map((r: any) => r.coach).filter(Boolean));
 
@@ -64,7 +74,7 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
         .in('module_id', modulesRes.data.map((m) => m.id));
 
       const progressMap = new Map(progressData?.map((p) => [p.module_id, p]) ?? []);
-      const enrollStatus = enrollRes.data?.status ?? null;
+      const enrollStatus = enrollRes?.status ?? null;
       const nextCycleStart = progRes.data?.next_cycle_start_date ?? null;
 
       let filteredModules = modulesRes.data;
@@ -92,7 +102,7 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
       .eq('month', month)
       .maybeSingle();
 
-    const resolvedStatus = enrollRes.data?.status ?? null;
+    const resolvedStatus = enrollRes?.status ?? null;
     if (
       resolvedStatus === 'pending_payment' ||
       resolvedStatus === 'active' ||
@@ -258,10 +268,10 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
   const programIsInactive = (program as any)?.is_active === false;
   const paymentSubmitted = enrollmentStatus === 'pending_payment' && paymentStatus === 'pending';
 
-  // isEligible placed HERE — after program state is set — so it reads the correct value
+  // isEligible placed after program state — program is guaranteed to be set by render time
   const isEligible = (() => {
     if (isCoachOrAdmin) return true;
-    if (!program) return true; // program not loaded yet — default to allowing, fetchData will refresh
+    if (!program) return true; // not yet loaded — default open, fetchData will correct
     const progDiv = (program as any).division ?? 'amateur';
     const studentDiv = (profile as any)?.division ?? 'amateur';
     if (progDiv !== studentDiv) return false;
@@ -648,7 +658,7 @@ const styles = StyleSheet.create({
   awaitingBody: { fontSize: 13, color: '#7A8FA6', textAlign: 'center', lineHeight: 20, marginBottom: 16 },
   awaitingBtn: { backgroundColor: 'rgba(245,158,11,0.18)', borderRadius: 10, paddingVertical: 14, paddingHorizontal: 24, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(245,158,11,0.40)', width: '100%' },
   awaitingBtnText: { color: '#FCD34D', fontWeight: '700', fontSize: 15 },
-  // Completed banner (re-enroll notice inside enrol card)
+  // Completed banner (re-enroll notice)
   completedBanner: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: 'rgba(99,102,241,0.12)', borderRadius: 10, padding: 12, marginBottom: 14, borderWidth: 1, borderColor: 'rgba(99,102,241,0.25)' },
   completedBannerIcon: { fontSize: 20 },
   completedBannerText: { flex: 1, fontSize: 13, color: '#A5B4FC', lineHeight: 18 },
