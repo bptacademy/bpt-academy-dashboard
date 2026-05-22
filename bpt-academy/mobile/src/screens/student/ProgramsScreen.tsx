@@ -24,20 +24,32 @@ export default function ProgramsScreen({ navigation }: any) {
   const [filter, setFilter] = useState<Division | 'all'>('all');
   const [refreshing, setRefreshing] = useState(false);
 
+  const isCoachOrAdmin = ['coach', 'admin', 'super_admin'].includes(profile?.role ?? '');
+
+  // Returns true if the student is eligible for a given program.
+  // Coaches/admins bypass this check entirely.
+  const isEligible = (program: Program): boolean => {
+    if (isCoachOrAdmin) return true;
+    const progDiv = (program as any).division ?? 'amateur';
+    const studentDiv = (profile as any)?.division ?? 'amateur';
+    if (progDiv !== studentDiv) return false;
+    if (progDiv === 'amateur') {
+      const progSkill = (program as any).skill_level;
+      const studentSkill = (profile as any)?.skill_level;
+      if (progSkill && studentSkill && progSkill !== studentSkill) return false;
+    }
+    return true;
+  };
+
   const fetchData = async () => {
     const [progRes, enrollRes, activeRes, pendingRes, completedRes] = await Promise.all([
-      // Only fetch active programs
       supabase.from('programs').select('*').eq('is_active', true),
-      // Currently active enrollments
       supabase.from('enrollments').select('program_id').eq('student_id', profile!.id).eq('status', 'active'),
-      // Lock only if student has an active/pending enrollment in a program that is still running
       supabase.from('enrollments').select('id, program_id, programs!inner(is_active, end_date)')
         .eq('student_id', profile!.id)
         .in('status', ['pending_payment', 'pending_next_cycle', 'active'])
         .eq('programs.is_active', true),
-      // Pending enrollments
       supabase.from('enrollments').select('program_id').eq('student_id', profile!.id).in('status', ['pending_payment', 'pending_next_cycle']),
-      // Completed enrollments — so we can show "re-enroll" nudge
       supabase.from('enrollments').select('program_id').eq('student_id', profile!.id).eq('status', 'completed'),
     ]);
 
@@ -45,7 +57,6 @@ export default function ProgramsScreen({ navigation }: any) {
     if (enrollRes.data) setEnrolledIds(enrollRes.data.map((e) => e.program_id));
     if (pendingRes.data) setPendingIds(pendingRes.data.map((e) => e.program_id));
     if (completedRes.data) setCompletedIds(completedRes.data.map((e) => e.program_id));
-    // Only lock if there's an active/pending enrollment in a currently active program
     setActiveEnrollmentExists((activeRes.data?.length ?? 0) > 0);
   };
 
@@ -61,7 +72,17 @@ export default function ProgramsScreen({ navigation }: any) {
     navigation.navigate('ProgramDetail', { programId });
   };
 
-  const filtered = filter === 'all' ? programs : programs.filter((p) => (p as any).division === filter);
+  // For students: hide programs they're ineligible for (unless already enrolled/pending/completed in one)
+  const eligiblePrograms = programs.filter((p) =>
+    isEligible(p) ||
+    enrolledIds.includes(p.id) ||
+    pendingIds.includes(p.id) ||
+    completedIds.includes(p.id)
+  );
+
+  const filtered = filter === 'all'
+    ? eligiblePrograms
+    : eligiblePrograms.filter((p) => (p as any).division === filter);
 
   return (
     <View style={styles.container}>
@@ -153,7 +174,6 @@ export default function ProgramsScreen({ navigation }: any) {
 
                 {/* CTA area */}
                 {enrolled ? null : isPending ? null : isCompleted ? (
-                  // Previously completed this program — nudge to re-enroll
                   <TouchableOpacity
                     style={styles.reenrollButton}
                     onPress={() => handleEnrollPress(program.id)}
@@ -169,7 +189,7 @@ export default function ProgramsScreen({ navigation }: any) {
                     style={styles.enrollButton}
                     onPress={() => handleEnrollPress(program.id)}
                   >
-                    <Text style={styles.enrollButtonText}>Pay & Enroll</Text>
+                    <Text style={styles.enrollButtonText}>Join Waiting List</Text>
                   </TouchableOpacity>
                 )}
               </TouchableOpacity>
@@ -178,7 +198,7 @@ export default function ProgramsScreen({ navigation }: any) {
 
           {filtered.length === 0 && (
             <View style={styles.empty}>
-              <Text style={styles.emptyText}>No programs found.</Text>
+              <Text style={styles.emptyText}>No programs available for your level.</Text>
             </View>
           )}
         </View>
