@@ -8,6 +8,11 @@ import { useTabBarPadding } from '../../hooks/useTabBarPadding';
 import { supabase } from '../../lib/supabase';
 import BackHeader from '../../components/common/BackHeader';
 
+// Module-level set — survives screen unmount/remount within the same app session.
+// Tracks waitlist entry IDs that have been approved or removed, so they're filtered
+// out even if the DB delete hasn't completed yet when the screen remounts.
+const actionedIds = new Set<string>();
+
 type WaitlistEntry = {
   id: string;
   position: number;
@@ -38,9 +43,12 @@ export default function AllWaitingListsScreen({ navigation }: any) {
 
     if (!data) { setLoading(false); return; }
 
+    // Filter out any IDs already actioned this session
+    const rows = (data as any[]).filter(row => !actionedIds.has(row.id));
+
     // Group by program
     const map = new Map<string, ProgramGroup>();
-    for (const row of data as any[]) {
+    for (const row of rows) {
       const pid = row.program_id;
       const title = row.program?.title ?? 'Unknown Program';
       if (!map.has(pid)) map.set(pid, { programId: pid, programTitle: title, entries: [] });
@@ -54,18 +62,18 @@ export default function AllWaitingListsScreen({ navigation }: any) {
       });
     }
 
-    // Re-number positions by join date order (stored position is per-month, unreliable across months)
+    // Re-number positions by join date order
     for (const group of map.values()) {
       group.entries.sort((a, b) => new Date(a.joined_at).getTime() - new Date(b.joined_at).getTime());
       group.entries.forEach((e, i) => { e.position = i + 1; });
     }
     const result = [...map.values()].sort((a, b) => b.entries.length - a.entries.length);
     setGroups(result);
-    setTotalCount(data.length);
+    setTotalCount(rows.length);
     setLoading(false);
   }, []);
 
-  // Re-fetch every time this screen comes into focus (handles back navigation)
+  // Re-fetch every time this screen comes into focus
   useFocusEffect(useCallback(() => { fetchData(); }, [fetchData]));
 
   const onRefresh = async () => {
@@ -83,17 +91,22 @@ export default function AllWaitingListsScreen({ navigation }: any) {
         {
           text: 'Approve', style: 'default',
           onPress: async () => {
-            // Delete from waitlist DB first — so if user navigates away, row is already gone
-            const { error: deleteError } = await supabase
-              .from('program_waiting_list').delete().eq('id', entry.id);
-            if (deleteError) { Alert.alert('Error', deleteError.message); return; }
-
-            // Now update UI optimistically
+            // Mark as actioned immediately — survives remount
+            actionedIds.add(entry.id);
             setGroups(prev => prev
               .map(g => ({ ...g, entries: g.entries.filter(e => e.id !== entry.id) }))
               .filter(g => g.entries.length > 0)
             );
             setTotalCount(prev => Math.max(0, prev - 1));
+
+            const { error: deleteError } = await supabase
+              .from('program_waiting_list').delete().eq('id', entry.id);
+            if (deleteError) {
+              actionedIds.delete(entry.id);
+              Alert.alert('Error', deleteError.message);
+              fetchData();
+              return;
+            }
 
             const { error } = await supabase.from('enrollments').upsert({
               student_id: entry.student.id,
@@ -124,16 +137,21 @@ export default function AllWaitingListsScreen({ navigation }: any) {
         {
           text: 'Remove', style: 'destructive',
           onPress: async () => {
-            // Delete from DB first, then update UI
-            const { error } = await supabase
-              .from('program_waiting_list').delete().eq('id', entry.id);
-            if (error) { Alert.alert('Error', error.message); return; }
-
+            // Mark as actioned immediately — survives remount
+            actionedIds.add(entry.id);
             setGroups(prev => prev
               .map(g => ({ ...g, entries: g.entries.filter(e => e.id !== entry.id) }))
               .filter(g => g.entries.length > 0)
             );
             setTotalCount(prev => Math.max(0, prev - 1));
+
+            const { error } = await supabase
+              .from('program_waiting_list').delete().eq('id', entry.id);
+            if (error) {
+              actionedIds.delete(entry.id);
+              Alert.alert('Error', error.message);
+              fetchData();
+            }
           },
         },
       ]

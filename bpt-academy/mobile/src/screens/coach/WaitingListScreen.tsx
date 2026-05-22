@@ -8,6 +8,11 @@ import { useTabBarPadding } from '../../hooks/useTabBarPadding';
 import { supabase } from '../../lib/supabase';
 import BackHeader from '../../components/common/BackHeader';
 
+// Module-level set — survives screen unmount/remount within the same app session.
+// Tracks waitlist entry IDs that have been approved or removed, so they're filtered
+// out even if the DB delete hasn't completed yet when the screen remounts.
+const actionedIds = new Set<string>();
+
 type WaitlistEntry = {
   id: string;
   position: number;
@@ -28,16 +33,17 @@ export default function WaitingListScreen({ route, navigation }: any) {
       .from('program_waiting_list')
       .select('id, position, joined_at, month, student:profiles!student_id(id, full_name, phone)')
       .eq('program_id', programId)
-      .order('month', { ascending: false })
-      .order('position', { ascending: true });
-    const sorted = ((data as any) ?? []).sort((a: any, b: any) =>
-      new Date(a.joined_at).getTime() - new Date(b.joined_at).getTime()
-    ).map((e: any, i: number) => ({ ...e, position: i + 1 }));
-    setEntries(sorted);
+      .order('joined_at', { ascending: true });
+
+    const filtered = ((data as any) ?? [])
+      .filter((e: any) => !actionedIds.has(e.id))
+      .map((e: any, i: number) => ({ ...e, position: i + 1 }));
+
+    setEntries(filtered);
     setLoading(false);
   }, [programId]);
 
-  // Re-fetch every time this screen comes into focus (handles back navigation)
+  // Re-fetch every time this screen comes into focus
   useFocusEffect(useCallback(() => { fetchData(); }, [fetchData]));
 
   const onRefresh = async () => {
@@ -55,11 +61,17 @@ export default function WaitingListScreen({ route, navigation }: any) {
         {
           text: 'Remove', style: 'destructive',
           onPress: async () => {
-            // Delete from DB first, then update UI
+            // Mark as actioned immediately — survives remount
+            actionedIds.add(entry.id);
+            setEntries(prev => prev.filter(e => e.id !== entry.id));
             const { error } = await supabase
               .from('program_waiting_list').delete().eq('id', entry.id);
-            if (error) { Alert.alert('Error', error.message); return; }
-            setEntries(prev => prev.filter(e => e.id !== entry.id));
+            if (error) {
+              // Revert if DB call failed
+              actionedIds.delete(entry.id);
+              Alert.alert('Error', error.message);
+              fetchData();
+            }
           },
         },
       ]
@@ -75,13 +87,18 @@ export default function WaitingListScreen({ route, navigation }: any) {
         {
           text: 'Approve', style: 'default',
           onPress: async () => {
-            // Delete from waitlist DB first — so if user navigates away, row is already gone
+            // Mark as actioned immediately — survives remount
+            actionedIds.add(entry.id);
+            setEntries(prev => prev.filter(e => e.id !== entry.id));
+
             const { error: deleteError } = await supabase
               .from('program_waiting_list').delete().eq('id', entry.id);
-            if (deleteError) { Alert.alert('Error', deleteError.message); return; }
-
-            // Now remove from UI
-            setEntries(prev => prev.filter(e => e.id !== entry.id));
+            if (deleteError) {
+              actionedIds.delete(entry.id);
+              Alert.alert('Error', deleteError.message);
+              fetchData();
+              return;
+            }
 
             const { error } = await supabase.from('enrollments').upsert({
               student_id: entry.student.id,
