@@ -20,8 +20,6 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
 
   const isCoachOrAdmin = ['coach', 'admin', 'super_admin'].includes(profile?.role ?? '');
 
-  // Level eligibility: student can join waiting list only if their division matches
-  // For amateur programs, skill_level must also match
   const isEligible = (() => {
     if (isCoachOrAdmin) return true;
     if (!program) return false;
@@ -57,7 +55,6 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
       supabase.from('modules').select('*').eq('program_id', programId).order('order_index'),
       supabase.from('program_sessions').select('*').eq('program_id', programId).order('scheduled_at'),
       supabase.from('enrollments').select('id, status, payment_status').eq('student_id', profile!.id).eq('program_id', programId).neq('status', 'cancelled').maybeSingle(),
-      // Only lock if student has an active/pending enrollment in a currently active program
       supabase.from('enrollments')
         .select('id, programs!inner(is_active)')
         .eq('student_id', profile!.id)
@@ -85,7 +82,6 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
       const nextCycleStart = progRes.data?.next_cycle_start_date ?? null;
 
       let filteredModules = modulesRes.data;
-      // Only filter for pending_next_cycle — show all modules for active students
       if (enrollStatus === 'pending_next_cycle' && nextCycleStart) {
         filteredModules = modulesRes.data.filter((m: any) => m.session_date >= nextCycleStart);
       }
@@ -110,17 +106,15 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
       .eq('month', month)
       .maybeSingle();
 
-    // Clear waitlist position once student is approved or beyond — the waitlist row
-    // is deleted when approved, so we should never show the waitlist card in those states.
     const resolvedStatus = enrollRes.data?.status ?? null;
     if (
       resolvedStatus === 'pending_payment' ||
       resolvedStatus === 'active' ||
-      resolvedStatus === 'pending_next_cycle' ||
-      resolvedStatus === 'completed'
+      resolvedStatus === 'pending_next_cycle'
     ) {
       setWaitlistPosition(null);
     } else {
+      // For 'completed' or null, show waitlist position if they've re-joined
       setWaitlistPosition(wlData?.position ?? null);
     }
 
@@ -151,7 +145,6 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
     });
     if (error) { setWaitlistLoading(false); Alert.alert('Error', error.message); return; }
 
-    // In-app + email notification to student
     await supabase.from('notifications').insert({
       recipient_id: profile!.id,
       title: 'You\'re on the waiting list!',
@@ -160,7 +153,6 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
       read: false,
     });
 
-    // Notify all admins and super_admins
     const { data: admins } = await supabase
       .from('profiles')
       .select('id')
@@ -210,10 +202,7 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
             setEndingCycle(true);
             const { error } = await supabase.rpc('end_program_cycle', { p_program_id: programId });
             setEndingCycle(false);
-            if (error) {
-              Alert.alert('Error', error.message);
-              return;
-            }
+            if (error) { Alert.alert('Error', error.message); return; }
             Alert.alert(
               '✅ Cycle Ended',
               'All students have been marked as completed and notified. The program is now inactive.',
@@ -227,11 +216,7 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
 
   const handleEnrollPress = async () => {
     if (hasActiveEnrollment && !enrolled) {
-      Alert.alert(
-        'Active Program Running',
-        'You are already enrolled in an active program. Complete it before joining a new one.',
-        [{ text: 'OK' }],
-      );
+      Alert.alert('Active Program Running', 'You are already enrolled in an active program. Complete it before joining a new one.', [{ text: 'OK' }]);
       return;
     }
 
@@ -241,43 +226,21 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
 
     if (isFree) {
       const { data: existing } = await supabase
-        .from('enrollments')
-        .select('id, status')
-        .eq('student_id', profile!.id)
-        .eq('program_id', programId)
-        .maybeSingle();
-
+        .from('enrollments').select('id, status').eq('student_id', profile!.id).eq('program_id', programId).maybeSingle();
       if (existing) {
-        const { error } = await supabase
-          .from('enrollments')
-          .update({ status: 'active' })
-          .eq('id', existing.id);
+        const { error } = await supabase.from('enrollments').update({ status: 'active' }).eq('id', existing.id);
         if (error) { Alert.alert('Error', error.message); return; }
       } else {
-        const { error } = await supabase.from('enrollments').insert({
-          student_id: profile!.id,
-          program_id: programId,
-          status: 'active',
-        });
+        const { error } = await supabase.from('enrollments').insert({ student_id: profile!.id, program_id: programId, status: 'active' });
         if (error) { Alert.alert('Error', error.message); return; }
       }
-
-      await supabase.rpc('start_promotion_cycle_for_student', {
-        p_student_id: profile!.id,
-        p_program_id: programId,
-      });
-
+      await supabase.rpc('start_promotion_cycle_for_student', { p_student_id: profile!.id, p_program_id: programId });
       Alert.alert('🎾 Enrolled!', 'You are now enrolled in this program.');
       fetchData();
       return;
     }
 
-    navigation.navigate('Payment', {
-      programId,
-      studentId: profile!.id,
-      amount: price,
-      programDivision: divKey,
-    });
+    navigation.navigate('Payment', { programId, studentId: profile!.id, amount: price, programDivision: divKey });
   };
 
   const toggleModule = async (module: Module & { progress?: StudentProgress }) => {
@@ -290,10 +253,7 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
         .eq('id', module.progress.id);
     } else {
       await supabase.from('student_progress').insert({
-        student_id: profile!.id,
-        module_id: module.id,
-        completed: true,
-        completed_at: new Date().toISOString(),
+        student_id: profile!.id, module_id: module.id, completed: true, completed_at: new Date().toISOString(),
       });
     }
     fetchData();
@@ -310,11 +270,15 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
     : '';
 
   const upcomingSessions = sessions.filter(s => s.scheduled_at && new Date(s.scheduled_at) >= new Date());
-
   const programIsInactive = (program as any)?.is_active === false;
-
-  // true once the student has submitted a payment but coach hasn't confirmed yet
   const paymentSubmitted = enrollmentStatus === 'pending_payment' && paymentStatus === 'pending';
+
+  // A student can join the waitlist when: not enrolled, not pending, not on waitlist already,
+  // and the program is active. Includes re-enrollment after completing a program.
+  const canJoinWaitlist = !programIsInactive &&
+    enrollmentStatus !== 'pending_payment' &&
+    enrollmentStatus !== 'pending_next_cycle' &&
+    enrollmentStatus !== 'active';
 
   if (loading) return (
     <View style={styles.loading}>
@@ -401,23 +365,6 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
 
       {/* ── Status cards ── */}
 
-      {/* Program ended — student completed it */}
-      {enrollmentStatus === 'completed' && (
-        <View style={styles.completedCard}>
-          <Text style={styles.completedIcon}>🏁</Text>
-          <Text style={styles.completedTitle}>Program Complete!</Text>
-          <Text style={styles.completedBody}>
-            You finished this program. Ready for the next challenge?
-          </Text>
-          <TouchableOpacity
-            style={styles.browseBtn}
-            onPress={() => navigation.goBack()}
-          >
-            <Text style={styles.browseBtnText}>Browse Programs</Text>
-          </TouchableOpacity>
-        </View>
-      )}
-
       {/* Active enrollment — show progress */}
       {enrolled && enrollmentStatus === 'active' && (
         <View style={styles.progressCard}>
@@ -486,8 +433,8 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
         </View>
       )}
 
-      {/* Blocked — already in a different active program */}
-      {!enrollmentStatus && hasActiveEnrollment && !programIsInactive && (
+      {/* Blocked — already active in a DIFFERENT program */}
+      {canJoinWaitlist && hasActiveEnrollment && !programIsInactive && (
         <View style={styles.blockedCard}>
           <Text style={styles.blockedIcon}>🔒</Text>
           <Text style={styles.blockedTitle}>Program Slot Unavailable</Text>
@@ -497,12 +444,17 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
         </View>
       )}
 
-      {/* Not enrolled, program is active — waitlist-first flow */}
-      {!enrollmentStatus && !programIsInactive && (
+      {/* Waitlist / re-enroll flow — shown when student can join (includes after completing) */}
+      {canJoinWaitlist && !hasActiveEnrollment && !programIsInactive && (
         <View style={styles.enrollCard}>
+          {enrollmentStatus === 'completed' && (
+            <View style={styles.completedBanner}>
+              <Text style={styles.completedBannerIcon}>🏁</Text>
+              <Text style={styles.completedBannerText}>You completed this program — re-join the waiting list to enroll again.</Text>
+            </View>
+          )}
           {isEligible ? (
             waitlistPosition !== null ? (
-              // Already on waitlist
               <>
                 <Text style={styles.waitlistOnTitle}>⏳ You're on the waiting list</Text>
                 <Text style={styles.waitlistOnBody}>
@@ -513,10 +465,11 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
                 </TouchableOpacity>
               </>
             ) : (
-              // Eligible, not yet on waitlist
               <>
                 <Text style={styles.enrollText}>
-                  Join the waiting list and our coaches will assess your level. You'll be notified when your spot is confirmed.
+                  {enrollmentStatus === 'completed'
+                    ? 'Join the waiting list to re-enroll. A coach will confirm your spot.'
+                    : 'Join the waiting list and our coaches will assess your level. You\'ll be notified when your spot is confirmed.'}
                 </Text>
                 <TouchableOpacity
                   style={[styles.enrollBtn, waitlistLoading && { opacity: 0.6 }]}
@@ -530,7 +483,6 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
               </>
             )
           ) : (
-            // Not eligible — show program but block join
             <View style={styles.ineligibleCard}>
               <Text style={styles.ineligibleIcon}>🎾</Text>
               <Text style={styles.ineligibleTitle}>Level not eligible</Text>
@@ -542,8 +494,8 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
         </View>
       )}
 
-      {/* Program is inactive and student never enrolled — show ended notice */}
-      {!enrollmentStatus && programIsInactive && (
+      {/* Program is inactive */}
+      {programIsInactive && enrollmentStatus !== 'active' && (
         <View style={styles.endedCard}>
           <Text style={styles.endedIcon}>🏁</Text>
           <Text style={styles.endedTitle}>This program has ended</Text>
@@ -551,11 +503,12 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
         </View>
       )}
 
-      {/* Legacy waitlist card — only shown when program is full AND student is not yet approved/enrolled */}
+      {/* Legacy waitlist card — only shown when program is full AND student hasn't yet been approved */}
       {!enrolled &&
         enrollmentStatus !== 'pending_payment' &&
         enrollmentStatus !== 'pending_next_cycle' &&
         enrollmentStatus !== 'completed' &&
+        !enrollmentStatus &&
         !programIsInactive &&
         ((program as any)?.max_students == null || enrolledCount >= ((program as any)?.max_students ?? 0)) && (
         <View style={styles.waitlistCard}>
@@ -685,13 +638,6 @@ const styles = StyleSheet.create({
   metaValue: { fontSize: 20, fontWeight: '700', color: '#F0F6FC' },
   metaLabel: { fontSize: 12, color: '#7A8FA6', marginTop: 2 },
   metaDivider: { width: 1, height: 32, backgroundColor: 'rgba(255,255,255,0.10)' },
-  // Completed
-  completedCard: { margin: 16, backgroundColor: 'rgba(99,102,241,0.12)', borderRadius: 14, padding: 24, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(99,102,241,0.30)' },
-  completedIcon: { fontSize: 40, marginBottom: 10 },
-  completedTitle: { fontSize: 18, fontWeight: '700', color: '#F0F6FC', marginBottom: 6 },
-  completedBody: { fontSize: 14, color: '#7A8FA6', textAlign: 'center', lineHeight: 20, marginBottom: 16 },
-  browseBtn: { backgroundColor: '#6366F1', borderRadius: 10, paddingVertical: 12, paddingHorizontal: 28 },
-  browseBtnText: { color: '#FFFFFF', fontWeight: '700', fontSize: 15 },
   // Progress
   progressCard: { margin: 16, backgroundColor: 'rgba(17,30,51,0.85)', borderRadius: 14, padding: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)' },
   progressHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 },
@@ -707,6 +653,10 @@ const styles = StyleSheet.create({
   awaitingBody: { fontSize: 13, color: '#7A8FA6', textAlign: 'center', lineHeight: 20, marginBottom: 16 },
   awaitingBtn: { backgroundColor: 'rgba(245,158,11,0.18)', borderRadius: 10, paddingVertical: 14, paddingHorizontal: 24, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(245,158,11,0.40)', width: '100%' },
   awaitingBtnText: { color: '#FCD34D', fontWeight: '700', fontSize: 15 },
+  // Completed banner (inside enrol card for re-enroll)
+  completedBanner: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: 'rgba(99,102,241,0.12)', borderRadius: 10, padding: 12, marginBottom: 14, borderWidth: 1, borderColor: 'rgba(99,102,241,0.25)' },
+  completedBannerIcon: { fontSize: 20 },
+  completedBannerText: { flex: 1, fontSize: 13, color: '#A5B4FC', lineHeight: 18 },
   // Waitlist on-list state
   waitlistOnTitle: { fontSize: 16, fontWeight: '700', color: '#F0F6FC', marginBottom: 8, textAlign: 'center' },
   waitlistOnBody: { fontSize: 13, color: '#7A8FA6', textAlign: 'center', lineHeight: 20, marginBottom: 16 },
