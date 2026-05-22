@@ -49,12 +49,8 @@ export default function PaymentScreen({ navigation, route }: any) {
 
   const divisionLinkKey = programDivision ? `stripe_payment_link_${programDivision}` : null;
 
-  // Notify all admins/coaches about a tournament registration
   const notifyAdminsTournamentReg = async (tournamentTitle: string, method: 'card' | 'bank_transfer') => {
-    const { data: admins } = await supabase
-      .from('profiles')
-      .select('id')
-      .in('role', ['admin', 'coach']);
+    const { data: admins } = await supabase.from('profiles').select('id').in('role', ['admin', 'coach']);
     if (!admins || admins.length === 0) return;
     const studentName = profile?.full_name ?? 'A student';
     const methodLabel = method === 'card' ? 'card payment' : 'bank transfer';
@@ -67,6 +63,19 @@ export default function PaymentScreen({ navigation, route }: any) {
         read: false,
       }))
     );
+  };
+
+  // Helper: get the most recent non-cancelled enrollment for this program
+  const getLatestEnrollment = async () => {
+    const { data } = await supabase
+      .from('enrollments')
+      .select('id, status')
+      .eq('student_id', studentId)
+      .eq('program_id', programId)
+      .neq('status', 'cancelled')
+      .order('enrolled_at', { ascending: false })
+      .limit(1);
+    return data?.[0] ?? null;
   };
 
   useEffect(() => {
@@ -98,20 +107,18 @@ export default function PaymentScreen({ navigation, route }: any) {
     }
     setLoadingCard(true);
 
-    // Create enrollment or tournament registration
     if (programId && studentId) {
-      const { data: existingEnroll } = await supabase
-        .from('enrollments')
-        .select('id')
-        .eq('student_id', studentId)
-        .eq('program_id', programId)
-        .maybeSingle();
-      if (existingEnroll) {
-        await supabase.from('enrollments').update({ status: 'pending_payment', payment_status: 'pending' }).eq('id', existingEnroll.id);
+      const existing = await getLatestEnrollment();
+      if (existing) {
+        await supabase.from('enrollments')
+          .update({ status: 'pending_payment', payment_status: 'pending' })
+          .eq('id', existing.id);
       } else {
-        await supabase.from('enrollments').insert({ student_id: studentId, program_id: programId, status: 'pending_payment', payment_status: 'pending' });
+        await supabase.from('enrollments').insert({
+          student_id: studentId, program_id: programId,
+          status: 'pending_payment', payment_status: 'pending',
+        });
       }
-      // Kick off promotion cycle (explicit call in case trigger doesn't fire)
       await supabase.rpc('start_promotion_cycle_for_student', {
         p_student_id: studentId,
         p_program_id: programId,
@@ -150,15 +157,10 @@ export default function PaymentScreen({ navigation, route }: any) {
 
     let bankEnrollmentId: string | null = enrollmentId ?? null;
     if (programId && studentId) {
-      const { data: existing } = await supabase
-        .from('enrollments')
-        .select('id, status')
-        .eq('student_id', studentId)
-        .eq('program_id', programId)
-        .maybeSingle();
+      const existing = await getLatestEnrollment();
 
       if (existing) {
-        // Only update if currently cancelled/waitlisted/pending — don't downgrade an active enrollment
+        // Only update if currently pending — don't downgrade an active enrollment
         if (['cancelled', 'waitlisted', 'pending_payment'].includes(existing.status)) {
           await supabase.from('enrollments')
             .update({ status: 'pending_payment', payment_status: 'pending' })
@@ -183,9 +185,7 @@ export default function PaymentScreen({ navigation, route }: any) {
 
     if (tournamentId && studentId) {
       const { error: regError } = await supabase.from('tournament_registrations').insert({
-        tournament_id: tournamentId,
-        student_id: studentId,
-        status: 'pending',
+        tournament_id: tournamentId, student_id: studentId, status: 'pending',
       });
       if (regError) {
         setLoadingBank(false);
@@ -234,8 +234,6 @@ export default function PaymentScreen({ navigation, route }: any) {
           <Text style={styles.amountLabel}>Amount Due</Text>
           <Text style={styles.amountValue}>£{amount.toFixed(2)}</Text>
         </View>
-
-        {/* Payment tabs hidden — bank transfer only */}
 
         {/* ── CARD ── */}
         {tab === 'card' && (
