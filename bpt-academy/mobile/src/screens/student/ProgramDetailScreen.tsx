@@ -22,7 +22,7 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
 
   const [program, setProgram]                     = useState<Program | null>(null);
   const [enrollmentStatus, setEnrollmentStatus]   = useState<string | null>(null);
-  const [paymentStatus, setPaymentStatus]         = useState<string | null>(null);
+  const [paymentSubmitted, setPaymentSubmitted]   = useState(false); // true when student has a pending payment record
   const [modules, setModules]                     = useState<(Module & { progress?: StudentProgress })[]>([]);
   const [sessions, setSessions]                   = useState<ProgramSession[]>([]);
   const [coaches, setCoaches]                     = useState<{ id: string; full_name: string; avatar_url?: string }[]>([]);
@@ -48,10 +48,10 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
       supabase.from('program_coaches').select('coach:profiles!coach_id(id, full_name, avatar_url)').eq('program_id', programId),
     ]);
 
-    // Always use the most recent non-cancelled enrollment for this program
+    // Most recent non-cancelled enrollment for this program
     const { data: enrollRows } = await supabase
       .from('enrollments')
-      .select('id, status, payment_status')
+      .select('id, status')
       .eq('student_id', profile!.id)
       .eq('program_id', programId)
       .neq('status', 'cancelled')
@@ -59,10 +59,22 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
       .limit(1);
     const enrollRes = enrollRows?.[0] ?? null;
 
+    // Check payments table for any pending payment — this is readable by students
+    // and is the source of truth for whether payment has been submitted.
+    // We cannot rely on enrollment.payment_status because RLS blocks student updates on enrollments.
+    const { data: paymentRows } = await supabase
+      .from('payments')
+      .select('id')
+      .eq('student_id', profile!.id)
+      .eq('program_id', programId)
+      .eq('status', 'pending')
+      .limit(1);
+    const hasPendingPayment = (paymentRows?.length ?? 0) > 0;
+
     if (progRes.data) setProgram(progRes.data);
     setEnrolled(enrollRes?.status === 'active');
     setEnrollmentStatus(enrollRes?.status ?? null);
-    setPaymentStatus(enrollRes?.payment_status ?? null);
+    setPaymentSubmitted(enrollRes?.status === 'pending_payment' && hasPendingPayment);
     setHasActiveEnrollment((activeEnrollRes.data?.length ?? 0) > 0);
     if (coachRes.data) setCoaches(coachRes.data.map((r: any) => r.coach).filter(Boolean));
 
@@ -266,12 +278,11 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
 
   const upcomingSessions = sessions.filter(s => s.scheduled_at && new Date(s.scheduled_at) >= new Date());
   const programIsInactive = (program as any)?.is_active === false;
-  const paymentSubmitted = enrollmentStatus === 'pending_payment' && paymentStatus === 'pending';
 
   // isEligible placed after program state — program is guaranteed to be set by render time
   const isEligible = (() => {
     if (isCoachOrAdmin) return true;
-    if (!program) return true; // not yet loaded — default open, fetchData will correct
+    if (!program) return true;
     const progDiv = (program as any).division ?? 'amateur';
     const studentDiv = (profile as any)?.division ?? 'amateur';
     if (progDiv !== studentDiv) return false;
@@ -591,7 +602,7 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
         </View>
       )}
 
-      {/* Upcoming Sessions — only visible to active enrollments */}
+      {/* Upcoming Sessions */}
       {upcomingSessions.length > 0 && enrollmentStatus === 'active' && (
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>📅 Upcoming Sessions</Text>
@@ -643,7 +654,6 @@ const styles = StyleSheet.create({
   metaValue: { fontSize: 20, fontWeight: '700', color: '#F0F6FC' },
   metaLabel: { fontSize: 12, color: '#7A8FA6', marginTop: 2 },
   metaDivider: { width: 1, height: 32, backgroundColor: 'rgba(255,255,255,0.10)' },
-  // Progress
   progressCard: { margin: 16, backgroundColor: 'rgba(17,30,51,0.85)', borderRadius: 14, padding: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)' },
   progressHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 },
   progressLabel: { fontSize: 15, fontWeight: '600', color: '#F0F6FC' },
@@ -651,43 +661,35 @@ const styles = StyleSheet.create({
   progressBar: { height: 8, backgroundColor: 'rgba(255,255,255,0.10)', borderRadius: 4, marginBottom: 6 },
   progressFill: { height: '100%', backgroundColor: '#16A34A', borderRadius: 4 },
   progressSub: { fontSize: 13, color: '#7A8FA6' },
-  // Awaiting payment
   awaitingCard: { margin: 16, backgroundColor: 'rgba(245,158,11,0.10)', borderRadius: 14, padding: 20, borderWidth: 1, borderColor: 'rgba(245,158,11,0.35)', alignItems: 'center' },
   awaitingIcon: { fontSize: 36, marginBottom: 8 },
   awaitingTitle: { fontSize: 17, fontWeight: '700', color: '#FCD34D', marginBottom: 6 },
   awaitingBody: { fontSize: 13, color: '#7A8FA6', textAlign: 'center', lineHeight: 20, marginBottom: 16 },
   awaitingBtn: { backgroundColor: 'rgba(245,158,11,0.18)', borderRadius: 10, paddingVertical: 14, paddingHorizontal: 24, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(245,158,11,0.40)', width: '100%' },
   awaitingBtnText: { color: '#FCD34D', fontWeight: '700', fontSize: 15 },
-  // Completed banner (re-enroll notice)
   completedBanner: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: 'rgba(99,102,241,0.12)', borderRadius: 10, padding: 12, marginBottom: 14, borderWidth: 1, borderColor: 'rgba(99,102,241,0.25)' },
   completedBannerIcon: { fontSize: 20 },
   completedBannerText: { flex: 1, fontSize: 13, color: '#A5B4FC', lineHeight: 18 },
-  // Waitlist on-list state
   waitlistOnTitle: { fontSize: 16, fontWeight: '700', color: '#F0F6FC', marginBottom: 8, textAlign: 'center' },
   waitlistOnBody: { fontSize: 13, color: '#7A8FA6', textAlign: 'center', lineHeight: 20, marginBottom: 16 },
   leaveWaitlistBtn: { backgroundColor: 'rgba(220,38,38,0.10)', borderRadius: 10, paddingVertical: 10, paddingHorizontal: 20, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(220,38,38,0.25)' },
   leaveWaitlistBtnText: { color: '#EF4444', fontWeight: '600', fontSize: 13 },
-  // Ineligible
   ineligibleCard: { alignItems: 'center', paddingVertical: 8 },
   ineligibleIcon: { fontSize: 36, marginBottom: 8 },
   ineligibleTitle: { fontSize: 15, fontWeight: '700', color: '#7A8FA6', marginBottom: 4 },
   ineligibleBody: { fontSize: 13, color: '#7A8FA6', textAlign: 'center', lineHeight: 20 },
-  // Pending cycle
   pendingCycleBanner: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, margin: 16, backgroundColor: 'rgba(59,130,246,0.12)', borderRadius: 14, padding: 16, borderWidth: 1, borderColor: 'rgba(59,130,246,0.30)' },
   pendingCycleIcon: { fontSize: 28 },
   pendingCycleTitle: { fontSize: 15, fontWeight: '700', color: '#F0F6FC', marginBottom: 4 },
   pendingCycleBody: { fontSize: 13, color: '#7A8FA6', lineHeight: 18 },
-  // Blocked
   blockedCard: { margin: 16, backgroundColor: 'rgba(245,158,11,0.08)', borderRadius: 14, padding: 24, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(245,158,11,0.25)' },
   blockedIcon: { fontSize: 36, marginBottom: 10 },
   blockedTitle: { fontSize: 16, fontWeight: '700', color: '#FCD34D', marginBottom: 6 },
   blockedText: { fontSize: 13, color: '#7A8FA6', textAlign: 'center', lineHeight: 20 },
-  // Ended
   endedCard: { margin: 16, backgroundColor: 'rgba(107,114,128,0.12)', borderRadius: 14, padding: 24, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(107,114,128,0.25)' },
   endedIcon: { fontSize: 36, marginBottom: 10 },
   endedTitle: { fontSize: 16, fontWeight: '700', color: '#9CA3AF', marginBottom: 6 },
   endedBody: { fontSize: 13, color: '#6B7280', textAlign: 'center', lineHeight: 20 },
-  // Enroll card
   enrollCard: { margin: 16, backgroundColor: 'rgba(17,30,51,0.85)', borderRadius: 14, padding: 20, borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)' },
   priceRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
   priceLabel: { fontSize: 14, color: '#F0F6FC', fontWeight: '600' },
@@ -695,7 +697,6 @@ const styles = StyleSheet.create({
   enrollText: { fontSize: 13, color: '#7A8FA6', marginBottom: 16, lineHeight: 20 },
   enrollBtn: { backgroundColor: '#16A34A', borderRadius: 10, paddingVertical: 14, alignItems: 'center' },
   enrollBtnText: { color: '#FFFFFF', fontWeight: '700', fontSize: 15 },
-  // Legacy waitlist card
   waitlistCard: { backgroundColor: '#F0F9FF', borderRadius: 14, padding: 16, margin: 16, marginTop: 0, borderWidth: 1, borderColor: '#BAE6FD' },
   waitlistTitle: { fontSize: 15, fontWeight: '700', color: '#0369A1', marginBottom: 4 },
   waitlistPosition: { fontSize: 28, fontWeight: '800', color: '#0284C7', marginBottom: 4 },
@@ -704,13 +705,11 @@ const styles = StyleSheet.create({
   waitlistJoinBtnText: { color: '#FFFFFF', fontSize: 14, fontWeight: '700' },
   waitlistLeaveBtn: { backgroundColor: '#FEF2F2', borderRadius: 10, padding: 12, alignItems: 'center', borderWidth: 1, borderColor: '#FECACA' },
   waitlistLeaveBtnText: { color: '#DC2626', fontSize: 13, fontWeight: '600' },
-  // Coach tools
   coachActionsSection: { marginHorizontal: 16, marginBottom: 8, marginTop: 4 },
   coachActionsTitle: { fontSize: 11, fontWeight: '700', color: '#7A8FA6', letterSpacing: 1, marginBottom: 8 },
   endCycleBtn: { backgroundColor: 'rgba(220,38,38,0.12)', borderRadius: 10, padding: 14, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(220,38,38,0.30)' },
   endCycleBtnText: { color: '#EF4444', fontWeight: '700', fontSize: 14 },
   endCycleHint: { fontSize: 12, color: '#6B7280', marginTop: 6, textAlign: 'center', lineHeight: 16 },
-  // Modules
   section: { padding: 16 },
   sectionTitle: { fontSize: 17, fontWeight: '700', color: '#F0F6FC', marginBottom: 12 },
   moduleCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(17,30,51,0.85)', borderRadius: 12, padding: 14, marginBottom: 10, borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)', gap: 14 },
@@ -722,7 +721,6 @@ const styles = StyleSheet.create({
   moduleName: { fontSize: 15, fontWeight: '600', color: '#F0F6FC' },
   moduleNameDone: { color: '#4B5563', textDecorationLine: 'line-through' },
   moduleDesc: { fontSize: 13, color: '#7A8FA6', marginTop: 3 },
-  // Sessions
   sessionCard: { flexDirection: 'row', backgroundColor: 'rgba(17,30,51,0.85)', borderRadius: 12, marginBottom: 10, borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)', overflow: 'hidden' },
   sessionDate: { width: 70, backgroundColor: '#16A34A', alignItems: 'center', justifyContent: 'center', padding: 12 },
   sessionDay: { color: '#FFFFFF', fontWeight: '700', fontSize: 14, textAlign: 'center' },
