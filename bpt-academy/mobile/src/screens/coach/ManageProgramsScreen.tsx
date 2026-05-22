@@ -128,7 +128,6 @@ export default function ManageProgramsScreen({ navigation }: any) {
       programId = data.id;
     }
 
-    // Sync coach assignments — delete all then re-insert selected
     await supabase.from('program_coaches').delete().eq('program_id', programId);
     if (form.selectedCoachIds.length > 0) {
       await supabase.from('program_coaches').insert(
@@ -136,10 +135,8 @@ export default function ManageProgramsScreen({ navigation }: any) {
       );
     }
 
-    // Auto-generate modules for NEW programs only (sessions_per_week × duration_weeks)
     if (!editingProgram && form.duration_weeks && parseInt(form.duration_weeks) > 0) {
       const totalSessions = parseInt(form.duration_weeks) * form.sessions_per_week;
-      // Check if modules already exist
       const { count } = await supabase
         .from('modules')
         .select('*', { count: 'exact', head: true })
@@ -201,7 +198,6 @@ export default function ManageProgramsScreen({ navigation }: any) {
             const color = DIVISION_COLORS[div];
             return (
               <View key={p.id} style={styles.card}>
-                {/* Header row */}
                 <View style={styles.cardHeader}>
                   <View style={[styles.levelBadge, { backgroundColor: color + '20' }]}>
                     <Text style={[styles.levelText, { color }]}>
@@ -231,7 +227,6 @@ export default function ManageProgramsScreen({ navigation }: any) {
                   }
                 </View>
 
-                {/* Coaches */}
                 {(programCoaches[p.id] ?? []).length > 0 && (
                   <View style={styles.coachRow}>
                     <Text style={styles.coachRowLabel}>👨‍🏫</Text>
@@ -241,19 +236,13 @@ export default function ManageProgramsScreen({ navigation }: any) {
                   </View>
                 )}
 
-                {/* Action buttons */}
+                {/* Action buttons — Waitlist removed (accessible from home dashboard tile) */}
                 <View style={styles.cardActions}>
                   <TouchableOpacity
                     style={styles.rosterBtn}
                     onPress={() => navigation.navigate('ProgramRoster', { programId: p.id })}
                   >
                     <Text style={styles.rosterBtnText}>👥 Roster</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={styles.waitlistBtn}
-                    onPress={() => navigation.navigate('WaitingList', { programId: p.id, programTitle: p.title })}
-                  >
-                    <Text style={styles.waitlistBtnText}>⏳ Waitlist</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={styles.modulesBtn}
@@ -441,7 +430,6 @@ export default function ManageProgramsScreen({ navigation }: any) {
               </View>
             )}
 
-            {/* Delete button inside edit modal */}
             {isEditing && (
               <TouchableOpacity
                 style={styles.deleteModalBtn}
@@ -485,8 +473,6 @@ const styles = StyleSheet.create({
   cardActions: { flexDirection: 'row', gap: 8 },
   rosterBtn: { flex: 1, backgroundColor: '#F3F4F6', borderRadius: 8, paddingVertical: 8, alignItems: 'center' },
   rosterBtnText: { fontSize: 13, fontWeight: '600', color: '#374151' },
-  waitlistBtn: { flex: 1, backgroundColor: '#EFF6FF', borderRadius: 8, paddingVertical: 8, alignItems: 'center' },
-  waitlistBtnText: { fontSize: 13, fontWeight: '600', color: '#3B82F6' },
   scheduleBtn: { backgroundColor: '#EFF6FF', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 6, borderWidth: 1, borderColor: '#BFDBFE' },
   scheduleBtnText: { fontSize: 12, fontWeight: '600', color: '#2563EB' },
   modulesBtn: { flex: 1, backgroundColor: '#FFF7ED', borderRadius: 8, paddingVertical: 8, alignItems: 'center' },
@@ -516,12 +502,10 @@ const styles = StyleSheet.create({
   deleteModalBtn: { marginTop: 24, backgroundColor: '#FEF2F2', borderRadius: 10, padding: 14, alignItems: 'center', borderWidth: 1, borderColor: '#FECACA' },
   deleteModalBtnText: { color: '#DC2626', fontWeight: '700', fontSize: 15 },
 
-  // Coach display on card
   coachRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 10 },
   coachRowLabel: { fontSize: 14 },
   coachNames: { fontSize: 13, color: '#374151', fontWeight: '500', flex: 1 },
 
-  // Coach picker in modal
   sublabel: { fontSize: 12, color: '#6B7280', marginBottom: 10, marginTop: -2 },
   noCoachText: { fontSize: 13, color: '#9CA3AF', marginBottom: 16 },
   coachPickerList: { gap: 8, marginBottom: 16 },
@@ -534,7 +518,6 @@ const styles = StyleSheet.create({
   coachPickerNameSelected: { color: '#166534', fontWeight: '700' },
   coachPickerCheck: { fontSize: 16, color: '#16A34A', fontWeight: '700', width: 20, textAlign: 'center' },
 
-  // Price input
   priceInputRow: { flexDirection: 'row', borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 10, overflow: 'hidden', marginBottom: 16, backgroundColor: '#F9FAFB' },
   pricePrefix: { backgroundColor: '#E5E7EB', paddingHorizontal: 14, justifyContent: 'center' },
   pricePrefixText: { fontSize: 16, fontWeight: '700', color: '#374151' },
