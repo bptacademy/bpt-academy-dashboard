@@ -141,12 +141,20 @@ export default function TournamentManageScreen({ navigation }: any) {
                     </View>
                   ))}
                 </View>
-                <TouchableOpacity
-                  style={styles.viewRegsBtn}
-                  onPress={() => navigation.navigate('TournamentDetail', { tournamentId: t.id })}
-                >
-                  <Text style={styles.viewRegsBtnText}>👥 View Registrations</Text>
-                </TouchableOpacity>
+                <View style={styles.cardActions}>
+                  <TouchableOpacity
+                    style={[styles.cardActionBtn, styles.cardActionBtnBlue]}
+                    onPress={() => navigation.navigate('TournamentDetail', { tournamentId: t.id })}
+                  >
+                    <Text style={[styles.cardActionBtnText, {color:'#2563EB'}]}>👥 Registrations</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.cardActionBtn, styles.cardActionBtnGreen]}
+                    onPress={() => navigation.navigate('TournamentDraw', { tournamentId: t.id, tournamentTitle: t.title })}
+                  >
+                    <Text style={[styles.cardActionBtnText, {color:'#16A34A'}]}>🏆 Draw</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             );
           })}
@@ -211,7 +219,7 @@ const styles = StyleSheet.create({
   academyTitle: { fontSize: 16, fontWeight: '700', color: '#111827' },
   addBtn: { backgroundColor: '#16A34A', borderRadius: 20, paddingHorizontal: 16, paddingVertical: 8 },
   addBtnText: { color: '#FFFFFF', fontWeight: '700', fontSize: 14 },
-  list: { padding: 16, gap: 12, paddingBottom: 80,},
+  list: { padding: 16, gap: 12, paddingBottom: 80 },
   card: { backgroundColor: '#FFFFFF', borderRadius: 14, padding: 16, borderWidth: 1, borderColor: '#E5E7EB' },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
   statusBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
@@ -224,6 +232,12 @@ const styles = StyleSheet.create({
   divTagText: { fontSize: 11, color: '#374151' },
   empty: { alignItems: 'center', paddingVertical: 40 },
   emptyText: { color: '#9CA3AF', fontSize: 14 },
+  cardActions: { flexDirection: 'row', gap: 8, marginTop: 12 },
+  cardActionBtn: { flex: 1, borderRadius: 8, paddingVertical: 9, alignItems: 'center', borderWidth: 1 },
+  cardActionBtnBlue: { backgroundColor: '#EFF6FF', borderColor: '#BFDBFE' },
+  cardActionBtnGreen: { backgroundColor: '#F0FDF4', borderColor: '#A7F3D0' },
+  cardActionBtnText: { fontSize: 13, fontWeight: '700' },
+  // Modal
   modal: { flex: 1, backgroundColor: '#FFFFFF' },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
   modalTitle: { fontSize: 17, fontWeight: '700', color: '#111827' },
@@ -237,10 +251,4 @@ const styles = StyleSheet.create({
   divChipActive: { backgroundColor: '#16A34A', borderColor: '#16A34A' },
   divChipText: { fontSize: 13, color: '#374151' },
   divChipTextActive: { color: '#FFFFFF', fontWeight: '600' },
-  viewRegsBtn: {
-    marginTop: 12, backgroundColor: '#EFF6FF', borderRadius: 8,
-    paddingVertical: 9, alignItems: 'center',
-    borderWidth: 1, borderColor: '#BFDBFE',
-  },
-  viewRegsBtnText: { fontSize: 13, fontWeight: '700', color: '#2563EB' },
 });

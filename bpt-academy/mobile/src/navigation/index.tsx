@@ -50,6 +50,7 @@ import AttendanceScreen from '../screens/coach/AttendanceScreen';
 import CoachNotesScreen from '../screens/coach/CoachNotesScreen';
 import DivisionDashboardScreen from '../screens/coach/DivisionDashboardScreen';
 import TournamentManageScreen from '../screens/coach/TournamentManageScreen';
+import TournamentDrawScreen from '../screens/coach/TournamentDrawScreen';
 import ProgramModulesScreen from '../screens/coach/ProgramModulesScreen';
 import ScheduleGeneratorScreen from '../screens/coach/ScheduleGeneratorScreen';
 import PromotionManageScreen from '../screens/coach/PromotionManageScreen';
@@ -322,6 +323,7 @@ function CoachHomeStack() {
       <Stack.Screen name="DivisionDashboard"  component={DivisionDashboardScreen} />
       <Stack.Screen name="TournamentManage"   component={TournamentManageScreen} />
       <Stack.Screen name="TournamentDetail"   component={TournamentDetailScreen} />
+      <Stack.Screen name="TournamentDraw"     component={TournamentDrawScreen} />
       <Stack.Screen name="Announce"           component={SendAnnouncementScreen} />
       <Stack.Screen name="Chat"               component={ChatScreen} />
       <Stack.Screen name="NewConversation"    component={NewConversationScreen} />
@@ -428,6 +430,7 @@ function AdminDashboardStack() {
       <Stack.Screen name="DivisionDashboard"  component={DivisionDashboardScreen} />
       <Stack.Screen name="TournamentManage"   component={TournamentManageScreen} />
       <Stack.Screen name="TournamentDetail"   component={TournamentDetailScreen} />
+      <Stack.Screen name="TournamentDraw"     component={TournamentDrawScreen} />
       <Stack.Screen name="ManageVideos"       component={ManageVideosScreen} />
       <Stack.Screen name="UploadVideo"        component={UploadVideoScreen} />
       <Stack.Screen name="Students"           component={ManageStudentsScreen} />
@@ -541,6 +544,7 @@ function SuperAdminDashboardStack() {
       <Stack.Screen name="DivisionDashboard"  component={DivisionDashboardScreen} />
       <Stack.Screen name="TournamentManage"   component={TournamentManageScreen} />
       <Stack.Screen name="TournamentDetail"   component={TournamentDetailScreen} />
+      <Stack.Screen name="TournamentDraw"     component={TournamentDrawScreen} />
       <Stack.Screen name="Chat"               component={ChatScreen} />
       <Stack.Screen name="NewConversation"    component={NewConversationScreen} />
       <Stack.Screen name="Profile"            component={ProfileScreen} />
