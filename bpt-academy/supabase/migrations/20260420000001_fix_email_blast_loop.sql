@@ -25,7 +25,7 @@ RETURNS TRIGGER AS $$
 DECLARE
   v_email TEXT;
   v_name  TEXT;
-  v_resend_key TEXT := 'REDACTED_RESEND_KEY';
+  v_resend_key TEXT;
   v_from  TEXT := 'hello@bptacademy.uk';
   v_html  TEXT;
 BEGIN

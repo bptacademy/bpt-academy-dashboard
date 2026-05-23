@@ -20,10 +20,13 @@ RETURNS TRIGGER AS $$
 DECLARE
   v_email TEXT;
   v_name  TEXT;
-  v_resend_key TEXT := 'REDACTED_RESEND_KEY';
+  v_resend_key TEXT;
   v_from  TEXT := 'hello@bptacademy.uk';
   v_html  TEXT;
 BEGIN
+  -- Load Resend API key from app settings (set via: ALTER DATABASE postgres SET app.resend_api_key = '...')
+  SELECT current_setting('app.resend_api_key', true) INTO v_resend_key;
+
   -- Only act on types that warrant an email
   IF NEW.type NOT IN (
     'reenrollment_request',
@@ -98,7 +101,6 @@ DECLARE
   v_body          TEXT;
   v_ts            TEXT;
 BEGIN
-  -- Only fire on INSERT with status = pending_payment
   IF NEW.status <> 'pending_payment' THEN
     RETURN NEW;
   END IF;
@@ -108,7 +110,6 @@ BEGIN
 
   v_ts := TO_CHAR(NEW.created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD HH24:MI UTC');
 
-  -- Build email subject/body for admin notification
   v_subject := 'New Enrollment Payment Pending — ' || COALESCE(v_student_name, 'Student') || ' · ' || COALESCE(v_program_title, 'Program');
   v_body    := 'Hi, ' || COALESCE(v_student_name, 'A student') || ' has enrolled in ' || COALESCE(v_program_title, 'a program')
     || ' and confirmed their payment. Please review and approve in the BPT Academy dashboard.'
@@ -117,12 +118,10 @@ BEGIN
     || ' | Date: ' || v_ts
     || ' — BPT Academy';
 
-  -- Notify all coaches, admins, and super_admins (in-app, no email)
   FOR v_recipient IN
     SELECT id, role FROM profiles WHERE role IN ('coach', 'admin', 'super_admin')
   LOOP
     IF v_recipient.role = 'super_admin' THEN
-      -- super_admins get email trigger type
       INSERT INTO notifications (recipient_id, title, body, type, data)
       VALUES (
         v_recipient.id,
@@ -136,7 +135,6 @@ BEGIN
         )
       );
     ELSE
-      -- coaches and admins get in-app only
       INSERT INTO notifications (recipient_id, title, body, type, data)
       VALUES (
         v_recipient.id,
@@ -174,23 +172,12 @@ DECLARE
   v_subject       TEXT;
   v_body          TEXT;
 BEGIN
-  -- Only fire on UPDATE where status changes to active or pending_next_cycle
-  -- and old status was pending_payment (coach approving a payment)
-  IF OLD.status = NEW.status THEN
-    RETURN NEW;
-  END IF;
-
-  IF NEW.status NOT IN ('active', 'pending_next_cycle') THEN
-    RETURN NEW;
-  END IF;
-
-  IF OLD.status <> 'pending_payment' THEN
-    RETURN NEW;
-  END IF;
+  IF OLD.status = NEW.status THEN RETURN NEW; END IF;
+  IF NEW.status NOT IN ('active', 'pending_next_cycle') THEN RETURN NEW; END IF;
+  IF OLD.status <> 'pending_payment' THEN RETURN NEW; END IF;
 
   SELECT full_name INTO v_student_name FROM profiles WHERE id = NEW.student_id;
   v_first_name := SPLIT_PART(COALESCE(v_student_name, 'Student'), ' ', 1);
-
   SELECT title, current_cycle_start_date INTO v_program_title, v_cycle_start FROM programs WHERE id = NEW.program_id;
 
   v_subject := 'You''re In! Payment Confirmed — ' || COALESCE(v_program_title, 'Your Program');
@@ -200,7 +187,6 @@ BEGIN
     || ' | Start Date: ' || COALESCE(v_cycle_start::TEXT, 'TBC')
     || ' — The BPT Academy Team';
 
-  -- Notify the student (type triggers email via trg_enrollment_email)
   INSERT INTO notifications (recipient_id, title, body, type, data)
   VALUES (
     NEW.student_id,
