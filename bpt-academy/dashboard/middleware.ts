@@ -35,21 +35,18 @@ export async function middleware(request: NextRequest) {
 
   const { pathname } = request.nextUrl
 
-  // If user is not authenticated and trying to access dashboard routes
   if (!user && pathname.startsWith('/dashboard')) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     return NextResponse.redirect(url)
   }
 
-  // If user is authenticated and trying to access login page, redirect to dashboard
   if (user && pathname === '/login') {
     const url = request.nextUrl.clone()
     url.pathname = '/dashboard'
     return NextResponse.redirect(url)
   }
 
-  // If user is authenticated, check role
   if (user && pathname.startsWith('/dashboard')) {
     const { data: profile } = await supabase
       .from('profiles')
@@ -71,6 +68,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|privacy|terms|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|privacy|terms|reset-password|delete-account|.*\\.(?:svg|png|jpg|jpeg|gif|webp|html)$).*)',
   ],
 }
