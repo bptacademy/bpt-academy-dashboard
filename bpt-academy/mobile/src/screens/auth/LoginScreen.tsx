@@ -30,17 +30,12 @@ export default function LoginScreen({ navigation }: Props) {
 
   return (
     <View style={styles.root}>
-      {/* Full-screen background */}
       <Image
         source={require('../../../assets/bg.png')}
         style={[styles.bg, { width, height }]}
         resizeMode="cover"
       />
-
-      <KeyboardAvoidingView
-        style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      >
+      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <ScrollView
           contentContainerStyle={[
             styles.inner,
@@ -73,7 +68,12 @@ export default function LoginScreen({ navigation }: Props) {
               autoCorrect={false}
             />
 
-            <Text style={styles.label}>Password</Text>
+            <View style={styles.passwordRow}>
+              <Text style={styles.label}>Password</Text>
+              <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')}>
+                <Text style={styles.forgotText}>Forgot password?</Text>
+              </TouchableOpacity>
+            </View>
             <TextInput
               style={styles.input}
               placeholder="••••••••"
@@ -111,9 +111,9 @@ const styles = StyleSheet.create({
   inner: {
     flexGrow: 1,
     paddingHorizontal: 24,
-    justifyContent: 'flex-start',   // push content toward top instead of center
-    paddingTop: 0,                  // overridden inline above
-    marginTop: '15%',               // shift the whole block upward from true center
+    justifyContent: 'flex-start',
+    paddingTop: 0,
+    marginTop: '15%',
   },
   header: { alignItems: 'center', marginBottom: 24 },
   subtitle: { fontSize: 16, color: 'rgba(255,255,255,0.60)', marginTop: 4 },
@@ -125,6 +125,8 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.10)',
   },
   label: { fontSize: 14, fontWeight: '600', color: '#F0F6FC', marginBottom: 6, marginTop: 4 },
+  passwordRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 4, marginBottom: 6 },
+  forgotText: { fontSize: 13, color: '#3B82F6', fontWeight: '600' },
   input: {
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.15)',

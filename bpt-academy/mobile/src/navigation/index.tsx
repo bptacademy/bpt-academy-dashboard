@@ -12,6 +12,8 @@ import { usePushNotifications } from '../hooks/usePushNotifications';
 
 // Auth
 import LoginScreen from '../screens/auth/LoginScreen';
+import ForgotPasswordScreen from '../screens/auth/ForgotPasswordScreen';
+import ResetPasswordScreen from '../screens/auth/ResetPasswordScreen';
 import RegisterScreen from '../screens/auth/RegisterScreen';
 import ParentRegisterScreen from '../screens/auth/ParentRegisterScreen';
 
@@ -176,6 +178,8 @@ function AuthStack() {
       <Stack.Screen name="Login"          component={LoginScreen} />
       <Stack.Screen name="Register"       component={RegisterScreen} />
       <Stack.Screen name="ParentRegister" component={ParentRegisterScreen} />
+      <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+      <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
     </Stack.Navigator>
   );
 }
@@ -607,7 +611,7 @@ function PushNotificationInitializer() {
   return null;
 }
 
-export default function RootNavigator() {
+export default function RootNavigator({ navRef }: { navRef?: any }) {
   const { session, loading, isSuperAdmin, isAdmin, isCoach, profile } = useAuth();
   if (loading) return null;
   const renderStack = () => {
@@ -619,7 +623,7 @@ export default function RootNavigator() {
     return <StudentTabs />;
   };
   return (
-    <NavigationContainer>
+    <NavigationContainer ref={navRef}>
       {session && <PushNotificationInitializer />}
       {renderStack()}
     </NavigationContainer>
