@@ -82,12 +82,8 @@ import DeleteAccountScreen from '../screens/legal/DeleteAccountScreen';
 import NewConversationScreen from '../screens/messaging/NewConversationScreen';
 import ChatScreen from '../screens/messaging/ChatScreen';
 
-// ─── No native header — every screen manages its own back button ──────────────
-const sharedStackScreenOptions = {
-  headerShown: false,
-};
+const sharedStackScreenOptions = { headerShown: false };
 
-// ─── Custom PNG tab icons ─────────────────────────────────────────────────────
 const tabIcons = {
   home:         require('../../assets/icons/home.png'),
   programs:     require('../../assets/icons/programs.png'),
@@ -98,15 +94,10 @@ const tabIcons = {
 
 function TabIcon({ source, color }: { source: any; color: string }) {
   return (
-    <Image
-      source={source}
-      style={{ width: 26, height: 26, tintColor: color }}
-      resizeMode="contain"
-    />
+    <Image source={source} style={{ width: 26, height: 26, tintColor: color }} resizeMode="contain" />
   );
 }
 
-// ─── Tab bar ──────────────────────────────────────────────────────────────────
 export const TAB_BAR_HEIGHT = 48;
 
 function useTabBarScreenOptions() {
@@ -117,9 +108,7 @@ function useTabBarScreenOptions() {
     tabBarShowLabel: false,
     tabBarStyle: {
       position: 'absolute' as const,
-      bottom: 0,
-      left: 0,
-      right: 0,
+      bottom: 0, left: 0, right: 0,
       height: TAB_BAR_HEIGHT + safeBottom,
       backgroundColor: '#0B1628',
       borderTopWidth: 1,
@@ -145,21 +134,14 @@ function useTabBarScreenOptions() {
   };
 }
 
-// ─── Bell tab icon with unread badge ─────────────────────────────────────────
 function BellTabIcon({ color }: { color: string }) {
   const { unreadCount } = useNotifications();
   return (
     <View style={bellStyles.container}>
-      <Image
-        source={tabIcons.notification}
-        style={{ width: 26, height: 26, tintColor: color }}
-        resizeMode="contain"
-      />
+      <Image source={tabIcons.notification} style={{ width: 26, height: 26, tintColor: color }} resizeMode="contain" />
       {unreadCount > 0 && (
         <View style={bellStyles.badge}>
-          <Text style={bellStyles.badgeText}>
-            {unreadCount > 9 ? '9+' : String(unreadCount)}
-          </Text>
+          <Text style={bellStyles.badgeText}>{unreadCount > 9 ? '9+' : String(unreadCount)}</Text>
         </View>
       )}
     </View>
@@ -180,7 +162,6 @@ const bellStyles = StyleSheet.create({
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
-// Notifications tab stack (shared all roles)
 function NotificationsTabStack() {
   return (
     <Stack.Navigator screenOptions={sharedStackScreenOptions}>
@@ -189,7 +170,6 @@ function NotificationsTabStack() {
   );
 }
 
-// Auth
 function AuthStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
@@ -200,7 +180,6 @@ function AuthStack() {
   );
 }
 
-// Parent Stack
 function ParentStack() {
   return (
     <Stack.Navigator screenOptions={sharedStackScreenOptions}>
@@ -213,7 +192,7 @@ function ParentStack() {
   );
 }
 
-// ─── STUDENT ────────────────────────────────────────────────────────────────
+// ─── STUDENT ─────────────────────────────────────────────────────────────────
 
 function StudentHomeStack() {
   return (
@@ -238,7 +217,7 @@ function StudentHomeStack() {
       <Stack.Screen name="Profile"             component={ProfileScreen} />
       <Stack.Screen name="PrivacyPolicy"       component={PrivacyPolicyScreen} />
       <Stack.Screen name="TermsOfService"      component={TermsOfServiceScreen} />
-      <Stack.Screen name="DeleteAccount" component={DeleteAccountScreen} />
+      <Stack.Screen name="DeleteAccount"       component={DeleteAccountScreen} />
     </Stack.Navigator>
   );
 }
@@ -255,7 +234,7 @@ function StudentProgramsStack() {
       <Stack.Screen name="Profile"            component={ProfileScreen} />
       <Stack.Screen name="PrivacyPolicy"      component={PrivacyPolicyScreen} />
       <Stack.Screen name="TermsOfService"     component={TermsOfServiceScreen} />
-      <Stack.Screen name="DeleteAccount" component={DeleteAccountScreen} />
+      <Stack.Screen name="DeleteAccount"      component={DeleteAccountScreen} />
     </Stack.Navigator>
   );
 }
@@ -272,7 +251,7 @@ function StudentMessagesStack() {
       <Stack.Screen name="Profile"            component={ProfileScreen} />
       <Stack.Screen name="PrivacyPolicy"      component={PrivacyPolicyScreen} />
       <Stack.Screen name="TermsOfService"     component={TermsOfServiceScreen} />
-      <Stack.Screen name="DeleteAccount" component={DeleteAccountScreen} />
+      <Stack.Screen name="DeleteAccount"      component={DeleteAccountScreen} />
     </Stack.Navigator>
   );
 }
@@ -287,7 +266,7 @@ function StudentProgressStack() {
       <Stack.Screen name="Notifications"      component={NotificationsScreen} />
       <Stack.Screen name="PrivacyPolicy"      component={PrivacyPolicyScreen} />
       <Stack.Screen name="TermsOfService"     component={TermsOfServiceScreen} />
-      <Stack.Screen name="DeleteAccount" component={DeleteAccountScreen} />
+      <Stack.Screen name="DeleteAccount"      component={DeleteAccountScreen} />
     </Stack.Navigator>
   );
 }
@@ -305,7 +284,7 @@ function StudentTabs() {
   );
 }
 
-// ─── COACH ──────────────────────────────────────────────────────────────────
+// ─── COACH ───────────────────────────────────────────────────────────────────
 
 function CoachHomeStack() {
   return (
@@ -314,7 +293,7 @@ function CoachHomeStack() {
       <Stack.Screen name="Manage"             component={ManageProgramsScreen} />
       <Stack.Screen name="ProgramRoster"      component={ProgramRosterScreen} />
       <Stack.Screen name="WaitingList"        component={WaitingListScreen} />
-      <Stack.Screen name="AllWaitingLists"     component={AllWaitingListsScreen} />
+      <Stack.Screen name="AllWaitingLists"    component={AllWaitingListsScreen} />
       <Stack.Screen name="ProgramModules"     component={ProgramModulesScreen} />
       <Stack.Screen name="ScheduleGenerator"  component={ScheduleGeneratorScreen} />
       <Stack.Screen name="ManageVideos"       component={ManageVideosScreen} />
@@ -324,6 +303,7 @@ function CoachHomeStack() {
       <Stack.Screen name="TournamentManage"   component={TournamentManageScreen} />
       <Stack.Screen name="TournamentDetail"   component={TournamentDetailScreen} />
       <Stack.Screen name="TournamentDraw"     component={TournamentDrawScreen} />
+      <Stack.Screen name="Payment"            component={PaymentScreen} />
       <Stack.Screen name="Announce"           component={SendAnnouncementScreen} />
       <Stack.Screen name="Chat"               component={ChatScreen} />
       <Stack.Screen name="NewConversation"    component={NewConversationScreen} />
@@ -336,7 +316,7 @@ function CoachHomeStack() {
       <Stack.Screen name="Notifications"      component={NotificationsScreen} />
       <Stack.Screen name="PrivacyPolicy"      component={PrivacyPolicyScreen} />
       <Stack.Screen name="TermsOfService"     component={TermsOfServiceScreen} />
-      <Stack.Screen name="DeleteAccount" component={DeleteAccountScreen} />
+      <Stack.Screen name="DeleteAccount"      component={DeleteAccountScreen} />
     </Stack.Navigator>
   );
 }
@@ -355,7 +335,7 @@ function CoachStudentsStack() {
       <Stack.Screen name="Notifications"   component={NotificationsScreen} />
       <Stack.Screen name="PrivacyPolicy"   component={PrivacyPolicyScreen} />
       <Stack.Screen name="TermsOfService"  component={TermsOfServiceScreen} />
-      <Stack.Screen name="DeleteAccount" component={DeleteAccountScreen} />
+      <Stack.Screen name="DeleteAccount"   component={DeleteAccountScreen} />
     </Stack.Navigator>
   );
 }
@@ -371,7 +351,7 @@ function CoachMessagesStack() {
       <Stack.Screen name="Notifications"   component={NotificationsScreen} />
       <Stack.Screen name="PrivacyPolicy"   component={PrivacyPolicyScreen} />
       <Stack.Screen name="TermsOfService"  component={TermsOfServiceScreen} />
-      <Stack.Screen name="DeleteAccount" component={DeleteAccountScreen} />
+      <Stack.Screen name="DeleteAccount"   component={DeleteAccountScreen} />
     </Stack.Navigator>
   );
 }
@@ -390,7 +370,7 @@ function CoachProgressStack() {
       <Stack.Screen name="Notifications"     component={NotificationsScreen} />
       <Stack.Screen name="PrivacyPolicy"     component={PrivacyPolicyScreen} />
       <Stack.Screen name="TermsOfService"    component={TermsOfServiceScreen} />
-      <Stack.Screen name="DeleteAccount" component={DeleteAccountScreen} />
+      <Stack.Screen name="DeleteAccount"     component={DeleteAccountScreen} />
     </Stack.Navigator>
   );
 }
@@ -418,7 +398,7 @@ function AdminDashboardStack() {
       <Stack.Screen name="Manage"             component={ManageProgramsScreen} />
       <Stack.Screen name="ProgramRoster"      component={ProgramRosterScreen} />
       <Stack.Screen name="WaitingList"        component={WaitingListScreen} />
-      <Stack.Screen name="AllWaitingLists"     component={AllWaitingListsScreen} />
+      <Stack.Screen name="AllWaitingLists"    component={AllWaitingListsScreen} />
       <Stack.Screen name="ProgramModules"     component={ProgramModulesScreen} />
       <Stack.Screen name="ScheduleGenerator"  component={ScheduleGeneratorScreen} />
       <Stack.Screen name="VideoPlayer"        component={VideoPlayerScreen} />
@@ -431,6 +411,7 @@ function AdminDashboardStack() {
       <Stack.Screen name="TournamentManage"   component={TournamentManageScreen} />
       <Stack.Screen name="TournamentDetail"   component={TournamentDetailScreen} />
       <Stack.Screen name="TournamentDraw"     component={TournamentDrawScreen} />
+      <Stack.Screen name="Payment"            component={PaymentScreen} />
       <Stack.Screen name="ManageVideos"       component={ManageVideosScreen} />
       <Stack.Screen name="UploadVideo"        component={UploadVideoScreen} />
       <Stack.Screen name="Students"           component={ManageStudentsScreen} />
@@ -444,7 +425,7 @@ function AdminDashboardStack() {
       <Stack.Screen name="Notifications"      component={NotificationsScreen} />
       <Stack.Screen name="PrivacyPolicy"      component={PrivacyPolicyScreen} />
       <Stack.Screen name="TermsOfService"     component={TermsOfServiceScreen} />
-      <Stack.Screen name="DeleteAccount" component={DeleteAccountScreen} />
+      <Stack.Screen name="DeleteAccount"      component={DeleteAccountScreen} />
     </Stack.Navigator>
   );
 }
@@ -462,7 +443,7 @@ function AdminStudentsStack() {
       <Stack.Screen name="Notifications"   component={NotificationsScreen} />
       <Stack.Screen name="PrivacyPolicy"   component={PrivacyPolicyScreen} />
       <Stack.Screen name="TermsOfService"  component={TermsOfServiceScreen} />
-      <Stack.Screen name="DeleteAccount" component={DeleteAccountScreen} />
+      <Stack.Screen name="DeleteAccount"   component={DeleteAccountScreen} />
     </Stack.Navigator>
   );
 }
@@ -472,8 +453,8 @@ function AdminProgramsStack() {
     <Stack.Navigator screenOptions={sharedStackScreenOptions}>
       <Stack.Screen name="Manage"            component={ManageProgramsScreen} />
       <Stack.Screen name="ProgramRoster"     component={ProgramRosterScreen} />
-      <Stack.Screen name="WaitingList"        component={WaitingListScreen} />
-      <Stack.Screen name="AllWaitingLists"    component={AllWaitingListsScreen} />
+      <Stack.Screen name="WaitingList"       component={WaitingListScreen} />
+      <Stack.Screen name="AllWaitingLists"   component={AllWaitingListsScreen} />
       <Stack.Screen name="ProgramModules"    component={ProgramModulesScreen} />
       <Stack.Screen name="ScheduleGenerator" component={ScheduleGeneratorScreen} />
       <Stack.Screen name="ManageVideos"      component={ManageVideosScreen} />
@@ -483,7 +464,7 @@ function AdminProgramsStack() {
       <Stack.Screen name="Notifications"     component={NotificationsScreen} />
       <Stack.Screen name="PrivacyPolicy"     component={PrivacyPolicyScreen} />
       <Stack.Screen name="TermsOfService"    component={TermsOfServiceScreen} />
-      <Stack.Screen name="DeleteAccount" component={DeleteAccountScreen} />
+      <Stack.Screen name="DeleteAccount"     component={DeleteAccountScreen} />
     </Stack.Navigator>
   );
 }
@@ -497,7 +478,7 @@ function AdminMessagesStack() {
       <Stack.Screen name="Notifications"   component={NotificationsScreen} />
       <Stack.Screen name="PrivacyPolicy"   component={PrivacyPolicyScreen} />
       <Stack.Screen name="TermsOfService"  component={TermsOfServiceScreen} />
-      <Stack.Screen name="DeleteAccount" component={DeleteAccountScreen} />
+      <Stack.Screen name="DeleteAccount"   component={DeleteAccountScreen} />
     </Stack.Navigator>
   );
 }
@@ -525,7 +506,7 @@ function SuperAdminDashboardStack() {
       <Stack.Screen name="Manage"             component={ManageProgramsScreen} />
       <Stack.Screen name="ProgramRoster"      component={ProgramRosterScreen} />
       <Stack.Screen name="WaitingList"        component={WaitingListScreen} />
-      <Stack.Screen name="AllWaitingLists"     component={AllWaitingListsScreen} />
+      <Stack.Screen name="AllWaitingLists"    component={AllWaitingListsScreen} />
       <Stack.Screen name="ProgramModules"     component={ProgramModulesScreen} />
       <Stack.Screen name="ScheduleGenerator"  component={ScheduleGeneratorScreen} />
       <Stack.Screen name="VideoPlayer"        component={VideoPlayerScreen} />
@@ -545,13 +526,14 @@ function SuperAdminDashboardStack() {
       <Stack.Screen name="TournamentManage"   component={TournamentManageScreen} />
       <Stack.Screen name="TournamentDetail"   component={TournamentDetailScreen} />
       <Stack.Screen name="TournamentDraw"     component={TournamentDrawScreen} />
+      <Stack.Screen name="Payment"            component={PaymentScreen} />
       <Stack.Screen name="Chat"               component={ChatScreen} />
       <Stack.Screen name="NewConversation"    component={NewConversationScreen} />
       <Stack.Screen name="Profile"            component={ProfileScreen} />
       <Stack.Screen name="Notifications"      component={NotificationsScreen} />
       <Stack.Screen name="PrivacyPolicy"      component={PrivacyPolicyScreen} />
       <Stack.Screen name="TermsOfService"     component={TermsOfServiceScreen} />
-      <Stack.Screen name="DeleteAccount" component={DeleteAccountScreen} />
+      <Stack.Screen name="DeleteAccount"      component={DeleteAccountScreen} />
     </Stack.Navigator>
   );
 }
@@ -565,7 +547,7 @@ function SuperAdminUsersStack() {
       <Stack.Screen name="Notifications"  component={NotificationsScreen} />
       <Stack.Screen name="PrivacyPolicy"  component={PrivacyPolicyScreen} />
       <Stack.Screen name="TermsOfService" component={TermsOfServiceScreen} />
-      <Stack.Screen name="DeleteAccount" component={DeleteAccountScreen} />
+      <Stack.Screen name="DeleteAccount"  component={DeleteAccountScreen} />
     </Stack.Navigator>
   );
 }
@@ -581,7 +563,7 @@ function SuperAdminMessagesStack() {
       <Stack.Screen name="Notifications"   component={NotificationsScreen} />
       <Stack.Screen name="PrivacyPolicy"   component={PrivacyPolicyScreen} />
       <Stack.Screen name="TermsOfService"  component={TermsOfServiceScreen} />
-      <Stack.Screen name="DeleteAccount" component={DeleteAccountScreen} />
+      <Stack.Screen name="DeleteAccount"   component={DeleteAccountScreen} />
     </Stack.Navigator>
   );
 }
@@ -600,7 +582,7 @@ function SuperAdminProfileStack() {
       <Stack.Screen name="Notifications"     component={NotificationsScreen} />
       <Stack.Screen name="PrivacyPolicy"     component={PrivacyPolicyScreen} />
       <Stack.Screen name="TermsOfService"    component={TermsOfServiceScreen} />
-      <Stack.Screen name="DeleteAccount" component={DeleteAccountScreen} />
+      <Stack.Screen name="DeleteAccount"     component={DeleteAccountScreen} />
     </Stack.Navigator>
   );
 }

@@ -1,11 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
 import { View, ActivityIndicator } from 'react-native';
 import { AuthProvider } from './src/context/AuthContext';
 import Navigation from './src/navigation';
+import SplashScreen from './src/screens/auth/SplashScreen';
 
 export default function App() {
+  const [splashDone, setSplashDone] = useState(false);
+
   const [fontsLoaded] = useFonts({
     'AdelphiPETRIAL-Eb':   require('./assets/fonts/AdelphiPETRIAL-Eb.otf'),
     'AdelphiPETRIAL-EbIt': require('./assets/fonts/AdelphiPETRIAL-EbIt.otf'),
@@ -15,11 +18,20 @@ export default function App() {
     'Brinnan Light':       require('./assets/fonts/Brinnan Light.otf'),
   });
 
+  // Wait for fonts before showing splash (so wordmark/tagline render correctly)
   if (!fontsLoaded) {
     return (
-      <View style={{ flex: 1, backgroundColor: '#0D1B2A', alignItems: 'center', justifyContent: 'center' }}>
+      <View style={{ flex: 1, backgroundColor: '#0B1628', alignItems: 'center', justifyContent: 'center' }}>
         <ActivityIndicator color="#00D4C8" />
       </View>
+    );
+  }
+
+  if (!splashDone) {
+    return (
+      <SafeAreaProvider>
+        <SplashScreen onFinish={() => setSplashDone(true)} />
+      </SafeAreaProvider>
     );
   }
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, StatusBar } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 
@@ -13,19 +13,22 @@ export default function BackHeader({ title }: Props) {
   const insets = useSafeAreaInsets();
 
   return (
-    <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
-      <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-        <Text style={styles.backIcon}>‹</Text>
-        <Text style={styles.backLabel}>Back</Text>
-      </TouchableOpacity>
+    <>
+      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
+      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
+        <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
+          <Text style={styles.backIcon}>‹</Text>
+          <Text style={styles.backLabel}>Back</Text>
+        </TouchableOpacity>
 
-      {title
-        ? <Text style={styles.title} numberOfLines={1}>{title}</Text>
-        : <View style={{ flex: 1 }} />
-      }
+        {title
+          ? <Text style={styles.title} numberOfLines={1}>{title}</Text>
+          : <View style={{ flex: 1 }} />
+        }
 
-      <View style={styles.rightPlaceholder} />
-    </View>
+        <View style={styles.rightPlaceholder} />
+      </View>
+    </>
   );
 }
 

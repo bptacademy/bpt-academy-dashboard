@@ -7,7 +7,6 @@ import { useTabBarPadding } from '../../hooks/useTabBarPadding';
 import { supabase } from '../../lib/supabase';
 import { Program, EnrollmentStatus, Division, DIVISION_LABELS, DIVISION_COLORS } from '../../types';
 import BackHeader from '../../components/common/BackHeader';
-import BackButton from '../../components/common/BackButton';
 
 interface EnrollmentRow {
   id: string;
@@ -40,7 +39,6 @@ const STATUS_COLORS: Record<string, { bg: string; text: string }> = {
 };
 
 export default function ProgramRosterScreen({ route, navigation }: any) {
-  const insets = useSafeAreaInsets();
   const tabBarPadding = useTabBarPadding();
   const { programId } = route.params;
   const [program, setProgram] = useState<Program | null>(null);
@@ -64,7 +62,6 @@ export default function ProgramRosterScreen({ route, navigation }: any) {
     if (progRes.data) setProgram(progRes.data);
     if (enrollRes.data) setEnrollments(enrollRes.data as any);
 
-    // Fetch waiting list for current month
     const month = new Date().toISOString().slice(0, 7);
     const { data: wlData } = await supabase
       .from('program_waiting_list')
@@ -77,53 +74,6 @@ export default function ProgramRosterScreen({ route, navigation }: any) {
 
   const onRefresh = async () => { setRefreshing(true); await fetchData(); setRefreshing(false); };
 
-  // Confirm payment → move to pending_next_cycle + notify student
-  const confirmPayment = async (enrollment: EnrollmentRow) => {
-    Alert.alert(
-      'Confirm Payment',
-      `Confirm bank transfer received from ${enrollment.student.full_name}? They will be placed in the next program cycle.`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Confirm Payment',
-          onPress: async () => {
-            // Get next_cycle_start_date for this program
-            const { data: prog } = await supabase
-              .from('programs')
-              .select('next_cycle_start_date, title')
-              .eq('id', programId)
-              .single();
-
-            // If program has a next cycle date → pending_next_cycle
-            // If program is already running (no next cycle set) → go straight to active
-            const newStatus = prog?.next_cycle_start_date ? 'pending_next_cycle' : 'active';
-
-            await supabase.from('enrollments').update({
-              status: newStatus,
-              payment_confirmed: true,
-              payment_status: 'paid',
-            }).eq('id', enrollment.id);
-
-            const startMsg = prog?.next_cycle_start_date
-              ? `Your sessions start on ${new Date(prog.next_cycle_start_date + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}.`
-              : 'You are now enrolled and can access your sessions immediately.';
-
-            await supabase.from('notifications').insert({
-              recipient_id: enrollment.student.id,
-              title: '✅ Payment Confirmed!',
-              body: `Your enrollment in ${prog?.title ?? 'the program'} is confirmed. ${startMsg}`,
-              type: 'enrollment_confirmed',
-              data: { program_id: programId },
-            });
-
-            fetchData();
-          },
-        },
-      ]
-    );
-  };
-
-  // Set next cycle start date for the program
   const setNextCycleDate = async () => {
     const { data: prog } = await supabase
       .from('programs')
@@ -142,7 +92,6 @@ export default function ProgramRosterScreen({ route, navigation }: any) {
         }
         await supabase.from('programs').update({ next_cycle_start_date: dateStr }).eq('id', programId);
 
-        // Notify all pending_next_cycle students of the confirmed date
         const { data: pending } = await supabase
           .from('enrollments')
           .select('student_id')
@@ -169,6 +118,7 @@ export default function ProgramRosterScreen({ route, navigation }: any) {
       current,
     );
   };
+
   useEffect(() => { fetchData(); }, [programId]);
 
   const loadAvailableStudents = async () => {
@@ -227,9 +177,7 @@ export default function ProgramRosterScreen({ route, navigation }: any) {
           text: 'Cancel Enrollment',
           style: 'destructive',
           onPress: async () => {
-            await supabase.from('enrollments')
-              .update({ status: 'cancelled' })
-              .eq('id', enrollment.id);
+            await supabase.from('enrollments').update({ status: 'cancelled' }).eq('id', enrollment.id);
             fetchData();
           },
         },
@@ -258,6 +206,7 @@ export default function ProgramRosterScreen({ route, navigation }: any) {
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
     >
       <BackHeader title={program?.title ?? 'Roster'} dark />
+
       {/* Program header */}
       <View style={styles.header}>
         <Text style={styles.programTitle}>{program?.title ?? 'Program'}</Text>
@@ -274,7 +223,6 @@ export default function ProgramRosterScreen({ route, navigation }: any) {
       <TouchableOpacity
         style={styles.attendanceBtn}
         onPress={async () => {
-          // Find or create a session for today
           const today = new Date().toISOString().split('T')[0];
           const { data: existing } = await supabase
             .from('program_sessions')
@@ -288,7 +236,6 @@ export default function ProgramRosterScreen({ route, navigation }: any) {
           if (existing) {
             navigation.navigate('Attendance', { sessionId: existing.id, sessionTitle: existing.title ?? "Today's Session" });
           } else {
-            // Create a session for today on the fly
             const { data: newSession } = await supabase
               .from('program_sessions')
               .insert({
@@ -317,29 +264,6 @@ export default function ProgramRosterScreen({ route, navigation }: any) {
             : 'Not set — tap to set'}
         </Text>
       </TouchableOpacity>
-
-      {/* Pending Payment section */}
-      {enrollments.filter(e => e.status === 'pending_payment').length > 0 && (
-        <View style={styles.section}>
-          <Text style={styles.pendingTitle}>⏳ Awaiting Payment Confirmation ({enrollments.filter(e => e.status === 'pending_payment').length})</Text>
-          {enrollments.filter(e => e.status === 'pending_payment').map((e) => (
-            <View key={e.id} style={styles.pendingCard}>
-              <View style={styles.cardTop}>
-                <View style={styles.avatar}>
-                  <Text style={styles.avatarText}>{initials(e.student.full_name)}</Text>
-                </View>
-                <View style={styles.info}>
-                  <Text style={styles.studentName}>{e.student.full_name}</Text>
-                  <Text style={styles.enrollDate}>Bank transfer pending verification</Text>
-                </View>
-                <TouchableOpacity style={styles.confirmBtn} onPress={() => confirmPayment(e)}>
-                  <Text style={styles.confirmBtnText}>✓ Confirm</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          ))}
-        </View>
-      )}
 
       {/* Enroll student */}
       <TouchableOpacity style={styles.enrollToggleBtn} onPress={() => { loadAvailableStudents(); setShowEnroll(v => !v); }}>
@@ -398,7 +322,7 @@ export default function ProgramRosterScreen({ route, navigation }: any) {
         </View>
       )}
 
-      {/* Stats row — 2 rows of 3 */}
+      {/* Stats row */}
       <View style={styles.statsGrid}>
         {(Object.entries(counts) as [string, number][]).map(([status, count]) => (
           <View key={status} style={styles.statCard}>
@@ -410,9 +334,7 @@ export default function ProgramRosterScreen({ route, navigation }: any) {
 
       {/* Enrollment list */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>
-          👥 Students ({enrollments.length})
-        </Text>
+        <Text style={styles.sectionTitle}>👥 Students ({enrollments.length})</Text>
 
         {enrollments.length === 0 ? (
           <View style={styles.empty}>
@@ -423,12 +345,9 @@ export default function ProgramRosterScreen({ route, navigation }: any) {
           enrollments.map((e) => (
             <View key={e.id} style={styles.card}>
               <View style={styles.cardTop}>
-                {/* Avatar */}
                 <View style={styles.avatar}>
                   <Text style={styles.avatarText}>{initials(e.student.full_name)}</Text>
                 </View>
-
-                {/* Info */}
                 <View style={styles.info}>
                   <Text style={styles.studentName}>{e.student.full_name}</Text>
                   <View style={styles.metaRow}>
@@ -442,16 +361,13 @@ export default function ProgramRosterScreen({ route, navigation }: any) {
                     </Text>
                   </View>
                 </View>
-
-                {/* Status badge */}
-                <View style={[styles.statusBadge, { backgroundColor: STATUS_COLORS[e.status].bg }]}>
+                <View style={[styles.statusBadge, { backgroundColor: STATUS_COLORS[e.status]?.bg ?? '#F3F4F6' }]}>
                   <Text style={[styles.statusText, { color: STATUS_COLORS[e.status]?.text ?? '#6B7280' }]}>
                     {STATUS_LABELS[e.status] ?? e.status}
                   </Text>
                 </View>
               </View>
 
-              {/* Actions */}
               <View style={styles.actions}>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.actionScroll}>
                   {STATUSES.filter((s) => s !== e.status).map((s) => (
@@ -466,10 +382,7 @@ export default function ProgramRosterScreen({ route, navigation }: any) {
                     </TouchableOpacity>
                   ))}
                   {e.status !== 'cancelled' && (
-                    <TouchableOpacity
-                      style={styles.removeChip}
-                      onPress={() => cancelEnrollment(e)}
-                    >
+                    <TouchableOpacity style={styles.removeChip} onPress={() => cancelEnrollment(e)}>
                       <Text style={styles.removeChipText}>✕ Cancel</Text>
                     </TouchableOpacity>
                   )}
@@ -484,17 +397,13 @@ export default function ProgramRosterScreen({ route, navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-  bgImage: { position: 'absolute', top: 0, left: 0, width: Dimensions.get('window').width, height: Dimensions.get('window').height },
   container: { flex: 1, backgroundColor: '#F9FAFB' },
   waitCard: {
     flexDirection: 'row', alignItems: 'center', backgroundColor: '#F0F9FF',
     borderRadius: 12, padding: 12, marginBottom: 8,
     borderWidth: 1, borderColor: '#BAE6FD', gap: 12,
   },
-  waitPos: {
-    width: 36, height: 36, borderRadius: 18,
-    backgroundColor: '#0284C7', alignItems: 'center', justifyContent: 'center',
-  },
+  waitPos: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#0284C7', alignItems: 'center', justifyContent: 'center' },
   waitPosText: { fontSize: 14, fontWeight: '800', color: '#FFFFFF' },
   attendanceBtn: { backgroundColor: '#16A34A', margin: 16, marginBottom: 0, borderRadius: 12, paddingVertical: 14, alignItems: 'center' },
   attendanceBtnText: { color: '#FFFFFF', fontSize: 15, fontWeight: '700' },
@@ -522,12 +431,12 @@ const styles = StyleSheet.create({
   statusBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, flexShrink: 0 },
   statusText: { fontSize: 12, fontWeight: '600' },
   actions: { borderTopWidth: 1, borderTopColor: '#F3F4F6' },
-  actionScroll: { paddingHorizontal: 14, paddingVertical: 10, gap: 8, paddingBottom: 80,},
+  actionScroll: { paddingHorizontal: 14, paddingVertical: 10, gap: 8, paddingBottom: 80 },
   actionChip: { borderWidth: 1, borderRadius: 16, paddingHorizontal: 12, paddingVertical: 6 },
   actionChipText: { fontSize: 12, fontWeight: '600' },
   removeChip: { borderWidth: 1, borderColor: '#FCA5A5', borderRadius: 16, paddingHorizontal: 12, paddingVertical: 6 },
   removeChipText: { fontSize: 12, fontWeight: '600', color: '#DC2626' },
-  enrollToggleBtn: { backgroundColor: '#ECFDF5', margin: 16, marginBottom: 8, borderRadius: 10, paddingVertical: 12, alignItems: 'center', borderWidth: 1, borderColor: '#BBF7D0' },
+  enrollToggleBtn: { backgroundColor: '#ECFDF5', margin: 16, marginBottom: 8, marginTop: 16, borderRadius: 10, paddingVertical: 12, alignItems: 'center', borderWidth: 1, borderColor: '#BBF7D0' },
   enrollToggleBtnText: { color: '#16A34A', fontSize: 14, fontWeight: '700' },
   enrollCard: { backgroundColor: '#FFFFFF', margin: 16, marginTop: 0, borderRadius: 12, padding: 14, borderWidth: 1, borderColor: '#E5E7EB' },
   enrollLabel: { fontSize: 13, fontWeight: '600', color: '#374151', marginBottom: 8 },
@@ -542,8 +451,4 @@ const styles = StyleSheet.create({
   enrollBtnText: { color: '#FFFFFF', fontSize: 14, fontWeight: '700' },
   cycleDateBtn: { backgroundColor: 'rgba(59,130,246,0.12)', margin: 16, marginBottom: 8, marginTop: 8, borderRadius: 10, paddingVertical: 12, paddingHorizontal: 16, borderWidth: 1, borderColor: 'rgba(59,130,246,0.30)' },
   cycleDateBtnText: { color: '#3B82F6', fontSize: 14, fontWeight: '600' },
-  pendingTitle: { fontSize: 15, fontWeight: '700', color: '#D97706', marginBottom: 10 },
-  pendingCard: { backgroundColor: '#FFFBEB', borderRadius: 14, marginBottom: 10, borderWidth: 1, borderColor: '#FDE68A', overflow: 'hidden' },
-  confirmBtn: { backgroundColor: '#16A34A', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 },
-  confirmBtnText: { color: '#FFFFFF', fontSize: 13, fontWeight: '700' },
 });
