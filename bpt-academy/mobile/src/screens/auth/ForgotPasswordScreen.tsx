@@ -21,7 +21,7 @@ export default function ForgotPasswordScreen({ navigation }: Props) {
     if (!email.trim()) { Alert.alert('Error', 'Please enter your email address'); return; }
     setLoading(true);
     const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-      redirectTo: 'bptacademy://reset-password',
+      redirectTo: 'https://app.bptacademy.uk/reset-password.html',
     });
     setLoading(false);
     if (error) { Alert.alert('Error', error.message); return; }
