@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   StatusBar, FlatList, KeyboardAvoidingView, Platform,
@@ -38,6 +38,16 @@ export default function ConversationScreen({ route, navigation }: any) {
 
   const serveSent = messages.some(m => m.senderId === user?.id);
 
+  // ID of the last message I sent that has been read — show receipt only there
+  const lastReadMessageId = useMemo(() => {
+    const myReadMessages = messages.filter(
+      m => m.senderId === user?.id && m.readAt !== null
+    );
+    return myReadMessages.length > 0
+      ? myReadMessages[myReadMessages.length - 1].id
+      : null;
+  }, [messages, user?.id]);
+
   useEffect(() => {
     if (messages.length > 0) {
       setTimeout(() => flatRef.current?.scrollToEnd({ animated: false }), 100);
@@ -64,14 +74,21 @@ export default function ConversationScreen({ route, navigation }: any) {
 
   const renderMessage = ({ item }: any) => {
     const isMe = item.senderId === user?.id;
+    const showReadReceipt = isMe && item.id === lastReadMessageId;
+
     return (
-      <View style={[styles.bubble, isMe ? styles.bubbleMe : styles.bubbleThem]}>
-        <Text style={[styles.bubbleText, isMe ? styles.bubbleTextMe : styles.bubbleTextThem]}>
-          {item.body}
-        </Text>
-        <Text style={[styles.bubbleTime, isMe ? styles.bubbleTimeMe : styles.bubbleTimeThem]}>
-          {formatTime(item.createdAt)}
-        </Text>
+      <View style={[styles.bubbleWrap, isMe ? styles.bubbleWrapMe : styles.bubbleWrapThem]}>
+        <View style={[styles.bubble, isMe ? styles.bubbleMe : styles.bubbleThem]}>
+          <Text style={[styles.bubbleText, isMe ? styles.bubbleTextMe : styles.bubbleTextThem]}>
+            {item.body}
+          </Text>
+          <Text style={[styles.bubbleTime, isMe ? styles.bubbleTimeMe : styles.bubbleTimeThem]}>
+            {formatTime(item.createdAt)}
+          </Text>
+        </View>
+        {showReadReceipt && (
+          <Text style={styles.readReceipt}>✓✓ Read</Text>
+        )}
       </View>
     );
   };
@@ -124,7 +141,6 @@ export default function ConversationScreen({ route, navigation }: any) {
           </View>
         ) : (
           <>
-            {/* Match system message */}
             <FlatList
               ref={flatRef}
               data={messages}
@@ -225,16 +241,20 @@ const styles = StyleSheet.create({
   systemMsgText: { fontSize: 15, fontFamily: fonts.bodyBold, color: theme.primary, marginBottom: 6 },
   systemMsgSub: { fontSize: 13, color: theme.textMuted, textAlign: 'center', lineHeight: 20, fontFamily: fonts.bodyLight },
 
+  bubbleWrap: { marginVertical: 3 },
+  bubbleWrapMe: { alignItems: 'flex-end' },
+  bubbleWrapThem: { alignItems: 'flex-start' },
+
   bubble: {
     maxWidth: '75%', borderRadius: 18,
-    paddingHorizontal: 14, paddingVertical: 10, marginVertical: 3,
+    paddingHorizontal: 14, paddingVertical: 10,
   },
   bubbleMe: {
-    backgroundColor: theme.primary, alignSelf: 'flex-end', borderBottomRightRadius: 4,
+    backgroundColor: theme.primary, borderBottomRightRadius: 4,
   },
   bubbleThem: {
-    backgroundColor: theme.bgCard, alignSelf: 'flex-start',
-    borderBottomLeftRadius: 4, borderWidth: 1, borderColor: theme.border,
+    backgroundColor: theme.bgCard, borderBottomLeftRadius: 4,
+    borderWidth: 1, borderColor: theme.border,
   },
   bubbleText: { fontSize: 15, lineHeight: 22, fontFamily: fonts.bodyLight },
   bubbleTextMe: { color: theme.bg },
@@ -242,6 +262,11 @@ const styles = StyleSheet.create({
   bubbleTime: { fontSize: 10, marginTop: 4, fontFamily: fonts.bodyLight },
   bubbleTimeMe: { color: 'rgba(13,27,42,0.6)', textAlign: 'right' },
   bubbleTimeThem: { color: theme.textDim },
+
+  readReceipt: {
+    fontSize: 11, color: theme.primary,
+    fontFamily: fonts.bodyLight, marginTop: 3, marginRight: 2,
+  },
 
   prompts: { paddingHorizontal: 16, paddingBottom: 10 },
   promptsLabel: { fontSize: 12, color: theme.textMuted, marginBottom: 8, fontFamily: fonts.bodyLight },
