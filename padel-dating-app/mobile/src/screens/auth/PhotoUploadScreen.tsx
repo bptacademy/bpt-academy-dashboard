@@ -57,7 +57,14 @@ export default function PhotoUploadScreen({ route, navigation }: any) {
       const { error: dbError } = await supabase.from('users').upsert({
         auth_id: userId,
         email: session?.user?.email,
-        full_name: session?.user?.user_metadata?.full_name ?? null,
+        full_name: (() => {
+          const meta = session?.user?.user_metadata ?? {};
+          if (meta.full_name) return meta.full_name;
+          const first = meta.first_name ?? '';
+          const last = meta.last_name ?? '';
+          const combined = [first.trim(), last.trim()].filter(Boolean).join(' ');
+          return combined || null;
+        })(),
         city: city ?? null,
         looking_for: looking_for ?? null,
         visible_to: visible_to ?? 'everyone',

@@ -10,11 +10,11 @@ import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 
 async function ensureUsersRow(userId: string, email: string, firstName: string, lastName: string) {
+  const fullName = [firstName.trim(), lastName.trim()].filter(Boolean).join(' ');
   const { error } = await supabase.from('users').upsert({
     auth_id: userId,
     email,
-    first_name: firstName,
-    last_name: lastName,
+    full_name: fullName || null,
     profile_complete: false,
     last_active_at: new Date().toISOString(),
   }, { onConflict: 'auth_id' });
