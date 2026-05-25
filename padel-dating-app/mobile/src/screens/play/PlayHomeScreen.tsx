@@ -315,7 +315,7 @@ function PartnerCard({ partner, navigation, onServe }: {
           onPress={e => { e.stopPropagation?.(); onServe(); }}
           activeOpacity={0.8}
         >
-          <Text style={styles.serveBtnText}>🎾 Send a Serve</Text>
+          <Text style={styles.serveBtnText}>🎾 Send play request</Text>
         </TouchableOpacity>
       )}
     </TouchableOpacity>
