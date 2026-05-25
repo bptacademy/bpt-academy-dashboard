@@ -357,7 +357,17 @@ export default function PlayerProfileScreen({ route, navigation }: any) {
   const [showFullProfile, setShowFullProfile] = useState(false);
   const [isBlocked, setIsBlocked]             = useState(false);
 
-  useEffect(() => { if (!isDemo && userId) load(); }, [userId]);
+  useEffect(() => {
+    if (!isDemo && userId) {
+      // Reset state before loading real profile
+      setProfile(null);
+      setStats(null);
+      setVolpairScore(null);
+      setMatchesTogether(0);
+      setLastClub(null);
+      load();
+    }
+  }, [userId]);
 
   const load = async () => {
     setLoading(true);
@@ -368,8 +378,8 @@ export default function PlayerProfileScreen({ route, navigation }: any) {
         .eq('id', userId).maybeSingle();
 
       if (!p) {
-        setProfile(DEMO_PROFILE); setStats(DEMO_STATS); setVolpairScore(DEMO_SCORE);
-        setMatchesTogether(DEMO_MATCHES_TOGETHER); setLastClub(DEMO_LAST_CLUB);
+        // User not found — show empty profile, not demo
+        setProfile({ id: userId, full_name: null, city: null, bio: null, looking_for: null, photos: [], gender: null, home_club_name: null });
         setLoading(false); return;
       }
       setProfile(p);
@@ -455,6 +465,7 @@ export default function PlayerProfileScreen({ route, navigation }: any) {
   };
 
   const firstName = profile?.full_name?.split(' ')[0] ?? 'Player';
+  const displayName = profile?.full_name ?? 'Player';
   const photos: string[] = profile?.photos ?? [];
 
   if (loading) {
