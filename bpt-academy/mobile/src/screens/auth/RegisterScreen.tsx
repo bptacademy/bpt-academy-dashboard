@@ -35,8 +35,16 @@ export default function RegisterScreen({ navigation }: Props) {
   const [loading, setLoading]     = useState(false);
 
   const handleRegister = async () => {
+    if (!accountType) {
+      Alert.alert('Error', 'Please select an account type first');
+      return;
+    }
     if (!fullName || !email || !password) {
       Alert.alert('Error', 'Please fill in all required fields');
+      return;
+    }
+    if (password.length < 6) {
+      Alert.alert('Error', 'Password must be at least 6 characters');
       return;
     }
     setLoading(true);
@@ -54,9 +62,25 @@ export default function RegisterScreen({ navigation }: Props) {
     });
     setLoading(false);
     if (error) {
-      Alert.alert('Registration failed', error.message);
+      // Provide user-friendly messages for common errors
+      let message = error.message;
+      if (
+        message.toLowerCase().includes('password') &&
+        (message.toLowerCase().includes('secure') || message.toLowerCase().includes('breached') || message.toLowerCase().includes('compromised'))
+      ) {
+        message = 'Please choose a stronger password that has not been used before.';
+      } else if (
+        message.toLowerCase().includes('already registered') ||
+        message.toLowerCase().includes('already been registered') ||
+        message.toLowerCase().includes('user already exists')
+      ) {
+        message = 'An account with this email already exists. Please sign in instead.';
+      } else if (message.toLowerCase().includes('invalid email')) {
+        message = 'Please enter a valid email address.';
+      }
+      Alert.alert('Registration failed', message);
     } else {
-      Alert.alert('Account created!', 'Check your email to confirm, then log in.', [
+      Alert.alert('Account created!', 'Your account is ready. You can now sign in.', [
         { text: 'OK', onPress: () => navigation.navigate('Login') },
       ]);
     }
