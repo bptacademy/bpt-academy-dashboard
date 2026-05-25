@@ -355,6 +355,7 @@ export default function PlayerProfileScreen({ route, navigation }: any) {
   const [showLevel, setShowLevel]           = useState(false);
   const [showReport, setShowReport]         = useState(false);
   const [showFullProfile, setShowFullProfile] = useState(false);
+  const [isBlocked, setIsBlocked]             = useState(false);
 
   useEffect(() => { if (!isDemo && userId) load(); }, [userId]);
 
@@ -412,6 +413,45 @@ export default function PlayerProfileScreen({ route, navigation }: any) {
       setMyAction(type);
       if (type === 'volley') await notifyVolley(userId, user.full_name ?? 'Someone');
     } catch (e) { console.error('action error:', e); }
+  };
+
+  const handleBlock = () => {
+    if (isDemo || !user?.id || !userId) return;
+    const name = profile?.full_name?.split(' ')[0] ?? 'this player';
+    Alert.alert(
+      'Block ' + name + '?',
+      'They will no longer be able to see your profile or send you Serves. You can unblock them in Settings.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Block', style: 'destructive',
+          onPress: async () => {
+            try {
+              await supabase.from('blocks').upsert(
+                { blocker_id: user.id, blocked_id: userId },
+                { onConflict: 'blocker_id,blocked_id' }
+              );
+              setIsBlocked(true);
+              Alert.alert('Blocked', name + ' has been blocked.', [
+                { text: 'OK', onPress: () => navigation.goBack() },
+              ]);
+            } catch (e) { Alert.alert('Error', 'Could not block. Please try again.'); }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleMoreOptions = () => {
+    Alert.alert(
+      'Options',
+      undefined,
+      [
+        { text: 'Report profile', onPress: () => setShowReport(true) },
+        { text: 'Block user', style: 'destructive', onPress: handleBlock },
+        { text: 'Cancel', style: 'cancel' },
+      ]
+    );
   };
 
   const firstName = profile?.full_name?.split(' ')[0] ?? 'Player';
@@ -568,7 +608,7 @@ export default function PlayerProfileScreen({ route, navigation }: any) {
                 <Text style={styles.demoPillText}>✨ Demo</Text>
               </View>
             )}
-            <TouchableOpacity onPress={() => setShowReport(true)} style={styles.floatBtn}>
+            <TouchableOpacity onPress={handleMoreOptions} style={styles.floatBtn}>
               <Text style={styles.floatBtnText}>⋯</Text>
             </TouchableOpacity>
           </View>
