@@ -52,13 +52,27 @@ export default function PlatformSyncScreen({ navigation }: any) {
     }
   };
 
-  const handleDisconnect = (label: string) => {
+  const handleDisconnect = (platformId: string, label: string) => {
     Alert.alert(
-      `Disconnect ${label}?`,
+      'Disconnect ' + label + '?',
       'Your imported match data will remain, but new matches will no longer sync.',
       [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Disconnect', style: 'destructive', onPress: () => {} },
+        {
+          text: 'Disconnect', style: 'destructive',
+          onPress: async () => {
+            try {
+              await supabase
+                .from('platform_connections')
+                .delete()
+                .eq('user_id', user!.id)
+                .eq('platform', platformId);
+              await loadConnections();
+            } catch (e) {
+              Alert.alert('Error', 'Could not disconnect. Please try again.');
+            }
+          },
+        },
       ]
     );
   };
@@ -139,7 +153,7 @@ export default function PlatformSyncScreen({ navigation }: any) {
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={styles.disconnectBtn}
-                      onPress={() => handleDisconnect(p.label)}
+                      onPress={() => handleDisconnect(p.id, p.label)}
                     >
                       <Text style={styles.disconnectBtnText}>Disconnect</Text>
                     </TouchableOpacity>
