@@ -8,6 +8,9 @@ import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import OnboardingProgress from '../../components/common/OnboardingProgress';
 
+const SUPABASE_URL = 'https://qmdewocktouqoibbqurh.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_KwkQawb1Kv2jOk1Wud0xUg_mPQxPqmL';
+
 const DAYS = [
   { id: 'monday',    short: 'Mon', label: 'Monday' },
   { id: 'tuesday',   short: 'Tue', label: 'Tuesday' },
@@ -46,7 +49,7 @@ export default function Question7AvailabilityScreen({ route, navigation }: any) 
 
     setSaving(true);
     try {
-      // 1. Update users table with profile data
+      // 1. Update users table with profile data collected across Q1–Q4
       await supabase.from('users').update({
         city,
         looking_for,
@@ -54,30 +57,38 @@ export default function Question7AvailabilityScreen({ route, navigation }: any) 
         bio: bio || null,
       }).eq('id', user.id);
 
-      // 2. Upsert player_stats with self-reported data
-      // platform = 'self_reported' — will be overridden by Playtomic sync
+      // 2. Upsert self-reported player stats
+      // platform = 'self_reported' — overridden when Playtomic syncs
       const { error: statsError } = await supabase
         .from('player_stats')
         .upsert({
           user_id: user.id,
           platform: 'self_reported',
           level_value,
-          level_confidence: 0.5, // lower confidence than platform data
+          level_confidence: 0.5,
           play_style,
           preferred_days: selectedDays,
           preferred_time_of_day: selectedTime,
-          // Leave match stats null — no history yet
           total_matches: 0,
           wins: 0,
           losses: 0,
           win_rate: null,
-        }, {
-          onConflict: 'user_id,platform',
-        });
+        }, { onConflict: 'user_id,platform' });
 
       if (statsError) throw statsError;
 
       await refreshUser();
+
+      // 3. Fire volpair Score computation in background (non-blocking)
+      fetch(`${SUPABASE_URL}/functions/v1/compute-scores`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_ANON_KEY,
+        },
+        body: JSON.stringify({ user_id: user.id }),
+      }).catch(() => {}); // fire and forget — don't block navigation
+
       navigation.navigate('PhotoUpload', {
         city, looking_for, visible_to, bio, level_value, play_style,
         preferred_days: selectedDays, preferred_time_of_day: selectedTime,
@@ -193,9 +204,7 @@ const styles = StyleSheet.create({
   },
   timeOptionActive: { backgroundColor: theme.primaryDim, borderColor: theme.primary },
   timeEmoji: { fontSize: 24, marginBottom: 2 },
-  timeLabel: {
-    fontSize: 14, fontFamily: fonts.bodyBold, color: theme.textPrimary,
-  },
+  timeLabel: { fontSize: 14, fontFamily: fonts.bodyBold, color: theme.textPrimary },
   timeLabelActive: { color: theme.primary },
   timeDesc: { fontSize: 11, color: theme.textMuted, fontFamily: fonts.bodyLight },
   timeDescActive: { color: 'rgba(0,212,200,0.7)' },

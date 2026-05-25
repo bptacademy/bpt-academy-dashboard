@@ -31,12 +31,6 @@ const STYLES = [
     label: 'Serve & Volley',
     desc: 'I push forward every chance I get, love playing at the net',
   },
-  {
-    id: 'counter_puncher',
-    emoji: '🔄',
-    label: 'Counter-puncher',
-    desc: 'I use their pace against them, redirect and surprise',
-  },
 ];
 
 export default function Question6PlayStyleScreen({ route, navigation }: any) {
