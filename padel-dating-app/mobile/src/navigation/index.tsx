@@ -21,6 +21,9 @@ import Question1LocationScreen from '../screens/auth/Question1LocationScreen';
 import Question2IntentScreen from '../screens/auth/Question2IntentScreen';
 import Question3VisibilityScreen from '../screens/auth/Question3VisibilityScreen';
 import Question4BioScreen from '../screens/auth/Question4BioScreen';
+import Question5LevelScreen from '../screens/auth/Question5LevelScreen';
+import Question6PlayStyleScreen from '../screens/auth/Question6PlayStyleScreen';
+import Question7AvailabilityScreen from '../screens/auth/Question7AvailabilityScreen';
 import PhotoUploadScreen from '../screens/auth/PhotoUploadScreen';
 import OnboardingCompleteScreen from '../screens/auth/OnboardingCompleteScreen';
 
@@ -63,6 +66,9 @@ const ONBOARDING_SCREENS = (Stack: any) => (
     <Stack.Screen name="Question2Intent" component={Question2IntentScreen} />
     <Stack.Screen name="Question3Visibility" component={Question3VisibilityScreen} />
     <Stack.Screen name="Question4Bio" component={Question4BioScreen} />
+    <Stack.Screen name="Question5Level" component={Question5LevelScreen} />
+    <Stack.Screen name="Question6PlayStyle" component={Question6PlayStyleScreen} />
+    <Stack.Screen name="Question7Availability" component={Question7AvailabilityScreen} />
     <Stack.Screen name="PhotoUpload" component={PhotoUploadScreen} />
     <Stack.Screen name="OnboardingComplete" component={OnboardingCompleteScreen} />
   </>
@@ -85,7 +91,6 @@ function PlayNavigator() {
   return (
     <PlayStack.Navigator screenOptions={{ headerShown: false }}>
       <PlayStack.Screen name="PlayHome" component={PlayHomeScreen} />
-      {/* PlayerProfile accessible from Court History cards */}
       <PlayStack.Screen name="PlayerProfile" component={PlayerProfileScreen} />
     </PlayStack.Navigator>
   );

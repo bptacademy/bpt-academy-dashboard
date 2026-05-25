@@ -31,7 +31,7 @@ export default function Question1LocationScreen({ navigation }: any) {
         <StatusBar barStyle="light-content" backgroundColor={theme.bg} />
 
         <View style={styles.inner}>
-          <OnboardingProgress total={4} current={1} />
+          <OnboardingProgress total={7} current={1} />
           <Text style={styles.question}>📍 Where are you based?</Text>
           <Text style={styles.subtitle}>{"We'll show you players in your area."}</Text>
 

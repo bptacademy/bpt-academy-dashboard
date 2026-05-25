@@ -26,7 +26,7 @@ export default function Question3VisibilityScreen({ route, navigation }: any) {
       <StatusBar barStyle="light-content" backgroundColor="#0D1B2A" />
 
       <View style={styles.inner}>
-        <OnboardingProgress total={4} current={3} />
+        <OnboardingProgress total={7} current={3} />
 
         <Text style={styles.question}>👀 Who do you want to be seen by?</Text>
         <Text style={styles.subtitle}>You can change this any time from your profile.</Text>

@@ -20,7 +20,7 @@ export default function Question4BioScreen({ route, navigation }: any) {
   const MAX = 120;
 
   const handleContinue = () => {
-    navigation.navigate('PhotoUpload', { city, looking_for, visible_to, bio: bio.trim() });
+    navigation.navigate('Question5Level', { city, looking_for, visible_to, bio: bio.trim() });
   };
 
   return (
@@ -32,7 +32,7 @@ export default function Question4BioScreen({ route, navigation }: any) {
         <StatusBar barStyle="light-content" backgroundColor="#0D1B2A" />
 
         <View style={styles.inner}>
-          <OnboardingProgress total={4} current={4} />
+          <OnboardingProgress total={7} current={4} />
 
           <Text style={styles.question}>🗣️ One line about yourself</Text>
           <Text style={styles.subtitle}>Optional — but the best profiles always have one.</Text>

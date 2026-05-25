@@ -26,7 +26,7 @@ export default function Question2IntentScreen({ route, navigation }: any) {
       <StatusBar barStyle="light-content" backgroundColor="#0D1B2A" />
 
       <View style={styles.inner}>
-        <OnboardingProgress total={4} current={2} />
+        <OnboardingProgress total={7} current={2} />
 
         <Text style={styles.question}>🎯 What are you looking for?</Text>
         <Text style={styles.subtitle}>Be honest — you can change this later.</Text>
