@@ -378,8 +378,9 @@ export default function PlayerProfileScreen({ route, navigation }: any) {
         .eq('id', userId).maybeSingle();
 
       if (!p) {
-        // User not found — show empty profile, not demo
-        setProfile({ id: userId, full_name: null, city: null, bio: null, looking_for: null, photos: [], gender: null, home_club_name: null });
+        // User not found — fall back to demo profile
+        setProfile(DEMO_PROFILE); setStats(DEMO_STATS); setVolpairScore(DEMO_SCORE);
+        setMatchesTogether(DEMO_MATCHES_TOGETHER); setLastClub(DEMO_LAST_CLUB);
         setLoading(false); return;
       }
       setProfile(p);
@@ -464,8 +465,8 @@ export default function PlayerProfileScreen({ route, navigation }: any) {
     );
   };
 
-  const firstName = profile?.full_name?.split(' ')[0] ?? 'Player';
-  const displayName = profile?.full_name ?? 'Player';
+  const firstName = profile?.full_name?.split(' ')[0] ?? (stats?.level_value ? `Level ${stats.level_value.toFixed(1)}` : 'Player');
+  const displayName = profile?.full_name ?? (stats?.level_value ? `Level ${stats.level_value.toFixed(1)} Player` : 'Player');
   const photos: string[] = profile?.photos ?? [];
 
   if (loading) {
