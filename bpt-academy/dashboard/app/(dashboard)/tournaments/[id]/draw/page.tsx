@@ -5,60 +5,25 @@ import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { ArrowLeft, Plus, X, Users, Trophy, Clock, CheckCircle } from 'lucide-react'
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
 type DrawType = 'mens' | 'womens' | 'mixed'
 type RegStatus = 'confirmed' | 'withdrawn' | 'pending'
 
-interface Tournament {
-  id: string
-  title: string
-  draws: DrawType[] | null
-}
-
-interface Profile {
-  id: string
-  full_name: string
-  division: string | null
-}
-
+interface Tournament { id: string; title: string; draws: DrawType[] | null }
+interface Profile { id: string; full_name: string; division: string | null }
 interface Reg {
-  id: string
-  student_id: string
-  partner_id: string | null
-  team_name: string | null
-  seed: number | null
-  status: RegStatus
-  draw: DrawType | null
-  player1: { full_name: string } | null
-  partner: { full_name: string } | null
+  id: string; student_id: string; partner_id: string | null; team_name: string | null
+  seed: number | null; status: RegStatus; draw: DrawType | null
+  player1: { full_name: string } | null; partner: { full_name: string } | null
 }
-
 interface GuestReg {
-  id: string
-  full_name: string
-  email: string
-  draw: DrawType
-  partner_name: string | null
-  seed: number | null
-  status: string
-  notified_at: string | null
+  id: string; full_name: string; email: string; draw: DrawType
+  partner_name: string | null; seed: number | null; status: string; notified_at: string | null
 }
-
 interface Match {
-  id: string
-  round: string
-  court: string | null
-  scheduled_at: string | null
-  score: string | null
-  winner_id: string | null
-  draw: DrawType | null
-  notes: string | null
-  team1_registration_id: string | null
-  team2_registration_id: string | null
+  id: string; round: string; court: string | null; scheduled_at: string | null
+  score: string | null; winner_id: string | null; draw: DrawType | null; notes: string | null
+  team1_registration_id: string | null; team2_registration_id: string | null
 }
-
-// ─── Constants ────────────────────────────────────────────────────────────────
 
 const DRAW_LABELS: Record<DrawType, string> = { mens: "Men's", womens: "Women's", mixed: 'Mixed' }
 const DRAW_COLORS: Record<DrawType, { bg: string; text: string; border: string; active: string }> = {
@@ -66,23 +31,17 @@ const DRAW_COLORS: Record<DrawType, { bg: string; text: string; border: string; 
   womens: { bg: 'bg-pink-50',   text: 'text-pink-700',   border: 'border-pink-200',   active: 'bg-pink-600 text-white border-pink-600' },
   mixed:  { bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200', active: 'bg-purple-600 text-white border-purple-600' },
 }
-
 const ROUNDS = ['Group A', 'Group B', 'Group C', 'Round of 16', 'Quarter Final', 'Semi Final', 'Final']
 
-// Supabase returns joins as arrays — normalise to single object or null
 function normaliseReg(raw: Record<string, unknown>): Reg {
   const p1arr = raw.player1 as { full_name: string }[] | null
   const p2arr = raw.partner  as { full_name: string }[] | null
   return {
-    id:         raw.id         as string,
-    student_id: raw.student_id as string,
-    partner_id: raw.partner_id as string | null,
-    team_name:  raw.team_name  as string | null,
-    seed:       raw.seed       as number | null,
-    status:     raw.status     as RegStatus,
-    draw:       raw.draw       as DrawType | null,
-    player1:    Array.isArray(p1arr) ? (p1arr[0] ?? null) : (p1arr ?? null),
-    partner:    Array.isArray(p2arr) ? (p2arr[0] ?? null) : (p2arr ?? null),
+    id: raw.id as string, student_id: raw.student_id as string,
+    partner_id: raw.partner_id as string | null, team_name: raw.team_name as string | null,
+    seed: raw.seed as number | null, status: raw.status as RegStatus, draw: raw.draw as DrawType | null,
+    player1: Array.isArray(p1arr) ? (p1arr[0] ?? null) : (p1arr ?? null),
+    partner: Array.isArray(p2arr) ? (p2arr[0] ?? null) : (p2arr ?? null),
   }
 }
 
@@ -98,46 +57,35 @@ function teamLabel(reg: Reg | GuestReg | undefined): string {
 }
 
 function uniqueRounds(ms: Match[]): string[] {
-  const seen: Record<string, boolean> = {}
-  const out: string[] = []
+  const seen: Record<string, boolean> = {}; const out: string[] = []
   for (const m of ms) { if (!seen[m.round]) { seen[m.round] = true; out.push(m.round) } }
   return out
 }
 
-// ─── Main Component ───────────────────────────────────────────────────────────
-
 export default function TournamentDrawPage() {
-  const params = useParams()
-  const router = useRouter()
+  const params = useParams(); const router = useRouter()
   const tournamentId = params.id as string
 
   const [tournament, setTournament] = useState<Tournament | null>(null)
   const [selectedDraw, setSelectedDraw] = useState<DrawType>('mens')
   const [activeTab, setActiveTab] = useState<'players' | 'draw' | 'schedule' | 'results'>('players')
-
   const [regs, setRegs] = useState<Reg[]>([])
   const [guests, setGuests] = useState<GuestReg[]>([])
   const [matches, setMatches] = useState<Match[]>([])
   const [allProfiles, setAllProfiles] = useState<Profile[]>([])
   const [loading, setLoading] = useState(true)
-
   const [showAddPlayer, setShowAddPlayer] = useState(false)
   const [playerSearch, setPlayerSearch] = useState('')
-
   const [showAddGuest, setShowAddGuest] = useState(false)
   const [guestForm, setGuestForm] = useState({ full_name: '', email: '', partner_name: '' })
   const [guestSaving, setGuestSaving] = useState(false)
   const [guestError, setGuestError] = useState('')
-
   const [matchModal, setMatchModal] = useState<{
     open: boolean; editing: Match | null
     t1: string; t2: string; round: string; court: string; datetime: string; notes: string
   }>({ open: false, editing: null, t1: '', t2: '', round: '', court: '', datetime: '', notes: '' })
   const [matchSaving, setMatchSaving] = useState(false)
-
   const [resultState, setResultState] = useState<Record<string, { score: string; winner: string }>>({})
-
-  // ─── Load ─────────────────────────────────────────────────────────────────────
 
   const load = useCallback(async () => {
     const supabase = createClient()
@@ -145,18 +93,14 @@ export default function TournamentDrawPage() {
       supabase.from('tournaments').select('id, title, draws').eq('id', tournamentId).single(),
       supabase.from('tournament_registrations')
         .select('id, student_id, partner_id, team_name, seed, status, draw, player1:profiles!student_id(full_name), partner:profiles!partner_id(full_name)')
-        .eq('tournament_id', tournamentId)
-        .order('seed', { nullsFirst: false }),
+        .eq('tournament_id', tournamentId).order('seed', { nullsFirst: false }),
       supabase.from('tournament_guest_registrations').select('*').eq('tournament_id', tournamentId).order('created_at'),
       supabase.from('tournament_matches').select('*').eq('tournament_id', tournamentId).order('created_at'),
       supabase.from('profiles').select('id, full_name, division').in('role', ['student', 'coach', 'admin']).order('full_name'),
     ])
-
     if (tRes.data) {
-      const t = tRes.data as Tournament
-      setTournament(t)
-      const draws = t.draws ?? ['mens', 'womens']
-      setSelectedDraw(draws[0] ?? 'mens')
+      const t = tRes.data as Tournament; setTournament(t)
+      const draws = t.draws ?? ['mens', 'womens']; setSelectedDraw(draws[0] ?? 'mens')
     }
     if (rRes.data) setRegs((rRes.data as Record<string, unknown>[]).map(normaliseReg))
     if (gRes.data) setGuests(gRes.data as GuestReg[])
@@ -166,8 +110,6 @@ export default function TournamentDrawPage() {
   }, [tournamentId])
 
   useEffect(() => { load() }, [load])
-
-  // ─── Derived ──────────────────────────────────────────────────────────────────
 
   const availableDraws: DrawType[] = tournament?.draws ?? ['mens', 'womens']
   const drawRegs = regs.filter(r => r.draw === selectedDraw || r.draw === null)
@@ -180,14 +122,10 @@ export default function TournamentDrawPage() {
   const rounds = uniqueRounds(drawMatches)
   const completedCount = drawMatches.filter(m => m.winner_id).length
 
-  // ─── Player actions ───────────────────────────────────────────────────────────
-
   const addPlayer = async (profile: Profile) => {
     setShowAddPlayer(false)
     const supabase = createClient()
-    await supabase.from('tournament_registrations').insert({
-      tournament_id: tournamentId, student_id: profile.id, status: 'confirmed', draw: selectedDraw,
-    })
+    await supabase.from('tournament_registrations').insert({ tournament_id: tournamentId, student_id: profile.id, status: 'confirmed', draw: selectedDraw })
     load()
   }
 
@@ -195,6 +133,16 @@ export default function TournamentDrawPage() {
     if (!confirm(`Remove ${reg.player1?.full_name} from the ${DRAW_LABELS[selectedDraw]} draw?`)) return
     const supabase = createClient()
     await supabase.from('tournament_registrations').update({ status: 'withdrawn' }).eq('id', reg.id)
+    load()
+  }
+
+  const movePlayer = async (reg: Reg, targetDraw: DrawType) => {
+    if (!confirm(`Move ${reg.player1?.full_name} to ${DRAW_LABELS[targetDraw]} draw? Their partner link and seed will be cleared.`)) return
+    const supabase = createClient()
+    // Move the player and clear partner/seed
+    await supabase.from('tournament_registrations').update({ draw: targetDraw, partner_id: null, seed: null }).eq('id', reg.id)
+    // Clear anyone who had this player as partner
+    await supabase.from('tournament_registrations').update({ partner_id: null }).eq('tournament_id', tournamentId).eq('partner_id', reg.student_id)
     load()
   }
 
@@ -217,55 +165,31 @@ export default function TournamentDrawPage() {
     load()
   }
 
-  // ─── Add guest ────────────────────────────────────────────────────────────────
-
   const saveGuest = async () => {
     setGuestError('')
     if (!guestForm.full_name.trim()) { setGuestError('Full name is required'); return }
     if (!guestForm.email.trim().includes('@')) { setGuestError('Valid email is required'); return }
     setGuestSaving(true)
     const supabase = createClient()
-
-    const { data: existing } = await supabase
-      .from('tournament_guest_registrations').select('id')
-      .eq('tournament_id', tournamentId).eq('email', guestForm.email.trim().toLowerCase()).maybeSingle()
-
+    const { data: existing } = await supabase.from('tournament_guest_registrations').select('id').eq('tournament_id', tournamentId).eq('email', guestForm.email.trim().toLowerCase()).maybeSingle()
     if (existing) { setGuestError('A guest with this email is already registered.'); setGuestSaving(false); return }
-
     const { error } = await supabase.from('tournament_guest_registrations').insert({
-      tournament_id: tournamentId,
-      full_name: guestForm.full_name.trim(),
-      email: guestForm.email.trim().toLowerCase(),
-      partner_name: guestForm.partner_name.trim() || null,
-      draw: selectedDraw, status: 'confirmed',
+      tournament_id: tournamentId, full_name: guestForm.full_name.trim(), email: guestForm.email.trim().toLowerCase(),
+      partner_name: guestForm.partner_name.trim() || null, draw: selectedDraw, status: 'confirmed',
     })
-
     if (error) { setGuestError(error.message); setGuestSaving(false); return }
-
     try {
-      await supabase.functions.invoke('process-notifications', {
-        body: { type: 'tournament_guest_invite', email: guestForm.email.trim().toLowerCase(), full_name: guestForm.full_name.trim(), tournament_title: tournament?.title ?? 'BPT Academy Tournament' },
-      })
+      await supabase.functions.invoke('process-notifications', { body: { type: 'tournament_guest_invite', email: guestForm.email.trim().toLowerCase(), full_name: guestForm.full_name.trim(), tournament_title: tournament?.title ?? 'BPT Academy Tournament' } })
       await supabase.from('tournament_guest_registrations').update({ notified_at: new Date().toISOString() }).eq('tournament_id', tournamentId).eq('email', guestForm.email.trim().toLowerCase())
     } catch { /* silent */ }
-
-    setGuestSaving(false)
-    setShowAddGuest(false)
-    setGuestForm({ full_name: '', email: '', partner_name: '' })
-    load()
+    setGuestSaving(false); setShowAddGuest(false); setGuestForm({ full_name: '', email: '', partner_name: '' }); load()
   }
-
-  // ─── Match actions ────────────────────────────────────────────────────────────
 
   const openAddMatch = () => setMatchModal({ open: true, editing: null, t1: '', t2: '', round: '', court: '', datetime: '', notes: '' })
   const openEditMatch = (m: Match) => setMatchModal({
-    open: true, editing: m,
-    t1: m.team1_registration_id ?? '', t2: m.team2_registration_id ?? '',
-    round: m.round, court: m.court ?? '',
-    datetime: m.scheduled_at ? new Date(m.scheduled_at).toISOString().slice(0, 16) : '',
-    notes: m.notes ?? '',
+    open: true, editing: m, t1: m.team1_registration_id ?? '', t2: m.team2_registration_id ?? '',
+    round: m.round, court: m.court ?? '', datetime: m.scheduled_at ? new Date(m.scheduled_at).toISOString().slice(0, 16) : '', notes: m.notes ?? '',
   })
-
   const saveMatch = async () => {
     const { t1, t2, round, court, datetime, notes, editing } = matchModal
     if (!t1 || !t2 || !round) return
@@ -274,29 +198,21 @@ export default function TournamentDrawPage() {
     const payload = { tournament_id: tournamentId, team1_registration_id: t1, team2_registration_id: t2, round, court: court || null, scheduled_at: datetime ? new Date(datetime).toISOString() : null, notes: notes || null, draw: selectedDraw }
     if (editing) { await supabase.from('tournament_matches').update(payload).eq('id', editing.id) }
     else { await supabase.from('tournament_matches').insert(payload) }
-    setMatchSaving(false)
-    setMatchModal({ open: false, editing: null, t1: '', t2: '', round: '', court: '', datetime: '', notes: '' })
-    load()
+    setMatchSaving(false); setMatchModal({ open: false, editing: null, t1: '', t2: '', round: '', court: '', datetime: '', notes: '' }); load()
   }
-
   const deleteMatch = async (id: string) => {
     if (!confirm('Delete this match?')) return
     const supabase = createClient()
-    await supabase.from('tournament_matches').delete().eq('id', id)
-    load()
+    await supabase.from('tournament_matches').delete().eq('id', id); load()
   }
-
   const saveResult = async (m: Match) => {
     const st = resultState[m.id]
     if (!st?.score || !st?.winner) return
     const winnerReg = confirmedRegs.find(r => r.id === st.winner)
     if (!winnerReg) return
     const supabase = createClient()
-    await supabase.from('tournament_matches').update({ score: st.score, winner_id: winnerReg.student_id, played_at: new Date().toISOString() }).eq('id', m.id)
-    load()
+    await supabase.from('tournament_matches').update({ score: st.score, winner_id: winnerReg.student_id, played_at: new Date().toISOString() }).eq('id', m.id); load()
   }
-
-  // ─── Render ───────────────────────────────────────────────────────────────────
 
   if (loading) return <div className="flex items-center justify-center py-24 text-gray-400">Loading draw...</div>
   if (!tournament) return <div className="flex items-center justify-center py-24 text-gray-400">Tournament not found</div>
@@ -305,40 +221,27 @@ export default function TournamentDrawPage() {
 
   return (
     <div className="space-y-6">
-
-      {/* Header */}
       <div className="flex items-center gap-4">
-        <button onClick={() => router.push('/tournaments')} className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700">
-          <ArrowLeft size={16} /> Tournaments
-        </button>
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">{tournament.title}</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Draw Manager</p>
-        </div>
+        <button onClick={() => router.push('/tournaments')} className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700"><ArrowLeft size={16} /> Tournaments</button>
+        <div><h1 className="text-2xl font-bold text-gray-900">{tournament.title}</h1><p className="text-sm text-gray-500 mt-0.5">Draw Manager</p></div>
       </div>
 
-      {/* Draw selector */}
       {availableDraws.length > 1 && (
         <div className="flex gap-2">
           {availableDraws.map(d => {
             const c = DRAW_COLORS[d]; const active = selectedDraw === d
-            return (
-              <button key={d} onClick={() => setSelectedDraw(d)} className={`px-5 py-2 rounded-full text-sm font-semibold border transition-all ${active ? c.active : `${c.bg} ${c.text} ${c.border}`}`}>
-                {DRAW_LABELS[d]}
-              </button>
-            )
+            return <button key={d} onClick={() => setSelectedDraw(d)} className={`px-5 py-2 rounded-full text-sm font-semibold border transition-all ${active ? c.active : `${c.bg} ${c.text} ${c.border}`}`}>{DRAW_LABELS[d]}</button>
           })}
         </div>
       )}
 
-      {/* Tabs */}
       <div className="border-b border-gray-200">
         <div className="flex gap-1">
           {([
-            { key: 'players',  label: 'Players',       icon: <Users size={15} /> },
-            { key: 'draw',     label: 'Draw & Groups', icon: <Trophy size={15} /> },
-            { key: 'schedule', label: 'Schedule',      icon: <Clock size={15} /> },
-            { key: 'results',  label: 'Results',       icon: <CheckCircle size={15} /> },
+            { key: 'players', label: 'Players', icon: <Users size={15} /> },
+            { key: 'draw', label: 'Draw & Groups', icon: <Trophy size={15} /> },
+            { key: 'schedule', label: 'Schedule', icon: <Clock size={15} /> },
+            { key: 'results', label: 'Results', icon: <CheckCircle size={15} /> },
           ] as const).map(({ key, label, icon }) => (
             <button key={key} onClick={() => setActiveTab(key)}
               className={`flex items-center gap-1.5 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === key ? 'border-green-500 text-green-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
@@ -366,12 +269,8 @@ export default function TournamentDrawPage() {
             </div>
           </div>
           <div className="flex gap-3">
-            <button onClick={() => { setPlayerSearch(''); setShowAddPlayer(true) }} className="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium">
-              <Plus size={15} /> Add Existing Player
-            </button>
-            <button onClick={() => { setGuestForm({ full_name: '', email: '', partner_name: '' }); setGuestError(''); setShowAddGuest(true) }} className="flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-lg text-sm font-medium">
-              <Plus size={15} /> Add Guest Player
-            </button>
+            <button onClick={() => { setPlayerSearch(''); setShowAddPlayer(true) }} className="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium"><Plus size={15} /> Add Existing Player</button>
+            <button onClick={() => { setGuestForm({ full_name: '', email: '', partner_name: '' }); setGuestError(''); setShowAddGuest(true) }} className="flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-lg text-sm font-medium"><Plus size={15} /> Add Guest Player</button>
           </div>
 
           {confirmedRegs.length > 0 && (
@@ -403,7 +302,15 @@ export default function TournamentDrawPage() {
                         )}
                       </td>
                       <td className="px-5 py-3 text-right">
-                        <button onClick={() => removePlayer(reg)} className="text-red-500 hover:text-red-700 opacity-0 group-hover:opacity-100 text-xs font-medium">Remove</button>
+                        <div className="flex items-center justify-end gap-3 opacity-0 group-hover:opacity-100">
+                          {availableDraws.length > 1 && availableDraws.filter(d => d !== selectedDraw).map(targetDraw => (
+                            <button key={targetDraw} onClick={() => movePlayer(reg, targetDraw)}
+                              className="text-purple-600 hover:text-purple-800 text-xs font-medium">
+                              ↔ Move to {DRAW_LABELS[targetDraw]}
+                            </button>
+                          ))}
+                          <button onClick={() => removePlayer(reg)} className="text-red-500 hover:text-red-700 text-xs font-medium">Remove</button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -524,9 +431,7 @@ export default function TournamentDrawPage() {
                         <td className="px-5 py-3 text-xs text-green-600 font-bold uppercase">{m.round}</td>
                         <td className="px-5 py-3 font-medium text-gray-900">{teamLabel(t1)} <span className="text-gray-400 font-normal">vs</span> {teamLabel(t2)}</td>
                         <td className="px-5 py-3 text-gray-500">{m.court ?? '—'}</td>
-                        <td className="px-5 py-3 text-gray-500">
-                          {m.scheduled_at ? new Date(m.scheduled_at).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : <span className="text-amber-500 text-xs">Not scheduled</span>}
-                        </td>
+                        <td className="px-5 py-3 text-gray-500">{m.scheduled_at ? new Date(m.scheduled_at).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : <span className="text-amber-500 text-xs">Not scheduled</span>}</td>
                         <td className="px-5 py-3 text-right"><button onClick={() => openEditMatch(m)} className="text-xs text-blue-600 hover:text-blue-800 font-medium">Edit</button></td>
                       </tr>
                     )
@@ -568,18 +473,12 @@ export default function TournamentDrawPage() {
                           value={st.score} onChange={e => setResultState(prev => ({ ...prev, [m.id]: { ...st, score: e.target.value } }))} />
                         <div className="flex gap-2">
                           <button onClick={() => t1 && setResultState(prev => ({ ...prev, [m.id]: { ...st, winner: t1.id } }))}
-                            className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-colors ${st.winner === t1?.id ? 'bg-green-500 text-white border-green-500' : 'border-gray-200 text-gray-600 hover:bg-gray-50'}`}>
-                            {teamLabel(t1)} Wins
-                          </button>
+                            className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-colors ${st.winner === t1?.id ? 'bg-green-500 text-white border-green-500' : 'border-gray-200 text-gray-600 hover:bg-gray-50'}`}>{teamLabel(t1)} Wins</button>
                           <button onClick={() => t2 && setResultState(prev => ({ ...prev, [m.id]: { ...st, winner: t2.id } }))}
-                            className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-colors ${st.winner === t2?.id ? 'bg-green-500 text-white border-green-500' : 'border-gray-200 text-gray-600 hover:bg-gray-50'}`}>
-                            {teamLabel(t2)} Wins
-                          </button>
+                            className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-colors ${st.winner === t2?.id ? 'bg-green-500 text-white border-green-500' : 'border-gray-200 text-gray-600 hover:bg-gray-50'}`}>{teamLabel(t2)} Wins</button>
                         </div>
                         <button onClick={() => saveResult(m)} disabled={!st.score || !st.winner}
-                          className="w-full py-2 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-200 disabled:text-gray-400 text-white rounded-lg text-sm font-medium">
-                          Save Result
-                        </button>
+                          className="w-full py-2 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-200 disabled:text-gray-400 text-white rounded-lg text-sm font-medium">Save Result</button>
                       </div>
                     )}
                     {done && winnerReg && <p className="text-center text-sm text-green-600 font-semibold border-t border-gray-100 pt-3">🏆 {teamLabel(winnerReg)}</p>}
@@ -629,27 +528,17 @@ export default function TournamentDrawPage() {
             </div>
             {guestError && <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm">{guestError}</div>}
             <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Full Name *</label>
-                <input type="text" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" value={guestForm.full_name} onChange={e => setGuestForm(f => ({ ...f, full_name: e.target.value }))} placeholder="e.g. John Smith" autoFocus />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Email Address *</label>
-                <input type="email" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" value={guestForm.email} onChange={e => setGuestForm(f => ({ ...f, email: e.target.value }))} placeholder="john@example.com" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Partner Name <span className="text-gray-400 font-normal">(optional)</span></label>
-                <input type="text" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" value={guestForm.partner_name} onChange={e => setGuestForm(f => ({ ...f, partner_name: e.target.value }))} placeholder="e.g. Jane Smith" />
-              </div>
-              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm text-amber-700">
-                📧 An invitation email will be sent to this player with a link to download the BPT Academy app.
-              </div>
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">Full Name *</label>
+                <input type="text" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" value={guestForm.full_name} onChange={e => setGuestForm(f => ({ ...f, full_name: e.target.value }))} placeholder="e.g. John Smith" autoFocus /></div>
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">Email Address *</label>
+                <input type="email" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" value={guestForm.email} onChange={e => setGuestForm(f => ({ ...f, email: e.target.value }))} placeholder="john@example.com" /></div>
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">Partner Name <span className="text-gray-400 font-normal">(optional)</span></label>
+                <input type="text" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" value={guestForm.partner_name} onChange={e => setGuestForm(f => ({ ...f, partner_name: e.target.value }))} placeholder="e.g. Jane Smith" /></div>
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm text-amber-700">📧 An invitation email will be sent to this player with a link to download the BPT Academy app.</div>
             </div>
             <div className="flex gap-3 mt-6">
               <button onClick={() => setShowAddGuest(false)} className="flex-1 px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">Cancel</button>
-              <button onClick={saveGuest} disabled={guestSaving} className="flex-1 px-4 py-2 bg-amber-500 hover:bg-amber-600 disabled:bg-amber-300 text-white rounded-lg text-sm font-medium">
-                {guestSaving ? 'Saving…' : 'Add & Send Invite'}
-              </button>
+              <button onClick={saveGuest} disabled={guestSaving} className="flex-1 px-4 py-2 bg-amber-500 hover:bg-amber-600 disabled:bg-amber-300 text-white rounded-lg text-sm font-medium">{guestSaving ? 'Saving…' : 'Add & Send Invite'}</button>
             </div>
           </div>
         </div>
@@ -664,49 +553,31 @@ export default function TournamentDrawPage() {
               <button onClick={() => setMatchModal(m => ({ ...m, open: false }))} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
             </div>
             <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Team 1</label>
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">Team 1</label>
                 <select className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" value={matchModal.t1} onChange={e => setMatchModal(m => ({ ...m, t1: e.target.value }))}>
-                  <option value="">Select team…</option>
-                  {confirmedRegs.map(r => <option key={r.id} value={r.id}>{teamLabel(r)}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Team 2</label>
+                  <option value="">Select team…</option>{confirmedRegs.map(r => <option key={r.id} value={r.id}>{teamLabel(r)}</option>)}</select></div>
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">Team 2</label>
                 <select className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" value={matchModal.t2} onChange={e => setMatchModal(m => ({ ...m, t2: e.target.value }))}>
-                  <option value="">Select team…</option>
-                  {confirmedRegs.filter(r => r.id !== matchModal.t1).map(r => <option key={r.id} value={r.id}>{teamLabel(r)}</option>)}
-                </select>
-              </div>
+                  <option value="">Select team…</option>{confirmedRegs.filter(r => r.id !== matchModal.t1).map(r => <option key={r.id} value={r.id}>{teamLabel(r)}</option>)}</select></div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Round</label>
                 <div className="flex flex-wrap gap-2 mb-2">
-                  {ROUNDS.map(r => (
-                    <button key={r} onClick={() => setMatchModal(m => ({ ...m, round: r }))}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-medium border ${matchModal.round === r ? 'bg-green-500 text-white border-green-500' : 'border-gray-200 text-gray-600 hover:bg-gray-50'}`}>{r}</button>
-                  ))}
+                  {ROUNDS.map(r => <button key={r} onClick={() => setMatchModal(m => ({ ...m, round: r }))}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium border ${matchModal.round === r ? 'bg-green-500 text-white border-green-500' : 'border-gray-200 text-gray-600 hover:bg-gray-50'}`}>{r}</button>)}
                 </div>
                 <input type="text" className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm" placeholder="Or type custom round…" value={matchModal.round} onChange={e => setMatchModal(m => ({ ...m, round: e.target.value }))} />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Court</label>
-                <input type="text" className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm" placeholder="e.g. Court 1" value={matchModal.court} onChange={e => setMatchModal(m => ({ ...m, court: e.target.value }))} />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Date & Time</label>
-                <input type="datetime-local" className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm" value={matchModal.datetime} onChange={e => setMatchModal(m => ({ ...m, datetime: e.target.value }))} />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Notes <span className="text-gray-400 font-normal">(optional)</span></label>
-                <textarea rows={2} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm" value={matchModal.notes} onChange={e => setMatchModal(m => ({ ...m, notes: e.target.value }))} />
-              </div>
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">Court</label>
+                <input type="text" className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm" placeholder="e.g. Court 1" value={matchModal.court} onChange={e => setMatchModal(m => ({ ...m, court: e.target.value }))} /></div>
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">Date & Time</label>
+                <input type="datetime-local" className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm" value={matchModal.datetime} onChange={e => setMatchModal(m => ({ ...m, datetime: e.target.value }))} /></div>
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">Notes <span className="text-gray-400 font-normal">(optional)</span></label>
+                <textarea rows={2} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm" value={matchModal.notes} onChange={e => setMatchModal(m => ({ ...m, notes: e.target.value }))} /></div>
             </div>
             <div className="flex gap-3 mt-6">
               <button onClick={() => setMatchModal(m => ({ ...m, open: false }))} className="flex-1 px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">Cancel</button>
               <button onClick={saveMatch} disabled={matchSaving || !matchModal.t1 || !matchModal.t2 || !matchModal.round}
-                className="flex-1 px-4 py-2 bg-green-500 hover:bg-green-600 disabled:bg-green-300 text-white rounded-lg text-sm font-medium">
-                {matchSaving ? 'Saving…' : matchModal.editing ? 'Save Changes' : 'Add Match'}
-              </button>
+                className="flex-1 px-4 py-2 bg-green-500 hover:bg-green-600 disabled:bg-green-300 text-white rounded-lg text-sm font-medium">{matchSaving ? 'Saving…' : matchModal.editing ? 'Save Changes' : 'Add Match'}</button>
             </div>
           </div>
         </div>

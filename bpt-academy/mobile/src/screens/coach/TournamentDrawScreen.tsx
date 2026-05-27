@@ -48,7 +48,6 @@ export default function TournamentDrawScreen({ navigation, route }: any) {
   const { tournamentId, tournamentTitle, draws: drawsParam } = route.params;
   const tabBarPadding = useTabBarPadding();
 
-  // Available draws for this tournament (passed from TournamentManageScreen)
   const availableDraws: DrawType[] = (drawsParam && drawsParam.length > 0)
     ? drawsParam
     : ['mens', 'womens'];
@@ -60,7 +59,6 @@ export default function TournamentDrawScreen({ navigation, route }: any) {
   const [allStudents, setAllStudents] = useState<{id:string;full_name:string}[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Modals
   const [partnerModal, setPartnerModal] = useState<{visible:boolean;regId:string;search:string}>({visible:false,regId:'',search:''});
   const [addPlayerModal, setAddPlayerModal] = useState<{visible:boolean;search:string;replaceId?:string}>({visible:false,search:''});
   const [addTeamModal, setAddTeamModal] = useState<{visible:boolean;step:1|2;p1:string;p1Name:string;search:string}>({visible:false,step:1,p1:'',p1Name:'',search:''});
@@ -90,8 +88,6 @@ export default function TournamentDrawScreen({ navigation, route }: any) {
 
   useEffect(() => { load(); loadStudents(); }, [load, loadStudents]);
 
-  // ─── Filter by selected draw ──────────────────────────────────────────────
-  // A reg belongs to this draw if draw matches, OR if draw is null (legacy data — show in all)
   const drawRegs = regs.filter(r => r.draw === selectedDraw || r.draw === null);
   const drawMatches = matches.filter(m => m.draw === selectedDraw || m.draw === null);
 
@@ -134,6 +130,31 @@ export default function TournamentDrawScreen({ navigation, route }: any) {
         }
         load();
       }},
+    ]);
+  };
+
+  const moveReg = (reg: Reg) => {
+    const otherDraws = availableDraws.filter(d => d !== selectedDraw);
+    if (otherDraws.length === 0) return;
+    const name = reg.player1?.full_name ?? 'player';
+    const buttons = otherDraws.map(d => ({
+      text: `Move to ${DRAW_LABELS[d]}`,
+      onPress: async () => {
+        // Clear partner links when moving — partner stays in original draw
+        await supabase.from('tournament_registrations')
+          .update({ draw: d, partner_id: null, seed: null })
+          .eq('id', reg.id);
+        // Also clear anyone who had this player as a partner
+        await supabase.from('tournament_registrations')
+          .update({ partner_id: null })
+          .eq('tournament_id', tournamentId)
+          .eq('partner_id', reg.student_id);
+        load();
+      },
+    }));
+    Alert.alert(`Move ${name}`, `Move to which draw?`, [
+      ...buttons,
+      { text: 'Cancel', style: 'cancel' as const },
     ]);
   };
 
@@ -236,7 +257,6 @@ export default function TournamentDrawScreen({ navigation, route }: any) {
   };
 
   const regById = (id: string | null) => confirmedRegs.find(r => r.id === id);
-
   const drawColor = DRAW_COLORS[selectedDraw];
 
   // ─── RENDER ───────────────────────────────────────────────────────────────────
@@ -253,37 +273,26 @@ export default function TournamentDrawScreen({ navigation, route }: any) {
       <Image source={require('../../../assets/bg.png')} style={s.bg} resizeMode="cover" />
       <BackHeader title={tournamentTitle ?? 'Draw'} />
 
-      {/* Draw selector — only shown if tournament has multiple draws */}
       {availableDraws.length > 1 && (
         <View style={s.drawBar}>
           {availableDraws.map(d => {
             const dc = DRAW_COLORS[d];
             const active = selectedDraw === d;
             return (
-              <TouchableOpacity
-                key={d}
-                style={[s.drawBtn, active && { backgroundColor: dc.active }]}
-                onPress={() => setSelectedDraw(d)}
-              >
-                <Text style={[s.drawBtnText, active && { color: '#fff' }]}>
-                  {DRAW_LABELS[d]}
-                </Text>
+              <TouchableOpacity key={d} style={[s.drawBtn, active && { backgroundColor: dc.active }]} onPress={() => setSelectedDraw(d)}>
+                <Text style={[s.drawBtnText, active && { color: '#fff' }]}>{DRAW_LABELS[d]}</Text>
               </TouchableOpacity>
             );
           })}
         </View>
       )}
 
-      {/* Draw badge when single draw */}
       {availableDraws.length === 1 && (
         <View style={[s.singleDrawBadge, { backgroundColor: drawColor.bg }]}>
-          <Text style={[s.singleDrawBadgeText, { color: drawColor.text }]}>
-            {DRAW_LABELS[selectedDraw]} Draw
-          </Text>
+          <Text style={[s.singleDrawBadgeText, { color: drawColor.text }]}>{DRAW_LABELS[selectedDraw]} Draw</Text>
         </View>
       )}
 
-      {/* Tab bar */}
       <View style={s.tabBar}>
         {(['Teams','Matches','Results'] as const).map(t => (
           <TouchableOpacity key={t} style={[s.tabBtn, tab===t && s.tabBtnActive]} onPress={() => setTab(t)}>
@@ -328,6 +337,11 @@ export default function TournamentDrawScreen({ navigation, route }: any) {
                 <TouchableOpacity style={s.actionBtn} onPress={() => setSeed(reg)}>
                   <Text style={s.actionBtnText}>🔢 Seed</Text>
                 </TouchableOpacity>
+                {availableDraws.length > 1 && (
+                  <TouchableOpacity style={[s.actionBtn, s.actionBtnMove]} onPress={() => moveReg(reg)}>
+                    <Text style={[s.actionBtnText, {color:'#A78BFA'}]}>↔ Move</Text>
+                  </TouchableOpacity>
+                )}
                 <TouchableOpacity style={[s.actionBtn,s.actionBtnDanger]} onPress={() => removeReg(reg)}>
                   <Text style={[s.actionBtnText,{color:'#EF4444'}]}>🗑 Remove</Text>
                 </TouchableOpacity>
@@ -446,13 +460,7 @@ export default function TournamentDrawScreen({ navigation, route }: any) {
                 </View>
                 {!done && (
                   <>
-                    <TextInput
-                      style={s.scoreInput}
-                      placeholder="e.g. 6-3 7-5"
-                      placeholderTextColor="#7A8FA6"
-                      value={st.score}
-                      onChangeText={v => setResultState(prev => ({...prev,[m.id]:{...st,score:v}}))}
-                    />
+                    <TextInput style={s.scoreInput} placeholder="e.g. 6-3 7-5" placeholderTextColor="#7A8FA6" value={st.score} onChangeText={v => setResultState(prev => ({...prev,[m.id]:{...st,score:v}}))} />
                     <View style={s.winnerBtns}>
                       <TouchableOpacity style={[s.winnerBtn, st.winner===t1?.id && s.winnerBtnActive]} onPress={() => t1 && setResultState(prev => ({...prev,[m.id]:{...st,winner:t1.id}}))}>
                         <Text style={[s.winnerBtnText, st.winner===t1?.id && {color:'#fff'}]}>{getTeamLabel(t1)} Wins</Text>
@@ -523,11 +531,8 @@ export default function TournamentDrawScreen({ navigation, route }: any) {
         <View style={s.modalContainer}>
           <View style={s.modalHeader}>
             <TouchableOpacity onPress={() => {
-              if (addTeamModal.step === 2) {
-                setAddTeamModal(prev => ({...prev, step:1, p1:'', p1Name:'', search:''}));
-              } else {
-                setAddTeamModal({visible:false,step:1,p1:'',p1Name:'',search:''});
-              }
+              if (addTeamModal.step === 2) { setAddTeamModal(prev => ({...prev, step:1, p1:'', p1Name:'', search:''})); }
+              else { setAddTeamModal({visible:false,step:1,p1:'',p1Name:'',search:''}); }
             }}>
               <Text style={s.cancelBtn}>{addTeamModal.step === 2 ? '← Back' : 'Cancel'}</Text>
             </TouchableOpacity>
@@ -538,26 +543,14 @@ export default function TournamentDrawScreen({ navigation, route }: any) {
             <View style={{width:60}} />
           </View>
           {addTeamModal.step === 2 && (
-            <View style={s.teamStepBanner}>
-              <Text style={s.teamStepBannerText}>Player 1: {addTeamModal.p1Name}</Text>
-            </View>
+            <View style={s.teamStepBanner}><Text style={s.teamStepBannerText}>Player 1: {addTeamModal.p1Name}</Text></View>
           )}
-          <TextInput
-            style={s.searchInput}
-            placeholder="Search by name…"
-            placeholderTextColor="#7A8FA6"
-            value={addTeamModal.search}
-            onChangeText={v => setAddTeamModal(p => ({...p,search:v}))}
-          />
+          <TextInput style={s.searchInput} placeholder="Search by name…" placeholderTextColor="#7A8FA6" value={addTeamModal.search} onChangeText={v => setAddTeamModal(p => ({...p,search:v}))} />
           <FlatList
-            data={(addTeamModal.step === 1 ? unregisteredStudents : addTeamStep2Pool)
-              .filter(s => s.full_name.toLowerCase().includes(addTeamModal.search.toLowerCase()))}
+            data={(addTeamModal.step === 1 ? unregisteredStudents : addTeamStep2Pool).filter(s => s.full_name.toLowerCase().includes(addTeamModal.search.toLowerCase()))}
             keyExtractor={s => s.id}
             renderItem={({item}) => (
-              <TouchableOpacity
-                style={s.listRow}
-                onPress={() => addTeamModal.step === 1 ? addTeamSelectP1(item) : addTeamSelectP2(item)}
-              >
+              <TouchableOpacity style={s.listRow} onPress={() => addTeamModal.step === 1 ? addTeamSelectP1(item) : addTeamSelectP2(item)}>
                 <Text style={s.listRowText}>{item.full_name}</Text>
                 <Text style={s.listRowSub}>{addTeamModal.step === 1 ? 'Select as Player 1 →' : 'Select as Partner →'}</Text>
               </TouchableOpacity>
@@ -619,25 +612,21 @@ export default function TournamentDrawScreen({ navigation, route }: any) {
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#0B1628' },
   bg: { position: 'absolute', top: 0, left: 0, width, height },
-  // Draw selector
   drawBar: { flexDirection: 'row', backgroundColor: 'rgba(17,30,51,0.9)', borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)', padding: 8, gap: 8, paddingHorizontal: 16 },
   drawBtn: { flex: 1, paddingVertical: 8, borderRadius: 20, alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.06)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
   drawBtnText: { fontSize: 13, fontWeight: '700', color: '#7A8FA6' },
   singleDrawBadge: { marginHorizontal: 16, marginTop: 10, marginBottom: 2, paddingVertical: 6, paddingHorizontal: 14, borderRadius: 20, alignSelf: 'flex-start' },
   singleDrawBadgeText: { fontSize: 12, fontWeight: '700' },
-  // Tab bar
   tabBar: { flexDirection: 'row', backgroundColor: 'rgba(17,30,51,0.85)', borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)' },
   tabBtn: { flex: 1, paddingVertical: 12, alignItems: 'center' },
   tabBtnActive: { borderBottomWidth: 2, borderBottomColor: '#3B82F6' },
   tabBtnText: { fontSize: 14, color: '#7A8FA6', fontWeight: '600' },
   tabBtnTextActive: { color: '#3B82F6' },
   summaryText: { fontSize: 13, color: '#7A8FA6', marginBottom: 12 },
-  // Empty state card
   emptyCard: { alignItems: 'center', padding: 32, backgroundColor: 'rgba(17,30,51,0.85)', borderRadius: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.07)', marginBottom: 20 },
   emptyCardIcon: { fontSize: 36, marginBottom: 10 },
   emptyCardTitle: { fontSize: 16, fontWeight: '700', color: '#F0F6FC', marginBottom: 6 },
   emptyCardBody: { fontSize: 13, color: '#7A8FA6', textAlign: 'center', lineHeight: 20 },
-  // Team cards
   teamCard: { backgroundColor: 'rgba(17,30,51,0.85)', borderRadius: 12, padding: 14, marginBottom: 10, borderWidth: 1, borderColor: 'rgba(255,255,255,0.07)' },
   teamCardRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 8 },
   seedBadge: { width: 28, height: 28, borderRadius: 14, backgroundColor: '#3B82F6', alignItems: 'center', justifyContent: 'center' },
@@ -651,13 +640,13 @@ const s = StyleSheet.create({
   actionRow: { flexDirection: 'row', gap: 8 },
   actionBtn: { flex: 1, borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)', borderRadius: 8, paddingVertical: 7, alignItems: 'center' },
   actionBtnDanger: { borderColor: '#7F1D1D' },
+  actionBtnMove: { borderColor: 'rgba(167,139,250,0.4)', backgroundColor: 'rgba(167,139,250,0.08)' },
   actionBtnText: { fontSize: 12, color: '#F0F6FC', fontWeight: '600' },
   addBtnsRow: { flexDirection: 'row', gap: 10, marginTop: 8 },
   addBtn: { flex: 1, backgroundColor: '#16A34A', borderRadius: 12, paddingVertical: 14, alignItems: 'center' },
   addBtnText: { color: '#fff', fontWeight: '700', fontSize: 15 },
   addBtnSecondary: { backgroundColor: '#1E3A5F', borderWidth: 1, borderColor: '#3B82F6' },
   addBtnSecondaryText: { color: '#93C5FD', fontWeight: '700', fontSize: 15 },
-  // Matches
   addMatchBtn: { backgroundColor: '#3B82F6', borderRadius: 10, paddingVertical: 12, alignItems: 'center', marginBottom: 16 },
   addMatchBtnText: { color: '#fff', fontWeight: '700', fontSize: 15 },
   roundLabel: { fontSize: 12, fontWeight: '800', color: '#16A34A', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 8 },
@@ -669,7 +658,6 @@ const s = StyleSheet.create({
   matchMeta: { flexDirection: 'row', gap: 12, marginTop: 2 },
   matchMetaText: { fontSize: 12, color: '#7A8FA6' },
   matchActions: { flexDirection: 'row', gap: 8, marginTop: 10 },
-  // Results
   resultCard: { backgroundColor: 'rgba(17,30,51,0.85)', borderRadius: 14, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.07)' },
   resultRound: { fontSize: 11, fontWeight: '700', color: '#16A34A', textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 8 },
   scoreInput: { borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', borderRadius: 10, padding: 12, color: '#F0F6FC', fontSize: 15, marginTop: 8, marginBottom: 8 },
@@ -683,7 +671,6 @@ const s = StyleSheet.create({
   winnerText: { color: '#16A34A' },
   winnerLabel: { fontSize: 14, color: '#16A34A', fontWeight: '700', textAlign: 'center', marginTop: 8 },
   emptyText: { color: '#7A8FA6', textAlign: 'center', paddingVertical: 24 },
-  // Modals
   modalContainer: { flex: 1, backgroundColor: '#0B1628' },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)' },
   modalTitle: { fontSize: 17, fontWeight: '700', color: '#F0F6FC' },
