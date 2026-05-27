@@ -1,11 +1,12 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Text, View, StyleSheet, Image } from 'react-native';
+import { Text, View, StyleSheet, Image, Linking } from 'react-native';
 import { Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNotifications } from '../hooks/useNotifications';
+import { supabase } from '../lib/supabase';
 
 import { useAuth } from '../context/AuthContext';
 import { usePushNotifications } from '../hooks/usePushNotifications';
@@ -611,8 +612,51 @@ function PushNotificationInitializer() {
   return null;
 }
 
+// Parse tokens from a deep link URL fragment (e.g. bptacademy://reset-password#access_token=...&refresh_token=...)
+function parseRecoveryTokens(url: string): { accessToken: string; refreshToken: string } | null {
+  try {
+    const hashIndex = url.indexOf('#');
+    if (hashIndex === -1) return null;
+    const params = new URLSearchParams(url.slice(hashIndex + 1));
+    const accessToken = params.get('access_token');
+    const refreshToken = params.get('refresh_token');
+    const type = params.get('type');
+    if (type === 'recovery' && accessToken && refreshToken) {
+      return { accessToken, refreshToken };
+    }
+  } catch {
+    // ignore parse errors
+  }
+  return null;
+}
+
 export default function RootNavigator({ navRef }: { navRef?: any }) {
   const { session, loading, isSuperAdmin, isAdmin, isCoach, profile } = useAuth();
+  // Internal nav ref for deep link navigation (merged with external navRef)
+  const internalNavRef = useRef<any>(null);
+  const resolvedNavRef = navRef ?? internalNavRef;
+
+  // Handle password reset deep links (bptacademy://reset-password#access_token=...&type=recovery)
+  useEffect(() => {
+    const handleUrl = async (url: string) => {
+      const tokens = parseRecoveryTokens(url);
+      if (!tokens) return;
+      // Set the Supabase session from the recovery tokens — this triggers PASSWORD_RECOVERY in onAuthStateChange
+      await supabase.auth.setSession({ access_token: tokens.accessToken, refresh_token: tokens.refreshToken });
+      // Navigate to ResetPassword screen (it's in AuthStack which is always accessible)
+      resolvedNavRef?.current?.navigate('ResetPassword');
+    };
+
+    // Check if app was opened from a cold start via deep link
+    Linking.getInitialURL().then((url) => {
+      if (url) handleUrl(url);
+    });
+
+    // Listen for deep links while app is open / in background
+    const sub = Linking.addEventListener('url', ({ url }) => handleUrl(url));
+    return () => sub.remove();
+  }, []);
+
   if (loading) return null;
   const renderStack = () => {
     if (!session)                   return <AuthStack />;
@@ -623,7 +667,7 @@ export default function RootNavigator({ navRef }: { navRef?: any }) {
     return <StudentTabs />;
   };
   return (
-    <NavigationContainer ref={navRef}>
+    <NavigationContainer ref={resolvedNavRef}>
       {session && <PushNotificationInitializer />}
       {renderStack()}
     </NavigationContainer>

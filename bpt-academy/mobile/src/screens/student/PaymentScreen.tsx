@@ -23,6 +23,8 @@ export default function PaymentScreen({ navigation, route }: any) {
   const {
     tournamentId, programId, enrollmentId,
     amount, programDivision, studentId, label,
+    // existingRegistrationId: passed when re-registering after withdrawal
+    existingRegistrationId,
   } = route.params;
 
   const { profile } = useAuth();
@@ -78,6 +80,21 @@ export default function PaymentScreen({ navigation, route }: any) {
     return data?.[0] ?? null;
   };
 
+  // Helper: upsert tournament registration (handles re-registration after withdrawal)
+  const upsertTournamentRegistration = async (status: 'pending' | 'confirmed') => {
+    if (existingRegistrationId) {
+      // Re-registration after withdrawal — update existing row
+      return supabase
+        .from('tournament_registrations')
+        .update({ status, partner_id: null, team_name: null })
+        .eq('id', existingRegistrationId);
+    } else {
+      return supabase
+        .from('tournament_registrations')
+        .insert({ tournament_id: tournamentId, student_id: studentId, status });
+    }
+  };
+
   useEffect(() => {
     const keys = [
       'bank_account_name', 'bank_sort_code',
@@ -125,9 +142,12 @@ export default function PaymentScreen({ navigation, route }: any) {
       });
     }
     if (tournamentId && studentId) {
-      await supabase.from('tournament_registrations').insert({
-        tournament_id: tournamentId, student_id: studentId, status: 'pending',
-      });
+      const { error: regError } = await upsertTournamentRegistration('pending');
+      if (regError) {
+        setLoadingCard(false);
+        Alert.alert('Error', regError.message);
+        return;
+      }
       await notifyAdminsTournamentReg(label ?? 'a tournament', 'card');
     }
 
@@ -184,9 +204,7 @@ export default function PaymentScreen({ navigation, route }: any) {
     }
 
     if (tournamentId && studentId) {
-      const { error: regError } = await supabase.from('tournament_registrations').insert({
-        tournament_id: tournamentId, student_id: studentId, status: 'pending',
-      });
+      const { error: regError } = await upsertTournamentRegistration('pending');
       if (regError) {
         setLoadingBank(false);
         Alert.alert('Error', regError.message);

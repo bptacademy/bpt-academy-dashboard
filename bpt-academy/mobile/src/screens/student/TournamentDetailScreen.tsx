@@ -73,10 +73,13 @@ export default function TournamentDetailScreen({ navigation, route }: any) {
         .select('*, team1:tournament_registrations!team1_registration_id(id, student_id, partner_id, team_name, seed, player1:profiles!student_id(full_name), partner1:profiles!partner_id(full_name)), team2:tournament_registrations!team2_registration_id(id, student_id, partner_id, team_name, seed, player2:profiles!student_id(full_name), partner2:profiles!partner_id(full_name))')
         .eq('tournament_id', tournamentId)
         .order('created_at'),
+      // Load ANY registration for this student (including withdrawn) so we can upsert it
       profile
         ? supabase.from('tournament_registrations').select('*')
             .eq('tournament_id', tournamentId)
             .eq('student_id', profile.id)
+            .order('registered_at', { ascending: false })
+            .limit(1)
             .maybeSingle()
         : Promise.resolve({ data: null }),
       supabase.from('tournament_registrations')
@@ -119,14 +122,32 @@ export default function TournamentDetailScreen({ navigation, route }: any) {
   const handleRegisterPress = () => {
     if (!profile || !tournament) return;
     const isFree = !tournament.entry_fee_gbp || tournament.entry_fee_gbp === 0;
+    // If the player previously withdrew, we have their old row — we'll upsert it
+    const withdrawnRegId = myRegistration?.status === 'withdrawn' ? myRegistration.id : undefined;
+
     if (isFree) {
       Alert.alert('Confirm Registration', `Register for ${tournament.title}?`, [
         { text: 'Cancel', style: 'cancel' },
         { text: 'Register', onPress: async () => {
-          const { data, error } = await supabase
-            .from('tournament_registrations')
-            .insert({ tournament_id: tournament.id, student_id: profile.id, status: 'confirmed' })
-            .select().single();
+          let data: TournamentRegistration | null = null;
+          let error: any = null;
+          if (withdrawnRegId) {
+            // Upsert: bring the withdrawn row back to confirmed
+            const res = await supabase
+              .from('tournament_registrations')
+              .update({ status: 'confirmed', partner_id: null, team_name: null })
+              .eq('id', withdrawnRegId)
+              .select().single();
+            data = res.data as TournamentRegistration;
+            error = res.error;
+          } else {
+            const res = await supabase
+              .from('tournament_registrations')
+              .insert({ tournament_id: tournament.id, student_id: profile.id, status: 'confirmed' })
+              .select().single();
+            data = res.data as TournamentRegistration;
+            error = res.error;
+          }
           if (error) { Alert.alert('Error', error.message); return; }
           setMyRegistration(data as TournamentRegistration);
           const { data: admins } = await supabase.from('profiles').select('id').in('role', ['admin', 'coach']);
@@ -148,6 +169,7 @@ export default function TournamentDetailScreen({ navigation, route }: any) {
     navigation.navigate('Payment', {
       tournamentId: tournament.id, studentId: profile.id,
       amount: tournament.entry_fee_gbp, label: tournament.title,
+      existingRegistrationId: withdrawnRegId,
     });
   };
 
