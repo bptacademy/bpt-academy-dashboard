@@ -1,0 +1,9 @@
+{
+  "buildCommand": "cd bpt-academy/dashboard && npm install && npm run build",
+  "outputDirectory": "bpt-academy/dashboard/.next",
+  "installCommand": "cd bpt-academy/dashboard && npm install",
+  "framework": "nextjs",
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/bpt-academy/dashboard/$1" }
+  ]
+}
