@@ -10,21 +10,31 @@ import { useTabBarPadding } from '../../hooks/useTabBarPadding';
 const { width, height } = Dimensions.get('window');
 
 // ─── Types ────────────────────────────────────────────────────────────────────
+type DrawType = 'mens' | 'womens' | 'mixed';
+
 interface Reg {
   id: string; student_id: string; partner_id: string | null;
   team_name: string | null; seed: number | null; division: string;
-  status: string;
+  status: string; draw: DrawType | null;
   player1: { full_name: string } | null;
   partner: { full_name: string } | null;
 }
 interface Match {
   id: string; round: string; court: string | null; scheduled_at: string | null;
   score: string | null; winner_id: string | null; notes: string | null;
+  draw: DrawType | null;
   team1_registration_id: string | null; team2_registration_id: string | null;
   played_at: string | null;
 }
 
 const ROUND_CHIPS = ['Group A','Group B','Group C','Round of 16','Quarter Final','Semi Final','Final'];
+
+const DRAW_LABELS: Record<DrawType, string> = { mens: "Men's", womens: "Women's", mixed: 'Mixed' };
+const DRAW_COLORS: Record<DrawType, { bg: string; text: string; active: string }> = {
+  mens:   { bg: 'rgba(59,130,246,0.15)',  text: '#60A5FA', active: '#3B82F6' },
+  womens: { bg: 'rgba(236,72,153,0.15)',  text: '#F472B6', active: '#EC4899' },
+  mixed:  { bg: 'rgba(168,85,247,0.15)',  text: '#C084FC', active: '#A855F7' },
+};
 
 function getTeamLabel(reg: Reg | undefined): string {
   if (!reg) return 'TBD';
@@ -35,8 +45,15 @@ function getTeamLabel(reg: Reg | undefined): string {
 }
 
 export default function TournamentDrawScreen({ navigation, route }: any) {
-  const { tournamentId, tournamentTitle } = route.params;
+  const { tournamentId, tournamentTitle, draws: drawsParam } = route.params;
   const tabBarPadding = useTabBarPadding();
+
+  // Available draws for this tournament (passed from TournamentManageScreen)
+  const availableDraws: DrawType[] = (drawsParam && drawsParam.length > 0)
+    ? drawsParam
+    : ['mens', 'womens'];
+
+  const [selectedDraw, setSelectedDraw] = useState<DrawType>(availableDraws[0]);
   const [tab, setTab] = useState<'Teams'|'Matches'|'Results'>('Teams');
   const [regs, setRegs] = useState<Reg[]>([]);
   const [matches, setMatches] = useState<Match[]>([]);
@@ -53,7 +70,7 @@ export default function TournamentDrawScreen({ navigation, route }: any) {
   const load = useCallback(async () => {
     const [rRes, mRes] = await Promise.all([
       supabase.from('tournament_registrations')
-        .select('id, student_id, partner_id, team_name, seed, division, status, player1:profiles!student_id(full_name), partner:profiles!partner_id(full_name)')
+        .select('id, student_id, partner_id, team_name, seed, division, status, draw, player1:profiles!student_id(full_name), partner:profiles!partner_id(full_name)')
         .eq('tournament_id', tournamentId)
         .order('seed', { nullsFirst: false }),
       supabase.from('tournament_matches')
@@ -73,16 +90,21 @@ export default function TournamentDrawScreen({ navigation, route }: any) {
 
   useEffect(() => { load(); loadStudents(); }, [load, loadStudents]);
 
-  // ─── TEAMS ────────────────────────────────────────────────────────────────────
-  const confirmedRegs = regs.filter(r => r.status === 'confirmed');
-  const withdrawnRegs = regs.filter(r => r.status === 'withdrawn');
+  // ─── Filter by selected draw ──────────────────────────────────────────────
+  // A reg belongs to this draw if draw matches, OR if draw is null (legacy data — show in all)
+  const drawRegs = regs.filter(r => r.draw === selectedDraw || r.draw === null);
+  const drawMatches = matches.filter(m => m.draw === selectedDraw || m.draw === null);
+
+  const confirmedRegs = drawRegs.filter(r => r.status === 'confirmed');
+  const withdrawnRegs = drawRegs.filter(r => r.status === 'withdrawn');
   const playerCount = confirmedRegs.reduce((acc, r) => acc + 1 + (r.partner_id ? 1 : 0), 0);
 
-  const registeredIds = new Set(confirmedRegs.map(r => r.student_id));
+  const registeredIds = new Set(regs.filter(r => r.status === 'confirmed').map(r => r.student_id));
   const unregisteredStudents = allStudents.filter(s => !registeredIds.has(s.id));
   const pairedPartnerIds = new Set(confirmedRegs.filter(r => r.partner_id).map(r => r.partner_id));
   const availablePartners = confirmedRegs.filter(r => !pairedPartnerIds.has(r.student_id) && r.student_id !== partnerModal.regId);
 
+  // ─── TEAMS ────────────────────────────────────────────────────────────────────
   const openPartnerModal = (regId: string) => setPartnerModal({visible:true,regId,search:''});
 
   const setPartner = async (regId: string, partnerId: string) => {
@@ -120,7 +142,10 @@ export default function TournamentDrawScreen({ navigation, route }: any) {
     if (replaceId) {
       await supabase.from('tournament_registrations').update({ student_id: student.id, status: 'confirmed', partner_id: null }).eq('id', replaceId);
     } else {
-      await supabase.from('tournament_registrations').insert({ tournament_id: tournamentId, student_id: student.id, status: 'confirmed' });
+      await supabase.from('tournament_registrations').insert({
+        tournament_id: tournamentId, student_id: student.id,
+        status: 'confirmed', draw: selectedDraw,
+      });
     }
     load();
   };
@@ -139,6 +164,7 @@ export default function TournamentDrawScreen({ navigation, route }: any) {
       student_id: p1,
       partner_id: student.id,
       status: 'confirmed',
+      draw: selectedDraw,
     });
     if (error) { Alert.alert('Error', error.message); return; }
     load();
@@ -147,7 +173,7 @@ export default function TournamentDrawScreen({ navigation, route }: any) {
   const addTeamStep2Pool = unregisteredStudents.filter(s => s.id !== addTeamModal.p1);
 
   // ─── MATCHES ─────────────────────────────────────────────────────────────────
-  const rounds = [...new Set(matches.map(m => m.round))];
+  const rounds = [...new Set(drawMatches.map(m => m.round))];
 
   const openAddMatch = () => setMatchModal({visible:true,t1:'',t2:'',round:'',court:'',datetime:'',notes:''});
   const openEditMatch = (m: Match) => setMatchModal({
@@ -169,7 +195,12 @@ export default function TournamentDrawScreen({ navigation, route }: any) {
         scheduled_at = new Date(`${y}-${mo}-${d}T${timePart}:00`).toISOString();
       }
     }
-    const payload = { tournament_id: tournamentId, team1_registration_id: t1, team2_registration_id: t2, round, court: court||null, scheduled_at, notes: notes||null };
+    const payload = {
+      tournament_id: tournamentId,
+      team1_registration_id: t1, team2_registration_id: t2,
+      round, court: court||null, scheduled_at, notes: notes||null,
+      draw: selectedDraw,
+    };
     if (editMatch) {
       await supabase.from('tournament_matches').update(payload).eq('id', editMatch.id);
     } else {
@@ -187,7 +218,7 @@ export default function TournamentDrawScreen({ navigation, route }: any) {
   };
 
   // ─── RESULTS ─────────────────────────────────────────────────────────────────
-  const completedCount = matches.filter(m => m.winner_id).length;
+  const completedCount = drawMatches.filter(m => m.winner_id).length;
 
   const saveResult = async (m: Match) => {
     const st = resultState[m.id];
@@ -206,6 +237,8 @@ export default function TournamentDrawScreen({ navigation, route }: any) {
 
   const regById = (id: string | null) => confirmedRegs.find(r => r.id === id);
 
+  const drawColor = DRAW_COLORS[selectedDraw];
+
   // ─── RENDER ───────────────────────────────────────────────────────────────────
   if (loading) return (
     <View style={s.root}>
@@ -218,7 +251,37 @@ export default function TournamentDrawScreen({ navigation, route }: any) {
   return (
     <View style={s.root}>
       <Image source={require('../../../assets/bg.png')} style={s.bg} resizeMode="cover" />
-      <BackHeader title={`${tournamentTitle ?? 'Draw'} — Draw`} />
+      <BackHeader title={tournamentTitle ?? 'Draw'} />
+
+      {/* Draw selector — only shown if tournament has multiple draws */}
+      {availableDraws.length > 1 && (
+        <View style={s.drawBar}>
+          {availableDraws.map(d => {
+            const dc = DRAW_COLORS[d];
+            const active = selectedDraw === d;
+            return (
+              <TouchableOpacity
+                key={d}
+                style={[s.drawBtn, active && { backgroundColor: dc.active }]}
+                onPress={() => setSelectedDraw(d)}
+              >
+                <Text style={[s.drawBtnText, active && { color: '#fff' }]}>
+                  {DRAW_LABELS[d]}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      )}
+
+      {/* Draw badge when single draw */}
+      {availableDraws.length === 1 && (
+        <View style={[s.singleDrawBadge, { backgroundColor: drawColor.bg }]}>
+          <Text style={[s.singleDrawBadgeText, { color: drawColor.text }]}>
+            {DRAW_LABELS[selectedDraw]} Draw
+          </Text>
+        </View>
+      )}
 
       {/* Tab bar */}
       <View style={s.tabBar}>
@@ -234,12 +297,11 @@ export default function TournamentDrawScreen({ navigation, route }: any) {
         <ScrollView style={{flex:1}} contentContainerStyle={{padding:16, paddingBottom: tabBarPadding}}>
           <Text style={s.summaryText}>{confirmedRegs.length} entries · {playerCount} players</Text>
 
-          {/* Empty state */}
           {confirmedRegs.length === 0 && (
             <View style={s.emptyCard}>
               <Text style={s.emptyCardIcon}>👥</Text>
-              <Text style={s.emptyCardTitle}>No players yet</Text>
-              <Text style={s.emptyCardBody}>Use the buttons below to add individual players or full teams to this tournament draw.</Text>
+              <Text style={s.emptyCardTitle}>No players in {DRAW_LABELS[selectedDraw]} draw</Text>
+              <Text style={s.emptyCardBody}>Use the buttons below to add individual players or full teams.</Text>
             </View>
           )}
 
@@ -292,7 +354,6 @@ export default function TournamentDrawScreen({ navigation, route }: any) {
             </>
           )}
 
-          {/* Action buttons — inside scroll so always visible above tab bar */}
           <View style={s.addBtnsRow}>
             <TouchableOpacity style={[s.addBtn, s.addBtnSecondary]} onPress={() => setAddPlayerModal({visible:true,search:''})}>
               <Text style={s.addBtnSecondaryText}>+ Add Player</Text>
@@ -313,14 +374,14 @@ export default function TournamentDrawScreen({ navigation, route }: any) {
           {rounds.length === 0 && (
             <View style={s.emptyCard}>
               <Text style={s.emptyCardIcon}>📋</Text>
-              <Text style={s.emptyCardTitle}>No matches yet</Text>
-              <Text style={s.emptyCardBody}>Tap + Add Match to manually create matches and set the draw.</Text>
+              <Text style={s.emptyCardTitle}>No matches in {DRAW_LABELS[selectedDraw]} draw</Text>
+              <Text style={s.emptyCardBody}>Tap + Add Match to create matches for this draw.</Text>
             </View>
           )}
           {rounds.map(round => (
             <View key={round} style={{marginBottom:16}}>
               <Text style={s.roundLabel}>{round}</Text>
-              {matches.filter(m => m.round === round).map(m => {
+              {drawMatches.filter(m => m.round === round).map(m => {
                 const t1 = regById(m.team1_registration_id);
                 const t2 = regById(m.team2_registration_id);
                 return (
@@ -355,15 +416,15 @@ export default function TournamentDrawScreen({ navigation, route }: any) {
       {/* ── RESULTS ── */}
       {tab === 'Results' && (
         <ScrollView style={{flex:1}} contentContainerStyle={{padding:16, paddingBottom: tabBarPadding}}>
-          <Text style={s.summaryText}>{completedCount} / {matches.length} matches completed</Text>
-          {matches.length === 0 && (
+          <Text style={s.summaryText}>{completedCount} / {drawMatches.length} matches completed</Text>
+          {drawMatches.length === 0 && (
             <View style={s.emptyCard}>
               <Text style={s.emptyCardIcon}>🏆</Text>
-              <Text style={s.emptyCardTitle}>No matches scheduled</Text>
+              <Text style={s.emptyCardTitle}>No matches in {DRAW_LABELS[selectedDraw]} draw</Text>
               <Text style={s.emptyCardBody}>Create matches in the Matches tab first, then enter results here.</Text>
             </View>
           )}
-          {matches.map(m => {
+          {drawMatches.map(m => {
             const t1 = regById(m.team1_registration_id);
             const t2 = regById(m.team2_registration_id);
             const st = resultState[m.id] ?? {score: m.score ?? '', winner: m.winner_id ? (confirmedRegs.find(r => r.student_id === m.winner_id)?.id ?? '') : ''};
@@ -440,7 +501,7 @@ export default function TournamentDrawScreen({ navigation, route }: any) {
         <View style={s.modalContainer}>
           <View style={s.modalHeader}>
             <TouchableOpacity onPress={() => setAddPlayerModal({visible:false,search:''})}><Text style={s.cancelBtn}>Cancel</Text></TouchableOpacity>
-            <Text style={s.modalTitle}>{addPlayerModal.replaceId ? 'Replace Player' : 'Add Player'}</Text>
+            <Text style={s.modalTitle}>{addPlayerModal.replaceId ? 'Replace Player' : `Add to ${DRAW_LABELS[selectedDraw]}`}</Text>
             <View style={{width:60}} />
           </View>
           <TextInput style={s.searchInput} placeholder="Search by name…" placeholderTextColor="#7A8FA6" value={addPlayerModal.search} onChangeText={v => setAddPlayerModal(p => ({...p,search:v}))} />
@@ -471,7 +532,7 @@ export default function TournamentDrawScreen({ navigation, route }: any) {
               <Text style={s.cancelBtn}>{addTeamModal.step === 2 ? '← Back' : 'Cancel'}</Text>
             </TouchableOpacity>
             <View style={{alignItems:'center'}}>
-              <Text style={s.modalTitle}>Add Team</Text>
+              <Text style={s.modalTitle}>Add Team — {DRAW_LABELS[selectedDraw]}</Text>
               <Text style={s.modalSubtitle}>Step {addTeamModal.step} of 2 — {addTeamModal.step === 1 ? 'Pick Player 1' : 'Pick Player 2'}</Text>
             </View>
             <View style={{width:60}} />
@@ -511,7 +572,7 @@ export default function TournamentDrawScreen({ navigation, route }: any) {
         <ScrollView style={s.modalContainer}>
           <View style={s.modalHeader}>
             <TouchableOpacity onPress={() => setMatchModal({visible:false,t1:'',t2:'',round:'',court:'',datetime:'',notes:''})}><Text style={s.cancelBtn}>Cancel</Text></TouchableOpacity>
-            <Text style={s.modalTitle}>{matchModal.editMatch ? 'Edit Match' : 'Add Match'}</Text>
+            <Text style={s.modalTitle}>{matchModal.editMatch ? 'Edit Match' : `Add Match — ${DRAW_LABELS[selectedDraw]}`}</Text>
             <TouchableOpacity onPress={saveMatch}><Text style={s.saveBtn}>Save</Text></TouchableOpacity>
           </View>
           <View style={{padding:16,gap:12}}>
@@ -542,7 +603,7 @@ export default function TournamentDrawScreen({ navigation, route }: any) {
             <TextInput style={s.input} placeholder="Or type custom round…" placeholderTextColor="#7A8FA6" value={matchModal.round} onChangeText={v => setMatchModal(p => ({...p,round:v}))} />
             <Text style={s.fieldLabel}>Court</Text>
             <TextInput style={s.input} placeholder="e.g. Court 1" placeholderTextColor="#7A8FA6" value={matchModal.court} onChangeText={v => setMatchModal(p => ({...p,court:v}))} />
-            <Text style={s.fieldLabel}>Date & Time</Text>
+            <Text style={s.fieldLabel}>Date & Time (DD/MM/YYYY HH:MM)</Text>
             <TextInput style={s.input} placeholder="e.g. 23/05/2026 14:30" placeholderTextColor="#7A8FA6" value={matchModal.datetime} onChangeText={v => setMatchModal(p => ({...p,datetime:v}))} />
             <Text style={s.fieldLabel}>Notes (optional)</Text>
             <TextInput style={[s.input,{height:72,textAlignVertical:'top'}]} placeholder="Any notes…" placeholderTextColor="#7A8FA6" multiline value={matchModal.notes} onChangeText={v => setMatchModal(p => ({...p,notes:v}))} />
@@ -558,6 +619,13 @@ export default function TournamentDrawScreen({ navigation, route }: any) {
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#0B1628' },
   bg: { position: 'absolute', top: 0, left: 0, width, height },
+  // Draw selector
+  drawBar: { flexDirection: 'row', backgroundColor: 'rgba(17,30,51,0.9)', borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)', padding: 8, gap: 8, paddingHorizontal: 16 },
+  drawBtn: { flex: 1, paddingVertical: 8, borderRadius: 20, alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.06)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
+  drawBtnText: { fontSize: 13, fontWeight: '700', color: '#7A8FA6' },
+  singleDrawBadge: { marginHorizontal: 16, marginTop: 10, marginBottom: 2, paddingVertical: 6, paddingHorizontal: 14, borderRadius: 20, alignSelf: 'flex-start' },
+  singleDrawBadgeText: { fontSize: 12, fontWeight: '700' },
+  // Tab bar
   tabBar: { flexDirection: 'row', backgroundColor: 'rgba(17,30,51,0.85)', borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)' },
   tabBtn: { flex: 1, paddingVertical: 12, alignItems: 'center' },
   tabBtnActive: { borderBottomWidth: 2, borderBottomColor: '#3B82F6' },
@@ -584,7 +652,6 @@ const s = StyleSheet.create({
   actionBtn: { flex: 1, borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)', borderRadius: 8, paddingVertical: 7, alignItems: 'center' },
   actionBtnDanger: { borderColor: '#7F1D1D' },
   actionBtnText: { fontSize: 12, color: '#F0F6FC', fontWeight: '600' },
-  // Add buttons row — inside scroll, always visible
   addBtnsRow: { flexDirection: 'row', gap: 10, marginTop: 8 },
   addBtn: { flex: 1, backgroundColor: '#16A34A', borderRadius: 12, paddingVertical: 14, alignItems: 'center' },
   addBtnText: { color: '#fff', fontWeight: '700', fontSize: 15 },
