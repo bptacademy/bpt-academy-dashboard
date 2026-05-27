@@ -146,7 +146,9 @@ export default function EmailSignupScreen({ navigation, route }: any) {
       Alert.alert('Enter your email first', 'Type your email address above, then tap "Forgot password".');
       return;
     }
-    const { error } = await supabase.auth.resetPasswordForEmail(trimmed);
+    const { error } = await supabase.auth.resetPasswordForEmail(trimmed, {
+      redirectTo: 'https://volpair.app/reset-password.html',
+    });
     if (error) {
       Alert.alert('Error', error.message);
     } else {
