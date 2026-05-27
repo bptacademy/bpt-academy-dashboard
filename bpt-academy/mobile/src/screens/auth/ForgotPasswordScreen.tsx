@@ -21,7 +21,7 @@ export default function ForgotPasswordScreen({ navigation }: Props) {
     if (!email.trim()) { Alert.alert('Error', 'Please enter your email address'); return; }
     setLoading(true);
     const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-      redirectTo: 'https://app.bptacademy.uk/reset-password',
+      redirectTo: 'https://app.bptacademy.uk/reset-password.html',
     });
     setLoading(false);
     if (error) { Alert.alert('Error', error.message); return; }
@@ -37,7 +37,6 @@ export default function ForgotPasswordScreen({ navigation }: Props) {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          {/* Back */}
           <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
             <Text style={styles.backText}>‹ Back</Text>
           </TouchableOpacity>
