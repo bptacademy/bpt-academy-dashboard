@@ -140,20 +140,8 @@ export default function EmailSignupScreen({ navigation, route }: any) {
     }
   };
 
-  const handleForgotPassword = async () => {
-    const trimmed = email.trim().toLowerCase();
-    if (!trimmed.includes('@')) {
-      Alert.alert('Enter your email first', 'Type your email address above, then tap "Forgot password".');
-      return;
-    }
-    const { error } = await supabase.auth.resetPasswordForEmail(trimmed, {
-      redirectTo: 'https://volpair.app/reset-password.html',
-    });
-    if (error) {
-      Alert.alert('Error', error.message);
-    } else {
-      Alert.alert('Reset link sent 📬', `Check your inbox at ${trimmed} for a password reset link.`);
-    }
+  const handleForgotPassword = () => {
+    navigation.navigate('ForgotPassword');
   };
 
   const handleSubmit = () => {

@@ -11,6 +11,7 @@ import { usePushNotifications } from '../hooks/usePushNotifications';
 
 import WelcomeScreen from '../screens/auth/WelcomeScreen';
 import EmailSignupScreen from '../screens/auth/EmailSignupScreen';
+import ForgotPasswordScreen from '../screens/auth/ForgotPasswordScreen';
 import OnboardingResumeScreen from '../screens/auth/OnboardingResumeScreen';
 import PlatformSelectScreen from '../screens/auth/PlatformSelectScreen';
 import PlatformLoginScreen from '../screens/auth/PlatformLoginScreen';
@@ -217,6 +218,7 @@ export default function Navigation() {
         <RootStack.Navigator screenOptions={{ headerShown: false }}>
           <RootStack.Screen name="Welcome" component={WelcomeScreen} />
           <RootStack.Screen name="EmailSignup" component={EmailSignupScreen} />
+          <RootStack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
           {ONBOARDING_SCREENS(RootStack)}
         </RootStack.Navigator>
       ) : !user?.profile_complete ? (
