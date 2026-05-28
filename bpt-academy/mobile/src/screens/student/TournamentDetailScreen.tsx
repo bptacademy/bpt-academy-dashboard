@@ -70,7 +70,7 @@ export default function TournamentDetailScreen({ navigation, route }: any) {
     const [tRes, mRes, regRes, countRes, participantsRes, teamsRes] = await Promise.all([
       supabase.from('tournaments').select('*').eq('id', tournamentId).single(),
       supabase.from('tournament_matches')
-        .select('*, team1:tournament_registrations!team1_registration_id(id, student_id, partner_id, team_name, seed, player1:profiles!student_id(full_name), partner1:profiles!partner_id(full_name)), team2:tournament_registrations!team2_registration_id(id, student_id, partner_id, team_name, seed, player2:profiles!student_id(full_name), partner2:profiles!partner_id(full_name))')
+        .select('*, team1:tournament_registrations!team1_registration_id(id, student_id, partner_id, team_name, seed, player1:profiles!student_id(full_name), partner1:profiles!partner_id(full_name)), team2:tournament_registrations!team2_registration_id(id, student_id, partner_id, team_name, seed, player1:profiles!student_id(full_name), partner1:profiles!partner_id(full_name))')
         .eq('tournament_id', tournamentId)
         .order('created_at'),
       // Load ANY registration for this student (including withdrawn) so we can upsert it
