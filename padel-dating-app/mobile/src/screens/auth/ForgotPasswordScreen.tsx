@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
   bg: { position: 'absolute', top: 0, left: 0, width, height, opacity: 0.3 },
   inner: { flex: 1, paddingHorizontal: 28 },
   backBtn: { marginBottom: 32 },
-  backText: { color: theme.colors.primary, fontSize: 15, fontWeight: '600' },
+  backText: { color: theme.primary, fontSize: 15, fontWeight: '600' },
   title: { fontSize: 28, fontWeight: '800', color: '#FFFFFF', marginBottom: 12 },
   subtitle: { fontSize: 15, color: 'rgba(255,255,255,0.55)', lineHeight: 22, marginBottom: 32 },
   input: {
@@ -108,7 +108,7 @@ const styles = StyleSheet.create({
     fontSize: 16, color: '#FFFFFF', marginBottom: 16,
   },
   btn: {
-    backgroundColor: theme.colors.primary,
+    backgroundColor: theme.primary,
     borderRadius: 14, paddingVertical: 16, alignItems: 'center',
   },
   btnDisabled: { opacity: 0.6 },
