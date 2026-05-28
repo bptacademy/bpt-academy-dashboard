@@ -113,17 +113,36 @@ export default function ProgramModulesScreen({ route }: any) {
     );
   };
 
-  const handleGenerateModules = () => {
-    modules.length > 0
-      ? Alert.alert(
-          'Re-generate Modules?',
-          `This will update the session dates for all ${modules.length} module(s) to match the new schedule. Titles and descriptions will be preserved.\n\nContinue?`,
-          [
-            { text: 'Cancel', style: 'cancel' },
-            { text: 'Re-generate', style: 'destructive', onPress: doGenerateModules },
-          ]
-        )
-      : doGenerateModules();
+  const handleGenerateModules = async () => {
+    if (modules.length === 0) { doGenerateModules(); return; }
+
+    // Check if any attended sessions exist for this program's modules
+    const moduleIds = modules.map((m: any) => m.id);
+    const { count } = await supabase
+      .from('session_attendance')
+      .select('id', { count: 'exact', head: true })
+      .in('module_id', moduleIds)
+      .eq('attended', true);
+
+    if (count && count > 0) {
+      Alert.alert(
+        '⚠️ Attendance Records Exist',
+        `${count} attended session(s) are already recorded for this program.\n\nRe-generating will delete all modules and create new ones — attendance records will be lost permanently.\n\nAre you sure you want to continue?`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Re-generate Anyway', style: 'destructive', onPress: doGenerateModules },
+        ]
+      );
+    } else {
+      Alert.alert(
+        'Re-generate Modules?',
+        `This will update the session dates for all ${modules.length} module(s) to match the new schedule. Titles and descriptions will be preserved.\n\nContinue?`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Re-generate', style: 'destructive', onPress: doGenerateModules },
+        ]
+      );
+    }
   };
 
   const doGenerateModules = async () => {
