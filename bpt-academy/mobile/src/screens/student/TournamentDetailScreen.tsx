@@ -410,7 +410,7 @@ export default function TournamentDetailScreen({ navigation, route }: any) {
           <View style={[styles.section, {paddingTop:0}]}>
             <View style={styles.partnerConfirmedCard}>
               <Text style={styles.partnerConfirmedText}>
-                🤝 Partner: {teams.find((r: any) => r.student_id === myReg?.partner_id)?.player1?.full_name ?? '—'}
+                🤝 Partner: {teams.find((r: any) => r.student_id === myReg?.partner_id)?.player1?.full_name ?? participants.find((r: any) => r.student_id === myReg?.partner_id)?.profile?.full_name ?? '—'}
               </Text>
             </View>
           </View>
