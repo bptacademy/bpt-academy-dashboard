@@ -1,4 +1,6 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import Constants from 'expo-constants';
+import ForceUpdateScreen from '../screens/common/ForceUpdateScreen';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -632,6 +634,22 @@ function parseRecoveryTokens(url: string): { accessToken: string; refreshToken: 
 
 export default function RootNavigator({ navRef }: { navRef?: any }) {
   const { session, loading, isSuperAdmin, isAdmin, isCoach, profile } = useAuth();
+  const [forceUpdate, setForceUpdate] = useState(false);
+
+  useEffect(() => {
+    const checkVersion = async () => {
+      const { data } = await supabase
+        .from('academy_settings')
+        .select('value')
+        .eq('key', 'min_required_version')
+        .single();
+      if (!data?.value) return;
+      const current = Constants.expoConfig?.version ?? '0.0.0';
+      const toNum = (v: string) => v.split('.').map(Number).reduce((a, n, i) => a + n * Math.pow(1000, 2 - i), 0);
+      if (toNum(current) < toNum(data.value)) setForceUpdate(true);
+    };
+    checkVersion();
+  }, []);
   // Internal nav ref for deep link navigation (merged with external navRef)
   const internalNavRef = useRef<any>(null);
   const resolvedNavRef = navRef ?? internalNavRef;
@@ -658,6 +676,7 @@ export default function RootNavigator({ navRef }: { navRef?: any }) {
   }, []);
 
   if (loading) return null;
+  if (forceUpdate) return <ForceUpdateScreen />;
   const renderStack = () => {
     if (!session)                   return <AuthStack />;
     if (isSuperAdmin)               return <SuperAdminTabs />;
