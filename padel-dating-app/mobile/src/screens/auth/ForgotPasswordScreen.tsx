@@ -35,7 +35,7 @@ export default function ForgotPasswordScreen({ navigation }: { navigation: any }
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: '#0A0A0F' }]}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <Image source={require('../../../assets/volpair-bg.png')} style={styles.bg} resizeMode="cover" />
