@@ -42,6 +42,7 @@ import MyProfileScreen from '../screens/profile/MyProfileScreen';
 import EditProfileScreen from '../screens/profile/EditProfileScreen';
 import MyStatsScreen from '../screens/profile/MyStatsScreen';
 import PlatformSyncScreen from '../screens/profile/PlatformSyncScreen';
+import OTCConnectScreen from '../screens/profile/OTCConnectScreen';
 
 import NotificationsScreen from '../screens/notifications/NotificationsScreen';
 import SettingsScreen from '../screens/settings/SettingsScreen';
@@ -122,6 +123,7 @@ function ProfileNavigator() {
       <ProfileStack.Screen name="EditProfile" component={EditProfileScreen} />
       <ProfileStack.Screen name="MyStats" component={MyStatsScreen} />
       <ProfileStack.Screen name="PlatformSync" component={PlatformSyncScreen} />
+      <ProfileStack.Screen name="OTCConnect" component={OTCConnectScreen} />
       <ProfileStack.Screen name="Notifications" component={NotificationsScreen} />
       <ProfileStack.Screen name="Settings" component={SettingsScreen} />
       <ProfileStack.Screen name="BlockedUsers" component={BlockedUsersScreen} />
