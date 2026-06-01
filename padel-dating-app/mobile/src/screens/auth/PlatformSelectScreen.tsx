@@ -14,24 +14,23 @@ const PLATFORMS = [
     available: true,
   },
   {
+    id: 'on_the_court',
+    label: 'On the Court',
+    emoji: '🎯',
+    desc: 'UK & Ireland padel booking',
+    available: true,
+  },
+  {
     id: 'matchi',
     label: 'Matchi',
     emoji: '🏸',
     desc: 'Popular across Scandinavia and Europe',
     available: false,
   },
-  {
-    id: 'on_the_court',
-    label: 'On the Court',
-    emoji: '🎯',
-    desc: 'UK & Ireland padel booking',
-    available: false,
-  },
 ];
 
 export default function PlatformSelectScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
-  // canGoBack is false when this is the root screen (OnboardingStack)
   const canGoBack = navigation.canGoBack();
 
   return (

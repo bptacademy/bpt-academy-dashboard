@@ -29,16 +29,15 @@ export default function OnboardingResumeScreen({ navigation }: any) {
       return;
     }
 
-    // Profile complete — do nothing, Navigation component will switch to MainTabs
-    // automatically once AuthContext has the updated user (profile_complete=true)
+    // Profile complete — Navigation will switch to MainTabs automatically
     if (freshUser.profile_complete) {
       return;
     }
 
-    // Check if platform already connected
+    // Check which platform is connected
     const { data: conn } = await supabase
       .from('platform_connections')
-      .select('id, last_synced_at')
+      .select('id, platform, last_synced_at')
       .eq('user_id', freshUser.id)
       .maybeSingle();
 
@@ -47,31 +46,33 @@ export default function OnboardingResumeScreen({ navigation }: any) {
       return;
     }
 
-    if (!conn.last_synced_at) {
-      navigation.replace('SyncingProfile', {
-        platform: 'playtomic',
-        platformEmail: null,
-        platformPassword: null,
-        skipAuth: true,
-      });
+    const isOTC = conn.platform === 'on_the_court';
+
+    // OTC users: skip SyncingProfile (no match history to sync)
+    // Go straight to onboarding questions if not yet filled in
+    if (isOTC || conn.last_synced_at) {
+      if (!freshUser.city) {
+        navigation.replace('Question1Location');
+      } else if (!freshUser.looking_for) {
+        navigation.replace('Question2Intent', { city: freshUser.city });
+      } else if (!freshUser.visible_to) {
+        navigation.replace('Question3Visibility', { city: freshUser.city, looking_for: freshUser.looking_for });
+      } else {
+        navigation.replace('PhotoUpload', {
+          city: freshUser.city,
+          looking_for: freshUser.looking_for,
+          visible_to: freshUser.visible_to,
+          bio: freshUser.bio,
+        });
+      }
       return;
     }
 
-    // Resume at the right onboarding step
-    if (!freshUser.city) {
-      navigation.replace('Question1Location');
-    } else if (!freshUser.looking_for) {
-      navigation.replace('Question2Intent', { city: freshUser.city });
-    } else if (!freshUser.visible_to) {
-      navigation.replace('Question3Visibility', { city: freshUser.city, looking_for: freshUser.looking_for });
-    } else {
-      navigation.replace('PhotoUpload', {
-        city: freshUser.city,
-        looking_for: freshUser.looking_for,
-        visible_to: freshUser.visible_to,
-        bio: freshUser.bio,
-      });
-    }
+    // Playtomic/other: re-run sync
+    navigation.replace('SyncingProfile', {
+      platform: conn.platform,
+      skipAuth: true,
+    });
   };
 
   return null;
