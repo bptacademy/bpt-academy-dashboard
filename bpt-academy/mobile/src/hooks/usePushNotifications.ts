@@ -14,16 +14,6 @@ export function usePushNotifications(): void {
   const responseListener = useRef<any>(null);
 
   useEffect(() => {
-    // Skip entirely in Expo Go / dev client without native push support
-    // expo-notifications requires a proper EAS build to function
-    const isExpoGo = typeof (globalThis as any).expo?.modules?.ExpoModulesCore === 'undefined'
-      && !(globalThis as any).__ExpoModulesConstants;
-
-    if (__DEV__) {
-      // In dev/Expo Go, silently skip — push notifications not available
-      return;
-    }
-
     if (!profile?.id) return;
 
     let cancelled = false;
