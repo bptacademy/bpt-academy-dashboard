@@ -48,9 +48,6 @@ function MetricBar({ label, value, target, suffix = '%' }: {
   const met = value >= target;
   return (
     <View style={styles.metricRow}>
-
-      <Image source={require('../../../assets/bg.png')} style={styles.bgImage} resizeMode="cover" />
-
       <View style={styles.metricHeader}>
         <Text style={styles.metricLabel}>{label}</Text>
         <View style={styles.metricRight}>
@@ -65,8 +62,7 @@ function MetricBar({ label, value, target, suffix = '%' }: {
       </View>
       <View style={styles.barBg}>
         <View style={[styles.barFill, { width: `${pct}%`, backgroundColor: met ? '#16A34A' : '#3B82F6' }]} />
-        {/* Target marker */}
-        <View style={[styles.barMarker, { left: '80%' }]} />
+
       </View>
     </View>
   );
@@ -479,14 +475,14 @@ export default function PromotionManageScreen({ route, navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-  bgImage: { position: 'absolute', top: 0, left: 0, width: Dimensions.get('window').width, height: Dimensions.get('window').height },
+
   root: { flex: 1, backgroundColor: '#0B1628' },
   content: { padding: 16, paddingBottom: 72 },
   loader: { marginTop: 60 },
 
   card: {
     backgroundColor: 'rgba(17,30,51,0.85)', borderRadius: 14, padding: 16,
-    marginBottom: 14, borderWidth: 1, borderColor: '#E5E7EB',
+    marginBottom: 14, borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)',
   },
   cardTitle: { fontSize: 15, fontWeight: '700', color: '#F0F6FC', marginBottom: 14 },
 
@@ -529,7 +525,7 @@ const styles = StyleSheet.create({
 
   // Action buttons
   btn: {
-    borderWidth: 1.5, borderColor: '#E5E7EB', borderRadius: 12,
+    borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.15)', borderRadius: 12,
     paddingVertical: 14, alignItems: 'center', marginBottom: 10,
     backgroundColor: 'rgba(17,30,51,0.85)',
   },
@@ -542,7 +538,7 @@ const styles = StyleSheet.create({
   // History
   historyRow: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    paddingVertical: 10, borderTopWidth: 1, borderTopColor: '#F3F4F6',
+    paddingVertical: 10, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.08)',
   },
   historyLevels: { fontSize: 14, fontWeight: '600', color: '#F0F6FC' },
   historyDate: { fontSize: 12, color: '#4B6278', marginTop: 2 },
