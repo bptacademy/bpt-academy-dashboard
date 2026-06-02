@@ -25,7 +25,7 @@ export default function SkillAssessmentScreen({ navigation, route }: any) {
   const { profile } = useAuth();
 
   const skillDiv = profileToSkillDivision(studentDivision, studentSkillLevel);
-  const range    = SCORE_RANGE[skillDiv];
+  const range    = SCORE_RANGE;
   const skills   = getSkillsForDivision(skillDiv);
   const divColor = studentDivision ? DIVISION_COLORS[studentDivision as any] ?? '#3B82F6' : '#3B82F6';
 
@@ -69,7 +69,6 @@ export default function SkillAssessmentScreen({ navigation, route }: any) {
   useEffect(() => { loadLatest(); }, [loadLatest]);
 
   const setScore = (key: string, val: number) => {
-    // Clamp to division range
     const clamped = Math.min(range.max, Math.max(range.min, val));
     setScores(prev => ({ ...prev, [key]: clamped }));
   };
