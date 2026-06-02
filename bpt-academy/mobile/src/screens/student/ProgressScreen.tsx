@@ -1019,13 +1019,13 @@ const styles = StyleSheet.create({
 
   criteriaSubtitle: { fontSize: 12, color: '#7A8FA6', marginBottom: 16, marginTop: -8 },
   criterionBlock: { marginBottom: 18 },
-  criterionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
-  criterionLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 },
+  criterionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 },
+  criterionLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1, marginRight: 8 },
   criterionEmoji: { fontSize: 22 },
   criterionLabel: { fontSize: 14, fontWeight: '700', color: '#F0F6FC' },
   criterionHint:  { fontSize: 11, color: '#7A8FA6', marginTop: 1 },
-  criterionValueRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  criterionValue: { fontSize: 18, fontWeight: '800', color: '#3B82F6' },
+  criterionValueRow: { flexDirection: 'row', alignItems: 'center', gap: 4, flexShrink: 0 },
+  criterionValue: { fontSize: 17, fontWeight: '800', color: '#3B82F6' },
   criterionValueMet: { color: '#16A34A' },
   criterionTarget: { fontSize: 12, color: '#7A8FA6', fontWeight: '400' },
   criterionCheck: { fontSize: 16, fontWeight: '800' },
@@ -1033,7 +1033,7 @@ const styles = StyleSheet.create({
   checkNo:  { color: '#EF4444' },
   criterionBarBg: {
     height: 10, backgroundColor: 'rgba(255,255,255,0.10)', borderRadius: 5,
-    overflow: 'hidden', position: 'relative',
+    overflow: 'hidden', position: 'relative', marginTop: 4,
   },
   criterionBarFill: { height: '100%', borderRadius: 5 },
   criterionMarker: {
