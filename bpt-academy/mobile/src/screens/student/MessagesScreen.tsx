@@ -430,11 +430,9 @@ export default function MessagesScreen({ navigation }: any) {
         </View>
       </ScrollView>
 
-      {isCoachOrAdmin && (
-        <TouchableOpacity style={styles.fab} onPress={() => navigation.navigate('NewConversation')}>
-          <Text style={styles.fabIcon}>✏️</Text>
-        </TouchableOpacity>
-      )}
+      <TouchableOpacity style={styles.fab} onPress={() => navigation.navigate('NewConversation')}>
+        <Text style={styles.fabIcon}>✏️</Text>
+      </TouchableOpacity>
 
       {/* ── Announcement detail modal (legacy / notification-only) ── */}
       <Modal
