@@ -1,23 +1,23 @@
 // ─── Skill Definitions ────────────────────────────────────────────────────────
-// Each skill has a title (what the coach scores) and goals (descriptive context).
-// Score range is 1–7 for ALL levels, 0.5 increments.
-// Min passing score per level is a reference indicator only.
+// TECHNIQUE & OTHERS: every item is an individual skill scored separately (no title grouping).
+// TACTIC: grouped under titled blocks — coach scores the block as a whole.
+//         Titles: CONSISTENCY & CONTROL | NET DOMINANCE |
+//                 CREATION, DIRECTIONS, SPACE & TEMPO MANAGEMENT | GAME INTELLIGENCE
+// Score range: 1–7, 0.5 increments, same for ALL levels.
 
 export type SkillCategory = 'technique' | 'tactic' | 'others';
 export type SkillDivision = 'beginner' | 'intermediate' | 'advanced' | 'semi_pro' | 'pro';
 
 export interface SkillDef {
   key: string;
-  label: string;       // Title shown on card e.g. "CONSISTENCY & CONTROL"
-  goals: string[];     // Bullet points shown under the title
+  label: string;    // For technique/others: the skill name. For tactic: the block title.
+  goals: string[];  // For technique/others: empty []. For tactic: the bullet-point objectives.
   category: SkillCategory;
   minLevel: SkillDivision;
 }
 
-// Score range 1–7 for ALL levels, 0.5 increments
 export const SCORE_RANGE = { min: 1.0, max: 7.0, step: 0.5 };
 
-// Minimum expected score per division (reference only)
 export const MIN_PASSING_SCORE: Record<SkillDivision, number> = {
   beginner:     2.0,
   intermediate: 3.0,
@@ -28,179 +28,141 @@ export const MIN_PASSING_SCORE: Record<SkillDivision, number> = {
 
 export const SKILLS: SkillDef[] = [
 
-  // ────────────────────────────────────────────────────────────────────────────
+  // ══════════════════════════════════════════════════════════════════════════
   // BEGINNER
-  // ────────────────────────────────────────────────────────────────────────────
+  // ══════════════════════════════════════════════════════════════════════════
 
-  // Technique
-  {
-    key: 'beg_forehand', label: 'FOREHAND', category: 'technique', minLevel: 'beginner',
-    goals: ['Forehand'],
-  },
-  {
-    key: 'beg_backhand', label: 'BACKHAND', category: 'technique', minLevel: 'beginner',
-    goals: ['Backhand'],
-  },
-  {
-    key: 'beg_forehand_off_glass', label: 'FOREHAND OFF THE GLASS', category: 'technique', minLevel: 'beginner',
-    goals: ['Forehand off the glass'],
-  },
-  {
-    key: 'beg_backhand_off_glass', label: 'BACKHAND OFF THE GLASS', category: 'technique', minLevel: 'beginner',
-    goals: ['Backhand off the glass'],
-  },
-  {
-    key: 'beg_lobs', label: 'LOBS', category: 'technique', minLevel: 'beginner',
-    goals: ['Forehand Lob', 'Backhand Lob'],
-  },
-  {
-    key: 'beg_volleys', label: 'VOLLEYS', category: 'technique', minLevel: 'beginner',
-    goals: ['Forehand Volley', 'Backhand Volley'],
-  },
-  {
-    key: 'beg_gancho', label: 'GANCHO', category: 'technique', minLevel: 'beginner',
-    goals: ['Gancho'],
-  },
-  {
-    key: 'beg_serve', label: 'SERVE', category: 'technique', minLevel: 'beginner',
-    goals: ['Serve'],
-  },
-  {
-    key: 'beg_return', label: 'RETURN', category: 'technique', minLevel: 'beginner',
-    goals: ['Return'],
-  },
+  // ── Technique (individual skills, no grouping) ──────────────────────────
+  { key: 'beg_forehand',              label: 'Forehand',                   goals: [], category: 'technique', minLevel: 'beginner' },
+  { key: 'beg_backhand',              label: 'Backhand',                   goals: [], category: 'technique', minLevel: 'beginner' },
+  { key: 'beg_forehand_off_glass',    label: 'Forehand off the Glass',     goals: [], category: 'technique', minLevel: 'beginner' },
+  { key: 'beg_backhand_off_glass',    label: 'Backhand off the Glass',     goals: [], category: 'technique', minLevel: 'beginner' },
+  { key: 'beg_forehand_lob',          label: 'Forehand Lob',               goals: [], category: 'technique', minLevel: 'beginner' },
+  { key: 'beg_backhand_lob',          label: 'Backhand Lob',               goals: [], category: 'technique', minLevel: 'beginner' },
+  { key: 'beg_forehand_volley',       label: 'Forehand Volley',            goals: [], category: 'technique', minLevel: 'beginner' },
+  { key: 'beg_backhand_volley',       label: 'Backhand Volley',            goals: [], category: 'technique', minLevel: 'beginner' },
+  { key: 'beg_gancho',                label: 'Gancho',                     goals: [], category: 'technique', minLevel: 'beginner' },
+  { key: 'beg_serve',                 label: 'Serve',                      goals: [], category: 'technique', minLevel: 'beginner' },
+  { key: 'beg_return',                label: 'Return',                     goals: [], category: 'technique', minLevel: 'beginner' },
 
-  // Tactic
+  // ── Tactic (titled blocks with goals) ───────────────────────────────────
   {
-    key: 'beg_consistency_control', label: 'CONSISTENCY & CONTROL', category: 'tactic', minLevel: 'beginner',
+    key: 'beg_tac_consistency',
+    label: 'CONSISTENCY & CONTROL',
     goals: ['Keeping the ball in game'],
+    category: 'tactic', minLevel: 'beginner',
   },
   {
-    key: 'beg_net_dominance', label: 'NET DOMINANCE', category: 'tactic', minLevel: 'beginner',
+    key: 'beg_tac_net_dominance',
+    label: 'NET DOMINANCE',
     goals: [
       'Transition (attack → defense) By a Lob',
       'Transition (defense → attack) By a Lob',
     ],
+    category: 'tactic', minLevel: 'beginner',
   },
 
-  // Others
-  {
-    key: 'beg_positioning', label: 'POSITIONING', category: 'others', minLevel: 'beginner',
-    goals: ['Positioning in the back', 'Positioning at the net'],
-  },
+  // ── Others (individual) ─────────────────────────────────────────────────
+  { key: 'beg_positioning_back', label: 'Positioning in the Back', goals: [], category: 'others', minLevel: 'beginner' },
+  { key: 'beg_positioning_net',  label: 'Positioning at the Net',  goals: [], category: 'others', minLevel: 'beginner' },
 
-  // ────────────────────────────────────────────────────────────────────────────
+  // ══════════════════════════════════════════════════════════════════════════
   // INTERMEDIATE
-  // ────────────────────────────────────────────────────────────────────────────
+  // ══════════════════════════════════════════════════════════════════════════
 
-  // Technique
-  {
-    key: 'int_bandeja_vibora', label: 'BANDEJA / VÍBORA', category: 'technique', minLevel: 'intermediate',
-    goals: ['Bandeja / Víbora'],
-  },
-  {
-    key: 'int_double_glass', label: 'DOUBLE GLASS', category: 'technique', minLevel: 'intermediate',
-    goals: ['Double glass'],
-  },
-  {
-    key: 'int_bajada', label: 'BAJADA', category: 'technique', minLevel: 'intermediate',
-    goals: ['Bajada'],
-  },
-  {
-    key: 'int_defense_off_glass_cross', label: 'DEFENSE OFF THE GLASS', category: 'technique', minLevel: 'intermediate',
-    goals: ['Defense off the glass when the ball comes cross court'],
-  },
+  // ── Technique ────────────────────────────────────────────────────────────
+  { key: 'int_bandeja_vibora',          label: 'Bandeja / Víbora',                              goals: [], category: 'technique', minLevel: 'intermediate' },
+  { key: 'int_double_glass',            label: 'Double Glass',                                  goals: [], category: 'technique', minLevel: 'intermediate' },
+  { key: 'int_bajada',                  label: 'Bajada',                                        goals: [], category: 'technique', minLevel: 'intermediate' },
+  { key: 'int_defense_off_glass_cross', label: 'Defense off the Glass (Cross Court)',           goals: [], category: 'technique', minLevel: 'intermediate' },
 
-  // Tactic
+  // ── Tactic ───────────────────────────────────────────────────────────────
   {
-    key: 'int_consistency_control', label: 'CONSISTENCY & CONTROL', category: 'tactic', minLevel: 'intermediate',
+    key: 'int_tac_consistency',
+    label: 'CONSISTENCY & CONTROL',
     goals: ['Generate the play from the center (avoid unnecessary angle risks)'],
+    category: 'tactic', minLevel: 'intermediate',
   },
   {
-    key: 'int_net_dominance', label: 'NET DOMINANCE', category: 'tactic', minLevel: 'intermediate',
+    key: 'int_tac_net_dominance',
+    label: 'NET DOMINANCE',
     goals: [
       'Maintain the net',
       'Shifting at the net (Coordinated movement at the net)',
     ],
+    category: 'tactic', minLevel: 'intermediate',
   },
 
-  // ────────────────────────────────────────────────────────────────────────────
+  // ══════════════════════════════════════════════════════════════════════════
   // ADVANCED
-  // ────────────────────────────────────────────────────────────────────────────
+  // ══════════════════════════════════════════════════════════════════════════
 
-  // Technique
-  {
-    key: 'adv_block', label: 'BLOCK', category: 'technique', minLevel: 'advanced',
-    goals: ['Block'],
-  },
-  {
-    key: 'adv_smash', label: 'SMASH', category: 'technique', minLevel: 'advanced',
-    goals: ['Smash', 'Fake Smash', 'Smash Return'],
-  },
-  {
-    key: 'adv_rulo', label: 'RULO', category: 'technique', minLevel: 'advanced',
-    goals: ['Rulo'],
-  },
-  {
-    key: 'adv_defensive_bandeja_vibora', label: 'DEFENSIVE BANDEJA / VÍBORA', category: 'technique', minLevel: 'advanced',
-    goals: ['Defensive Bandeja / Víbora'],
-  },
-  {
-    key: 'adv_chiquita', label: 'CHIQUITA', category: 'technique', minLevel: 'advanced',
-    goals: ['Chiquita'],
-  },
+  // ── Technique ────────────────────────────────────────────────────────────
+  { key: 'adv_block',                  label: 'Block',                    goals: [], category: 'technique', minLevel: 'advanced' },
+  { key: 'adv_smash',                  label: 'Smash',                    goals: [], category: 'technique', minLevel: 'advanced' },
+  { key: 'adv_rulo',                   label: 'Rulo',                     goals: [], category: 'technique', minLevel: 'advanced' },
+  { key: 'adv_fake_smash',             label: 'Fake Smash',               goals: [], category: 'technique', minLevel: 'advanced' },
+  { key: 'adv_smash_return',           label: 'Smash Return',             goals: [], category: 'technique', minLevel: 'advanced' },
+  { key: 'adv_defensive_bandeja_vib',  label: 'Defensive Bandeja / Víbora', goals: [], category: 'technique', minLevel: 'advanced' },
+  { key: 'adv_chiquita',               label: 'Chiquita',                 goals: [], category: 'technique', minLevel: 'advanced' },
 
-  // Tactic
+  // ── Tactic ───────────────────────────────────────────────────────────────
   {
-    key: 'adv_consistency_control', label: 'CONSISTENCY & CONTROL', category: 'tactic', minLevel: 'advanced',
+    key: 'adv_tac_consistency',
+    label: 'CONSISTENCY & CONTROL',
     goals: [
       'Know when to keep attacking one player or switch',
       'Improving the pace of our basic game',
     ],
+    category: 'tactic', minLevel: 'advanced',
   },
   {
-    key: 'adv_net_dominance', label: 'NET DOMINANCE', category: 'tactic', minLevel: 'advanced',
+    key: 'adv_tac_net_dominance',
+    label: 'NET DOMINANCE',
     goals: [
       'Transition (attack → defense) By a Passing shot',
       'Transition (defense → attack) Chiquita + Volley',
       'Maintain the net — Defensive Víbora',
     ],
+    category: 'tactic', minLevel: 'advanced',
   },
   {
-    key: 'adv_creation', label: 'CREATION, DIRECTIONS, SPACE & TEMPO MANAGEMENT', category: 'tactic', minLevel: 'advanced',
+    key: 'adv_tac_creation',
+    label: 'CREATION, DIRECTIONS, SPACE & TEMPO MANAGEMENT',
     goals: ['Generate an easy ball from the back'],
+    category: 'tactic', minLevel: 'advanced',
   },
 
-  // ────────────────────────────────────────────────────────────────────────────
+  // ══════════════════════════════════════════════════════════════════════════
   // SEMI-PRO & PRO
-  // ────────────────────────────────────────────────────────────────────────────
+  // ══════════════════════════════════════════════════════════════════════════
 
-  // Technique
-  {
-    key: 'sp_topspin', label: 'TOP SPIN', category: 'technique', minLevel: 'semi_pro',
-    goals: ['Forehand with top spin', 'Backhand with top spin'],
-  },
-  {
-    key: 'sp_smash_x3', label: 'SMASH X3', category: 'technique', minLevel: 'semi_pro',
-    goals: ['Smash X3'],
-  },
+  // ── Technique ────────────────────────────────────────────────────────────
+  { key: 'sp_forehand_topspin',  label: 'Forehand with Top Spin',  goals: [], category: 'technique', minLevel: 'semi_pro' },
+  { key: 'sp_backhand_topspin',  label: 'Backhand with Top Spin',  goals: [], category: 'technique', minLevel: 'semi_pro' },
+  { key: 'sp_smash_x3',         label: 'Smash X3',                goals: [], category: 'technique', minLevel: 'semi_pro' },
 
-  // Tactic
+  // ── Tactic ───────────────────────────────────────────────────────────────
   {
-    key: 'sp_consistency_control', label: 'CONSISTENCY & CONTROL', category: 'tactic', minLevel: 'semi_pro',
+    key: 'sp_tac_consistency',
+    label: 'CONSISTENCY & CONTROL',
     goals: [
       'Consistency of defensive game patterns — Patient (All lobs, All down, One up one down)',
     ],
+    category: 'tactic', minLevel: 'semi_pro',
   },
   {
-    key: 'sp_net_dominance', label: 'NET DOMINANCE', category: 'tactic', minLevel: 'semi_pro',
+    key: 'sp_tac_net_dominance',
+    label: 'NET DOMINANCE',
     goals: [
       'Transition (defense → attack) Fast Lob to the middle + Block',
       'Transition (defense → attack) High Lob to the corner + Chiquita + Volley',
     ],
+    category: 'tactic', minLevel: 'semi_pro',
   },
   {
-    key: 'sp_creation', label: 'CREATION, DIRECTIONS, SPACE & TEMPO MANAGEMENT', category: 'tactic', minLevel: 'semi_pro',
+    key: 'sp_tac_creation',
+    label: 'CREATION, DIRECTIONS, SPACE & TEMPO MANAGEMENT',
     goals: [
       'Create spaces (angles, middle, deep lobs, chiquitas)',
       'Aim for the high backhand volley',
@@ -210,26 +172,27 @@ export const SKILLS: SkillDef[] = [
       'Directions of the víbora (Side, Feet, Middle, Down the line)',
       'Play to the player / Avoid the player',
     ],
+    category: 'tactic', minLevel: 'semi_pro',
   },
   {
-    key: 'sp_game_intelligence', label: 'GAME INTELLIGENCE', category: 'tactic', minLevel: 'semi_pro',
+    key: 'sp_tac_game_intelligence',
+    label: 'GAME INTELLIGENCE',
     goals: [
       'Knowing when to break the pattern in defense (All down, All lob, One up one down)',
       'Hiding the shot — same preparation (Triple Threat, Rulo/Smash, Víbora vs Flat Smash, Gancho to the fence or Víbora)',
       'Adaptation of the game based on opponent\'s characteristics',
     ],
+    category: 'tactic', minLevel: 'semi_pro',
   },
 ];
 
 const LEVEL_ORDER: SkillDivision[] = ['beginner', 'intermediate', 'advanced', 'semi_pro', 'pro'];
 
-// Get all skills applicable to a given division (cumulative)
 export function getSkillsForDivision(division: SkillDivision): SkillDef[] {
   const idx = LEVEL_ORDER.indexOf(division);
   return SKILLS.filter(s => LEVEL_ORDER.indexOf(s.minLevel) <= idx);
 }
 
-// Map profile division + skill_level to SkillDivision
 export function profileToSkillDivision(division?: string, skillLevel?: string): SkillDivision {
   if (division === 'semi_pro') return 'semi_pro';
   if (division === 'pro') return 'pro';
