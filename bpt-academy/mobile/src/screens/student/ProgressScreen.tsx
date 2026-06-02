@@ -61,7 +61,7 @@ interface Badge {
   earned: boolean;
 }
 
-type Tab = 'overview' | 'attendance' | 'badges' | 'goals';
+type Tab = 'overview' | 'attendance' | 'skills' | 'goals' | 'badges';
 
 // ─── Journey path ─────────────────────────────────────────────
 const JOURNEY = [
@@ -100,6 +100,7 @@ export default function ProgressScreen() {
   const [selectedModule, setSelectedModule] = useState<(Module & { progress?: StudentProgress }) | null>(null);
   const [goals, setGoals] = useState<StudentGoalItem[]>([]);
   const [skillScores, setSkillScores] = useState<{skill_key:string;score:number;assessed_at:string}[]>([]);
+  const [skillsLoading, setSkillsLoading] = useState(false);
   const [goalsLoading, setGoalsLoading] = useState(false);
 
   // ── Fetch overview data ──────────────────────────────────────
@@ -296,6 +297,7 @@ export default function ProgressScreen() {
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
   useEffect(() => { if (tab === 'badges') fetchBadges(); }, [tab, fetchBadges]);
+  useEffect(() => { if (tab === 'skills') { setSkillsLoading(true); fetchSkillScores().then(() => setSkillsLoading(false)); } }, [tab, fetchSkillScores]);
   useEffect(() => { if (tab === 'goals') fetchGoals(); }, [tab, fetchGoals]);
 
   useFocusEffect(useCallback(() => { refreshProfile(); }, [refreshProfile]));
@@ -305,6 +307,7 @@ export default function ProgressScreen() {
     await fetchAll();
     if (tab === 'badges') await fetchBadges();
     if (tab === 'goals') await fetchGoals();
+    if (tab === 'skills') await fetchSkillScores();
     setRefreshing(false);
   };
 
@@ -333,7 +336,7 @@ export default function ProgressScreen() {
 
       {/* Tab bar */}
       <View style={styles.tabs}>
-        {(['overview', 'attendance', 'goals', 'badges'] as Tab[]).map((t) => (
+        {(['overview', 'attendance', 'skills', 'goals', 'badges'] as Tab[]).map((t) => (
           <TouchableOpacity
             key={t}
             style={[styles.tab, tab === t && { borderBottomColor: divColor }]}
@@ -342,7 +345,8 @@ export default function ProgressScreen() {
             <Text style={[styles.tabText, tab === t && { color: divColor }]} numberOfLines={1}>
               {t === 'overview' ? '📊 Overview'
                 : t === 'attendance' ? '📅 Promotion'
-                : t === 'goals' ? '🎯 My Goals'
+                : t === 'skills' ? '⭐ Skills'
+                : t === 'goals' ? '🎯 Goals'
                 : '🏅 Badges'}
             </Text>
           </TouchableOpacity>
@@ -460,54 +464,6 @@ export default function ProgressScreen() {
               )}
             </View>
 
-            {/* ── Skill Scores ── */}
-            {skillScores.length > 0 && (() => {
-              const skillDiv = profileToSkillDivision(profile?.division, profile?.skill_level);
-              const range = SCORE_RANGE[skillDiv];
-              const minPass = MIN_PASSING_SCORE[skillDiv];
-              const cats: SkillCategory[] = ['technique', 'tactic', 'others'];
-              return (
-                <View style={styles.sectionCard}>
-                  <Text style={styles.sectionTitle}>📊 Skill Assessment</Text>
-                  {cats.map(cat => {
-                    const catScores = skillScores.filter(s => {
-                      const { getSkillsForDivision: gsd } = require('../../lib/skillDefinitions');
-                      const def = gsd(skillDiv).find((d: any) => d.key === s.skill_key && d.category === cat);
-                      return !!def;
-                    });
-                    if (catScores.length === 0) return null;
-                    return (
-                      <View key={cat} style={{ marginBottom: 14 }}>
-                        <Text style={{ fontSize: 12, fontWeight: '700', color: '#7A8FA6', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>
-                          {CATEGORY_LABELS[cat]}
-                        </Text>
-                        {catScores.map(ss => {
-                          const pct = ((ss.score - range.min) / (range.max - range.min)) * 100;
-                          const passing = ss.score >= minPass;
-                          const barColor = passing ? '#16A34A' : '#EF4444';
-                          return (
-                            <View key={ss.skill_key} style={{ marginBottom: 8 }}>
-                              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 3 }}>
-                                <Text style={{ fontSize: 13, color: '#F0F6FC', fontWeight: '600' }}>
-                                  {ss.skill_key.replace(/_/g, ' ').replace(/\w/g, c => c.toUpperCase())}
-                                </Text>
-                                <Text style={{ fontSize: 13, fontWeight: '700', color: barColor }}>{ss.score}</Text>
-                              </View>
-                              <View style={{ height: 6, backgroundColor: 'rgba(255,255,255,0.10)', borderRadius: 3 }}>
-                                <View style={{ height: '100%', width: `${Math.max(5, pct)}%`, backgroundColor: barColor, borderRadius: 3 }} />
-                              </View>
-                            </View>
-                          );
-                        })}
-                      </View>
-                    );
-                  })}
-                  <Text style={{ fontSize: 11, color: '#7A8FA6', marginTop: 4 }}>
-                    Min passing score for your level: {minPass} · Range: {range.min}–{range.max}
-                  </Text>
-                </View>
-              );
-            })()}
           </>
         )}
 
@@ -738,6 +694,130 @@ export default function ProgressScreen() {
                 </View>
               </>
             )}
+          </>
+        )}
+
+
+        {/* ── SKILLS TAB ───────────────────────────────────── */}
+        {tab === 'skills' && (
+          <>
+            {skillsLoading ? (
+              <ActivityIndicator size="large" color={divColor} style={styles.loader} />
+            ) : skillScores.length === 0 ? (
+              <View style={styles.emptyCard}>
+                <Text style={styles.emptyIcon}>⭐</Text>
+                <Text style={styles.emptyTitle}>No assessments yet</Text>
+                <Text style={styles.emptyNote}>
+                  Your coach will assess your skills during training sessions. Come back after your next session!
+                </Text>
+              </View>
+            ) : (() => {
+              const skillDiv = profileToSkillDivision(profile?.division, profile?.skill_level);
+              const minPass = MIN_PASSING_SCORE[skillDiv];
+              const allSkills = getSkillsForDivision(skillDiv);
+              const scoreMap: Record<string, number> = {};
+              skillScores.forEach(s => { scoreMap[s.skill_key] = s.score; });
+
+              const scoreColor = (score: number) => {
+                if (score >= minPass + 1) return '#16A34A';
+                if (score >= minPass) return '#FBBF24';
+                return '#EF4444';
+              };
+
+              const cats: SkillCategory[] = ['technique', 'tactic'];
+              const scored = allSkills.filter(s => scoreMap[s.skill_key] !== undefined);
+              const notScored = allSkills.filter(s => scoreMap[s.skill_key] === undefined);
+              const totalScored = scored.length;
+              const totalSkills = allSkills.length;
+              const avgScore = totalScored > 0
+                ? (scored.reduce((sum, s) => sum + scoreMap[s.skill_key], 0) / totalScored).toFixed(1)
+                : null;
+
+              return (
+                <>
+                  {/* Summary header */}
+                  <View style={[styles.sectionCard, { flexDirection: 'row', gap: 12, marginBottom: 14 }]}>
+                    <View style={{ flex: 1, alignItems: 'center' }}>
+                      <Text style={{ fontSize: 28, fontWeight: '800', color: avgScore ? scoreColor(parseFloat(avgScore)) : '#7A8FA6' }}>
+                        {avgScore ?? '—'}
+                      </Text>
+                      <Text style={{ fontSize: 11, color: '#7A8FA6', marginTop: 2 }}>Average Score</Text>
+                    </View>
+                    <View style={{ width: 1, backgroundColor: 'rgba(255,255,255,0.08)' }} />
+                    <View style={{ flex: 1, alignItems: 'center' }}>
+                      <Text style={{ fontSize: 28, fontWeight: '800', color: '#F0F6FC' }}>{totalScored}</Text>
+                      <Text style={{ fontSize: 11, color: '#7A8FA6', marginTop: 2 }}>of {totalSkills} assessed</Text>
+                    </View>
+                    <View style={{ width: 1, backgroundColor: 'rgba(255,255,255,0.08)' }} />
+                    <View style={{ flex: 1, alignItems: 'center' }}>
+                      <Text style={{ fontSize: 28, fontWeight: '800', color: '#FBBF24' }}>{minPass}</Text>
+                      <Text style={{ fontSize: 11, color: '#7A8FA6', marginTop: 2 }}>Min to pass</Text>
+                    </View>
+                  </View>
+
+                  {cats.map(cat => {
+                    const catSkills = allSkills.filter(sk => sk.category === cat && scoreMap[sk.key] !== undefined);
+                    if (catSkills.length === 0) return null;
+
+                    // For tactic: group by `group`
+                    let lastGroup: string | undefined = undefined;
+                    const rows: React.ReactNode[] = [];
+
+                    catSkills.forEach(skill => {
+                      if (cat === 'tactic' && skill.group && skill.group !== lastGroup) {
+                        lastGroup = skill.group;
+                        rows.push(
+                          <Text key={`g-${skill.group}`} style={{
+                            fontSize: 11, fontWeight: '800', color: divColor,
+                            textTransform: 'uppercase', letterSpacing: 0.5,
+                            marginTop: 12, marginBottom: 6,
+                          }}>{skill.group}</Text>
+                        );
+                      }
+                      const score = scoreMap[skill.key];
+                      const col = scoreColor(score);
+                      const pct = Math.max(3, ((score - 1) / 6) * 100);
+                      rows.push(
+                        <View key={skill.key} style={{ marginBottom: 10 }}>
+                          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                            <Text style={{ fontSize: 13, color: '#CBD5E1', fontWeight: '500', flex: 1, marginRight: 8 }} numberOfLines={2}>
+                              {skill.label}
+                            </Text>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                              <Text style={{ fontSize: 15, fontWeight: '800', color: col }}>{score}</Text>
+                              <Text style={{ fontSize: 11, color: col }}>{score >= minPass ? '✓' : '✗'}</Text>
+                            </View>
+                          </View>
+                          <View style={{ height: 8, backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 4 }}>
+                            <View style={{ height: '100%', width: `${pct}%`, backgroundColor: col, borderRadius: 4 }} />
+                          </View>
+                        </View>
+                      );
+                    });
+
+                    return (
+                      <View key={cat} style={styles.sectionCard}>
+                        <Text style={styles.sectionTitle}>{CATEGORY_LABELS[cat]}</Text>
+                        {rows}
+                      </View>
+                    );
+                  })}
+
+                  {/* Not yet assessed */}
+                  {notScored.length > 0 && (
+                    <View style={[styles.sectionCard, { opacity: 0.5 }]}>
+                      <Text style={[styles.sectionTitle, { fontSize: 13 }]}>⏳ Not Yet Assessed ({notScored.length})</Text>
+                      {notScored.map(skill => (
+                        <View key={skill.key} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                          <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.2)' }} />
+                          <Text style={{ fontSize: 12, color: '#4B6278' }} numberOfLines={1}>{skill.label}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  )}
+                </>
+              );
+            })()}
           </>
         )}
 
