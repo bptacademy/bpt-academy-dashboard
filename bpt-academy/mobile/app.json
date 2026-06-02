@@ -2,7 +2,7 @@
   "expo": {
     "name": "BPT Academy",
     "slug": "mobile",
-    "version": "1.5.2",
+    "version": "1.5.3",
     "scheme": "bptacademy",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -25,7 +25,7 @@
     },
     "android": {
       "package": "com.bptacademy.app",
-      "versionCode": 28,
+      "versionCode": 30,
       "googleServicesFile": "./google-services.json",
       "allowBackup": false,
       "resizeableActivity": true,
