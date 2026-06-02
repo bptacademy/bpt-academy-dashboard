@@ -51,6 +51,23 @@ export default function PaymentScreen({ navigation, route }: any) {
 
   const divisionLinkKey = programDivision ? `stripe_payment_link_${programDivision}` : null;
 
+  const notifyAdminsProgramPayment = async (method: 'card' | 'bank_transfer') => {
+    const { data: admins } = await supabase.from('profiles').select('id').in('role', ['admin', 'coach']);
+    if (!admins || admins.length === 0) return;
+    const studentName = profile?.full_name ?? 'A student';
+    const methodLabel = method === 'card' ? 'card payment' : 'bank transfer';
+    const programLabel = label ?? 'a program';
+    await supabase.from('notifications').insert(
+      admins.map((a: { id: string }) => ({
+        recipient_id: a.id,
+        title: '💳 Payment Submitted',
+        body: `${studentName} submitted payment for ${programLabel} via ${methodLabel}. Pending confirmation.`,
+        type: 'payment',
+        read: false,
+      }))
+    );
+  };
+
   const notifyAdminsTournamentReg = async (tournamentTitle: string, method: 'card' | 'bank_transfer') => {
     const { data: admins } = await supabase.from('profiles').select('id').in('role', ['admin', 'coach']);
     if (!admins || admins.length === 0) return;
@@ -149,6 +166,8 @@ export default function PaymentScreen({ navigation, route }: any) {
         return;
       }
       await notifyAdminsTournamentReg(label ?? 'a tournament', 'card');
+    } else {
+      await notifyAdminsProgramPayment('card');
     }
 
     await supabase.from('payments').insert({
@@ -211,6 +230,9 @@ export default function PaymentScreen({ navigation, route }: any) {
         return;
       }
       await notifyAdminsTournamentReg(label ?? 'a tournament', 'bank_transfer');
+    } else {
+      // Program payment — notify admins/coaches
+      await notifyAdminsProgramPayment('bank_transfer');
     }
 
     const { error } = await supabase.from('payments').insert({

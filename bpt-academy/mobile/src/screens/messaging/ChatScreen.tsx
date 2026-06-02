@@ -126,7 +126,36 @@ export default function ChatScreen({ route, navigation }: any) {
       .from('messages')
       .insert({ conversation_id: conversationId, sender_id: profile!.id, content });
 
-    if (error) { setMessages((prev) => prev.filter((m) => m.id !== optimisticMsg.id)); setText(content); }
+    if (error) {
+      setMessages((prev) => prev.filter((m) => m.id !== optimisticMsg.id));
+      setText(content);
+    } else {
+      // Notify all other conversation members
+      try {
+        const { data: members } = await supabase
+          .from('conversation_members')
+          .select('profile_id')
+          .eq('conversation_id', conversationId)
+          .neq('profile_id', profile!.id);
+
+        if (members && members.length > 0) {
+          const senderName = profile?.full_name ?? 'Someone';
+          const preview = content.length > 60 ? content.slice(0, 60) + '…' : content;
+          await supabase.from('notifications').insert(
+            members.map((m: { profile_id: string }) => ({
+              recipient_id: m.profile_id,
+              title: `💬 ${senderName}`,
+              body: preview,
+              type: 'message',
+              data: { conversationId, senderId: profile!.id },
+              read: false,
+            }))
+          );
+        }
+      } catch (_) {
+        // Notification failure should never block messaging
+      }
+    }
     setSending(false);
   };
 
