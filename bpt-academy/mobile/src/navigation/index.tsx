@@ -53,6 +53,7 @@ import StudentDetailScreen from '../screens/coach/StudentDetailScreen';
 import UploadVideoScreen from '../screens/coach/UploadVideoScreen';
 import AttendanceScreen from '../screens/coach/AttendanceScreen';
 import CoachNotesScreen from '../screens/coach/CoachNotesScreen';
+import SkillAssessmentScreen from '../screens/coach/SkillAssessmentScreen';
 import DivisionDashboardScreen from '../screens/coach/DivisionDashboardScreen';
 import TournamentManageScreen from '../screens/coach/TournamentManageScreen';
 import TournamentDrawScreen from '../screens/coach/TournamentDrawScreen';
@@ -318,6 +319,7 @@ function CoachHomeStack() {
       <Stack.Screen name="StudentDetail"      component={StudentDetailScreen} />
       <Stack.Screen name="Attendance"         component={AttendanceScreen} />
       <Stack.Screen name="CoachNotes"         component={CoachNotesScreen} />
+      <Stack.Screen name="SkillAssessment"   component={SkillAssessmentScreen} />
       <Stack.Screen name="PromotionManage"    component={PromotionManageScreen} />
       <Stack.Screen name="Profile"            component={ProfileScreen} />
       <Stack.Screen name="Notifications"      component={NotificationsScreen} />
@@ -335,6 +337,7 @@ function CoachStudentsStack() {
       <Stack.Screen name="StudentDetail"   component={StudentDetailScreen} />
       <Stack.Screen name="Attendance"      component={AttendanceScreen} />
       <Stack.Screen name="CoachNotes"      component={CoachNotesScreen} />
+      <Stack.Screen name="SkillAssessment"   component={SkillAssessmentScreen} />
       <Stack.Screen name="PromotionManage" component={PromotionManageScreen} />
       <Stack.Screen name="Chat"            component={ChatScreen} />
       <Stack.Screen name="NewConversation" component={NewConversationScreen} />
@@ -425,6 +428,7 @@ function AdminDashboardStack() {
       <Stack.Screen name="StudentDetail"      component={StudentDetailScreen} />
       <Stack.Screen name="Attendance"         component={AttendanceScreen} />
       <Stack.Screen name="CoachNotes"         component={CoachNotesScreen} />
+      <Stack.Screen name="SkillAssessment"   component={SkillAssessmentScreen} />
       <Stack.Screen name="PromotionManage"    component={PromotionManageScreen} />
       <Stack.Screen name="Chat"               component={ChatScreen} />
       <Stack.Screen name="NewConversation"    component={NewConversationScreen} />
@@ -444,6 +448,7 @@ function AdminStudentsStack() {
       <Stack.Screen name="StudentDetail"   component={StudentDetailScreen} />
       <Stack.Screen name="Attendance"      component={AttendanceScreen} />
       <Stack.Screen name="CoachNotes"      component={CoachNotesScreen} />
+      <Stack.Screen name="SkillAssessment"   component={SkillAssessmentScreen} />
       <Stack.Screen name="PromotionManage" component={PromotionManageScreen} />
       <Stack.Screen name="Chat"            component={ChatScreen} />
       <Stack.Screen name="NewConversation" component={NewConversationScreen} />
@@ -521,6 +526,7 @@ function SuperAdminDashboardStack() {
       <Stack.Screen name="StudentDetail"      component={StudentDetailScreen} />
       <Stack.Screen name="Attendance"         component={AttendanceScreen} />
       <Stack.Screen name="CoachNotes"         component={CoachNotesScreen} />
+      <Stack.Screen name="SkillAssessment"   component={SkillAssessmentScreen} />
       <Stack.Screen name="PromotionManage"    component={PromotionManageScreen} />
       <Stack.Screen name="ManageVideos"       component={ManageVideosScreen} />
       <Stack.Screen name="UploadVideo"        component={UploadVideoScreen} />

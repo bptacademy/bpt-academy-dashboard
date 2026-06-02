@@ -12,6 +12,7 @@ import {
   DIVISION_COLORS, DIVISION_LABELS, LEVEL_LABELS, Division,
 } from '../../types';
 import ScreenHeader from '../../components/common/ScreenHeader';
+import { getSkillsForDivision, profileToSkillDivision, CATEGORY_LABELS, MIN_PASSING_SCORE, SCORE_RANGE, SkillCategory } from '../../lib/skillDefinitions';
 
 // ─── Goal types ───────────────────────────────────────────────
 type GoalCategory = 'technical' | 'tactical' | 'physical' | 'mindset';
@@ -98,6 +99,7 @@ export default function ProgressScreen() {
   const [badgesLoading, setBadgesLoading] = useState(true);
   const [selectedModule, setSelectedModule] = useState<(Module & { progress?: StudentProgress }) | null>(null);
   const [goals, setGoals] = useState<StudentGoalItem[]>([]);
+  const [skillScores, setSkillScores] = useState<{skill_key:string;score:number;assessed_at:string}[]>([]);
   const [goalsLoading, setGoalsLoading] = useState(false);
 
   // ── Fetch overview data ──────────────────────────────────────
@@ -271,9 +273,26 @@ export default function ProgressScreen() {
     setGoalsLoading(false);
   }, [profile?.id]);
 
+  const fetchSkillScores = useCallback(async () => {
+    if (!profile) return;
+    const { data } = await supabase
+      .from('skill_assessments')
+      .select('skill_key, score, assessed_at')
+      .eq('student_id', profile.id)
+      .order('assessed_at', { ascending: false });
+    if (data) {
+      const seen = new Set<string>();
+      const latest: {skill_key:string;score:number;assessed_at:string}[] = [];
+      for (const row of data as any[]) {
+        if (!seen.has(row.skill_key)) { seen.add(row.skill_key); latest.push(row); }
+      }
+      setSkillScores(latest);
+    }
+  }, [profile?.id]);
+
   const fetchAll = useCallback(async () => {
-    await Promise.all([fetchOverview(), fetchCycle()]);
-  }, [fetchOverview, fetchCycle]);
+    await Promise.all([fetchOverview(), fetchCycle(), fetchSkillScores()]);
+  }, [fetchOverview, fetchCycle, fetchSkillScores]);
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
   useEffect(() => { if (tab === 'badges') fetchBadges(); }, [tab, fetchBadges]);
@@ -440,6 +459,55 @@ export default function ProgressScreen() {
                 <Text style={styles.emptyNote}>Enroll in a program to see completion stats.</Text>
               )}
             </View>
+
+            {/* ── Skill Scores ── */}
+            {skillScores.length > 0 && (() => {
+              const skillDiv = profileToSkillDivision(profile?.division, profile?.skill_level);
+              const range = SCORE_RANGE[skillDiv];
+              const minPass = MIN_PASSING_SCORE[skillDiv];
+              const cats: SkillCategory[] = ['technique', 'tactic', 'others'];
+              return (
+                <View style={styles.sectionCard}>
+                  <Text style={styles.sectionTitle}>📊 Skill Assessment</Text>
+                  {cats.map(cat => {
+                    const catScores = skillScores.filter(s => {
+                      const { getSkillsForDivision: gsd } = require('../../lib/skillDefinitions');
+                      const def = gsd(skillDiv).find((d: any) => d.key === s.skill_key && d.category === cat);
+                      return !!def;
+                    });
+                    if (catScores.length === 0) return null;
+                    return (
+                      <View key={cat} style={{ marginBottom: 14 }}>
+                        <Text style={{ fontSize: 12, fontWeight: '700', color: '#7A8FA6', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>
+                          {CATEGORY_LABELS[cat]}
+                        </Text>
+                        {catScores.map(ss => {
+                          const pct = ((ss.score - range.min) / (range.max - range.min)) * 100;
+                          const passing = ss.score >= minPass;
+                          const barColor = passing ? '#16A34A' : '#EF4444';
+                          return (
+                            <View key={ss.skill_key} style={{ marginBottom: 8 }}>
+                              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 3 }}>
+                                <Text style={{ fontSize: 13, color: '#F0F6FC', fontWeight: '600' }}>
+                                  {ss.skill_key.replace(/_/g, ' ').replace(/\w/g, c => c.toUpperCase())}
+                                </Text>
+                                <Text style={{ fontSize: 13, fontWeight: '700', color: barColor }}>{ss.score}</Text>
+                              </View>
+                              <View style={{ height: 6, backgroundColor: 'rgba(255,255,255,0.10)', borderRadius: 3 }}>
+                                <View style={{ height: '100%', width: `${Math.max(5, pct)}%`, backgroundColor: barColor, borderRadius: 3 }} />
+                              </View>
+                            </View>
+                          );
+                        })}
+                      </View>
+                    );
+                  })}
+                  <Text style={{ fontSize: 11, color: '#7A8FA6', marginTop: 4 }}>
+                    Min passing score for your level: {minPass} · Range: {range.min}–{range.max}
+                  </Text>
+                </View>
+              );
+            })()}
           </>
         )}
 

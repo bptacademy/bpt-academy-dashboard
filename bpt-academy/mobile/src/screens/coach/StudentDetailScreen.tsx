@@ -565,6 +565,23 @@ export default function StudentDetailScreen({ route, navigation }: any) {
           </TouchableOpacity>
         </View>
 
+        {/* Skill Assessment */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { marginBottom: 10 }]}>Skill Assessment</Text>
+          <TouchableOpacity
+            style={styles.promoBtn}
+            onPress={() => navigation.navigate('SkillAssessment', {
+              studentId: student.id,
+              studentName: student.full_name,
+              studentDivision: student.division,
+              studentSkillLevel: student.skill_level,
+            })}
+          >
+            <Text style={styles.promoBtnText}>📊 Assess Skills</Text>
+            <Text style={styles.promoBtnChevron}>›</Text>
+          </TouchableOpacity>
+        </View>
+
         {/* Promotion management */}
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { marginBottom: 10 }]}>Promotion Cycle</Text>
