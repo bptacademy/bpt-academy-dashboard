@@ -10,33 +10,38 @@ import BackHeader from '../../components/common/BackHeader';
 import {
   SKILLS, SCORE_RANGE, MIN_PASSING_SCORE, CATEGORY_LABELS,
   getSkillsForDivision, profileToSkillDivision,
-  SkillDivision, SkillCategory, SkillDef,
+  SkillDivision, SkillCategory,
 } from '../../lib/skillDefinitions';
-import { DIVISION_LABELS, DIVISION_COLORS } from '../../types';
+import { DIVISION_COLORS } from '../../types';
 
 const { width, height } = Dimensions.get('window');
 const CATEGORIES: SkillCategory[] = ['technique', 'tactic', 'others'];
 
 interface LatestScore { skill_key: string; score: number; assessed_at: string; }
 
+// Generate score steps 1.0 → 7.0 in 0.5 increments
+const SCORE_STEPS: number[] = [];
+for (let v = SCORE_RANGE.min; v <= SCORE_RANGE.max; v += SCORE_RANGE.step) {
+  SCORE_STEPS.push(Math.round(v * 10) / 10);
+}
+
 export default function SkillAssessmentScreen({ navigation, route }: any) {
   const { studentId, studentName, studentDivision, studentSkillLevel } = route.params;
   const tabBarPadding = useTabBarPadding();
   const { profile } = useAuth();
 
-  const skillDiv = profileToSkillDivision(studentDivision, studentSkillLevel);
-  const range    = SCORE_RANGE;
-  const skills   = getSkillsForDivision(skillDiv);
-  const divColor = studentDivision ? DIVISION_COLORS[studentDivision as any] ?? '#3B82F6' : '#3B82F6';
+  const skillDiv   = profileToSkillDivision(studentDivision, studentSkillLevel);
+  const minPass    = MIN_PASSING_SCORE[skillDiv];
+  const skills     = getSkillsForDivision(skillDiv);
+  const divColor   = studentDivision ? (DIVISION_COLORS[studentDivision as any] ?? '#3B82F6') : '#3B82F6';
 
-  const [scores, setScores]     = useState<Record<string, number>>({});
-  const [notes, setNotes]       = useState<Record<string, string>>({});
-  const [latest, setLatest]     = useState<LatestScore[]>([]);
-  const [loading, setLoading]   = useState(true);
-  const [saving, setSaving]     = useState(false);
-  const [saved, setSaved]       = useState<Set<string>>(new Set());
+  const [scores, setScores]   = useState<Record<string, number>>({});
+  const [notes, setNotes]     = useState<Record<string, string>>({});
+  const [latest, setLatest]   = useState<LatestScore[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving]   = useState(false);
+  const [saved, setSaved]     = useState<Set<string>>(new Set());
 
-  // Load latest scores for this student
   const loadLatest = useCallback(async () => {
     const { data } = await supabase
       .from('skill_assessments')
@@ -45,22 +50,14 @@ export default function SkillAssessmentScreen({ navigation, route }: any) {
       .order('assessed_at', { ascending: false });
 
     if (data) {
-      // Keep only most recent per skill
       const seen = new Set<string>();
       const latest: LatestScore[] = [];
       for (const row of data as any[]) {
-        if (!seen.has(row.skill_key)) {
-          seen.add(row.skill_key);
-          latest.push(row);
-        }
+        if (!seen.has(row.skill_key)) { seen.add(row.skill_key); latest.push(row); }
       }
       setLatest(latest);
-
-      // Pre-fill score inputs with latest values
       const prefill: Record<string, number> = {};
-      for (const l of latest) {
-        prefill[l.skill_key] = l.score;
-      }
+      for (const l of latest) prefill[l.skill_key] = l.score;
       setScores(prefill);
     }
     setLoading(false);
@@ -69,33 +66,13 @@ export default function SkillAssessmentScreen({ navigation, route }: any) {
   useEffect(() => { loadLatest(); }, [loadLatest]);
 
   const setScore = (key: string, val: number) => {
-    const clamped = Math.min(range.max, Math.max(range.min, val));
-    setScores(prev => ({ ...prev, [key]: clamped }));
+    setScores(prev => ({ ...prev, [key]: val }));
   };
 
-  const saveSkill = async (skill: SkillDef) => {
-    const score = scores[skill.key];
-    if (score === undefined) {
-      Alert.alert('Score required', `Please set a score for ${skill.label}`);
-      return;
-    }
-    setSaving(true);
-    const { error } = await supabase.from('skill_assessments').insert({
-      student_id: studentId,
-      coach_id:   profile!.id,
-      division:   skillDiv,
-      skill_key:  skill.key,
-      category:   skill.category,
-      score,
-      notes:      notes[skill.key] || null,
-    });
-    if (error) {
-      Alert.alert('Error', error.message);
-    } else {
-      setSaved(prev => new Set(prev).add(skill.key));
-      await loadLatest();
-    }
-    setSaving(false);
+  const scoreColor = (score: number) => {
+    if (score >= minPass + 1) return '#16A34A';
+    if (score >= minPass) return '#FBBF24';
+    return '#EF4444';
   };
 
   const saveAll = async () => {
@@ -106,7 +83,7 @@ export default function SkillAssessmentScreen({ navigation, route }: any) {
     }
     Alert.alert(
       'Save All Scores',
-      `Save ${toSave.length} skill assessment${toSave.length !== 1 ? 's' : ''} for ${studentName}?`,
+      `Save ${toSave.length} assessment${toSave.length !== 1 ? 's' : ''} for ${studentName}?`,
       [
         { text: 'Cancel', style: 'cancel' },
         { text: 'Save All', onPress: async () => {
@@ -136,25 +113,6 @@ export default function SkillAssessmentScreen({ navigation, route }: any) {
     );
   };
 
-  const getLatestForSkill = (key: string) => latest.find(l => l.skill_key === key);
-
-  const scoreColor = (score: number) => {
-    const min = MIN_PASSING_SCORE[skillDiv];
-    if (score >= min + 0.5) return '#16A34A';
-    if (score >= min) return '#FBBF24';
-    return '#EF4444';
-  };
-
-  // Score step buttons: show range.min to range.max in 0.5 increments
-  const scoreSteps = () => {
-    const steps = [];
-    for (let v = range.min; v <= range.max; v += range.step) {
-      steps.push(Math.round(v * 10) / 10);
-    }
-    return steps;
-  };
-  const steps = scoreSteps();
-
   if (loading) return (
     <View style={s.root}>
       <Image source={require('../../../assets/bg.png')} style={s.bg} resizeMode="cover" />
@@ -170,10 +128,10 @@ export default function SkillAssessmentScreen({ navigation, route }: any) {
 
       {/* Header */}
       <View style={[s.header, { borderBottomColor: divColor }]}>
-        <View>
+        <View style={{ flex: 1 }}>
           <Text style={s.studentName}>{studentName}</Text>
           <Text style={[s.levelBadge, { color: divColor }]}>
-            {skillDiv.replace('_', '-').toUpperCase()} · Score range: {range.min}–{range.max}
+            {skillDiv.replace('_', '-').toUpperCase()} · Score 1–7 · Min: {minPass}
           </Text>
         </View>
         <TouchableOpacity
@@ -187,60 +145,71 @@ export default function SkillAssessmentScreen({ navigation, route }: any) {
 
       <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: tabBarPadding + 20 }}>
         {CATEGORIES.map(cat => {
-          const catSkills = skills.filter(s => s.category === cat);
+          const catSkills = skills.filter(sk => sk.category === cat);
           if (catSkills.length === 0) return null;
           return (
             <View key={cat} style={s.section}>
               <Text style={s.sectionTitle}>{CATEGORY_LABELS[cat]}</Text>
+
               {catSkills.map(skill => {
-                const latestEntry = getLatestForSkill(skill.key);
+                const latestEntry = latest.find(l => l.skill_key === skill.key);
                 const currentScore = scores[skill.key];
                 const isSaved = saved.has(skill.key);
-                const min = MIN_PASSING_SCORE[skillDiv];
 
                 return (
                   <View key={skill.key} style={s.skillCard}>
-                    <View style={s.skillHeader}>
-                      <Text style={s.skillLabel}>{skill.label}</Text>
-                      {latestEntry && (
-                        <View style={[s.latestBadge, { backgroundColor: `${scoreColor(latestEntry.score)}22` }]}>
-                          <Text style={[s.latestBadgeText, { color: scoreColor(latestEntry.score) }]}>
-                            Last: {latestEntry.score}
-                          </Text>
-                        </View>
-                      )}
-                      {isSaved && <Text style={s.savedMark}>✓ Saved</Text>}
-                    </View>
 
-                    {/* Score step selector */}
-                    <View style={s.stepsRow}>
-                      {steps.map(v => {
-                        const active = currentScore === v;
-                        const col = scoreColor(v);
-                        return (
-                          <TouchableOpacity
-                            key={v}
-                            style={[
-                              s.stepBtn,
-                              active && { backgroundColor: col, borderColor: col },
-                            ]}
-                            onPress={() => setScore(skill.key, v)}
-                          >
-                            <Text style={[s.stepBtnText, active && { color: '#fff', fontWeight: '800' }]}>
-                              {v}
+                    {/* Skill title row */}
+                    <View style={s.skillTitleRow}>
+                      <Text style={s.skillTitle}>{skill.label}</Text>
+                      <View style={s.skillTitleRight}>
+                        {latestEntry && (
+                          <View style={[s.lastBadge, { backgroundColor: `${scoreColor(latestEntry.score)}22` }]}>
+                            <Text style={[s.lastBadgeText, { color: scoreColor(latestEntry.score) }]}>
+                              Last: {latestEntry.score}
                             </Text>
-                          </TouchableOpacity>
-                        );
-                      })}
+                          </View>
+                        )}
+                        {isSaved && <Text style={s.savedMark}>✓</Text>}
+                      </View>
                     </View>
 
-                    {/* Min passing indicator */}
+                    {/* Goal bullets */}
+                    <View style={s.goalsList}>
+                      {skill.goals.map((goal, i) => (
+                        <View key={i} style={s.goalRow}>
+                          <Text style={s.goalBullet}>·</Text>
+                          <Text style={s.goalText}>{goal}</Text>
+                        </View>
+                      ))}
+                    </View>
+
+                    {/* Score selector */}
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={s.stepsScroll}>
+                      <View style={s.stepsRow}>
+                        {SCORE_STEPS.map(v => {
+                          const active = currentScore === v;
+                          const col = scoreColor(v);
+                          return (
+                            <TouchableOpacity
+                              key={v}
+                              style={[s.stepBtn, active && { backgroundColor: col, borderColor: col }]}
+                              onPress={() => setScore(skill.key, v)}
+                            >
+                              <Text style={[s.stepBtnText, active && { color: '#fff', fontWeight: '800' }]}>
+                                {v % 1 === 0 ? v.toFixed(0) : v.toFixed(1)}
+                              </Text>
+                            </TouchableOpacity>
+                          );
+                        })}
+                      </View>
+                    </ScrollView>
+
+                    {/* Min hint */}
                     <Text style={s.minHint}>
-                      Min for {skillDiv.replace('_', '-')}: <Text style={{ color: '#FBBF24' }}>{min}</Text>
-                      {currentScore !== undefined && currentScore >= min
-                        ? '  ✅'
-                        : currentScore !== undefined
-                        ? '  ❌ below level'
+                      Expected min for {skillDiv.replace('_', '-')}: <Text style={{ color: '#FBBF24' }}>{minPass}</Text>
+                      {currentScore !== undefined
+                        ? currentScore >= minPass ? '  ✅' : '  ❌'
                         : ''}
                     </Text>
 
@@ -273,26 +242,37 @@ const s = StyleSheet.create({
   },
   studentName: { fontSize: 18, fontWeight: '800', color: '#F0F6FC' },
   levelBadge: { fontSize: 12, fontWeight: '700', marginTop: 3 },
-  saveAllBtn: { borderRadius: 10, paddingHorizontal: 16, paddingVertical: 10 },
+  saveAllBtn: { borderRadius: 10, paddingHorizontal: 16, paddingVertical: 10, marginLeft: 12 },
   saveAllBtnDisabled: { opacity: 0.5 },
   saveAllBtnText: { color: '#fff', fontWeight: '700', fontSize: 14 },
-  section: { marginBottom: 20 },
-  sectionTitle: { fontSize: 14, fontWeight: '800', color: '#7A8FA6', textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 10 },
+
+  section: { marginBottom: 24 },
+  sectionTitle: { fontSize: 13, fontWeight: '800', color: '#7A8FA6', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 10 },
+
   skillCard: {
     backgroundColor: 'rgba(17,30,51,0.85)', borderRadius: 14, padding: 14,
     marginBottom: 10, borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)',
   },
-  skillHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 },
-  skillLabel: { flex: 1, fontSize: 15, fontWeight: '700', color: '#F0F6FC' },
-  latestBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 10 },
-  latestBadgeText: { fontSize: 12, fontWeight: '700' },
-  savedMark: { fontSize: 12, color: '#16A34A', fontWeight: '700' },
-  stepsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 8 },
+  skillTitleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
+  skillTitle: { fontSize: 14, fontWeight: '900', color: '#F0F6FC', letterSpacing: 0.3, flex: 1 },
+  skillTitleRight: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  lastBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 10 },
+  lastBadgeText: { fontSize: 11, fontWeight: '700' },
+  savedMark: { fontSize: 13, color: '#16A34A', fontWeight: '800' },
+
+  goalsList: { marginBottom: 12 },
+  goalRow: { flexDirection: 'row', gap: 6, marginBottom: 3 },
+  goalBullet: { fontSize: 14, color: '#4B6070', marginTop: 1 },
+  goalText: { fontSize: 13, color: '#9DB5C8', lineHeight: 18, flex: 1 },
+
+  stepsScroll: { marginBottom: 6 },
+  stepsRow: { flexDirection: 'row', gap: 6, paddingBottom: 4 },
   stepBtn: {
-    width: 48, height: 40, borderRadius: 10, alignItems: 'center', justifyContent: 'center',
+    width: 44, height: 38, borderRadius: 10, alignItems: 'center', justifyContent: 'center',
     borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.15)', backgroundColor: 'rgba(255,255,255,0.04)',
   },
-  stepBtnText: { fontSize: 14, fontWeight: '600', color: '#F0F6FC' },
+  stepBtnText: { fontSize: 13, fontWeight: '600', color: '#F0F6FC' },
+
   minHint: { fontSize: 11, color: '#7A8FA6', marginBottom: 8 },
   notesInput: {
     borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)', borderRadius: 8,
