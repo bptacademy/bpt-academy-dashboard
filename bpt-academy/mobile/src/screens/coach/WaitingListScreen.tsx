@@ -100,12 +100,30 @@ export default function WaitingListScreen({ route, navigation }: any) {
               return;
             }
 
-            const { error } = await supabase.from('enrollments').upsert({
+            const { data: enrollData, error } = await supabase.from('enrollments').upsert({
               student_id: entry.student.id,
               program_id: programId,
               status: 'pending_payment',
-            }, { onConflict: 'student_id,program_id' });
+            }, { onConflict: 'student_id,program_id' }).select('id').single();
             if (error) { Alert.alert('Error', error.message); return; }
+
+            // Insert a pending payment row so it shows up in the Payments screen
+            const { data: progData } = await supabase
+              .from('programs').select('price_gbp').eq('id', programId).single();
+            if (progData?.price_gbp && enrollData?.id) {
+              const { data: existingPayment } = await supabase
+                .from('payments').select('id').eq('enrollment_id', enrollData.id).maybeSingle();
+              if (!existingPayment) {
+                await supabase.from('payments').insert({
+                  student_id: entry.student.id,
+                  program_id: programId,
+                  enrollment_id: enrollData.id,
+                  amount_gbp: progData.price_gbp,
+                  method: 'bank_transfer',
+                  status: 'pending',
+                });
+              }
+            }
 
             await supabase.from('notifications').insert({
               recipient_id: entry.student.id,
