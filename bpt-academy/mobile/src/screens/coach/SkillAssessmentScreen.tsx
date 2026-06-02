@@ -17,7 +17,6 @@ import { DIVISION_COLORS } from '../../types';
 const { width, height } = Dimensions.get('window');
 const CATEGORIES: SkillCategory[] = ['technique', 'tactic', 'others'];
 
-// 1.0 → 7.0 in 0.5 steps
 const SCORE_STEPS: number[] = [];
 for (let v = SCORE_RANGE.min; v <= SCORE_RANGE.max; v += SCORE_RANGE.step) {
   SCORE_STEPS.push(Math.round(v * 10) / 10);
@@ -93,29 +92,34 @@ export default function SkillAssessmentScreen({ navigation, route }: any) {
     ]);
   };
 
-  const renderScoreSelector = (skill: SkillDef) => {
+  const renderSkillCard = (skill: SkillDef) => {
     const currentScore = scores[skill.key];
     const latestEntry  = latest.find(l => l.skill_key === skill.key);
     const isSaved      = saved.has(skill.key);
 
     return (
-      <View>
-        {/* Last score + saved indicator */}
-        <View style={s.scoreMetaRow}>
-          {latestEntry && (
-            <View style={[s.lastBadge, { backgroundColor: `${scoreColor(latestEntry.score)}22` }]}>
-              <Text style={[s.lastBadgeText, { color: scoreColor(latestEntry.score) }]}>Last: {latestEntry.score}</Text>
-            </View>
-          )}
-          {isSaved && <Text style={s.savedMark}>✓ saved</Text>}
-          {currentScore !== undefined && (
-            <View style={[s.currentBadge, { backgroundColor: `${scoreColor(currentScore)}33`, borderColor: scoreColor(currentScore) }]}>
-              <Text style={[s.currentBadgeText, { color: scoreColor(currentScore) }]}>{currentScore}</Text>
-            </View>
-          )}
+      <View key={skill.key} style={s.skillCard}>
+        {/* Skill name + badges */}
+        <View style={s.skillHeaderRow}>
+          <Text style={s.skillLabel} numberOfLines={2}>{skill.label}</Text>
+          <View style={s.skillBadges}>
+            {latestEntry && (
+              <View style={[s.lastBadge, { backgroundColor: `${scoreColor(latestEntry.score)}22` }]}>
+                <Text style={[s.lastBadgeText, { color: scoreColor(latestEntry.score) }]}>Last: {latestEntry.score}</Text>
+              </View>
+            )}
+            {isSaved && <Text style={s.savedMark}>✓</Text>}
+            {currentScore !== undefined && (
+              <View style={[s.currentBadge, { backgroundColor: `${scoreColor(currentScore)}33`, borderColor: scoreColor(currentScore) }]}>
+                <Text style={[s.currentBadgeText, { color: scoreColor(currentScore) }]}>
+                  {currentScore % 1 === 0 ? currentScore.toFixed(0) : currentScore.toFixed(1)}
+                </Text>
+              </View>
+            )}
+          </View>
         </View>
 
-        {/* Score buttons — horizontal scroll */}
+        {/* Score buttons */}
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 6 }}>
           <View style={s.stepsRow}>
             {SCORE_STEPS.map(v => {
@@ -141,7 +145,7 @@ export default function SkillAssessmentScreen({ navigation, route }: any) {
           {currentScore !== undefined ? (currentScore >= minPass ? '  ✅' : '  ❌') : ''}
         </Text>
 
-        {/* Notes */}
+        {/* Note */}
         <TextInput style={s.notesInput} placeholder="Note (optional)…" placeholderTextColor="#4B6070"
           value={notes[skill.key] ?? ''} onChangeText={v => setNotes(prev => ({ ...prev, [skill.key]: v }))} multiline />
       </View>
@@ -179,34 +183,31 @@ export default function SkillAssessmentScreen({ navigation, route }: any) {
           const catSkills = skills.filter(sk => sk.category === cat);
           if (catSkills.length === 0) return null;
 
+          // For tactic: render skills grouped under their group header
+          // For technique/others: render individually, no headers
+          const rendered: React.ReactNode[] = [];
+
+          if (cat === 'tactic') {
+            let lastGroup: string | undefined = undefined;
+            catSkills.forEach(skill => {
+              if (skill.group && skill.group !== lastGroup) {
+                lastGroup = skill.group;
+                rendered.push(
+                  <Text key={`group-${skill.group}-${skill.key}`} style={s.groupHeader}>
+                    {skill.group}
+                  </Text>
+                );
+              }
+              rendered.push(renderSkillCard(skill));
+            });
+          } else {
+            catSkills.forEach(skill => rendered.push(renderSkillCard(skill)));
+          }
+
           return (
             <View key={cat} style={s.section}>
               <Text style={s.sectionTitle}>{CATEGORY_LABELS[cat]}</Text>
-
-              {cat === 'tactic' ? (
-                // ── TACTIC: titled block with goals then score ──
-                catSkills.map(skill => (
-                  <View key={skill.key} style={s.tacticCard}>
-                    <Text style={s.tacticTitle}>{skill.label}</Text>
-                    {skill.goals.map((goal, i) => (
-                      <View key={i} style={s.goalRow}>
-                        <Text style={s.goalBullet}>·</Text>
-                        <Text style={s.goalText}>{goal}</Text>
-                      </View>
-                    ))}
-                    <View style={s.separator} />
-                    {renderScoreSelector(skill)}
-                  </View>
-                ))
-              ) : (
-                // ── TECHNIQUE / OTHERS: plain individual skill rows ──
-                catSkills.map(skill => (
-                  <View key={skill.key} style={s.skillCard}>
-                    <Text style={s.skillLabel}>{skill.label}</Text>
-                    {renderScoreSelector(skill)}
-                  </View>
-                ))
-              )}
+              {rendered}
             </View>
           );
         })}
@@ -231,29 +232,23 @@ const s = StyleSheet.create({
   section: { marginBottom: 24 },
   sectionTitle: { fontSize: 13, fontWeight: '800', color: '#7A8FA6', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 10 },
 
-  // Technique / Others card
+  groupHeader: {
+    fontSize: 12, fontWeight: '900', color: '#3B82F6',
+    textTransform: 'uppercase', letterSpacing: 0.6,
+    marginTop: 14, marginBottom: 6, paddingLeft: 2,
+  },
+
   skillCard: {
     backgroundColor: 'rgba(17,30,51,0.85)', borderRadius: 12, padding: 14,
     marginBottom: 8, borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)',
   },
-  skillLabel: { fontSize: 14, fontWeight: '700', color: '#F0F6FC', marginBottom: 10 },
-
-  // Tactic card
-  tacticCard: {
-    backgroundColor: 'rgba(17,30,51,0.85)', borderRadius: 14, padding: 16,
-    marginBottom: 10, borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)',
-  },
-  tacticTitle: { fontSize: 13, fontWeight: '900', color: '#F0F6FC', letterSpacing: 0.5, marginBottom: 10, textTransform: 'uppercase' },
-  goalRow: { flexDirection: 'row', gap: 6, marginBottom: 4 },
-  goalBullet: { fontSize: 14, color: '#4B6070' },
-  goalText: { fontSize: 13, color: '#9DB5C8', lineHeight: 18, flex: 1 },
-  separator: { height: 1, backgroundColor: 'rgba(255,255,255,0.08)', marginVertical: 12 },
-
-  scoreMetaRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
-  lastBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 10 },
+  skillHeaderRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 10, gap: 8 },
+  skillLabel: { flex: 1, fontSize: 14, fontWeight: '600', color: '#F0F6FC', lineHeight: 20 },
+  skillBadges: { flexDirection: 'row', alignItems: 'center', gap: 6, flexShrink: 0 },
+  lastBadge: { paddingHorizontal: 7, paddingVertical: 3, borderRadius: 8 },
   lastBadgeText: { fontSize: 11, fontWeight: '700' },
-  savedMark: { fontSize: 11, color: '#16A34A', fontWeight: '700' },
-  currentBadge: { marginLeft: 'auto' as any, paddingHorizontal: 10, paddingVertical: 3, borderRadius: 10, borderWidth: 1.5 },
+  savedMark: { fontSize: 12, color: '#16A34A', fontWeight: '800' },
+  currentBadge: { paddingHorizontal: 9, paddingVertical: 3, borderRadius: 8, borderWidth: 1.5 },
   currentBadgeText: { fontSize: 13, fontWeight: '800' },
 
   stepsRow: { flexDirection: 'row', gap: 6, paddingBottom: 2 },
