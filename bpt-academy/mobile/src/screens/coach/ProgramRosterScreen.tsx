@@ -277,11 +277,12 @@ export default function ProgramRosterScreen({ route, navigation }: any) {
   };
 
   return (
-    <ScrollView
-      contentContainerStyle={{ paddingBottom: tabBarPadding }}
-      style={styles.container}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-    >
+    <View style={styles.rootWrapper}>
+      <ScrollView
+        contentContainerStyle={{ paddingBottom: tabBarPadding }}
+        style={styles.container}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+      >
       <Image source={require('../../../assets/bg.png')} style={styles.bgImage} resizeMode="cover" />
       <BackHeader title={program?.title ?? 'Roster'} dark />
 
@@ -475,7 +476,7 @@ export default function ProgramRosterScreen({ route, navigation }: any) {
           ))
         )}
       </View>
-    </ScrollView>
+      </ScrollView>
 
       {/* ── Update Session Times Modal ── */}
       <Modal
@@ -558,12 +559,13 @@ export default function ProgramRosterScreen({ route, navigation }: any) {
           )}
         </View>
       </Modal>
-    </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   bgImage: { position: 'absolute', top: 0, left: 0, width: Dimensions.get('window').width, height: Dimensions.get('window').height },
+  rootWrapper: { flex: 1, backgroundColor: '#0B1628' },
   container: { flex: 1, backgroundColor: '#0B1628' },
   waitCard: {
     flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(17,30,51,0.85)',
