@@ -24,14 +24,18 @@ export const MIN_PASSING_SCORE: Record<SkillDivision, number> = {
   pro:          6.0,
 };
 
-// Target avg score needed to reach the 80% promotion threshold (avg/7.0 >= 0.80)
-// i.e. avg >= 5.6 — rounded to nearest 0.5 step = 5.5
+// Minimum average skill score required to be eligible for promotion to the next level:
+//   beginner     → intermediate : avg >= 2.0
+//   intermediate → advanced     : avg >= 3.0
+//   advanced     → semi_pro     : avg >= 4.0
+//   semi_pro     → pro          : avg >= 5.0
+//   pro          : no promotion (top level)
 export const PROMOTION_TARGET_SCORE: Record<SkillDivision, number> = {
-  beginner:     5.5,
-  intermediate: 5.5,
-  advanced:     5.5,
-  semi_pro:     5.5,
-  pro:          5.5,
+  beginner:     2.0,
+  intermediate: 3.0,
+  advanced:     4.0,
+  semi_pro:     5.0,
+  pro:          5.0,  // already at top — same as semi_pro
 };
 
 export const SKILLS: SkillDef[] = [
