@@ -393,7 +393,7 @@ const styles = StyleSheet.create({
   emptyText: { fontSize: 13, color: '#9CA3AF' },
 
   fab: {
-    position: 'absolute', bottom: 24, right: 24,
+    position: 'absolute', bottom: 88, right: 24,
     width: 56, height: 56, borderRadius: 28,
     backgroundColor: '#16A34A', alignItems: 'center', justifyContent: 'center',
     shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
