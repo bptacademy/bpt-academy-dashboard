@@ -87,6 +87,7 @@ export default function SendAnnouncementScreen({ navigation }: any) {
   return (
     <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={styles.inner}>
+        <Image source={require('../../../assets/bg.png')} style={styles.bgImage} resizeMode="cover" />
         <ScreenHeader title="Announcement" />
 
         <View style={styles.form}>
@@ -96,7 +97,7 @@ export default function SendAnnouncementScreen({ navigation }: any) {
             value={title}
             onChangeText={setTitle}
             placeholder="e.g. Court closed this weekend"
-            placeholderTextColor="#9CA3AF"
+            placeholderTextColor="#4B6278"
           />
 
           <Text style={styles.label}>Message</Text>
@@ -105,7 +106,7 @@ export default function SendAnnouncementScreen({ navigation }: any) {
             value={body}
             onChangeText={setBody}
             placeholder="Write your announcement here..."
-            placeholderTextColor="#9CA3AF"
+            placeholderTextColor="#4B6278"
             multiline
             numberOfLines={6}
           />
@@ -131,16 +132,16 @@ export default function SendAnnouncementScreen({ navigation }: any) {
 
 const styles = StyleSheet.create({
   bgImage: { position: 'absolute', top: 0, left: 0, width: Dimensions.get('window').width, height: Dimensions.get('window').height },
-  container: { flex: 1, backgroundColor: '#FFFFFF' },
+  container: { flex: 1, backgroundColor: '#0B1628' },
   inner: { padding: 24, paddingBottom: 80,},
   form: {},
   label: { fontSize: 14, fontWeight: '600', color: '#F0F6FC', marginBottom: 6 },
-  input: { borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 10, padding: 14, fontSize: 16, color: '#111827', marginBottom: 20, backgroundColor: '#F9FAFB' },
+  input: { borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)', borderRadius: 10, padding: 14, fontSize: 16, color: '#F0F6FC', marginBottom: 20, backgroundColor: 'rgba(255,255,255,0.06)' },
   textarea: { height: 140, textAlignVertical: 'top' },
-  previewCard: { backgroundColor: '#F9FAFB', borderRadius: 12, padding: 16, marginBottom: 24, borderWidth: 1, borderColor: '#E5E7EB' },
-  previewLabel: { fontSize: 12, color: '#9CA3AF', marginBottom: 8, fontWeight: '600', textTransform: 'uppercase' },
-  previewTitle: { fontSize: 15, fontWeight: '700', color: '#111827', marginBottom: 4 },
-  previewBody: { fontSize: 14, color: '#374151' },
+  previewCard: { backgroundColor: 'rgba(17,30,51,0.85)', borderRadius: 12, padding: 16, marginBottom: 24, borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)' },
+  previewLabel: { fontSize: 12, color: '#7A8FA6', marginBottom: 8, fontWeight: '600', textTransform: 'uppercase' },
+  previewTitle: { fontSize: 15, fontWeight: '700', color: '#F0F6FC', marginBottom: 4 },
+  previewBody: { fontSize: 14, color: '#CBD5E1' },
   sendBtn: { backgroundColor: '#16A34A', borderRadius: 12, padding: 18, alignItems: 'center' },
   sendBtnDisabled: { opacity: 0.6 },
   sendBtnText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },

@@ -77,6 +77,7 @@ export default function ManageVideosScreen({ navigation }: any) {
       style={styles.container}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
     >
+      <Image source={require('../../../assets/bg.png')} style={styles.bgImage} resizeMode="cover" />
       <ScreenHeader title="Videos" />
       <View style={styles.addRow}>
         <TouchableOpacity style={styles.uploadBtn} onPress={() => navigation.navigate('UploadVideo')}>
@@ -88,7 +89,7 @@ export default function ManageVideosScreen({ navigation }: any) {
         <TextInput
           style={styles.searchInput}
           placeholder="🔍 Search videos..."
-          placeholderTextColor="#9CA3AF"
+          placeholderTextColor="#4B6278"
           value={search}
           onChangeText={setSearch}
         />
@@ -168,38 +169,38 @@ export default function ManageVideosScreen({ navigation }: any) {
 
 const styles = StyleSheet.create({
   bgImage: { position: 'absolute', top: 0, left: 0, width: Dimensions.get('window').width, height: Dimensions.get('window').height },
-  container: { flex: 1, backgroundColor: '#F9FAFB' },
-  addRow: { flexDirection: 'row', justifyContent: 'flex-end', padding: 12, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
+  container: { flex: 1, backgroundColor: '#0B1628' },
+  addRow: { flexDirection: 'row', justifyContent: 'flex-end', padding: 12, backgroundColor: 'rgba(17,30,51,0.85)', borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.10)' },
   uploadBtn: { backgroundColor: '#16A34A', borderRadius: 20, paddingHorizontal: 16, paddingVertical: 8 },
   uploadBtnText: { color: '#FFFFFF', fontWeight: '700', fontSize: 14 },
-  searchContainer: { padding: 16, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
-  searchInput: { backgroundColor: '#F3F4F6', borderRadius: 10, padding: 12, fontSize: 15, color: '#111827' },
+  searchContainer: { padding: 16, backgroundColor: 'transparent', borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.10)' },
+  searchInput: { backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 10, padding: 12, fontSize: 15, color: '#F0F6FC' },
   list: { padding: 16, paddingBottom: 80,},
-  card: { backgroundColor: '#FFFFFF', borderRadius: 14, marginBottom: 16, borderWidth: 1, borderColor: '#E5E7EB', overflow: 'hidden' },
+  card: { backgroundColor: 'rgba(17,30,51,0.85)', borderRadius: 14, marginBottom: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)', overflow: 'hidden' },
   thumbnail: { height: 160, backgroundColor: '#111827', alignItems: 'center', justifyContent: 'center' },
   thumbnailIcon: { fontSize: 48 },
   playBadge: { position: 'absolute', bottom: 10, right: 10, backgroundColor: 'rgba(0,0,0,0.6)', borderRadius: 6, paddingHorizontal: 10, paddingVertical: 4 },
   playBadgeText: { color: '#FFFFFF', fontSize: 12, fontWeight: '600' },
   cardBody: { padding: 14 },
-  cardTitle: { fontSize: 16, fontWeight: '700', color: '#111827', marginBottom: 8 },
+  cardTitle: { fontSize: 16, fontWeight: '700', color: '#F0F6FC', marginBottom: 8 },
   tags: { flexDirection: 'row', gap: 6, marginBottom: 8, flexWrap: 'wrap' },
-  tag: { backgroundColor: '#F3F4F6', borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4 },
+  tag: { backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4 },
   tagGreen: { backgroundColor: '#ECFDF5' },
-  tagText: { fontSize: 12, color: '#374151' },
+  tagText: { fontSize: 12, color: '#CBD5E1' },
   tagTextGreen: { color: '#16A34A' },
-  date: { fontSize: 12, color: '#9CA3AF', marginBottom: 12 },
+  date: { fontSize: 12, color: '#7A8FA6', marginBottom: 12 },
   actions: { flexDirection: 'row', gap: 10 },
   actionBtn: { flex: 1, borderRadius: 8, paddingVertical: 8, alignItems: 'center', borderWidth: 1 },
   actionBtnGreen: { borderColor: '#16A34A', backgroundColor: '#ECFDF5' },
-  actionBtnGrey: { borderColor: '#D1D5DB', backgroundColor: '#F9FAFB' },
+  actionBtnGrey: { borderColor: 'rgba(255,255,255,0.15)', backgroundColor: 'rgba(255,255,255,0.06)' },
   actionBtnRed: { borderColor: '#FCA5A5', backgroundColor: '#FEF2F2' },
   actionBtnText: { fontSize: 13, fontWeight: '600' },
   actionBtnTextGreen: { color: '#16A34A' },
-  actionBtnTextGrey: { color: '#6B7280' },
+  actionBtnTextGrey: { color: '#7A8FA6' },
   actionBtnTextRed: { color: '#DC2626' },
   empty: { alignItems: 'center', paddingVertical: 60 },
   emptyIcon: { fontSize: 48, marginBottom: 12 },
-  emptyTitle: { fontSize: 17, fontWeight: '600', color: '#374151', marginBottom: 16 },
+  emptyTitle: { fontSize: 17, fontWeight: '600', color: '#F0F6FC', marginBottom: 16 },
   emptyBtn: { backgroundColor: '#16A34A', borderRadius: 10, paddingHorizontal: 20, paddingVertical: 12 },
   emptyBtnText: { color: '#FFFFFF', fontWeight: '700', fontSize: 14 },
 });
