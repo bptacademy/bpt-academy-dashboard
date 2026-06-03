@@ -205,6 +205,7 @@ export default function ProgramRosterScreen({ route, navigation }: any) {
       style={styles.container}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
     >
+      <Image source={require('../../../assets/bg.png')} style={styles.bgImage} resizeMode="cover" />
       <BackHeader title={program?.title ?? 'Roster'} dark />
 
       {/* Program header */}
@@ -326,7 +327,7 @@ export default function ProgramRosterScreen({ route, navigation }: any) {
       <View style={styles.statsGrid}>
         {(Object.entries(counts) as [string, number][]).map(([status, count]) => (
           <View key={status} style={styles.statCard}>
-            <Text style={[styles.statNumber, { color: STATUS_COLORS[status]?.text ?? '#6B7280' }]}>{count}</Text>
+            <Text style={[styles.statNumber, { color: STATUS_COLORS[status]?.text ?? '#7A8FA6' }]}>{count}</Text>
             <Text style={styles.statLabel}>{STATUS_LABELS[status] ?? status}</Text>
           </View>
         ))}
@@ -397,54 +398,55 @@ export default function ProgramRosterScreen({ route, navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F9FAFB' },
+  bgImage: { position: 'absolute', top: 0, left: 0, width: Dimensions.get('window').width, height: Dimensions.get('window').height },
+  container: { flex: 1, backgroundColor: '#0B1628' },
   waitCard: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: '#F0F9FF',
+    flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(17,30,51,0.85)',
     borderRadius: 12, padding: 12, marginBottom: 8,
-    borderWidth: 1, borderColor: '#BAE6FD', gap: 12,
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)', gap: 12,
   },
   waitPos: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#0284C7', alignItems: 'center', justifyContent: 'center' },
   waitPosText: { fontSize: 14, fontWeight: '800', color: '#FFFFFF' },
   attendanceBtn: { backgroundColor: '#16A34A', margin: 16, marginBottom: 0, borderRadius: 12, paddingVertical: 14, alignItems: 'center' },
   attendanceBtnText: { color: '#FFFFFF', fontSize: 15, fontWeight: '700' },
-  header: { backgroundColor: '#111827', padding: 24, paddingTop: 16 },
-  programTitle: { fontSize: 22, fontWeight: '700', color: '#FFFFFF', marginBottom: 4 },
-  programMeta: { fontSize: 14, color: '#9CA3AF', textTransform: 'capitalize' },
+  header: { backgroundColor: 'rgba(17,30,51,0.85)', padding: 24, paddingTop: 16, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.10)' },
+  programTitle: { fontSize: 22, fontWeight: '700', color: '#F0F6FC', marginBottom: 4 },
+  programMeta: { fontSize: 14, color: '#7A8FA6', textTransform: 'capitalize' },
   statsGrid: { flexDirection: 'row', flexWrap: 'wrap', padding: 16, gap: 10 },
-  statCard: { width: '30%', backgroundColor: '#FFFFFF', borderRadius: 12, padding: 12, alignItems: 'center', borderWidth: 1, borderColor: '#E5E7EB' },
+  statCard: { width: '30%', backgroundColor: 'rgba(17,30,51,0.85)', borderRadius: 12, padding: 12, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)' },
   statNumber: { fontSize: 20, fontWeight: '700' },
-  statLabel: { fontSize: 11, color: '#6B7280', marginTop: 4, textAlign: 'center' },
+  statLabel: { fontSize: 11, color: '#7A8FA6', marginTop: 4, textAlign: 'center' },
   section: { padding: 16 },
   sectionTitle: { fontSize: 17, fontWeight: '700', color: '#F0F6FC', marginBottom: 12 },
   empty: { alignItems: 'center', paddingVertical: 40 },
   emptyIcon: { fontSize: 40, marginBottom: 10 },
-  emptyText: { color: '#9CA3AF', fontSize: 14 },
-  card: { backgroundColor: '#FFFFFF', borderRadius: 14, marginBottom: 12, borderWidth: 1, borderColor: '#E5E7EB', overflow: 'hidden' },
+  emptyText: { color: '#7A8FA6', fontSize: 14 },
+  card: { backgroundColor: 'rgba(17,30,51,0.85)', borderRadius: 14, marginBottom: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)', overflow: 'hidden' },
   cardTop: { flexDirection: 'row', alignItems: 'center', padding: 14, gap: 12 },
-  avatar: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#111827', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
-  avatarText: { color: '#FFFFFF', fontWeight: '700', fontSize: 16 },
+  avatar: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#1E3A5F', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+  avatarText: { color: '#F0F6FC', fontWeight: '700', fontSize: 16 },
   info: { flex: 1 },
-  studentName: { fontSize: 15, fontWeight: '600', color: '#111827', marginBottom: 4 },
+  studentName: { fontSize: 15, fontWeight: '600', color: '#F0F6FC', marginBottom: 4 },
   metaRow: { flexDirection: 'row', gap: 8, alignItems: 'center' },
-  skillLevel: { fontSize: 12, color: '#6B7280', textTransform: 'capitalize' },
-  enrollDate: { fontSize: 12, color: '#9CA3AF' },
+  skillLevel: { fontSize: 12, color: '#7A8FA6', textTransform: 'capitalize' },
+  enrollDate: { fontSize: 12, color: '#4B6278' },
   statusBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, flexShrink: 0 },
   statusText: { fontSize: 12, fontWeight: '600' },
-  actions: { borderTopWidth: 1, borderTopColor: '#F3F4F6' },
+  actions: { borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.10)' },
   actionScroll: { paddingHorizontal: 14, paddingVertical: 10, gap: 8, paddingBottom: 80 },
   actionChip: { borderWidth: 1, borderRadius: 16, paddingHorizontal: 12, paddingVertical: 6 },
   actionChipText: { fontSize: 12, fontWeight: '600' },
   removeChip: { borderWidth: 1, borderColor: '#FCA5A5', borderRadius: 16, paddingHorizontal: 12, paddingVertical: 6 },
   removeChipText: { fontSize: 12, fontWeight: '600', color: '#DC2626' },
-  enrollToggleBtn: { backgroundColor: '#ECFDF5', margin: 16, marginBottom: 8, marginTop: 16, borderRadius: 10, paddingVertical: 12, alignItems: 'center', borderWidth: 1, borderColor: '#BBF7D0' },
+  enrollToggleBtn: { backgroundColor: 'rgba(22,163,74,0.15)', margin: 16, marginBottom: 8, marginTop: 16, borderRadius: 10, paddingVertical: 12, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(22,163,74,0.40)' },
   enrollToggleBtnText: { color: '#16A34A', fontSize: 14, fontWeight: '700' },
-  enrollCard: { backgroundColor: '#FFFFFF', margin: 16, marginTop: 0, borderRadius: 12, padding: 14, borderWidth: 1, borderColor: '#E5E7EB' },
-  enrollLabel: { fontSize: 13, fontWeight: '600', color: '#374151', marginBottom: 8 },
-  enrollEmpty: { fontSize: 13, color: '#9CA3AF', textAlign: 'center', paddingVertical: 12 },
-  studentPicker: { maxHeight: 200, borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 8, marginBottom: 10 },
-  studentOption: { paddingHorizontal: 14, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
-  studentOptionSelected: { backgroundColor: '#ECFDF5' },
-  studentOptionText: { fontSize: 14, color: '#374151' },
+  enrollCard: { backgroundColor: 'rgba(17,30,51,0.85)', margin: 16, marginTop: 0, borderRadius: 12, padding: 14, borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)' },
+  enrollLabel: { fontSize: 13, fontWeight: '600', color: '#F0F6FC', marginBottom: 8 },
+  enrollEmpty: { fontSize: 13, color: '#7A8FA6', textAlign: 'center', paddingVertical: 12 },
+  studentPicker: { maxHeight: 200, borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)', borderRadius: 8, marginBottom: 10 },
+  studentOption: { paddingHorizontal: 14, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)' },
+  studentOptionSelected: { backgroundColor: 'rgba(22,163,74,0.20)' },
+  studentOptionText: { fontSize: 14, color: '#F0F6FC' },
   studentOptionTextSelected: { color: '#16A34A', fontWeight: '700' },
   enrollBtn: { backgroundColor: '#16A34A', borderRadius: 10, paddingVertical: 12, alignItems: 'center' },
   enrollBtnDisabled: { opacity: 0.5 },

@@ -267,6 +267,7 @@ export default function PromotionManageScreen({ route, navigation }: any) {
 
   return (
     <View style={styles.root}>
+      <Image source={require('../../../assets/bg.png')} style={styles.bgImage} resizeMode="cover" />
       <BackHeader title={`${studentName} — Promotion`} />
       <ScrollView
         contentContainerStyle={[styles.content, { paddingBottom: tabBarPadding }]}
@@ -476,6 +477,7 @@ export default function PromotionManageScreen({ route, navigation }: any) {
 
 const styles = StyleSheet.create({
 
+  bgImage: { position: 'absolute', top: 0, left: 0, width: Dimensions.get('window').width, height: Dimensions.get('window').height },
   root: { flex: 1, backgroundColor: '#0B1628' },
   content: { padding: 16, paddingBottom: 72 },
   loader: { marginTop: 60 },

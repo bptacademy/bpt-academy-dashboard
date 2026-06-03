@@ -49,13 +49,14 @@ export default function ManageStudentsScreen({ navigation }: any) {
       style={styles.container}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
     >
+      <Image source={require('../../../assets/bg.png')} style={styles.bgImage} resizeMode="cover" />
       <ScreenHeader title="Students" />
 
       <View style={styles.searchContainer}>
         <TextInput
           style={styles.searchInput}
           placeholder="🔍 Search students..."
-          placeholderTextColor="#9CA3AF"
+          placeholderTextColor="#4B6278"
           value={search}
           onChangeText={setSearch}
         />
@@ -101,24 +102,24 @@ export default function ManageStudentsScreen({ navigation }: any) {
 
 const styles = StyleSheet.create({
   bgImage: { position: 'absolute', top: 0, left: 0, width: Dimensions.get('window').width, height: Dimensions.get('window').height },
-  container: { flex: 1, backgroundColor: '#F9FAFB' },
-  header: { padding: 24, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
-  title: { fontSize: 26, fontWeight: '700', color: '#111827' },
-  subtitle: { fontSize: 14, color: '#6B7280', marginTop: 2 },
-  searchContainer: { padding: 16, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
-  searchInput: { backgroundColor: '#F3F4F6', borderRadius: 10, padding: 12, fontSize: 15, color: '#111827' },
+  container: { flex: 1, backgroundColor: '#0B1628' },
+  header: { padding: 24, backgroundColor: 'rgba(17,30,51,0.85)', borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.10)' },
+  title: { fontSize: 26, fontWeight: '700', color: '#F0F6FC' },
+  subtitle: { fontSize: 14, color: '#7A8FA6', marginTop: 2 },
+  searchContainer: { padding: 16, backgroundColor: 'transparent', borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.10)' },
+  searchInput: { backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 10, padding: 12, fontSize: 15, color: '#F0F6FC' },
   list: { padding: 16, paddingBottom: 80,},
-  card: { backgroundColor: '#FFFFFF', borderRadius: 12, padding: 14, marginBottom: 10, flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: '#E5E7EB' },
-  avatar: { width: 46, height: 46, borderRadius: 23, backgroundColor: '#111827', alignItems: 'center', justifyContent: 'center', marginRight: 14 },
-  avatarText: { color: '#FFFFFF', fontWeight: '700', fontSize: 16 },
+  card: { backgroundColor: 'rgba(17,30,51,0.85)', borderRadius: 12, padding: 14, marginBottom: 10, flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)' },
+  avatar: { width: 46, height: 46, borderRadius: 23, backgroundColor: '#1E3A5F', alignItems: 'center', justifyContent: 'center', marginRight: 14 },
+  avatarText: { color: '#F0F6FC', fontWeight: '700', fontSize: 16 },
   info: { flex: 1 },
-  name: { fontSize: 15, fontWeight: '600', color: '#111827', marginBottom: 4 },
+  name: { fontSize: 15, fontWeight: '600', color: '#F0F6FC', marginBottom: 4 },
   tags: { flexDirection: 'row', gap: 6 },
-  roleBadge: { backgroundColor: '#F3F4F6', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 10 },
-  roleText: { fontSize: 11, color: '#6B7280', fontWeight: '500' },
+  roleBadge: { backgroundColor: 'rgba(255,255,255,0.08)', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 10 },
+  roleText: { fontSize: 11, color: '#7A8FA6', fontWeight: '500' },
   levelBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 10 },
   levelText: { fontSize: 11, fontWeight: '600' },
-  chevron: { fontSize: 22, color: '#D1D5DB' },
+  chevron: { fontSize: 22, color: '#4B6278' },
   empty: { alignItems: 'center', paddingVertical: 40 },
-  emptyText: { color: '#9CA3AF', fontSize: 14 },
+  emptyText: { color: '#7A8FA6', fontSize: 14 },
 });

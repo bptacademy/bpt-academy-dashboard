@@ -167,6 +167,7 @@ export default function PaymentReconciliationScreen() {
       style={styles.container}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
     >
+      <Image source={require('../../../assets/bg.png')} style={styles.bgImage} resizeMode="cover" />
       <ScreenHeader title="Payments" />
 
       {/* Summary */}
@@ -260,29 +261,29 @@ export default function PaymentReconciliationScreen() {
 
 const styles = StyleSheet.create({
   bgImage: { position: 'absolute', top: 0, left: 0, width: Dimensions.get('window').width, height: Dimensions.get('window').height },
-  container: { flex: 1, backgroundColor: '#F9FAFB' },
-  summary: { flexDirection: 'row', backgroundColor: '#111827', paddingVertical: 16 },
+  container: { flex: 1, backgroundColor: '#0B1628' },
+  summary: { flexDirection: 'row', backgroundColor: 'rgba(17,30,51,0.85)', paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.10)' },
   summaryItem: { flex: 1, alignItems: 'center' },
-  summaryNum: { fontSize: 26, fontWeight: '800', color: '#FFFFFF' },
-  summaryLabel: { fontSize: 12, color: '#9CA3AF', marginTop: 2 },
-  filters: { flexDirection: 'row', padding: 12, gap: 8, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
-  filterChip: { borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 20, paddingHorizontal: 14, paddingVertical: 7, backgroundColor: '#F9FAFB' },
+  summaryNum: { fontSize: 26, fontWeight: '800', color: '#F0F6FC' },
+  summaryLabel: { fontSize: 12, color: '#7A8FA6', marginTop: 2 },
+  filters: { flexDirection: 'row', padding: 12, gap: 8, backgroundColor: 'transparent', borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.10)' },
+  filterChip: { borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', borderRadius: 20, paddingHorizontal: 14, paddingVertical: 7, backgroundColor: 'rgba(255,255,255,0.05)' },
   filterChipActive: { backgroundColor: '#16A34A', borderColor: '#16A34A' },
-  filterText: { fontSize: 13, color: '#374151', fontWeight: '500' },
+  filterText: { fontSize: 13, color: '#7A8FA6', fontWeight: '500' },
   filterTextActive: { color: '#FFFFFF', fontWeight: '700' },
   list: { padding: 16, gap: 12, paddingBottom: 80 },
-  card: { backgroundColor: '#FFFFFF', borderRadius: 14, padding: 16, borderWidth: 1, borderColor: '#E5E7EB' },
+  card: { backgroundColor: 'rgba(17,30,51,0.85)', borderRadius: 14, padding: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)' },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
-  studentName: { fontSize: 16, fontWeight: '700', color: '#111827' },
+  studentName: { fontSize: 16, fontWeight: '700', color: '#F0F6FC' },
   amount: { fontSize: 18, fontWeight: '800', color: '#16A34A' },
-  forText: { fontSize: 13, color: '#6B7280', marginBottom: 8 },
+  forText: { fontSize: 13, color: '#7A8FA6', marginBottom: 8 },
   metaRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
-  methodBadge: { backgroundColor: '#F3F4F6', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10 },
-  methodText: { fontSize: 12, color: '#374151' },
-  date: { fontSize: 12, color: '#9CA3AF' },
-  refBox: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F9FAFB', borderRadius: 8, padding: 10, marginBottom: 12, gap: 8 },
-  refLabel: { fontSize: 12, color: '#6B7280' },
-  refValue: { fontSize: 13, fontWeight: '700', color: '#111827', fontFamily: 'monospace' },
+  methodBadge: { backgroundColor: 'rgba(255,255,255,0.08)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10 },
+  methodText: { fontSize: 12, color: '#F0F6FC' },
+  date: { fontSize: 12, color: '#4B6278' },
+  refBox: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 8, padding: 10, marginBottom: 12, gap: 8 },
+  refLabel: { fontSize: 12, color: '#7A8FA6' },
+  refValue: { fontSize: 13, fontWeight: '700', color: '#F0F6FC', fontFamily: 'monospace' },
   actions: { flexDirection: 'row', gap: 10, marginTop: 4 },
   confirmBtn: { flex: 1, backgroundColor: '#ECFDF5', borderRadius: 10, padding: 12, alignItems: 'center', borderWidth: 1, borderColor: '#86EFAC' },
   confirmBtnText: { fontSize: 14, fontWeight: '700', color: '#16A34A' },
@@ -291,5 +292,5 @@ const styles = StyleSheet.create({
   statusPill: { alignSelf: 'flex-start', paddingHorizontal: 12, paddingVertical: 5, borderRadius: 12, marginTop: 8 },
   empty: { alignItems: 'center', paddingVertical: 60 },
   emptyIcon: { fontSize: 48, marginBottom: 12 },
-  emptyText: { color: '#9CA3AF', fontSize: 14 },
+  emptyText: { color: '#7A8FA6', fontSize: 14 },
 });

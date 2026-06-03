@@ -79,6 +79,7 @@ export default function DivisionDashboardScreen({ navigation }: any) {
       style={styles.container}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
     >
+      <Image source={require('../../../assets/bg.png')} style={styles.bgImage} resizeMode="cover" />
       <ScreenHeader title="Divisions" />
 
       {/* Academy totals */}
@@ -138,18 +139,18 @@ export default function DivisionDashboardScreen({ navigation }: any) {
 
 const styles = StyleSheet.create({
   bgImage: { position: 'absolute', top: 0, left: 0, width: Dimensions.get('window').width, height: Dimensions.get('window').height },
-  container: { flex: 1, backgroundColor: '#F9FAFB' },
+  container: { flex: 1, backgroundColor: '#0B1628' },
   totalsRow: { flexDirection: 'row', padding: 16, gap: 10 },
-  totalCard: { flex: 1, backgroundColor: '#111827', borderRadius: 14, padding: 16, alignItems: 'center' },
-  totalNum: { fontSize: 22, fontWeight: '800', color: '#FFFFFF' },
-  totalLabel: { fontSize: 12, color: '#9CA3AF', marginTop: 2 },
+  totalCard: { flex: 1, backgroundColor: 'rgba(17,30,51,0.85)', borderRadius: 14, padding: 16, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)' },
+  totalNum: { fontSize: 22, fontWeight: '800', color: '#F0F6FC' },
+  totalLabel: { fontSize: 12, color: '#7A8FA6', marginTop: 2 },
   grid: { padding: 16, gap: 12 },
-  card: { backgroundColor: '#FFFFFF', borderRadius: 14, padding: 16, borderWidth: 1, borderColor: '#E5E7EB' },
+  card: { backgroundColor: 'rgba(17,30,51,0.85)', borderRadius: 14, padding: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)' },
   divBadge: { alignSelf: 'flex-start', paddingHorizontal: 12, paddingVertical: 5, borderRadius: 12, marginBottom: 12 },
   divLabel: { fontSize: 14, fontWeight: '700' },
   cardStats: { flexDirection: 'row', gap: 24, marginBottom: 10 },
   cardStat: {},
-  cardStatNum: { fontSize: 22, fontWeight: '700', color: '#111827' },
-  cardStatLabel: { fontSize: 12, color: '#6B7280' },
+  cardStatNum: { fontSize: 22, fontWeight: '700', color: '#F0F6FC' },
+  cardStatLabel: { fontSize: 12, color: '#7A8FA6' },
   cardTap: { fontSize: 12, color: '#16A34A', fontWeight: '500' },
 });

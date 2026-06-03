@@ -86,8 +86,8 @@ export default function SendAnnouncementScreen({ navigation }: any) {
 
   return (
     <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <Image source={require('../../../assets/bg.png')} style={styles.bgImage} resizeMode="cover" />
       <ScrollView contentContainerStyle={styles.inner}>
-        <Image source={require('../../../assets/bg.png')} style={styles.bgImage} resizeMode="cover" />
         <ScreenHeader title="Announcement" />
 
         <View style={styles.form}>
@@ -136,12 +136,12 @@ const styles = StyleSheet.create({
   inner: { padding: 24, paddingBottom: 80,},
   form: {},
   label: { fontSize: 14, fontWeight: '600', color: '#F0F6FC', marginBottom: 6 },
-  input: { borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)', borderRadius: 10, padding: 14, fontSize: 16, color: '#F0F6FC', marginBottom: 20, backgroundColor: 'rgba(255,255,255,0.06)' },
+  input: { borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)', borderRadius: 10, padding: 14, fontSize: 16, color: '#F0F6FC', marginBottom: 20, backgroundColor: 'rgba(255,255,255,0.08)' },
   textarea: { height: 140, textAlignVertical: 'top' },
   previewCard: { backgroundColor: 'rgba(17,30,51,0.85)', borderRadius: 12, padding: 16, marginBottom: 24, borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)' },
-  previewLabel: { fontSize: 12, color: '#7A8FA6', marginBottom: 8, fontWeight: '600', textTransform: 'uppercase' },
+  previewLabel: { fontSize: 12, color: '#4B6278', marginBottom: 8, fontWeight: '600', textTransform: 'uppercase' },
   previewTitle: { fontSize: 15, fontWeight: '700', color: '#F0F6FC', marginBottom: 4 },
-  previewBody: { fontSize: 14, color: '#CBD5E1' },
+  previewBody: { fontSize: 14, color: '#7A8FA6' },
   sendBtn: { backgroundColor: '#16A34A', borderRadius: 12, padding: 18, alignItems: 'center' },
   sendBtnDisabled: { opacity: 0.6 },
   sendBtnText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },

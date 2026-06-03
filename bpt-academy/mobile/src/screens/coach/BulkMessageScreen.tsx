@@ -96,9 +96,9 @@ export default function BulkMessageScreen() {
   };
 
   return (
-    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <KeyboardAvoidingView style={{ flex: 1, backgroundColor: '#0B1628' }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <Image source={require('../../../assets/bg.png')} style={styles.bgImage} resizeMode="cover" />
       <ScrollView style={styles.container}>
-        <Image source={require('../../../assets/bg.png')} style={styles.bgImage} resizeMode="cover" />
         <ScreenHeader title="Bulk Message" />
 
         <View style={styles.content}>
@@ -189,25 +189,25 @@ export default function BulkMessageScreen() {
 
 const styles = StyleSheet.create({
   bgImage: { position: 'absolute', top: 0, left: 0, width: Dimensions.get('window').width, height: Dimensions.get('window').height },
-  container: { flex: 1, backgroundColor: '#0B1628' },
+  container: { flex: 1, backgroundColor: 'transparent' },
   content: { padding: 16, paddingBottom: 80,},
   section: { backgroundColor: 'rgba(17,30,51,0.85)', borderRadius: 14, padding: 16, marginBottom: 14, borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)' },
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
   sectionTitle: { fontSize: 16, fontWeight: '700', color: '#F0F6FC' },
   selectAll: { fontSize: 14, color: '#16A34A', fontWeight: '600' },
   divGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  divChip: { borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8, backgroundColor: 'rgba(255,255,255,0.06)' },
-  divChipText: { fontSize: 13, color: '#F0F6FC', fontWeight: '500' },
+  divChip: { borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8, backgroundColor: 'rgba(255,255,255,0.05)' },
+  divChipText: { fontSize: 13, color: '#7A8FA6', fontWeight: '500' },
   divChipTextActive: { color: '#FFFFFF', fontWeight: '700' },
-  recipientBadge: { backgroundColor: '#ECFDF5', borderRadius: 10, padding: 10, marginTop: 12 },
+  recipientBadge: { backgroundColor: 'rgba(22,163,74,0.15)', borderRadius: 10, padding: 10, marginTop: 12 },
   recipientText: { fontSize: 13, color: '#16A34A', fontWeight: '600', textAlign: 'center' },
-  input: { borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)', borderRadius: 10, padding: 14, fontSize: 15, color: '#F0F6FC', backgroundColor: 'rgba(255,255,255,0.06)', marginBottom: 10 },
+  input: { borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)', borderRadius: 10, padding: 14, fontSize: 15, color: '#F0F6FC', backgroundColor: 'rgba(255,255,255,0.08)', marginBottom: 10 },
   textarea: { height: 120, textAlignVertical: 'top' },
   previewCard: { backgroundColor: 'rgba(17,30,51,0.85)', borderRadius: 14, padding: 16, marginBottom: 14, borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)' },
-  previewLabel: { fontSize: 11, fontWeight: '700', color: '#7A8FA6', letterSpacing: 1, marginBottom: 10 },
-  previewBubble: { backgroundColor: '#F0FDF4', borderRadius: 12, padding: 14, borderLeftWidth: 3, borderLeftColor: '#16A34A' },
+  previewLabel: { fontSize: 11, fontWeight: '700', color: '#4B6278', letterSpacing: 1, marginBottom: 10 },
+  previewBubble: { backgroundColor: 'rgba(22,163,74,0.12)', borderRadius: 12, padding: 14, borderLeftWidth: 3, borderLeftColor: '#16A34A' },
   previewTitle: { fontSize: 15, fontWeight: '700', color: '#F0F6FC', marginBottom: 4 },
-  previewBody: { fontSize: 14, color: '#CBD5E1' },
+  previewBody: { fontSize: 14, color: '#7A8FA6' },
   sendBtn: { backgroundColor: '#16A34A', borderRadius: 14, padding: 18, alignItems: 'center', marginBottom: 32 },
   sendBtnDisabled: { opacity: 0.4 },
   sendBtnText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
