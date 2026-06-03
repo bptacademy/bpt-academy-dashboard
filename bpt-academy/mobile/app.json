@@ -2,7 +2,7 @@
   "expo": {
     "name": "BPT Academy",
     "slug": "mobile",
-    "version": "1.5.6",
+    "version": "1.5.7",
     "scheme": "bptacademy",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -15,17 +15,23 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.bptacademy.app",
-      "buildNumber": "32",
+      "buildNumber": "33",
       "appleTeamId": "R7365964A2",
       "usesNonExemptEncryption": false,
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
-        "NSPhotoLibraryUsageDescription": "BPT Academy uses your photo library so you can choose a profile photo. Your photos are only accessed when you tap to change your avatar and are never shared without your permission."
+        "NSPhotoLibraryUsageDescription": "BPT Academy uses your photo library so you can choose a profile photo. Your photos are only accessed when you tap to change your avatar and are never shared without your permission.",
+        "UIBackgroundModes": [
+          "remote-notification"
+        ]
+      },
+      "entitlements": {
+        "aps-environment": "production"
       }
     },
     "android": {
       "package": "com.bptacademy.app",
-      "versionCode": 34,
+      "versionCode": 35,
       "googleServicesFile": "./google-services.json",
       "allowBackup": false,
       "resizeableActivity": true,
