@@ -12,7 +12,7 @@ import {
   DIVISION_COLORS, DIVISION_LABELS, LEVEL_LABELS, Division,
 } from '../../types';
 import ScreenHeader from '../../components/common/ScreenHeader';
-import { getSkillsForDivision, profileToSkillDivision, CATEGORY_LABELS, MIN_PASSING_SCORE, SCORE_RANGE, SkillCategory } from '../../lib/skillDefinitions';
+import { getSkillsForDivision, profileToSkillDivision, CATEGORY_LABELS, MIN_PASSING_SCORE, PROMOTION_TARGET_SCORE, SCORE_RANGE, SkillCategory } from '../../lib/skillDefinitions';
 
 // ─── Goal types ───────────────────────────────────────────────
 type GoalCategory = 'technical' | 'tactical' | 'physical' | 'mindset';
@@ -624,31 +624,52 @@ export default function ProgressScreen() {
                   })()}
 
                   {(() => {
-                    const val = cycle.performance_pct ?? 0;
-                    const met = val >= 80;
+                    const skillDiv = profileToSkillDivision(profile?.division, profile?.skill_level);
+                    const targetScore = PROMOTION_TARGET_SCORE[skillDiv];
+                    const minPass = MIN_PASSING_SCORE[skillDiv];
+                    // Compute avg from skillScores directly (more accurate than stored pct)
+                    const avgRaw = skillScores.length > 0
+                      ? skillScores.reduce((sum, s) => sum + s.score, 0) / skillScores.length
+                      : null;
+                    const avg = avgRaw !== null ? parseFloat(avgRaw.toFixed(1)) : null;
+                    const met = avg !== null && avg >= targetScore;
+                    const barPct = avg !== null ? Math.min(100, Math.round((avg / 7.0) * 100)) : 0;
+                    const scoreCol = avg === null ? divColor : avg >= targetScore ? '#16A34A' : avg >= minPass ? '#FBBF24' : '#EF4444';
                     return (
                       <View style={styles.criterionBlock}>
                         <View style={styles.criterionHeader}>
                           <View style={styles.criterionLabelRow}>
                             <Text style={styles.criterionEmoji}>📊</Text>
                             <View>
-                              <Text style={styles.criterionLabel}>Performance Score</Text>
-                              <Text style={styles.criterionHint}>Avg module score in your program</Text>
+                              <Text style={styles.criterionLabel}>Skills Score</Text>
+                              <Text style={styles.criterionHint}>Average across all assessed skills (1–7)</Text>
                             </View>
                           </View>
                           <View style={styles.criterionValueRow}>
-                            <Text style={[styles.criterionValue, met && styles.criterionValueMet]}>
-                              {val}<Text style={styles.criterionTarget}>/80%</Text>
-                            </Text>
+                            {avg !== null ? (
+                              <Text style={[styles.criterionValue, { color: scoreCol }]}>
+                                {avg}<Text style={styles.criterionTarget}>/{targetScore} target</Text>
+                              </Text>
+                            ) : (
+                              <Text style={[styles.criterionValue, { color: '#7A8FA6' }]}>
+                                —<Text style={styles.criterionTarget}> not assessed</Text>
+                              </Text>
+                            )}
                             <Text style={[styles.criterionCheck, met ? styles.checkMet : styles.checkNo]}>
                               {met ? '✓' : '✗'}
                             </Text>
                           </View>
                         </View>
                         <View style={styles.criterionBarBg}>
-                          <View style={[styles.criterionBarFill, { width: `${Math.min(100, val)}%`, backgroundColor: met ? '#16A34A' : divColor }]} />
+                          <View style={[styles.criterionBarFill, { width: `${barPct}%`, backgroundColor: scoreCol }]} />
+                          {/* Target marker at 80% of bar = 5.6/7 */}
                           <View style={styles.criterionMarker} />
                         </View>
+                        {avg !== null && (
+                          <Text style={{ fontSize: 11, color: '#7A8FA6', marginTop: 4 }}>
+                            Min pass: {minPass} · Promotion target: {targetScore} · Your avg: {avg}
+                          </Text>
+                        )}
                       </View>
                     );
                   })()}
@@ -668,7 +689,7 @@ export default function ProgressScreen() {
                     {
                       done: (cycle.active_weeks_so_far ?? 0) >= (cycle.min_active_weeks ?? 8)
                         && (cycle.attendance_pct ?? 0) >= 80
-                        && (cycle.performance_pct ?? 0) >= 80,
+                        && (cycle.performance_pct ?? 0) >= 80, // performance_pct still used server-side for eligibility
                       icon: '⭐', text: "You're flagged as eligible — your coach is notified",
                     },
                     {

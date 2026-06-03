@@ -24,6 +24,16 @@ export const MIN_PASSING_SCORE: Record<SkillDivision, number> = {
   pro:          6.0,
 };
 
+// Target avg score needed to reach the 80% promotion threshold (avg/7.0 >= 0.80)
+// i.e. avg >= 5.6 — rounded to nearest 0.5 step = 5.5
+export const PROMOTION_TARGET_SCORE: Record<SkillDivision, number> = {
+  beginner:     5.5,
+  intermediate: 5.5,
+  advanced:     5.5,
+  semi_pro:     5.5,
+  pro:          5.5,
+};
+
 export const SKILLS: SkillDef[] = [
 
   // ══════════════════════════════════════════════════════════════════════════

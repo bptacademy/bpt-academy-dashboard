@@ -8,7 +8,7 @@ import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import BackHeader from '../../components/common/BackHeader';
 import {
-  SCORE_RANGE, MIN_PASSING_SCORE, CATEGORY_LABELS,
+  SCORE_RANGE, MIN_PASSING_SCORE, PROMOTION_TARGET_SCORE, CATEGORY_LABELS,
   getSkillsForDivision, profileToSkillDivision,
   SkillCategory, SkillDef,
 } from '../../lib/skillDefinitions';
@@ -165,18 +165,36 @@ export default function SkillAssessmentScreen({ navigation, route }: any) {
       <Image source={require('../../../assets/bg.png')} style={s.bg} resizeMode="cover" />
       <BackHeader title="Skill Assessment" />
 
-      <View style={[s.header, { borderBottomColor: divColor }]}>
-        <View style={{ flex: 1 }}>
-          <Text style={s.studentName}>{studentName}</Text>
-          <Text style={[s.levelBadge, { color: divColor }]}>
-            {skillDiv.replace('_', '-').toUpperCase()} · Score 1–7 · Min: {minPass}
-          </Text>
-        </View>
-        <TouchableOpacity style={[s.saveAllBtn, { backgroundColor: divColor }, saving && { opacity: 0.5 }]}
-          onPress={saveAll} disabled={saving}>
-          <Text style={s.saveAllBtnText}>{saving ? 'Saving…' : '💾 Save All'}</Text>
-        </TouchableOpacity>
-      </View>
+      {/* ── Summary bar ── */}
+      {(() => {
+        const targetScore = PROMOTION_TARGET_SCORE[skillDiv];
+        const scoredEntries = latest.filter(l => scores[l.skill_key] !== undefined || l.score !== undefined);
+        // Use current session scores where set, otherwise latest from DB
+        const allScored = skills.map(sk => scores[sk.key] ?? latest.find(l => l.skill_key === sk.key)?.score).filter(v => v !== undefined) as number[];
+        const avg = allScored.length > 0 ? parseFloat((allScored.reduce((a, b) => a + b, 0) / allScored.length).toFixed(1)) : null;
+        const scoreCol = avg === null ? '#7A8FA6' : avg >= targetScore ? '#16A34A' : avg >= minPass ? '#FBBF24' : '#EF4444';
+        return (
+          <View style={[s.header, { borderBottomColor: divColor }]}>
+            <View style={{ flex: 1 }}>
+              <Text style={s.studentName}>{studentName}</Text>
+              <Text style={[s.levelBadge, { color: divColor }]}>
+                {skillDiv.replace('_', '-').toUpperCase()} · Min pass: {minPass} · Target: {targetScore}
+              </Text>
+              {avg !== null && (
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 6 }}>
+                  <Text style={{ fontSize: 22, fontWeight: '800', color: scoreCol }}>{avg}</Text>
+                  <Text style={{ fontSize: 12, color: '#7A8FA6' }}>avg / {allScored.length} skill{allScored.length !== 1 ? 's' : ''} · target {targetScore}</Text>
+                  <Text style={{ fontSize: 14, fontWeight: '800', color: scoreCol }}>{avg >= targetScore ? '✓' : avg >= minPass ? '~' : '✗'}</Text>
+                </View>
+              )}
+            </View>
+            <TouchableOpacity style={[s.saveAllBtn, { backgroundColor: divColor }, saving && { opacity: 0.5 }]}
+              onPress={saveAll} disabled={saving}>
+              <Text style={s.saveAllBtnText}>{saving ? 'Saving…' : '💾 Save All'}</Text>
+            </TouchableOpacity>
+          </View>
+        );
+      })()}
 
       <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: tabBarPadding + 20 }}>
         {skills.length === 0 && (
