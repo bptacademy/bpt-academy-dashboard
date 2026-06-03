@@ -9,6 +9,7 @@ import { useAuth } from '../../context/AuthContext';
 import { LEVEL_LABELS } from '../../types';
 import BackHeader from '../../components/common/BackHeader';
 import BackButton from '../../components/common/BackButton';
+import { profileToSkillDivision, PROMOTION_TARGET_SCORE, MIN_PASSING_SCORE, getSkillsForDivision } from '../../lib/skillDefinitions';
 
 interface PromotionCycle {
   id: string;
@@ -77,6 +78,8 @@ export default function PromotionManageScreen({ route, navigation }: any) {
   const [cycle, setCycle]             = useState<PromotionCycle | null>(null);
   const [history, setHistory]         = useState<PromotionCycle[]>([]);
   const [studentDivision, setStudentDivision] = useState<string | null>(null);
+  const [studentSkillLevel, setStudentSkillLevel] = useState<string | null>(null);
+  const [skillScores, setSkillScores] = useState<{skill_key:string;score:number}[]>([]);
   const [loading, setLoading]         = useState(true);
   const [refreshing, setRefreshing]   = useState(false);
   const [actioning, setActioning]     = useState(false);
@@ -85,13 +88,29 @@ export default function PromotionManageScreen({ route, navigation }: any) {
   const fetchCycle = useCallback(async () => {
     setLoading(true);
 
-    // Fetch student's division so we know if they're at top level
+    // Fetch student's division + skill level
     const { data: studentProfile } = await supabase
       .from('profiles')
-      .select('division')
+      .select('division, skill_level')
       .eq('id', studentId)
       .single();
     setStudentDivision(studentProfile?.division ?? null);
+    setStudentSkillLevel(studentProfile?.skill_level ?? null);
+
+    // Fetch latest skill scores for performance display
+    const { data: scoreData } = await supabase
+      .from('skill_assessments')
+      .select('skill_key, score, assessed_at')
+      .eq('student_id', studentId)
+      .order('assessed_at', { ascending: false });
+    if (scoreData) {
+      const seen = new Set<string>();
+      const latest: {skill_key:string;score:number}[] = [];
+      for (const row of scoreData as any[]) {
+        if (!seen.has(row.skill_key)) { seen.add(row.skill_key); latest.push(row); }
+      }
+      setSkillScores(latest);
+    }
 
     // Active/eligible/approved cycle
     const { data: active } = await supabase
@@ -331,11 +350,51 @@ export default function PromotionManageScreen({ route, navigation }: any) {
                 value={cycle.attendance_pct}
                 target={80}
               />
-              <MetricBar
-                label="Performance"
-                value={cycle.performance_pct}
-                target={80}
-              />
+              {/* Performance: show avg skill score vs target instead of % */}
+              {(() => {
+                const skillDiv = profileToSkillDivision(studentDivision ?? undefined, studentSkillLevel ?? undefined);
+                const targetScore = PROMOTION_TARGET_SCORE[skillDiv];
+                const minPass = MIN_PASSING_SCORE[skillDiv];
+                const allSkillsForLevel = getSkillsForDivision(skillDiv);
+                const totalSkills = allSkillsForLevel.length;
+                const scoreMap: Record<string,number> = {};
+                skillScores.forEach(s => { scoreMap[s.skill_key] = s.score; });
+                const avgRaw = totalSkills > 0
+                  ? allSkillsForLevel.reduce((sum, sk) => sum + (scoreMap[sk.key] ?? 1), 0) / totalSkills
+                  : null;
+                const avg = avgRaw !== null ? parseFloat(avgRaw.toFixed(1)) : null;
+                const met = avg !== null && avg >= targetScore;
+                const barPct = avg !== null ? Math.min(100, Math.round((avg / 7.0) * 100)) : 0;
+                const scoreCol = avg === null ? '#3B82F6' : met ? '#16A34A' : avg >= minPass ? '#FBBF24' : '#EF4444';
+                return (
+                  <View style={styles.metricRow}>
+                    <View style={styles.metricHeader}>
+                      <Text style={styles.metricLabel}>Skills Score</Text>
+                      <View style={styles.metricRight}>
+                        {avg !== null ? (
+                          <>
+                            <Text style={[styles.metricValue, { color: scoreCol }]}>{avg}</Text>
+                            <Text style={styles.metricTarget}> / {targetScore} target</Text>
+                          </>
+                        ) : (
+                          <Text style={[styles.metricTarget, { fontSize: 13 }]}>not assessed</Text>
+                        )}
+                        <Text style={[styles.metricCheck, met ? styles.metricCheckMet : styles.metricCheckNo]}>
+                          {met ? ' ✓' : ' ✗'}
+                        </Text>
+                      </View>
+                    </View>
+                    <View style={styles.barBg}>
+                      <View style={[styles.barFill, { width: `${barPct}%`, backgroundColor: scoreCol }]} />
+                    </View>
+                    {avg !== null && (
+                      <Text style={{ fontSize: 11, color: '#4B6278', marginTop: 3 }}>
+                        Min pass: {minPass} · Target: {targetScore} · {skillScores.length}/{totalSkills} skills assessed
+                      </Text>
+                    )}
+                  </View>
+                );
+              })()}
 
               <Text style={styles.criteriaNote}>
                 ℹ️ Active weeks = weeks where the student attended at least one session. Time only counts when they show up.
