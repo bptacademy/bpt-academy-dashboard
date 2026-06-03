@@ -170,8 +170,9 @@ export default function SkillAssessmentScreen({ navigation, route }: any) {
         const targetScore = PROMOTION_TARGET_SCORE[skillDiv];
         const scoredEntries = latest.filter(l => scores[l.skill_key] !== undefined || l.score !== undefined);
         // Use current session scores where set, otherwise latest from DB
-        const allScored = skills.map(sk => scores[sk.key] ?? latest.find(l => l.skill_key === sk.key)?.score).filter(v => v !== undefined) as number[];
-        const avg = allScored.length > 0 ? parseFloat((allScored.reduce((a, b) => a + b, 0) / allScored.length).toFixed(1)) : null;
+        // All skills included; unscored = 1 (minimum), current session score takes priority over DB latest
+        const allScored = skills.map(sk => scores[sk.key] ?? latest.find(l => l.skill_key === sk.key)?.score ?? 1);
+        const avg = skills.length > 0 ? parseFloat((allScored.reduce((a, b) => a + b, 0) / skills.length).toFixed(1)) : null;
         const scoreCol = avg === null ? '#7A8FA6' : avg >= targetScore ? '#16A34A' : avg >= minPass ? '#FBBF24' : '#EF4444';
         return (
           <View style={[s.header, { borderBottomColor: divColor }]}>

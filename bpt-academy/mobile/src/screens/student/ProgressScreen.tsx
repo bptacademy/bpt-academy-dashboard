@@ -628,8 +628,13 @@ export default function ProgressScreen() {
                     const targetScore = PROMOTION_TARGET_SCORE[skillDiv];
                     const minPass = MIN_PASSING_SCORE[skillDiv];
                     // Compute avg from skillScores directly (more accurate than stored pct)
-                    const avgRaw = skillScores.length > 0
-                      ? skillScores.reduce((sum, s) => sum + s.score, 0) / skillScores.length
+                    // Unscored skills count as 1 — avg across ALL skills for the level
+                    const allSkillsForLevel = getSkillsForDivision(skillDiv);
+                    const avgRaw = allSkillsForLevel.length > 0
+                      ? allSkillsForLevel.reduce((sum, sk) => {
+                          const entry = skillScores.find(s => s.skill_key === sk.key);
+                          return sum + (entry ? entry.score : 1);
+                        }, 0) / allSkillsForLevel.length
                       : null;
                     const avg = avgRaw !== null ? parseFloat(avgRaw.toFixed(1)) : null;
                     const met = avg !== null && avg >= targetScore;
@@ -749,8 +754,9 @@ export default function ProgressScreen() {
               const scored = allSkills.filter(s => scoreMap[s.key] !== undefined);
               const totalScored = scored.length;
               const totalSkills = allSkills.length;
-              const avgScore = totalScored > 0
-                ? (scored.reduce((sum, s) => sum + scoreMap[s.key], 0) / totalScored).toFixed(1)
+              // Unscored skills default to 1 (minimum) so the avg reflects full assessment
+              const avgScore = totalSkills > 0
+                ? (allSkills.reduce((sum, s) => sum + (scoreMap[s.key] ?? 1), 0) / totalSkills).toFixed(1)
                 : null;
 
               return (
