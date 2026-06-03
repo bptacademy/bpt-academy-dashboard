@@ -172,9 +172,10 @@ export function profileToSkillDivision(division?: string, skillLevel?: string): 
   if (division === 'amateur') {
     if (skillLevel === 'advanced') return 'advanced';
     if (skillLevel === 'intermediate') return 'intermediate';
-    return 'intermediate'; // default amateur to intermediate
+    if (skillLevel === 'beginner') return 'beginner';
+    return 'beginner'; // default amateur to beginner (safest — never assume intermediate)
   }
-  return 'intermediate';
+  return 'beginner';
 }
 
 export const CATEGORY_LABELS: Record<SkillCategory, string> = {
