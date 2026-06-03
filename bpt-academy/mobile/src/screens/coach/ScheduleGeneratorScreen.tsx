@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
-  Alert, ActivityIndicator, Image, Dimensions} from 'react-native';
+  Alert, ActivityIndicator, Image, Dimensions, Modal, FlatList} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTabBarPadding } from '../../hooks/useTabBarPadding';
 import { supabase } from '../../lib/supabase';
@@ -14,7 +14,20 @@ const DAYS = [
   { key: 'wednesday', label: 'Wed' },
   { key: 'thursday',  label: 'Thu' },
   { key: 'friday',    label: 'Fri' },
-  ];
+];
+
+const DEFAULT_SESSION_TIME = '09:00';
+
+// 30-minute slots from 06:00 to 22:00
+function buildTimeSlots(): string[] {
+  const slots: string[] = [];
+  for (let h = 6; h <= 22; h++) {
+    slots.push(`${String(h).padStart(2, '0')}:00`);
+    if (h < 22) slots.push(`${String(h).padStart(2, '0')}:30`);
+  }
+  return slots;
+}
+const TIME_SLOTS = buildTimeSlots();
 
 const DAY_INDEX: Record<string, number> = { monday: 1, tuesday: 2, wednesday: 3,
   thursday: 4, friday: 5,
@@ -96,11 +109,17 @@ export default function ScheduleGeneratorScreen({ route, navigation }: any) {
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
   const [generating, setGenerating] = useState(false);
   const [capacity, setCapacity] = useState<string>(String(maxStudents ?? 10));
+  // Per-day session times: { monday: '18:00', wednesday: '10:00' }
+  const [sessionTimes, setSessionTimes] = useState<Record<string, string>>({});
+  const [timePickerDay, setTimePickerDay] = useState<string | null>(null); // which day is being picked
 
   const toggleDay = (day: string) => {
-    setSelectedDays((prev) =>
-      prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
-    );
+    setSelectedDays((prev) => {
+      if (prev.includes(day)) return prev.filter((d) => d !== day);
+      // Set default time when day first selected
+      setSessionTimes(t => ({ ...t, [day]: t[day] ?? DEFAULT_SESSION_TIME }));
+      return [...prev, day];
+    });
   };
 
   const sessionDates = selectedDays.length > 0
@@ -138,13 +157,33 @@ export default function ScheduleGeneratorScreen({ route, navigation }: any) {
       // Modules are NOT touched here — use "Generate Modules" in the Modules screen.
       await supabase.from('program_sessions').delete().eq('program_id', programId);
 
-      // 2. Record the schedule
+      // 2. Record the schedule (including per-day session times)
       await supabase.from('program_schedules').upsert({
         program_id: programId, month,
         start_date: localDateStr(selectedStart),
         days_of_week: selectedDays,
+        session_times: sessionTimes,
         generated_by: profile!.id,
       }, { onConflict: 'program_id,month' });
+
+      // 2b. Insert program_sessions with correct scheduled_at (date + time)
+      const dayNameMap: Record<number, string> = { 1:'monday', 2:'tuesday', 3:'wednesday', 4:'thursday', 5:'friday' };
+      const sessionRows = sessionDates.map((d, i) => {
+        const dayName = dayNameMap[d.getDay()] ?? 'monday';
+        const timeStr = sessionTimes[dayName] ?? DEFAULT_SESSION_TIME;
+        const [hh, mm] = timeStr.split(':').map(Number);
+        const dt = new Date(d);
+        dt.setHours(hh, mm, 0, 0);
+        return {
+          program_id: programId,
+          title: `Session ${i + 1}`,
+          scheduled_at: dt.toISOString(),
+          duration_minutes: 60,
+        };
+      });
+      if (sessionRows.length > 0) {
+        await supabase.from('program_sessions').insert(sessionRows);
+      }
 
       // 3. Flip program to active and set cycle dates.
       // current_cycle_start_date = coach-selected start date (first session).
@@ -340,6 +379,31 @@ export default function ScheduleGeneratorScreen({ route, navigation }: any) {
           </View>
         </View>
 
+        {/* Per-day time pickers */}
+        {selectedDays.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>⏰ Session Times</Text>
+            <Text style={styles.sectionHint}>Set the start time for each day (30-min slots)</Text>
+            {selectedDays.map(day => {
+              const dayLabel = DAYS.find(d => d.key === day)?.label ?? day;
+              const time = sessionTimes[day] ?? DEFAULT_SESSION_TIME;
+              return (
+                <TouchableOpacity
+                  key={day}
+                  style={styles.timeRow}
+                  onPress={() => setTimePickerDay(day)}
+                >
+                  <Text style={styles.timeDayLabel}>{dayLabel}</Text>
+                  <View style={styles.timeValueChip}>
+                    <Text style={styles.timeValueText}>{time}</Text>
+                    <Text style={styles.timeValueCaret}> ▾</Text>
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        )}
+
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>👥 Capacity</Text>
           <Text style={styles.sectionHint}>Maximum number of students for this cycle</Text>
@@ -374,6 +438,7 @@ export default function ScheduleGeneratorScreen({ route, navigation }: any) {
                   </View>
                   <Text style={styles.previewDate}>
                     {d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}
+                    {' · '}{(() => { const dn = {1:'monday',2:'tuesday',3:'wednesday',4:'thursday',5:'friday'}[d.getDay()]; return sessionTimes[dn ?? ''] ?? DEFAULT_SESSION_TIME; })()}
                   </Text>
                 </View>
               ))}
@@ -400,13 +465,50 @@ export default function ScheduleGeneratorScreen({ route, navigation }: any) {
           }
         </TouchableOpacity>
       </ScrollView>
+      {/* Time Picker Modal */}
+      <Modal
+        visible={timePickerDay !== null}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setTimePickerDay(null)}
+      >
+        <View style={styles.tpModal}>
+          <View style={styles.tpHandle} />
+          <Text style={styles.tpTitle}>
+            {DAYS.find(d => d.key === timePickerDay)?.label ?? ''} — Session Time
+          </Text>
+          <FlatList
+            data={TIME_SLOTS}
+            keyExtractor={item => item}
+            contentContainerStyle={{ paddingBottom: 40 }}
+            renderItem={({ item }) => {
+              const isSelected = (sessionTimes[timePickerDay ?? ''] ?? DEFAULT_SESSION_TIME) === item;
+              return (
+                <TouchableOpacity
+                  style={[styles.tpSlot, isSelected && styles.tpSlotActive]}
+                  onPress={() => {
+                    if (timePickerDay) setSessionTimes(t => ({ ...t, [timePickerDay]: item }));
+                    setTimePickerDay(null);
+                  }}
+                >
+                  <Text style={[styles.tpSlotText, isSelected && styles.tpSlotTextActive]}>{item}</Text>
+                  {isSelected && <Text style={styles.tpCheck}>✓</Text>}
+                </TouchableOpacity>
+              );
+            }}
+          />
+          <TouchableOpacity style={styles.tpCancel} onPress={() => setTimePickerDay(null)}>
+            <Text style={styles.tpCancelText}>Cancel</Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   bgImage: { position: 'absolute', top: 0, left: 0, width: Dimensions.get('window').width, height: Dimensions.get('window').height },
-  container: { flex: 1, backgroundColor: '#F9FAFB' },
+  container: { flex: 1, backgroundColor: '#0B1628' },
   content: { padding: 16 },
   programCard: { backgroundColor: '#111827', borderRadius: 14, padding: 16, marginBottom: 12 },
   programTitle: { fontSize: 18, fontWeight: '700', color: '#FFFFFF', marginBottom: 8 },
@@ -414,38 +516,57 @@ const styles = StyleSheet.create({
   programMetaBadge: { backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4 },
   programMetaText: { fontSize: 12, fontWeight: '600', color: '#FFFFFF' },
   programSub: { fontSize: 12, color: 'rgba(255,255,255,0.5)' },
-  infoCard: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, backgroundColor: '#EFF6FF', borderRadius: 12, padding: 14, borderWidth: 1, borderColor: '#BFDBFE', marginBottom: 14 },
+  infoCard: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, backgroundColor: 'rgba(59,130,246,0.10)', borderRadius: 12, padding: 14, borderWidth: 1, borderColor: 'rgba(59,130,246,0.25)', marginBottom: 14 },
   infoIcon: { fontSize: 20 },
   infoText: { flex: 1 },
-  infoTitle: { fontSize: 13, fontWeight: '700', color: '#1E40AF', marginBottom: 3 },
-  infoBody: { fontSize: 12, color: '#3B82F6', lineHeight: 18 },
-  section: { backgroundColor: '#FFFFFF', borderRadius: 14, padding: 16, marginBottom: 14, borderWidth: 1, borderColor: '#E5E7EB' },
+  infoTitle: { fontSize: 13, fontWeight: '700', color: '#93C5FD', marginBottom: 3 },
+  infoBody: { fontSize: 12, color: '#60A5FA', lineHeight: 18 },
+  section: { backgroundColor: 'rgba(17,30,51,0.85)', borderRadius: 14, padding: 16, marginBottom: 14, borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)' },
   sectionTitle: { fontSize: 15, fontWeight: '700', color: '#F0F6FC', marginBottom: 4 },
-  sectionHint: { fontSize: 12, color: '#9CA3AF', marginBottom: 12 },
+  sectionHint: { fontSize: 12, color: '#7A8FA6', marginBottom: 12 },
   dateRow: { gap: 8, paddingBottom: 4 },
-  dateChip: { width: 56, paddingVertical: 10, borderRadius: 12, alignItems: 'center', backgroundColor: '#F3F4F6', borderWidth: 1.5, borderColor: '#E5E7EB' },
+  dateChip: { width: 56, paddingVertical: 10, borderRadius: 12, alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.06)', borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.12)' },
   dateChipActive: { backgroundColor: '#16A34A', borderColor: '#16A34A' },
-  dateChipDay: { fontSize: 11, fontWeight: '600', color: '#6B7280' },
-  dateChipNum: { fontSize: 18, fontWeight: '800', color: '#111827', marginVertical: 2 },
-  dateChipMonth: { fontSize: 10, color: '#9CA3AF' },
+  dateChipDay: { fontSize: 11, fontWeight: '600', color: '#7A8FA6' },
+  dateChipNum: { fontSize: 18, fontWeight: '800', color: '#F0F6FC', marginVertical: 2 },
+  dateChipMonth: { fontSize: 10, color: '#7A8FA6' },
   dateChipTextActive: { color: '#FFFFFF' },
   daysRow: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
-  dayChip: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: 20, backgroundColor: '#F3F4F6', borderWidth: 1.5, borderColor: '#E5E7EB' },
+  dayChip: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.06)', borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.12)' },
   dayChipActive: { backgroundColor: '#16A34A', borderColor: '#16A34A' },
-  dayChipText: { fontSize: 14, fontWeight: '600', color: '#374151' },
+  dayChipText: { fontSize: 14, fontWeight: '600', color: '#F0F6FC' },
   dayChipTextActive: { color: '#FFFFFF' },
   previewList: { gap: 6 },
   previewRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   previewNum: { width: 28, height: 28, borderRadius: 14, backgroundColor: '#ECFDF5', alignItems: 'center', justifyContent: 'center' },
   previewNumText: { fontSize: 12, fontWeight: '700', color: '#16A34A' },
-  previewDate: { fontSize: 14, color: '#374151' },
-  emptyHint: { backgroundColor: '#FFFBEB', borderRadius: 12, padding: 16, borderWidth: 1, borderColor: '#FDE68A', marginBottom: 14, alignItems: 'center' },
-  emptyHintText: { fontSize: 13, color: '#92400E', textAlign: 'center', lineHeight: 20 },
+  previewDate: { fontSize: 14, color: '#F0F6FC' },
+  emptyHint: { backgroundColor: 'rgba(251,191,36,0.10)', borderRadius: 12, padding: 16, borderWidth: 1, borderColor: 'rgba(251,191,36,0.30)', marginBottom: 14, alignItems: 'center' },
+  emptyHintText: { fontSize: 13, color: '#FBBF24', textAlign: 'center', lineHeight: 20 },
   capacityRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 24 },
-  capacityBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#F3F4F6', alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: '#E5E7EB' },
-  capacityBtnText: { fontSize: 22, fontWeight: '700', color: '#374151' },
-  capacityValue: { fontSize: 36, fontWeight: '800', color: '#111827', minWidth: 60, textAlign: 'center' },
+  capacityBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(255,255,255,0.08)', alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.15)' },
+  capacityBtnText: { fontSize: 22, fontWeight: '700', color: '#F0F6FC' },
+  capacityValue: { fontSize: 36, fontWeight: '800', color: '#F0F6FC', minWidth: 60, textAlign: 'center' },
   generateBtn: { backgroundColor: '#16A34A', borderRadius: 14, padding: 18, alignItems: 'center' },
   generateBtnDisabled: { opacity: 0.5 },
   generateBtnText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
+
+  // Time picker row
+  timeRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)' },
+  timeDayLabel: { fontSize: 15, fontWeight: '600', color: '#F0F6FC' },
+  timeValueChip: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(59,130,246,0.15)', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, borderWidth: 1, borderColor: 'rgba(59,130,246,0.35)' },
+  timeValueText: { fontSize: 15, fontWeight: '700', color: '#60A5FA' },
+  timeValueCaret: { fontSize: 13, color: '#60A5FA' },
+
+  // Time picker modal
+  tpModal: { flex: 1, backgroundColor: '#0B1628', paddingTop: 8 },
+  tpHandle: { width: 40, height: 4, backgroundColor: 'rgba(255,255,255,0.20)', borderRadius: 2, alignSelf: 'center', marginBottom: 16 },
+  tpTitle: { fontSize: 18, fontWeight: '800', color: '#F0F6FC', textAlign: 'center', marginBottom: 16, paddingHorizontal: 24 },
+  tpSlot: { paddingVertical: 16, paddingHorizontal: 24, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  tpSlotActive: { backgroundColor: 'rgba(59,130,246,0.15)' },
+  tpSlotText: { fontSize: 17, color: '#CBD5E1', fontWeight: '500' },
+  tpSlotTextActive: { color: '#60A5FA', fontWeight: '700' },
+  tpCheck: { fontSize: 16, color: '#60A5FA', fontWeight: '800' },
+  tpCancel: { margin: 20, backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 14, padding: 16, alignItems: 'center' },
+  tpCancelText: { color: '#F0F6FC', fontSize: 16, fontWeight: '700' },
 });

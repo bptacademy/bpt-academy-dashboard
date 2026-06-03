@@ -1,12 +1,27 @@
 import React, { useEffect, useState } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
-  RefreshControl, Alert, Image, Dimensions} from 'react-native';
+  RefreshControl, Alert, Image, Dimensions, Modal, FlatList} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTabBarPadding } from '../../hooks/useTabBarPadding';
 import { supabase } from '../../lib/supabase';
 import { Program, EnrollmentStatus, Division, DIVISION_LABELS, DIVISION_COLORS } from '../../types';
 import BackHeader from '../../components/common/BackHeader';
+
+const DEFAULT_SESSION_TIME = '09:00';
+function buildTimeSlots(): string[] {
+  const slots: string[] = [];
+  for (let h = 6; h <= 22; h++) {
+    slots.push(`${String(h).padStart(2, '0')}:00`);
+    if (h < 22) slots.push(`${String(h).padStart(2, '0')}:30`);
+  }
+  return slots;
+}
+const TIME_SLOTS = buildTimeSlots();
+const DAY_LABELS: Record<string, string> = {
+  monday:'Monday', tuesday:'Tuesday', wednesday:'Wednesday',
+  thursday:'Thursday', friday:'Friday',
+};
 
 interface EnrollmentRow {
   id: string;
@@ -49,6 +64,12 @@ export default function ProgramRosterScreen({ route, navigation }: any) {
   const [selectedStudentId, setSelectedStudentId] = useState('');
   const [enrolling, setEnrolling] = useState(false);
   const [waitlist, setWaitlist] = useState<{id:string;position:number;joined_at:string;student:{id:string;full_name:string}}[]>([]);
+  // Session time update state
+  const [timeModalVisible, setTimeModalVisible] = useState(false);
+  const [programDays, setProgramDays] = useState<string[]>([]);
+  const [editTimes, setEditTimes] = useState<Record<string,string>>({});
+  const [timePickerDay, setTimePickerDay] = useState<string|null>(null);
+  const [savingTimes, setSavingTimes] = useState(false);
 
   const fetchData = async () => {
     const [progRes, enrollRes] = await Promise.all([
@@ -73,6 +94,62 @@ export default function ProgramRosterScreen({ route, navigation }: any) {
   };
 
   const onRefresh = async () => { setRefreshing(true); await fetchData(); setRefreshing(false); };
+
+  const openTimeModal = async () => {
+    // Load current schedule for this program
+    const { data: sched } = await supabase
+      .from('program_schedules')
+      .select('days_of_week, session_times')
+      .eq('program_id', programId)
+      .order('generated_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    const days: string[] = (sched as any)?.days_of_week ?? [];
+    const times: Record<string,string> = (sched as any)?.session_times ?? {};
+
+    // Fill missing days with default time
+    const filled: Record<string,string> = {};
+    days.forEach((d: string) => { filled[d] = times[d] ?? DEFAULT_SESSION_TIME; });
+
+    // If no schedule found, infer days from future sessions
+    if (days.length === 0) {
+      const { data: sessions } = await supabase
+        .from('program_sessions')
+        .select('scheduled_at')
+        .eq('program_id', programId)
+        .gt('scheduled_at', new Date().toISOString())
+        .order('scheduled_at')
+        .limit(20);
+      const dayNames: Record<number,string> = {1:'monday',2:'tuesday',3:'wednesday',4:'thursday',5:'friday'};
+      const seen = new Set<string>();
+      (sessions ?? []).forEach((s: any) => {
+        const d = new Date(s.scheduled_at).getDay();
+        const name = dayNames[d];
+        if (name && !seen.has(name)) { seen.add(name); }
+      });
+      seen.forEach(d => { filled[d] = DEFAULT_SESSION_TIME; });
+      setProgramDays(Array.from(seen));
+    } else {
+      setProgramDays(days);
+    }
+
+    setEditTimes(filled);
+    setTimeModalVisible(true);
+  };
+
+  const saveSessionTimes = async () => {
+    setSavingTimes(true);
+    const { data, error } = await supabase.rpc('update_future_session_times', {
+      p_program_id: programId,
+      p_session_times: editTimes,
+    });
+    setSavingTimes(false);
+    if (error) { Alert.alert('Error', error.message); return; }
+    setTimeModalVisible(false);
+    Alert.alert('✅ Times Updated', `${data ?? 0} future session${data !== 1 ? 's' : ''} updated.`);
+    fetchData();
+  };
 
   const setNextCycleDate = async () => {
     const { data: prog } = await supabase
@@ -266,6 +343,11 @@ export default function ProgramRosterScreen({ route, navigation }: any) {
         </Text>
       </TouchableOpacity>
 
+      {/* Update Session Times */}
+      <TouchableOpacity style={styles.timesBtn} onPress={openTimeModal}>
+        <Text style={styles.timesBtnText}>⏰ Update Session Times</Text>
+      </TouchableOpacity>
+
       {/* Enroll student */}
       <TouchableOpacity style={styles.enrollToggleBtn} onPress={() => { loadAvailableStudents(); setShowEnroll(v => !v); }}>
         <Text style={styles.enrollToggleBtnText}>+ Enroll a Student</Text>
@@ -394,6 +476,89 @@ export default function ProgramRosterScreen({ route, navigation }: any) {
         )}
       </View>
     </ScrollView>
+
+      {/* ── Update Session Times Modal ── */}
+      <Modal
+        visible={timeModalVisible}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setTimeModalVisible(false)}
+      >
+        <View style={styles.tpModal}>
+          <View style={styles.tpHandle} />
+          <Text style={styles.tpTitle}>⏰ Update Session Times</Text>
+          <Text style={styles.tpSubtitle}>Only future sessions will be updated. Past sessions are unchanged.</Text>
+
+          {timePickerDay === null ? (
+            <>
+              <ScrollView style={{ flex: 1 }}>
+                {programDays.map(day => (
+                  <TouchableOpacity
+                    key={day}
+                    style={styles.tpDayRow}
+                    onPress={() => setTimePickerDay(day)}
+                  >
+                    <Text style={styles.tpDayLabel}>{DAY_LABELS[day] ?? day}</Text>
+                    <View style={styles.tpTimeChip}>
+                      <Text style={styles.tpTimeChipText}>{editTimes[day] ?? DEFAULT_SESSION_TIME}</Text>
+                      <Text style={styles.tpTimeChipCaret}> ▾</Text>
+                    </View>
+                  </TouchableOpacity>
+                ))}
+                {programDays.length === 0 && (
+                  <View style={{ padding: 24, alignItems: 'center' }}>
+                    <Text style={{ color: '#7A8FA6', fontSize: 14, textAlign: 'center' }}>
+                      No schedule found for this program. Generate a schedule first.
+                    </Text>
+                  </View>
+                )}
+              </ScrollView>
+              <View style={styles.tpActions}>
+                <TouchableOpacity style={styles.tpCancel} onPress={() => setTimeModalVisible(false)}>
+                  <Text style={styles.tpCancelText}>Cancel</Text>
+                </TouchableOpacity>
+                {programDays.length > 0 && (
+                  <TouchableOpacity
+                    style={[styles.tpSave, savingTimes && { opacity: 0.5 }]}
+                    onPress={saveSessionTimes}
+                    disabled={savingTimes}
+                  >
+                    <Text style={styles.tpSaveText}>{savingTimes ? 'Saving…' : '✅ Save Times'}</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            </>
+          ) : (
+            <>
+              <Text style={styles.tpPickerLabel}>{DAY_LABELS[timePickerDay] ?? timePickerDay} — pick a time</Text>
+              <FlatList
+                data={TIME_SLOTS}
+                keyExtractor={item => item}
+                contentContainerStyle={{ paddingBottom: 40 }}
+                renderItem={({ item }) => {
+                  const isSelected = (editTimes[timePickerDay] ?? DEFAULT_SESSION_TIME) === item;
+                  return (
+                    <TouchableOpacity
+                      style={[styles.tpSlot, isSelected && styles.tpSlotActive]}
+                      onPress={() => {
+                        setEditTimes(t => ({ ...t, [timePickerDay!]: item }));
+                        setTimePickerDay(null);
+                      }}
+                    >
+                      <Text style={[styles.tpSlotText, isSelected && styles.tpSlotTextActive]}>{item}</Text>
+                      {isSelected && <Text style={styles.tpCheck}>✓</Text>}
+                    </TouchableOpacity>
+                  );
+                }}
+              />
+              <TouchableOpacity style={styles.tpCancel} onPress={() => setTimePickerDay(null)}>
+                <Text style={styles.tpCancelText}>← Back</Text>
+              </TouchableOpacity>
+            </>
+          )}
+        </View>
+      </Modal>
+    </ScrollView>
   );
 }
 
@@ -453,4 +618,29 @@ const styles = StyleSheet.create({
   enrollBtnText: { color: '#FFFFFF', fontSize: 14, fontWeight: '700' },
   cycleDateBtn: { backgroundColor: 'rgba(59,130,246,0.12)', margin: 16, marginBottom: 8, marginTop: 8, borderRadius: 10, paddingVertical: 12, paddingHorizontal: 16, borderWidth: 1, borderColor: 'rgba(59,130,246,0.30)' },
   cycleDateBtnText: { color: '#3B82F6', fontSize: 14, fontWeight: '600' },
+
+  timesBtn: { backgroundColor: 'rgba(139,92,246,0.12)', margin: 16, marginBottom: 8, marginTop: 0, borderRadius: 10, paddingVertical: 12, paddingHorizontal: 16, borderWidth: 1, borderColor: 'rgba(139,92,246,0.30)' },
+  timesBtnText: { color: '#A78BFA', fontSize: 14, fontWeight: '600', textAlign: 'center' },
+
+  // Time update modal
+  tpModal: { flex: 1, backgroundColor: '#0B1628', paddingTop: 8 },
+  tpHandle: { width: 40, height: 4, backgroundColor: 'rgba(255,255,255,0.20)', borderRadius: 2, alignSelf: 'center', marginBottom: 16 },
+  tpTitle: { fontSize: 18, fontWeight: '800', color: '#F0F6FC', textAlign: 'center', marginBottom: 4, paddingHorizontal: 24 },
+  tpSubtitle: { fontSize: 12, color: '#7A8FA6', textAlign: 'center', marginBottom: 16, paddingHorizontal: 24 },
+  tpDayRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 16, paddingHorizontal: 24, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)' },
+  tpDayLabel: { fontSize: 16, fontWeight: '600', color: '#F0F6FC' },
+  tpTimeChip: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(139,92,246,0.15)', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, borderWidth: 1, borderColor: 'rgba(139,92,246,0.35)' },
+  tpTimeChipText: { fontSize: 15, fontWeight: '700', color: '#A78BFA' },
+  tpTimeChipCaret: { fontSize: 13, color: '#A78BFA' },
+  tpPickerLabel: { fontSize: 16, fontWeight: '700', color: '#F0F6FC', textAlign: 'center', marginBottom: 8, paddingHorizontal: 24 },
+  tpSlot: { paddingVertical: 16, paddingHorizontal: 24, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  tpSlotActive: { backgroundColor: 'rgba(139,92,246,0.15)' },
+  tpSlotText: { fontSize: 17, color: '#CBD5E1', fontWeight: '500' },
+  tpSlotTextActive: { color: '#A78BFA', fontWeight: '700' },
+  tpCheck: { fontSize: 16, color: '#A78BFA', fontWeight: '800' },
+  tpActions: { flexDirection: 'row', gap: 12, padding: 20 },
+  tpCancel: { flex: 1, backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 14, padding: 16, alignItems: 'center' },
+  tpCancelText: { color: '#F0F6FC', fontSize: 16, fontWeight: '700' },
+  tpSave: { flex: 1, backgroundColor: '#16A34A', borderRadius: 14, padding: 16, alignItems: 'center' },
+  tpSaveText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
 });
