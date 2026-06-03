@@ -725,12 +725,11 @@ export default function ProgressScreen() {
               };
 
               const cats: SkillCategory[] = ['technique', 'tactic'];
-              const scored = allSkills.filter(s => scoreMap[s.skill_key] !== undefined);
-              const notScored = allSkills.filter(s => scoreMap[s.skill_key] === undefined);
+              const scored = allSkills.filter(s => scoreMap[s.key] !== undefined);
               const totalScored = scored.length;
               const totalSkills = allSkills.length;
               const avgScore = totalScored > 0
-                ? (scored.reduce((sum, s) => sum + scoreMap[s.skill_key], 0) / totalScored).toFixed(1)
+                ? (scored.reduce((sum, s) => sum + scoreMap[s.key], 0) / totalScored).toFixed(1)
                 : null;
 
               return (
@@ -803,18 +802,6 @@ export default function ProgressScreen() {
                     );
                   })}
 
-                  {/* Not yet assessed */}
-                  {notScored.length > 0 && (
-                    <View style={[styles.sectionCard, { opacity: 0.5 }]}>
-                      <Text style={[styles.sectionTitle, { fontSize: 13 }]}>⏳ Not Yet Assessed ({notScored.length})</Text>
-                      {notScored.map(skill => (
-                        <View key={skill.key} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                          <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.2)' }} />
-                          <Text style={{ fontSize: 12, color: '#4B6278' }} numberOfLines={1}>{skill.label}</Text>
-                        </View>
-                      ))}
-                    </View>
-                  )}
                 </>
               );
             })()}
