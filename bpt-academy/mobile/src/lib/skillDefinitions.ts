@@ -162,7 +162,10 @@ const LEVEL_ORDER: SkillDivision[] = ['beginner', 'intermediate', 'advanced', 's
 
 export function getSkillsForDivision(division: SkillDivision): SkillDef[] {
   // Pro uses same skill set as semi_pro
-  const effectiveDiv = division === 'pro' ? 'semi_pro' : division;
+  // Beginner uses same skill set as intermediate (no beginner-specific skills defined)
+  let effectiveDiv = division;
+  if (division === 'pro') effectiveDiv = 'semi_pro';
+  if (division === 'beginner') effectiveDiv = 'intermediate';
   return SKILLS.filter(s => s.minLevel === effectiveDiv);
 }
 

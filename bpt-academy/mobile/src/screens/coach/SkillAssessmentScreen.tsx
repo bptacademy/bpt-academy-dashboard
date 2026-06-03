@@ -179,6 +179,18 @@ export default function SkillAssessmentScreen({ navigation, route }: any) {
       </View>
 
       <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: tabBarPadding + 20 }}>
+        {skills.length === 0 && (
+          <View style={{ alignItems: 'center', marginTop: 60, paddingHorizontal: 24 }}>
+            <Text style={{ fontSize: 40, marginBottom: 16 }}>⭐</Text>
+            <Text style={{ fontSize: 17, fontWeight: '700', color: '#F0F6FC', marginBottom: 8, textAlign: 'center' }}>
+              No skill definitions for this level
+            </Text>
+            <Text style={{ fontSize: 13, color: '#7A8FA6', textAlign: 'center', lineHeight: 20 }}>
+              Level: {skillDiv.replace('_', '-').toUpperCase()}{"\n"}
+              Make sure the student's division and skill level are set correctly on their profile.
+            </Text>
+          </View>
+        )}
         {CATEGORIES.map(cat => {
           const catSkills = skills.filter(sk => sk.category === cat);
           if (catSkills.length === 0) return null;
