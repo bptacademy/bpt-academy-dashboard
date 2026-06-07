@@ -8,7 +8,7 @@ import { fonts } from '../../lib/theme';
 
 const { width, height } = Dimensions.get('window');
 const LOGO = require('../../../assets/volpair-logo-nobg.png');
-const BG = require('../../../assets/volpair-bg.png');
+const BG = require('../../../assets/volpair-bg-v2.png');
 const LOGO_SIZE = width * 0.65;
 
 export default function WelcomeScreen({ navigation }: any) {
@@ -101,7 +101,7 @@ export default function WelcomeScreen({ navigation }: any) {
       >
         <TouchableOpacity
           style={styles.primaryBtn}
-          onPress={() => navigation.navigate('EmailSignup', { mode: 'register' })}
+          onPress={() => navigation.navigate('PhoneAuth', { mode: 'register' })}
           activeOpacity={0.85}
         >
           <Text style={styles.primaryBtnText}>Get started</Text>
@@ -109,7 +109,7 @@ export default function WelcomeScreen({ navigation }: any) {
 
         <TouchableOpacity
           style={styles.secondaryBtn}
-          onPress={() => navigation.navigate('EmailSignup', { mode: 'login' })}
+          onPress={() => navigation.navigate('PhoneAuth', { mode: 'login' })}
           activeOpacity={0.75}
         >
           <Text style={styles.secondaryBtnText}>Sign in</Text>

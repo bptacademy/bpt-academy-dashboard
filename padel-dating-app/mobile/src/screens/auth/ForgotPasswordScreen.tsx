@@ -23,7 +23,7 @@ export default function ForgotPasswordScreen({ navigation }: { navigation: any }
     }
     setLoading(true);
     const { error } = await supabase.auth.resetPasswordForEmail(trimmed, {
-      redirectTo: 'https://volpair.app/reset-password.html',
+      redirectTo: 'https://web.volpair.app/reset-password.html',
     });
     setLoading(false);
     if (error) {
@@ -38,7 +38,7 @@ export default function ForgotPasswordScreen({ navigation }: { navigation: any }
       style={[styles.container, { backgroundColor: '#0A0A0F' }]}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <Image source={require('../../../assets/volpair-bg.png')} style={styles.bg} resizeMode="cover" />
+      <Image source={require('../../../assets/volpair-bg-v2.png')} style={styles.bg} resizeMode="cover" />
       <View style={[styles.inner, { paddingTop: insets.top + 20, paddingBottom: insets.bottom + 24 }]}>
 
         {/* Back button */}
