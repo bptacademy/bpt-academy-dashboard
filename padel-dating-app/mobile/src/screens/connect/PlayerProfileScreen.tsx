@@ -12,7 +12,7 @@ import { notifyVolley } from '../../lib/notifications';
 import { ScreenBackground } from '../../components/ScreenBackground';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
-const HERO_HEIGHT = SCREEN_HEIGHT * 0.95; // large hero — ~72% of screen
+const HERO_HEIGHT = SCREEN_HEIGHT; // full screen hero
 
 function levelLabel(v: number) {
   if (v >= 5.5) return 'Elite';
@@ -488,7 +488,7 @@ export default function PlayerProfileScreen({ route, navigation }: any) {
   }
 
   return (
-    <ScreenBackground>
+    <View style={{flex:1, backgroundColor:'#000'}}>
       <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
 
       {/* ── Hero photo — large, edge to edge ── */}
@@ -661,14 +661,14 @@ export default function PlayerProfileScreen({ route, navigation }: any) {
         startIndex={lightboxIndex ?? 0}
         onClose={() => setLightboxIndex(null)}
       />
-    </ScreenBackground>
+    </View>
   );
 }
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#000', flexDirection: 'column' },
+  container: { flex: 1, backgroundColor: '#000', flexDirection: 'column', overflow: 'hidden' },
 
   // Hero
   heroContainer: {
