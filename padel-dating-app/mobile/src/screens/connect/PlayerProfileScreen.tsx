@@ -839,10 +839,10 @@ const sheet = StyleSheet.create({
   overlay: { flex: 1, justifyContent: 'flex-end' },
   backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.5)' },
   container: {
-    backgroundColor: theme.bgCard,
+    backgroundColor: 'rgba(8, 4, 22, 0.97)',
     borderTopLeftRadius: 24, borderTopRightRadius: 24,
     maxHeight: SCREEN_HEIGHT * 0.82,
-    borderWidth: 1, borderColor: theme.border,
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)',
   },
   handle: {
     width: 40, height: 4, borderRadius: 2, backgroundColor: theme.border,
@@ -851,8 +851,8 @@ const sheet = StyleSheet.create({
   scroll: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 40 },
 
   section: {
-    backgroundColor: theme.bgDeep, borderRadius: 16, padding: 16,
-    marginBottom: 12, borderWidth: 1, borderColor: theme.border,
+    backgroundColor: 'rgba(255, 255, 255, 0.07)', borderRadius: 16, padding: 16,
+    marginBottom: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)',
   },
   sectionTitle: { fontSize: 14, fontFamily: fonts.bodyBold, color: theme.textSecondary, marginBottom: 12 },
 

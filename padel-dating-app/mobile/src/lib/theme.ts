@@ -1,13 +1,13 @@
 export const theme = {
   // Backgrounds
   bg: 'transparent',
-  bgCard: 'rgba(255, 255, 255, 0.07)',
-  bgDeep: 'rgba(0, 0, 0, 0.35)',
-  bgHover: 'rgba(255, 255, 255, 0.10)',
+  bgCard: 'rgba(255, 255, 255, 0.13)',
+  bgDeep: 'rgba(0, 0, 0, 0.55)',
+  bgHover: 'rgba(255, 255, 255, 0.18)',
 
   // Borders
-  border: '#1A2C42',
-  borderLight: '#243650',
+  border: 'rgba(255, 255, 255, 0.12)',
+  borderLight: 'rgba(255, 255, 255, 0.20)',
 
   // Text
   textPrimary: '#FFFFFF',
