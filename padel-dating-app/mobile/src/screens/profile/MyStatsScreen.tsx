@@ -59,7 +59,8 @@ export default function MyStatsScreen({ navigation }: any) {
   const topClubs: { club_id: string; club_name: string; play_count: number }[] = stats?.top_clubs ?? [];
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <ScreenBackground>
+      <View style={[styles.container, { paddingTop: insets.top }]}>
       
 
       <View style={styles.header}>
@@ -209,6 +210,7 @@ export default function MyStatsScreen({ navigation }: any) {
           <View style={{ height: 24 }} />
         </ScrollView>
       )}
+    </View>
     </ScreenBackground>
   );
 }

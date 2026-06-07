@@ -84,7 +84,8 @@ export default function BlockedUsersScreen({ navigation }: any) {
   };
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <ScreenBackground>
+      <View style={[styles.container, { paddingTop: insets.top }]}>
       
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -145,6 +146,7 @@ export default function BlockedUsersScreen({ navigation }: any) {
           )}
         </ScrollView>
       )}
+    </View>
     </ScreenBackground>
   );
 }

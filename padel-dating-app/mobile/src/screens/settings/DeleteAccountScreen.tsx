@@ -44,7 +44,8 @@ export default function DeleteAccountScreen({ navigation }: any) {
   };
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
+    <ScreenBackground>
+      <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
       
 
       <View style={styles.header}>
@@ -102,6 +103,7 @@ export default function DeleteAccountScreen({ navigation }: any) {
           }
         </TouchableOpacity>
       </View>
+    </View>
     </ScreenBackground>
   );
 }

@@ -395,7 +395,8 @@ export default function PlayHomeScreen({ navigation }: any) {
   ];
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <ScreenBackground>
+      <View style={[styles.container, { paddingTop: insets.top }]}>
       
 
       {/* Compact header + tabs in one block — no stranded gap */}
@@ -433,6 +434,7 @@ export default function PlayHomeScreen({ navigation }: any) {
           <Text style={styles.comingSoonText}>Live games near you needing players. Coming in v2.</Text>
         </View>
       )}
+    </View>
     </ScreenBackground>
   );
 }

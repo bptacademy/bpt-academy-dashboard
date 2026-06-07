@@ -205,6 +205,7 @@ export default function ConversationScreen({ route, navigation }: any) {
             </View>
           </>
         )}
+      </View>
       </ScreenBackground>
     </KeyboardAvoidingView>
   );

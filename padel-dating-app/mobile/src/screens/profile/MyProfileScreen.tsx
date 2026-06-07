@@ -45,7 +45,8 @@ export default function MyProfileScreen({ navigation }: any) {
   ];
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <ScreenBackground>
+      <View style={[styles.container, { paddingTop: insets.top }]}>
       
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Profile</Text>
@@ -168,6 +169,7 @@ export default function MyProfileScreen({ navigation }: any) {
 
         <View style={{ height: 24 }} />
       </ScrollView>
+    </View>
     </ScreenBackground>
   );
 }

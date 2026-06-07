@@ -48,7 +48,8 @@ export default function MutualVolleyMatchScreen({ route, navigation }: any) {
   };
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
+    <ScreenBackground>
+      <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
       
 
       <View style={styles.glowViolet} />
@@ -99,6 +100,7 @@ export default function MutualVolleyMatchScreen({ route, navigation }: any) {
           <Text style={styles.laterText}>Maybe later</Text>
         </TouchableOpacity>
       </Animated.View>
+    </View>
     </ScreenBackground>
   );
 }

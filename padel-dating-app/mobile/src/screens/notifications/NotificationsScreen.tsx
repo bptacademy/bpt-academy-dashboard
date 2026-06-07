@@ -184,7 +184,8 @@ export default function NotificationsScreen({ navigation }: any) {
   };
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <ScreenBackground>
+      <View style={[styles.container, { paddingTop: insets.top }]}>
       
 
       <View style={styles.header}>
@@ -241,6 +242,7 @@ export default function NotificationsScreen({ navigation }: any) {
           )}
         </ScrollView>
       )}
+    </View>
     </ScreenBackground>
   );
 }

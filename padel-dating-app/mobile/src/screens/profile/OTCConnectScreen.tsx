@@ -69,7 +69,8 @@ export default function OTCConnectScreen({ navigation }: any) {
   };
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
+    <ScreenBackground>
+      <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
       
       <ScrollView showsVerticalScrollIndicator={false}>
 
@@ -116,6 +117,7 @@ export default function OTCConnectScreen({ navigation }: any) {
         </TouchableOpacity>
 
       </ScrollView>
+    </View>
     </ScreenBackground>
   );
 }

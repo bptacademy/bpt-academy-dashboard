@@ -13,7 +13,8 @@ export default function ForceUpdateScreen() {
   const storeUrl = Platform.OS === 'ios' ? APP_STORE_URL : PLAY_STORE_URL;
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top + 40, paddingBottom: insets.bottom + 40 }]}>
+    <ScreenBackground>
+      <View style={[styles.container, { paddingTop: insets.top + 40, paddingBottom: insets.bottom + 40 }]}>
       <Text style={styles.emoji}>🎾</Text>
       <Text style={styles.title}>Update Required</Text>
       <Text style={styles.subtitle}>
@@ -23,6 +24,7 @@ export default function ForceUpdateScreen() {
       <TouchableOpacity style={styles.btn} onPress={() => Linking.openURL(storeUrl)}>
         <Text style={styles.btnText}>Update Now →</Text>
       </TouchableOpacity>
+    </View>
     </ScreenBackground>
   );
 }

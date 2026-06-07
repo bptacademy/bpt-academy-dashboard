@@ -219,7 +219,8 @@ export default function RadarScreen({ navigation }: any) {
   }, [radiusMiles, activeHours]);
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <ScreenBackground>
+      <View style={[styles.container, { paddingTop: insets.top }]}>
       
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Radar</Text>
@@ -310,6 +311,7 @@ export default function RadarScreen({ navigation }: any) {
           }}
         />
       )}
+    </View>
     </ScreenBackground>
   );
 }

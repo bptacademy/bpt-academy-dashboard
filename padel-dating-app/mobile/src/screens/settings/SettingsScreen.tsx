@@ -69,7 +69,8 @@ export default function SettingsScreen({ navigation }: any) {
   );
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <ScreenBackground>
+      <View style={[styles.container, { paddingTop: insets.top }]}>
       
 
       <View style={styles.header}>
@@ -112,6 +113,7 @@ export default function SettingsScreen({ navigation }: any) {
 
         <View style={{ height: 24 }} />
       </ScrollView>
+    </View>
     </ScreenBackground>
   );
 }

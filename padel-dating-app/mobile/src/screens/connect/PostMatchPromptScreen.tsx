@@ -205,7 +205,8 @@ export default function PostMatchPromptScreen({ navigation }: any) {
 
   if (loading) {
     return (
-      <View style={[styles.container, styles.centered, { paddingTop: insets.top }]}>
+      <ScreenBackground>
+        <View style={[styles.container, styles.centered, { paddingTop: insets.top }]}>
         
         <ActivityIndicator size="large" color={theme.primary} />
         <Text style={styles.loadingText}>Checking recent matches…</Text>
@@ -277,6 +278,7 @@ export default function PostMatchPromptScreen({ navigation }: any) {
           <Text style={styles.skipText}>Skip for now</Text>
         </TouchableOpacity>
       </View>
+    </View>
     </ScreenBackground>
   );
 }
