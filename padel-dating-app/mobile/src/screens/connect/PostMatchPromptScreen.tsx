@@ -207,30 +207,32 @@ export default function PostMatchPromptScreen({ navigation }: any) {
     return (
       <ScreenBackground>
         <View style={[styles.container, styles.centered, { paddingTop: insets.top }]}>
-        
-        <ActivityIndicator size="large" color={theme.primary} />
-        <Text style={styles.loadingText}>Checking recent matches…</Text>
-      </View>
+          <ActivityIndicator size="large" color={theme.primary} />
+          <Text style={styles.loadingText}>Checking recent matches…</Text>
+        </View>
+      </ScreenBackground>
     );
   }
 
   if (matchGroups.length === 0) {
     return (
-      <View style={[styles.container, styles.centered, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
-        
-        <Text style={styles.emptyEmoji}>🎾</Text>
-        <Text style={styles.emptyTitle}>No recent matches to review</Text>
-        <Text style={styles.emptyBody}>
-          Check back after your next match at the club.
-        </Text>
-        <TouchableOpacity style={styles.doneBtn} onPress={handleDone}>
-          <Text style={styles.doneBtnText}>Done</Text>
-        </TouchableOpacity>
-      </View>
+      <ScreenBackground>
+        <View style={[styles.container, styles.centered, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
+          <Text style={styles.emptyEmoji}>🎾</Text>
+          <Text style={styles.emptyTitle}>No recent matches to review</Text>
+          <Text style={styles.emptyBody}>
+            Check back after your next match at the club.
+          </Text>
+          <TouchableOpacity style={styles.doneBtn} onPress={handleDone}>
+            <Text style={styles.doneBtnText}>Done</Text>
+          </TouchableOpacity>
+        </View>
+      </ScreenBackground>
     );
   }
 
   return (
+    <ScreenBackground>
     <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
       
 

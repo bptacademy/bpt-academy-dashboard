@@ -95,8 +95,9 @@ export default function ConversationScreen({ route, navigation }: any) {
   };
 
   return (
+    <ScreenBackground>
     <KeyboardAvoidingView
-      style={{ flex: 1 }}
+      style={{ flex: 1, backgroundColor: 'transparent' }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={0}
     >
@@ -206,8 +207,8 @@ export default function ConversationScreen({ route, navigation }: any) {
           </>
         )}
       </View>
-      </ScreenBackground>
     </KeyboardAvoidingView>
+    </ScreenBackground>
   );
 }
 
