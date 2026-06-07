@@ -1,9 +1,9 @@
 export const theme = {
   // Backgrounds
-  bg: '#0D1B2A',
-  bgCard: '#111E2E',
-  bgDeep: '#0A1520',
-  bgHover: '#172435',
+  bg: 'transparent',
+  bgCard: 'rgba(15, 10, 35, 0.82)',
+  bgDeep: 'rgba(4, 2, 14, 0.92)',
+  bgHover: 'rgba(25, 15, 55, 0.85)',
 
   // Borders
   border: '#1A2C42',
@@ -11,9 +11,9 @@ export const theme = {
 
   // Text
   textPrimary: '#FFFFFF',
-  textSecondary: '#7A9CC0',
-  textMuted: '#4A6080',
-  textDim: '#2A3C52',
+  textSecondary: '#E8E8F0',
+  textMuted: '#A0A0B8',
+  textDim: '#606080',
 
   // Primary — Rally Teal (sport, action, play)
   primary: '#0ACCB5',
