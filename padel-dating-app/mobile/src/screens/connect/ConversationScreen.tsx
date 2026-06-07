@@ -260,7 +260,7 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: theme.border,
   },
   bubbleText: { fontSize: 15, lineHeight: 22, fontFamily: fonts.bodyLight },
-  bubbleTextMe: { color: theme.bg },
+  bubbleTextMe: { color: '#05020E' },
   bubbleTextThem: { color: theme.textPrimary },
   bubbleTime: { fontSize: 10, marginTop: 4, fontFamily: fonts.bodyLight },
   bubbleTimeMe: { color: 'rgba(13,27,42,0.6)', textAlign: 'right' },
@@ -299,5 +299,5 @@ const styles = StyleSheet.create({
     backgroundColor: theme.primary, alignItems: 'center', justifyContent: 'center',
   },
   sendBtnDisabled: { opacity: 0.35 },
-  sendBtnText: { fontSize: 20, color: theme.bg, fontFamily: fonts.headlineBold },
+  sendBtnText: { fontSize: 20, color: '#05020E', fontFamily: fonts.headlineBold },
 });

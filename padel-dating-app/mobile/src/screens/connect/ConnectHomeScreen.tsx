@@ -366,5 +366,5 @@ const styles = StyleSheet.create({
     marginTop: 8, backgroundColor: theme.primary,
     borderRadius: 14, paddingHorizontal: 32, paddingVertical: 14,
   },
-  lockedBtnText: { color: theme.bg, fontSize: 16, fontFamily: fonts.headlineBold },
+  lockedBtnText: { color: '#05020E', fontSize: 16, fontFamily: fonts.headlineBold },
 });

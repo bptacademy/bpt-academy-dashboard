@@ -438,7 +438,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.primary, borderRadius: 14,
     paddingVertical: 16, alignItems: 'center',
   },
-  manualPrimaryBtnText: { color: theme.bg, fontSize: 15, fontFamily: fonts.headlineBold },
+  manualPrimaryBtnText: { color: '#05020E', fontSize: 15, fontFamily: fonts.headlineBold },
   manualSecondaryBtn: { alignItems: 'center', paddingVertical: 8 },
   manualSecondaryBtnText: { color: theme.textMuted, fontSize: 14, fontFamily: fonts.bodyLight },
 });

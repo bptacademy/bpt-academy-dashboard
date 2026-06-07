@@ -367,6 +367,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3, shadowRadius: 10, elevation: 5,
   },
   doneBtnDisabled: { opacity: 0.4 },
-  doneBtnText: { color: theme.bg, fontSize: 17, fontFamily: fonts.headlineBold },
+  doneBtnText: { color: '#05020E', fontSize: 17, fontFamily: fonts.headlineBold },
   skipText: { color: theme.textMuted, fontSize: 14, textAlign: 'center', paddingVertical: 4, fontFamily: fonts.bodyLight },
 });

@@ -1,9 +1,9 @@
 export const theme = {
   // Backgrounds
   bg: 'transparent',
-  bgCard: 'rgba(15, 10, 35, 0.82)',
-  bgDeep: 'rgba(4, 2, 14, 0.92)',
-  bgHover: 'rgba(25, 15, 55, 0.85)',
+  bgCard: 'rgba(255, 255, 255, 0.07)',
+  bgDeep: 'rgba(0, 0, 0, 0.35)',
+  bgHover: 'rgba(255, 255, 255, 0.10)',
 
   // Borders
   border: '#1A2C42',

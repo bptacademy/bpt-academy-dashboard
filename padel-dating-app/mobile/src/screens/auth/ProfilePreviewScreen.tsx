@@ -236,6 +236,6 @@ const styles = StyleSheet.create({
     shadowColor: theme.primary, shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3, shadowRadius: 10, elevation: 5,
   },
-  confirmBtnText: { color: theme.bg, fontSize: 17, fontFamily: fonts.headlineBold },
+  confirmBtnText: { color: '#05020E', fontSize: 17, fontFamily: fonts.headlineBold },
   wrongLink: { color: theme.textMuted, fontSize: 14, textAlign: 'center', paddingVertical: 8, fontFamily: fonts.bodyLight },
 });

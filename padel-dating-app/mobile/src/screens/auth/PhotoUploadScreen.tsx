@@ -168,7 +168,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.primary, borderRadius: 6,
     paddingHorizontal: 8, paddingVertical: 3,
   },
-  mainBadgeText: { color: theme.bg, fontSize: 10, fontFamily: fonts.headlineBold },
+  mainBadgeText: { color: '#05020E', fontSize: 10, fontFamily: fonts.headlineBold },
   removeBtn: {
     position: 'absolute', top: 8, right: 8,
     width: 28, height: 28, borderRadius: 14,

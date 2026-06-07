@@ -127,5 +127,5 @@ const styles = StyleSheet.create({
     paddingVertical: 17, alignItems: 'center', marginTop: 'auto',
   },
   btnDisabled: { opacity: 0.35 },
-  btnText: { color: theme.bg, fontSize: 16, fontFamily: fonts.headlineBold },
+  btnText: { color: '#05020E', fontSize: 16, fontFamily: fonts.headlineBold },
 });

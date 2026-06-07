@@ -143,5 +143,5 @@ const styles = StyleSheet.create({
     backgroundColor: theme.primary, alignItems: 'center', justifyContent: 'center',
     paddingHorizontal: 5,
   },
-  unreadCount: { fontSize: 11, fontFamily: fonts.headlineLightIt, color: theme.bg },
+  unreadCount: { fontSize: 11, fontFamily: fonts.headlineLightIt, color: '#05020E' },
 });

@@ -308,7 +308,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12, alignItems: 'center',
   },
   syncBtnDisabled:        { opacity: 0.6 },
-  syncBtnText:            { color: theme.bg, fontSize: 14, fontFamily: fonts.bodyBold },
+  syncBtnText:            { color: '#05020E', fontSize: 14, fontFamily: fonts.bodyBold },
   disconnectBtn:          {
     paddingHorizontal: 16, paddingVertical: 12, borderRadius: 12,
     backgroundColor: theme.bgDeep, borderWidth: 1, borderColor: theme.border,

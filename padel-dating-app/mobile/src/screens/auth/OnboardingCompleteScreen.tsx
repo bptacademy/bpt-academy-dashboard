@@ -75,5 +75,5 @@ const styles = StyleSheet.create({
     shadowColor: theme.primary, shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.4, shadowRadius: 14, elevation: 8,
   },
-  btnText: { color: theme.bg, fontSize: 18, fontFamily: fonts.headlineBold, letterSpacing: 0.3 },
+  btnText: { color: '#05020E', fontSize: 18, fontFamily: fonts.headlineBold, letterSpacing: 0.3 },
 });

@@ -438,7 +438,7 @@ const styles = StyleSheet.create({
     position: 'absolute', bottom: 6, left: 6,
     backgroundColor: theme.primary, borderRadius: 6, paddingHorizontal: 7, paddingVertical: 2,
   },
-  mainBadgeText: { color: theme.bg, fontSize: 10, fontFamily: fonts.headlineBold },
+  mainBadgeText: { color: '#05020E', fontSize: 10, fontFamily: fonts.headlineBold },
   addSlot: {
     backgroundColor: theme.bgCard, borderWidth: 1.5, borderColor: theme.border,
     borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center', gap: 4,

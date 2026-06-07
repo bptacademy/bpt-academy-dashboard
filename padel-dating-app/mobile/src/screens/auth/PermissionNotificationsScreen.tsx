@@ -119,7 +119,7 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   btnPrimaryText: {
-    color: theme.bg,
+    color: '#05020E',
     fontSize: 17,
     fontFamily: fonts.headlineBold,
   },

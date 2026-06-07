@@ -416,7 +416,7 @@ const styles = StyleSheet.create({
   },
   btnDisabled: { opacity: 0.4 },
   btnText: {
-    color: theme.bg,
+    color: '#05020E',
     fontSize: 17,
     fontFamily: fonts.headlineBold,
   },

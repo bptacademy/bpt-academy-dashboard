@@ -151,6 +151,6 @@ const styles = StyleSheet.create({
     shadowColor: theme.primary, shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4, shadowRadius: 14, elevation: 6,
   },
-  serveBtnText: { color: theme.bg, fontSize: 17, fontFamily: fonts.headlineBold },
+  serveBtnText: { color: '#05020E', fontSize: 17, fontFamily: fonts.headlineBold },
   laterText: { color: theme.textMuted, fontSize: 14, textAlign: 'center', paddingVertical: 8, fontFamily: fonts.bodyLight },
 });
