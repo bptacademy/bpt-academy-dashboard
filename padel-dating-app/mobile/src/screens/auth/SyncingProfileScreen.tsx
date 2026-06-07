@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Animated, StatusBar, Alert, TouchableOpacity } 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme, fonts } from '../../lib/theme';
 import { connectPlatform, connectPlatformWithUserId, syncPlatform } from '../../lib/platformSync';
+import { ScreenBackground } from '../../components/ScreenBackground';
 
 const STEPS = [
   'Connecting to Playtomic…',
@@ -86,8 +87,9 @@ export default function SyncingProfileScreen({ route, navigation }: any) {
   const spin = spinAnim.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] });
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
-      <StatusBar barStyle="light-content" backgroundColor={theme.bg} />
+    <ScreenBackground>
+      <View style={[styles.container, { paddingTop: insets.top }]}>
+      
       <View style={styles.center}>
         <Animated.Text style={[styles.spinner, { transform: [{ rotate: spin }] }]}>
           🎾
@@ -115,11 +117,12 @@ export default function SyncingProfileScreen({ route, navigation }: any) {
         Building your profile from your real match history.{'\n'}No questionnaires. No guessing.
       </Text>
     </View>
+    </ScreenBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: theme.bg, paddingHorizontal: 32 },
+  container: { flex: 1, backgroundColor: 'transparent', paddingHorizontal: 32 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 16 },
   spinner: { fontSize: 56, marginBottom: 16 },
   title: { fontSize: 26, fontFamily: fonts.headlineBold, color: theme.textPrimary },

@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, StatusBar } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import OnboardingProgress from '../../components/common/OnboardingProgress';
+import { ScreenBackground } from '../../components/ScreenBackground';
 
 const OPTIONS = [
   { id: 'date',      emoji: '💘', label: 'A date',           desc: 'Looking for romance through padel' },
@@ -22,7 +23,8 @@ export default function Question2IntentScreen({ route, navigation }: any) {
   };
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
+    <ScreenBackground>
+      <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
       <StatusBar barStyle="light-content" backgroundColor="#0D1B2A" />
 
       <View style={styles.inner}>
@@ -64,11 +66,12 @@ export default function Question2IntentScreen({ route, navigation }: any) {
         </TouchableOpacity>
       </View>
     </View>
+    </ScreenBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: theme.bg, paddingHorizontal: 24 },
+  container: { flex: 1, backgroundColor: 'transparent', paddingHorizontal: 24 },
   inner: { flex: 1, paddingTop: 24 },
   question: { fontSize: 26, fontFamily: fonts.headlineBold, color: theme.textPrimary, marginBottom: 8 },
   subtitle: { fontSize: 16.1, color: theme.textMuted, marginBottom: 28, lineHeight: 22, fontFamily: fonts.bodyLight },

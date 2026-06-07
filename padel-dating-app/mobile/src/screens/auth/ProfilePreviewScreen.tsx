@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme, fonts } from '../../lib/theme';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
+import { ScreenBackground } from '../../components/ScreenBackground';
 
 export default function ProfilePreviewScreen({ route, navigation }: any) {
   const { syncResult } = route.params ?? {};
@@ -65,7 +66,8 @@ export default function ProfilePreviewScreen({ route, navigation }: any) {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
+      <ScreenBackground>
+        <View style={styles.loadingContainer}>
         <ActivityIndicator color={theme.primary} size="large" />
         <Text style={styles.loadingText}>Loading your profile…</Text>
       </View>
@@ -74,7 +76,7 @@ export default function ProfilePreviewScreen({ route, navigation }: any) {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
-      <StatusBar barStyle="light-content" backgroundColor={theme.bg} />
+      
 
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
@@ -171,6 +173,7 @@ export default function ProfilePreviewScreen({ route, navigation }: any) {
         </TouchableOpacity>
       </View>
     </View>
+    </ScreenBackground>
   );
 }
 
@@ -180,7 +183,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center', alignItems: 'center', gap: 16,
   },
   loadingText: { fontSize: 16.1, color: theme.textMuted, fontFamily: fonts.bodyLight },
-  container: { flex: 1, backgroundColor: theme.bg, paddingHorizontal: 24 },
+  container: { flex: 1, backgroundColor: 'transparent', paddingHorizontal: 24 },
   header: { paddingTop: 24, marginBottom: 24 },
   title: { fontSize: 28, fontFamily: fonts.headlineBold, color: theme.textPrimary, marginBottom: 8 },
   subtitle: { fontSize: 16.1, color: theme.textMuted, lineHeight: 22, fontFamily: fonts.bodyLight },

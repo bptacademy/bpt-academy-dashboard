@@ -5,6 +5,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme, fonts } from '../../lib/theme';
 import OnboardingProgress from '../../components/common/OnboardingProgress';
+import { ScreenBackground } from '../../components/ScreenBackground';
 
 const STYLES = [
   {
@@ -47,8 +48,9 @@ export default function Question6PlayStyleScreen({ route, navigation }: any) {
   };
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
-      <StatusBar barStyle="light-content" backgroundColor={theme.bg} />
+    <ScreenBackground>
+      <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
+      
       <View style={styles.inner}>
         <OnboardingProgress total={9} current={8} />
 
@@ -92,11 +94,12 @@ export default function Question6PlayStyleScreen({ route, navigation }: any) {
         </TouchableOpacity>
       </View>
     </View>
+    </ScreenBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: theme.bg },
+  container: { flex: 1, backgroundColor: 'transparent' },
   inner: { flex: 1, paddingHorizontal: 24, paddingBottom: 32 },
   title: {
     fontSize: 26, fontFamily: fonts.headlineBold,

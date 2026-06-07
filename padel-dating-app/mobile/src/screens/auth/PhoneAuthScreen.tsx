@@ -17,6 +17,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme, fonts } from '../../lib/theme';
 import { supabase } from '../../lib/supabase';
+import { ScreenBackground } from '../../components/ScreenBackground';
 
 // ─── Country data ────────────────────────────────────────────────────────────
 
@@ -102,11 +103,11 @@ export default function PhoneAuthScreen({ navigation, route }: any) {
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: theme.bg }}
+      style={{ flex: 1, backgroundColor: 'transparent' }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
-        <StatusBar barStyle="light-content" backgroundColor={theme.bg} />
+        
 
         {/* Back button */}
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
@@ -175,6 +176,7 @@ export default function PhoneAuthScreen({ navigation, route }: any) {
           </Text>
         </View>
       </View>
+    </ScreenBackground>
 
       {/* Country picker modal */}
       <Modal
@@ -224,7 +226,7 @@ export default function PhoneAuthScreen({ navigation, route }: any) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.bg,
+    backgroundColor: 'transparent',
     paddingHorizontal: 24,
   },
   backBtn: {

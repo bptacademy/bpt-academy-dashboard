@@ -5,6 +5,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme, fonts } from '../../lib/theme';
 import OnboardingProgress from '../../components/common/OnboardingProgress';
+import { ScreenBackground } from '../../components/ScreenBackground';
 
 const LEVELS = [
   { value: 1.5, label: 'Just starting out',    sublabel: 'Still learning the basics',              emoji: '🌱' },
@@ -31,8 +32,9 @@ export default function Question5LevelScreen({ route, navigation }: any) {
   };
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
-      <StatusBar barStyle="light-content" backgroundColor={theme.bg} />
+    <ScreenBackground>
+      <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
+      
       <ScrollView
         contentContainerStyle={styles.inner}
         showsVerticalScrollIndicator={false}
@@ -80,11 +82,12 @@ export default function Question5LevelScreen({ route, navigation }: any) {
         </TouchableOpacity>
       </ScrollView>
     </View>
+    </ScreenBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: theme.bg },
+  container: { flex: 1, backgroundColor: 'transparent' },
   inner: { paddingHorizontal: 24, paddingBottom: 32 },
   title: {
     fontSize: 26, fontFamily: fonts.headlineBold,

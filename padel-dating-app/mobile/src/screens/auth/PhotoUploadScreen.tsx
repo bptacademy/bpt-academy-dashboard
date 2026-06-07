@@ -9,6 +9,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { uploadPhotos } from '../../lib/uploadPhoto';
+import { ScreenBackground } from '../../components/ScreenBackground';
 
 const MAX_PHOTOS = 3;
 
@@ -92,7 +93,8 @@ export default function PhotoUploadScreen({ route, navigation }: any) {
   };
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
+    <ScreenBackground>
+      <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
       <StatusBar barStyle="light-content" backgroundColor="#0D1B2A" />
 
       <ScrollView showsVerticalScrollIndicator={false}>
@@ -152,11 +154,12 @@ export default function PhotoUploadScreen({ route, navigation }: any) {
         </TouchableOpacity>
       </View>
     </View>
+    </ScreenBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: theme.bg, paddingHorizontal: 24 },
+  container: { flex: 1, backgroundColor: 'transparent', paddingHorizontal: 24 },
   header: { paddingTop: 24, marginBottom: 28 },
   title: { fontSize: 28, fontFamily: fonts.headlineBold, color: theme.textPrimary, marginBottom: 8 },
   subtitle: { fontSize: 16.1, color: theme.textMuted, lineHeight: 22, fontFamily: fonts.bodyLight },

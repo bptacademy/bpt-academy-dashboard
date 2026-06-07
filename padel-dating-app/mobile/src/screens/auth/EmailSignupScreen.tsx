@@ -8,6 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme, fonts } from '../../lib/theme';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
+import { ScreenBackground } from '../../components/ScreenBackground';
 
 async function ensureUsersRow(userId: string, email: string, firstName: string, lastName: string) {
   const fullName = [firstName.trim(), lastName.trim()].filter(Boolean).join(' ');
@@ -152,9 +153,9 @@ export default function EmailSignupScreen({ navigation, route }: any) {
   // ─── Render ────────────────────────────────────────────────────────────────
 
   return (
-    <KeyboardAvoidingView style={{ flex: 1, backgroundColor: theme.bg }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <KeyboardAvoidingView style={{ flex: 1, backgroundColor: 'transparent' }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
-        <StatusBar barStyle="light-content" backgroundColor={theme.bg} />
+        
 
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
           <Text style={styles.backText}>← Back</Text>
@@ -304,6 +305,7 @@ export default function EmailSignupScreen({ navigation, route }: any) {
           </TouchableOpacity>
         </View>
       </View>
+    </ScreenBackground>
     </KeyboardAvoidingView>
   );
 }
@@ -311,7 +313,7 @@ export default function EmailSignupScreen({ navigation, route }: any) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.bg,
+    backgroundColor: 'transparent',
     paddingHorizontal: 24,
   },
   backBtn: { paddingVertical: 16 },

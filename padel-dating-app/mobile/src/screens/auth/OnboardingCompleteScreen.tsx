@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, StatusBar, Animated } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme, fonts } from '../../lib/theme';
+import { ScreenBackground } from '../../components/ScreenBackground';
 
 const HIGHLIGHTS = [
   { icon: '💘', text: "Discover players you've shared a court with", color: '#A78BFA' },
@@ -22,8 +23,9 @@ export default function OnboardingCompleteScreen({ navigation }: any) {
   }, []);
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
-      <StatusBar barStyle="light-content" backgroundColor={theme.bg} />
+    <ScreenBackground>
+      <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
+      
       <View style={styles.center}>
         <Animated.View style={[styles.emojiContainer, { transform: [{ scale: scaleAnim }] }]}>
           <Text style={styles.emoji}>🎾</Text>
@@ -47,11 +49,12 @@ export default function OnboardingCompleteScreen({ navigation }: any) {
         </TouchableOpacity>
       </Animated.View>
     </View>
+    </ScreenBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: theme.bg, paddingHorizontal: 28 },
+  container: { flex: 1, backgroundColor: 'transparent', paddingHorizontal: 28 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   emojiContainer: {
     width: 100, height: 100, borderRadius: 30,

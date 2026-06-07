@@ -19,6 +19,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme, fonts } from '../../lib/theme';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
+import { ScreenBackground } from '../../components/ScreenBackground';
 
 const CODE_LENGTH = 6;
 const RESEND_SECONDS = 30;
@@ -163,11 +164,11 @@ export default function OTPVerificationScreen({ navigation, route }: any) {
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: theme.bg }}
+      style={{ flex: 1, backgroundColor: 'transparent' }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
-        <StatusBar barStyle="light-content" backgroundColor={theme.bg} />
+        
 
         {/* Back button */}
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
@@ -237,6 +238,7 @@ export default function OTPVerificationScreen({ navigation, route }: any) {
           </TouchableOpacity>
         </View>
       </View>
+    </ScreenBackground>
     </KeyboardAvoidingView>
   );
 }
@@ -246,7 +248,7 @@ export default function OTPVerificationScreen({ navigation, route }: any) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.bg,
+    backgroundColor: 'transparent',
     paddingHorizontal: 24,
   },
   backBtn: {

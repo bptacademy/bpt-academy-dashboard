@@ -6,6 +6,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme, fonts } from '../../lib/theme';
 import OnboardingProgress from '../../components/common/OnboardingProgress';
+import { ScreenBackground } from '../../components/ScreenBackground';
 
 const EXAMPLES = [
   '"Post-match coffee is non-negotiable."',
@@ -68,12 +69,13 @@ export default function Question4BioScreen({ route, navigation }: any) {
           </TouchableOpacity>
         </View>
       </View>
+    </ScreenBackground>
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: theme.bg, paddingHorizontal: 24 },
+  container: { flex: 1, backgroundColor: 'transparent', paddingHorizontal: 24 },
   inner: { flex: 1, paddingTop: 24 },
   question: { fontSize: 26, fontFamily: fonts.headlineBold, color: theme.textPrimary, marginBottom: 8 },
   subtitle: { fontSize: 16.1, color: theme.textMuted, marginBottom: 24, lineHeight: 22, fontFamily: fonts.bodyLight },

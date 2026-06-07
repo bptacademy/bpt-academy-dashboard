@@ -6,6 +6,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme, fonts } from '../../lib/theme';
 import OnboardingProgress from '../../components/common/OnboardingProgress';
+import { ScreenBackground } from '../../components/ScreenBackground';
 
 export default function Question0NameScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
@@ -24,11 +25,11 @@ export default function Question0NameScreen({ navigation }: any) {
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: theme.bg }}
+      style={{ flex: 1, backgroundColor: 'transparent' }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
-        <StatusBar barStyle="light-content" backgroundColor={theme.bg} />
+        
 
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
           <Text style={styles.backBtnText}>←</Text>
@@ -79,12 +80,13 @@ export default function Question0NameScreen({ navigation }: any) {
           </TouchableOpacity>
         </View>
       </View>
+    </ScreenBackground>
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: theme.bg, paddingHorizontal: 24 },
+  container: { flex: 1, backgroundColor: 'transparent', paddingHorizontal: 24 },
   backBtn: {
     marginTop: 8, marginBottom: 4,
     width: 38, height: 38, borderRadius: 19,
