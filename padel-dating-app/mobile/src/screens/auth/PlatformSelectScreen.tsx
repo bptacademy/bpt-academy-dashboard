@@ -144,11 +144,11 @@ export default function PlatformSelectScreen({ navigation, route }: any) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: theme.bg, paddingHorizontal: 24 },
   backBtn: { paddingVertical: 16 },
-  backText: { color: theme.textSecondary, fontSize: 16, fontFamily: fonts.bodyLight },
+  backText: { color: theme.textSecondary, fontSize: 17.1, fontFamily: fonts.bodyLight },
   header: { marginBottom: 32 },
   headerNoBack: { paddingTop: 24 },
   title: { fontSize: 28, fontFamily: fonts.headlineBold, color: theme.textPrimary, marginBottom: 10 },
-  subtitle: { fontSize: 15, color: theme.textMuted, lineHeight: 22, fontFamily: fonts.bodyLight },
+  subtitle: { fontSize: 16.1, color: theme.textMuted, lineHeight: 22, fontFamily: fonts.bodyLight },
   list: { gap: 12 },
   platformCard: {
     flexDirection: 'row', alignItems: 'center', gap: 16,
@@ -166,15 +166,15 @@ const styles = StyleSheet.create({
   },
   platformEmoji: { fontSize: 24 },
   platformInfo: { flex: 1 },
-  platformLabel: { fontSize: 17, fontFamily: fonts.bodyBold, color: theme.textPrimary, marginBottom: 3 },
+  platformLabel: { fontSize: 18.2, fontFamily: fonts.bodyBold, color: theme.textPrimary, marginBottom: 3 },
   platformLabelDisabled: { color: theme.textMuted },
-  platformDesc: { fontSize: 13, color: theme.textMuted, fontFamily: fonts.bodyLight },
+  platformDesc: { fontSize: 13.9, color: theme.textMuted, fontFamily: fonts.bodyLight },
   arrow: { fontSize: 24, color: theme.primary },
   comingSoonBadge: {
     backgroundColor: theme.bgDeep, borderRadius: 8,
     paddingHorizontal: 10, paddingVertical: 4, borderWidth: 1, borderColor: theme.border,
   },
-  comingSoonText: { color: theme.textMuted, fontSize: 11, fontFamily: fonts.bodyBold },
+  comingSoonText: { color: theme.textMuted, fontSize: 11.8, fontFamily: fonts.bodyBold },
   skipBtn: { alignItems: 'center', paddingVertical: 20 },
-  skipText: { fontSize: 16, color: theme.textSecondary, fontFamily: fonts.bodyBold },
+  skipText: { fontSize: 17.1, color: theme.textSecondary, fontFamily: fonts.bodyBold },
 });

@@ -220,7 +220,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1, borderBottomColor: theme.bgCard,
   },
   backBtn: { padding: 4 },
-  backText: { fontSize: 22, color: theme.textSecondary, fontFamily: fonts.bodyLight },
+  backText: { fontSize: 23.5, color: theme.textSecondary, fontFamily: fonts.bodyLight },
   headerInfo: { flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 },
   headerAvatarWrapper: {
     width: 40, height: 40, borderRadius: 20,
@@ -229,11 +229,11 @@ const styles = StyleSheet.create({
   },
   headerAvatarImage: { width: 40, height: 40 },
   headerAvatarText: { fontSize: 16, fontFamily: fonts.headlineBold, color: theme.primary },
-  headerName: { fontSize: 16, fontFamily: fonts.bodyBold, color: theme.textPrimary },
-  headerSub: { fontSize: 12, color: theme.textMuted, fontFamily: fonts.bodyLight },
+  headerName: { fontSize: 17.1, fontFamily: fonts.bodyBold, color: theme.textPrimary },
+  headerSub: { fontSize: 12.8, color: theme.textMuted, fontFamily: fonts.bodyLight },
 
   loadingBox: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  errorText: { fontSize: 14, color: '#EF4444', fontFamily: fonts.bodyLight },
+  errorText: { fontSize: 15, color: '#EF4444', fontFamily: fonts.bodyLight },
 
   messageList: { paddingHorizontal: 16, paddingVertical: 16, gap: 10 },
 
@@ -241,8 +241,8 @@ const styles = StyleSheet.create({
     backgroundColor: theme.bgCard, borderRadius: 14, padding: 16,
     alignItems: 'center', marginBottom: 16, borderWidth: 1, borderColor: theme.border,
   },
-  systemMsgText: { fontSize: 15, fontFamily: fonts.bodyBold, color: theme.primary, marginBottom: 6 },
-  systemMsgSub: { fontSize: 13, color: theme.textMuted, textAlign: 'center', lineHeight: 20, fontFamily: fonts.bodyLight },
+  systemMsgText: { fontSize: 16.1, fontFamily: fonts.bodyBold, color: theme.primary, marginBottom: 6 },
+  systemMsgSub: { fontSize: 13.9, color: theme.textMuted, textAlign: 'center', lineHeight: 20, fontFamily: fonts.bodyLight },
 
   bubbleWrap: { marginVertical: 3 },
   bubbleWrapMe: { alignItems: 'flex-end' },
@@ -259,10 +259,10 @@ const styles = StyleSheet.create({
     backgroundColor: theme.bgCard, borderBottomLeftRadius: 4,
     borderWidth: 1, borderColor: theme.border,
   },
-  bubbleText: { fontSize: 15, lineHeight: 22, fontFamily: fonts.bodyLight },
+  bubbleText: { fontSize: 16.1, lineHeight: 22, fontFamily: fonts.bodyLight },
   bubbleTextMe: { color: '#05020E' },
   bubbleTextThem: { color: theme.textPrimary },
-  bubbleTime: { fontSize: 10, marginTop: 4, fontFamily: fonts.bodyLight },
+  bubbleTime: { fontSize: 10.7, marginTop: 4, fontFamily: fonts.bodyLight },
   bubbleTimeMe: { color: 'rgba(13,27,42,0.6)', textAlign: 'right' },
   bubbleTimeThem: { color: theme.textDim },
 
@@ -272,14 +272,14 @@ const styles = StyleSheet.create({
   },
 
   prompts: { paddingHorizontal: 16, paddingBottom: 10 },
-  promptsLabel: { fontSize: 12, color: theme.textMuted, marginBottom: 8, fontFamily: fonts.bodyLight },
+  promptsLabel: { fontSize: 12.8, color: theme.textMuted, marginBottom: 8, fontFamily: fonts.bodyLight },
   promptChips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   promptChip: {
     backgroundColor: theme.bgCard, borderRadius: 20,
     paddingHorizontal: 12, paddingVertical: 7,
     borderWidth: 1, borderColor: theme.border,
   },
-  promptChipText: { fontSize: 13, color: theme.textSecondary, fontFamily: fonts.bodyLight },
+  promptChipText: { fontSize: 13.9, color: theme.textSecondary, fontFamily: fonts.bodyLight },
 
   inputRow: {
     flexDirection: 'row', alignItems: 'flex-end', gap: 10,

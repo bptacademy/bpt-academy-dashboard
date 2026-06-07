@@ -71,7 +71,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: theme.bg, paddingHorizontal: 24 },
   inner: { flex: 1, paddingTop: 24 },
   question: { fontSize: 26, fontFamily: fonts.headlineBold, color: theme.textPrimary, marginBottom: 8 },
-  subtitle: { fontSize: 15, color: theme.textMuted, marginBottom: 28, lineHeight: 22, fontFamily: fonts.bodyLight },
+  subtitle: { fontSize: 16.1, color: theme.textMuted, marginBottom: 28, lineHeight: 22, fontFamily: fonts.bodyLight },
   optionsList: { gap: 10 },
   optionCard: {
     flexDirection: 'row', alignItems: 'center', gap: 14,
@@ -81,9 +81,9 @@ const styles = StyleSheet.create({
   optionCardActive: { borderColor: theme.primary, backgroundColor: 'rgba(230,63,107,0.06)' },
   optionEmoji: { fontSize: 26, width: 36, textAlign: 'center' },
   optionText: { flex: 1 },
-  optionLabel: { fontSize: 16, fontFamily: fonts.bodyBold, color: theme.textPrimary, marginBottom: 2 },
+  optionLabel: { fontSize: 17.1, fontFamily: fonts.bodyBold, color: theme.textPrimary, marginBottom: 2 },
   optionLabelActive: { color: theme.primary },
-  optionDesc: { fontSize: 13, color: theme.textMuted, fontFamily: fonts.bodyLight },
+  optionDesc: { fontSize: 13.9, color: theme.textMuted, fontFamily: fonts.bodyLight },
   radio: {
     width: 22, height: 22, borderRadius: 11,
     borderWidth: 2, borderColor: theme.textDim,

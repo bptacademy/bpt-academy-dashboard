@@ -76,7 +76,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: theme.bg, paddingHorizontal: 24 },
   inner: { flex: 1, paddingTop: 24 },
   question: { fontSize: 26, fontFamily: fonts.headlineBold, color: theme.textPrimary, marginBottom: 8 },
-  subtitle: { fontSize: 15, color: theme.textMuted, marginBottom: 24, lineHeight: 22, fontFamily: fonts.bodyLight },
+  subtitle: { fontSize: 16.1, color: theme.textMuted, marginBottom: 24, lineHeight: 22, fontFamily: fonts.bodyLight },
   inputWrapper: { position: 'relative', marginBottom: 28 },
   input: {
     backgroundColor: theme.bgCard, borderRadius: 14, padding: 16,
@@ -85,9 +85,9 @@ const styles = StyleSheet.create({
   },
   charCount: {
     position: 'absolute', bottom: 10, right: 14,
-    fontSize: 11, color: theme.textDim, fontFamily: fonts.bodyLight,
+    fontSize: 11.8, color: theme.textDim, fontFamily: fonts.bodyLight,
   },
-  examplesTitle: { fontSize: 13, fontFamily: fonts.bodyBold, color: theme.textMuted, marginBottom: 10 },
+  examplesTitle: { fontSize: 13.9, fontFamily: fonts.bodyBold, color: theme.textMuted, marginBottom: 10 },
   example: {
     fontSize: 13, color: theme.textSecondary, fontStyle: 'italic',
     marginBottom: 10, lineHeight: 20, fontFamily: fonts.bodyLight,
@@ -99,5 +99,5 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3, shadowRadius: 10, elevation: 5,
   },
   nextBtnText: { color: theme.textPrimary, fontSize: 17, fontFamily: fonts.headlineBold },
-  skipLink: { color: theme.textSecondary, fontSize: 15, textAlign: 'center', paddingVertical: 6, fontFamily: fonts.bodyBold },
+  skipLink: { color: theme.textSecondary, fontSize: 16.1, textAlign: 'center', paddingVertical: 6, fontFamily: fonts.bodyBold },
 });

@@ -91,10 +91,10 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.08)',
     alignItems: 'center', justifyContent: 'center',
   },
-  backBtnText: { color: theme.textPrimary, fontSize: 20, fontFamily: fonts.bodyBold },
+  backBtnText: { color: theme.textPrimary, fontSize: 21.4, fontFamily: fonts.bodyBold },
   inner: { flex: 1, paddingTop: 8 },
   question: { fontSize: 26, fontFamily: fonts.headlineBold, color: theme.textPrimary, marginBottom: 8 },
-  subtitle: { fontSize: 15, color: theme.textMuted, marginBottom: 28, lineHeight: 22, fontFamily: fonts.bodyLight },
+  subtitle: { fontSize: 16.1, color: theme.textMuted, marginBottom: 28, lineHeight: 22, fontFamily: fonts.bodyLight },
   nameRow: { flexDirection: 'row', gap: 12 },
   nameInputWrapper: { flex: 1 },
   nameInput: {

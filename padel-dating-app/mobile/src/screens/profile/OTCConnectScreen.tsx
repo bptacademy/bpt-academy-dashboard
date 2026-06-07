@@ -125,27 +125,27 @@ export default function OTCConnectScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'transparent', paddingHorizontal: 24 },
   backBtn:            { paddingVertical: 16 },
-  backText:           { color: theme.textSecondary, fontSize: 16, fontFamily: fonts.bodyLight },
+  backText:           { color: theme.textSecondary, fontSize: 17.1, fontFamily: fonts.bodyLight },
   header:             { marginBottom: 24 },
   platformBadge:      {
     alignSelf: 'flex-start', backgroundColor: 'rgba(0,212,200,0.1)',
     borderRadius: 10, paddingHorizontal: 12, paddingVertical: 6, marginBottom: 16,
   },
-  platformBadgeText:  { color: theme.primary, fontFamily: fonts.bodyBold, fontSize: 13 },
+  platformBadgeText:  { color: theme.primary, fontFamily: fonts.bodyBold, fontSize: 13.9 },
   title:              { fontSize: 28, fontFamily: fonts.headlineBold, color: theme.textPrimary, marginBottom: 10 },
-  subtitle:           { fontSize: 14, color: theme.textMuted, lineHeight: 22, fontFamily: fonts.bodyLight },
+  subtitle:           { fontSize: 15, color: theme.textMuted, lineHeight: 22, fontFamily: fonts.bodyLight },
   infoBox:            {
     backgroundColor: theme.bgCard, borderRadius: 16, padding: 20,
     borderWidth: 1.5, borderColor: theme.border, marginBottom: 16,
   },
-  infoTitle:          { fontSize: 15, fontFamily: fonts.bodyBold, color: theme.textPrimary, marginBottom: 12 },
+  infoTitle:          { fontSize: 16.1, fontFamily: fonts.bodyBold, color: theme.textPrimary, marginBottom: 12 },
   infoList:           { gap: 8 },
-  infoItem:           { fontSize: 14, color: theme.textMuted, fontFamily: fonts.bodyLight, lineHeight: 20 },
+  infoItem:           { fontSize: 15, color: theme.textMuted, fontFamily: fonts.bodyLight, lineHeight: 20 },
   noteBox:            {
     backgroundColor: 'rgba(0,212,200,0.05)', borderRadius: 14, padding: 16,
     borderWidth: 1, borderColor: theme.primaryBorder, marginBottom: 28,
   },
-  noteText:           { fontSize: 13, color: theme.textMuted, lineHeight: 20, fontFamily: fonts.bodyLight },
+  noteText:           { fontSize: 13.9, color: theme.textMuted, lineHeight: 20, fontFamily: fonts.bodyLight },
   connectBtn:         {
     backgroundColor: theme.primary, borderRadius: 16, paddingVertical: 20,
     alignItems: 'center',

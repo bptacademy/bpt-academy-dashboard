@@ -40,6 +40,9 @@ export const theme = {
   tabInactive: '#4A6080',
 };
 
+// ─── Font scale ───────────────────────────────────────────────────────────────
+export const fontScale = 1.07; // secondary font size multiplier
+
 // ─── Typography ───────────────────────────────────────────────────────────────
 // Adelphi  → headlines
 // Brinnan  → body text, labels, UI

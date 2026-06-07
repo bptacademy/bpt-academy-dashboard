@@ -315,7 +315,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
   },
   backBtn: { paddingVertical: 16 },
-  backText: { color: theme.textSecondary, fontSize: 16, fontFamily: fonts.bodyLight },
+  backText: { color: theme.textSecondary, fontSize: 17.1, fontFamily: fonts.bodyLight },
 
   scroll: { flex: 1 },
   scrollContent: { paddingTop: 8, paddingBottom: 24 },

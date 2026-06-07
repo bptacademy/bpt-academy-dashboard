@@ -291,15 +291,15 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'transparent', paddingHorizontal: 20 },
   centered: { alignItems: 'center', justifyContent: 'center' },
 
-  loadingText: { marginTop: 14, fontSize: 14, color: theme.textMuted, fontFamily: fonts.bodyLight },
+  loadingText: { marginTop: 14, fontSize: 15, color: theme.textMuted, fontFamily: fonts.bodyLight },
 
   emptyEmoji: { fontSize: 56, marginBottom: 16 },
   emptyTitle: { fontSize: 20, fontFamily: fonts.headlineBold, color: theme.textPrimary, marginBottom: 8 },
-  emptyBody: { fontSize: 14, color: theme.textMuted, textAlign: 'center', lineHeight: 22, paddingHorizontal: 24, marginBottom: 32, fontFamily: fonts.bodyLight },
+  emptyBody: { fontSize: 15, color: theme.textMuted, textAlign: 'center', lineHeight: 22, paddingHorizontal: 24, marginBottom: 32, fontFamily: fonts.bodyLight },
 
   header: { paddingTop: 24, paddingBottom: 16 },
   title: { fontSize: 22, fontFamily: fonts.headlineBold, color: theme.textPrimary, marginBottom: 6 },
-  subtitle: { fontSize: 15, color: theme.textMuted, fontFamily: fonts.bodyLight },
+  subtitle: { fontSize: 16.1, color: theme.textMuted, fontFamily: fonts.bodyLight },
 
   scroll: { gap: 4, paddingBottom: 20 },
 
@@ -307,8 +307,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     paddingVertical: 10, paddingHorizontal: 2,
   },
-  sectionTitle: { fontSize: 14, fontFamily: fonts.bodyBold, color: theme.textSecondary },
-  sectionDate: { fontSize: 12, color: theme.textMuted, fontFamily: fonts.bodyLight },
+  sectionTitle: { fontSize: 15, fontFamily: fonts.bodyBold, color: theme.textSecondary },
+  sectionDate: { fontSize: 12.8, color: theme.textMuted, fontFamily: fonts.bodyLight },
 
   card: {
     backgroundColor: theme.bgCard, borderRadius: 18, padding: 16,
@@ -322,7 +322,7 @@ const styles = StyleSheet.create({
   },
   avatarInitials: { fontSize: 18, fontFamily: fonts.headlineBold, color: theme.primary },
   cardInfo: { flex: 1 },
-  playerName: { fontSize: 17, fontFamily: fonts.bodyBold, color: theme.textPrimary, marginBottom: 6 },
+  playerName: { fontSize: 18.2, fontFamily: fonts.bodyBold, color: theme.textPrimary, marginBottom: 6 },
 
   badgeRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   levelBadge: {
@@ -336,17 +336,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8, paddingVertical: 2,
     borderWidth: 1, borderColor: theme.primaryBorder,
   },
-  volpairBadgeText: { fontSize: 11, fontFamily: fonts.bodyBold, color: theme.primary },
-  notOnVolpairText: { fontSize: 11, color: theme.textMuted, fontFamily: fonts.bodyLight },
+  volpairBadgeText: { fontSize: 11.8, fontFamily: fonts.bodyBold, color: theme.primary },
+  notOnVolpairText: { fontSize: 11.8, color: theme.textMuted, fontFamily: fonts.bodyLight },
 
   inviteBtn: {
     backgroundColor: theme.bgDeep, borderRadius: 10, padding: 10,
     alignItems: 'center', borderWidth: 1, borderColor: theme.border, marginBottom: 10,
   },
-  inviteBtnText: { fontSize: 13, fontFamily: fonts.bodyBold, color: theme.textSecondary },
+  inviteBtnText: { fontSize: 13.9, fontFamily: fonts.bodyBold, color: theme.textSecondary },
 
   alreadyActionedRow: { alignItems: 'center', paddingVertical: 10 },
-  alreadyActionedText: { fontSize: 13, color: theme.primary, fontFamily: fonts.bodyBold },
+  alreadyActionedText: { fontSize: 13.9, color: theme.primary, fontFamily: fonts.bodyBold },
 
   btnRow: { flexDirection: 'row', gap: 8 },
   responseBtn: {
@@ -357,7 +357,7 @@ const styles = StyleSheet.create({
   responseBtnYes: { backgroundColor: theme.primaryDim, borderColor: theme.primaryBorder },
   responseBtnMaybe: { backgroundColor: 'rgba(245,158,11,0.1)', borderColor: 'rgba(245,158,11,0.3)' },
   responseBtnNo: { backgroundColor: 'rgba(107,114,128,0.1)', borderColor: 'rgba(107,114,128,0.3)' },
-  responseBtnText: { fontSize: 12, fontFamily: fonts.bodyBold, color: theme.textMuted },
+  responseBtnText: { fontSize: 12.8, fontFamily: fonts.bodyBold, color: theme.textMuted },
   responseBtnTextSelected: { color: theme.textPrimary },
 
   bottom: { paddingBottom: 12, gap: 10 },
@@ -368,5 +368,5 @@ const styles = StyleSheet.create({
   },
   doneBtnDisabled: { opacity: 0.4 },
   doneBtnText: { color: '#05020E', fontSize: 17, fontFamily: fonts.headlineBold },
-  skipText: { color: theme.textMuted, fontSize: 14, textAlign: 'center', paddingVertical: 4, fontFamily: fonts.bodyLight },
+  skipText: { color: theme.textMuted, fontSize: 15, textAlign: 'center', paddingVertical: 4, fontFamily: fonts.bodyLight },
 });

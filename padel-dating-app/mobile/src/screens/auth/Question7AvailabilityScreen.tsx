@@ -222,7 +222,7 @@ const styles = StyleSheet.create({
     marginBottom: 24, fontFamily: fonts.bodyLight,
   },
   sectionLabel: {
-    fontSize: 13, fontFamily: fonts.bodyBold,
+    fontSize: 13.9, fontFamily: fonts.bodyBold,
     color: theme.textSecondary, marginBottom: 12,
     textTransform: 'uppercase', letterSpacing: 0.8,
   },
@@ -232,7 +232,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.bgCard, borderWidth: 1.5, borderColor: theme.border,
   },
   dayBtnActive: { backgroundColor: theme.primaryDim, borderColor: theme.primary },
-  dayText: { fontSize: 12, fontFamily: fonts.bodyBold, color: theme.textMuted },
+  dayText: { fontSize: 12.8, fontFamily: fonts.bodyBold, color: theme.textMuted },
   dayTextActive: { color: theme.primary },
   timeOptions: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 28 },
   timeOption: {
@@ -242,9 +242,9 @@ const styles = StyleSheet.create({
   },
   timeOptionActive: { backgroundColor: theme.primaryDim, borderColor: theme.primary },
   timeEmoji: { fontSize: 24, marginBottom: 2 },
-  timeLabel: { fontSize: 14, fontFamily: fonts.bodyBold, color: theme.textPrimary },
+  timeLabel: { fontSize: 15, fontFamily: fonts.bodyBold, color: theme.textPrimary },
   timeLabelActive: { color: theme.primary },
-  timeDesc: { fontSize: 11, color: theme.textMuted, fontFamily: fonts.bodyLight },
+  timeDesc: { fontSize: 11.8, color: theme.textMuted, fontFamily: fonts.bodyLight },
   timeDescActive: { color: 'rgba(0,212,200,0.7)' },
   btn: {
     backgroundColor: theme.primary, borderRadius: 16,

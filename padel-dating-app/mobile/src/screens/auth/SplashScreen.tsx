@@ -195,19 +195,6 @@ export default function SplashScreen({ onFinish }: Props) {
         <Image source={LOGO} style={styles.logo} resizeMode="contain" />
       </Animated.View>
 
-      {/* Wordmark */}
-      <Animated.Text
-        style={[
-          styles.wordmark,
-          {
-            opacity: wordmarkOpacity,
-            transform: [{ translateY: wordmarkY }],
-          },
-        ]}
-      >
-        volpair
-      </Animated.Text>
-
       {/* Tagline */}
       <Animated.Text
         style={[
@@ -282,7 +269,7 @@ const styles = StyleSheet.create({
     letterSpacing: 3,
     color: '#00D4C8',
     textAlign: 'center',
-    marginTop: 12,
+    marginTop: 4,
     opacity: 0.85,
   },
 });

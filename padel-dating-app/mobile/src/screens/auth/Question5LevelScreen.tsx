@@ -106,11 +106,11 @@ const styles = StyleSheet.create({
   optionEmoji: { fontSize: 22, width: 32, textAlign: 'center' },
   optionText: { flex: 1 },
   optionLabel: {
-    fontSize: 15, fontFamily: fonts.bodyBold, color: theme.textPrimary, marginBottom: 2,
+    fontSize: 16.1, fontFamily: fonts.bodyBold, color: theme.textPrimary, marginBottom: 2,
   },
   optionLabelActive: { color: theme.primary },
   optionSublabel: {
-    fontSize: 12, color: theme.textMuted, fontFamily: fonts.bodyLight,
+    fontSize: 12.8, color: theme.textMuted, fontFamily: fonts.bodyLight,
   },
   optionSublabelActive: { color: 'rgba(0,212,200,0.7)' },
   checkDot: {

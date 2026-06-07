@@ -200,10 +200,10 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.08)',
     alignItems: 'center', justifyContent: 'center',
   },
-  backBtnText: { color: theme.textPrimary, fontSize: 20, fontFamily: fonts.bodyBold },
+  backBtnText: { color: theme.textPrimary, fontSize: 21.4, fontFamily: fonts.bodyBold },
   inner: { flex: 1, paddingTop: 8 },
   question: { fontSize: 26, fontFamily: fonts.headlineBold, color: theme.textPrimary, marginBottom: 8 },
-  subtitle: { fontSize: 15, color: theme.textMuted, marginBottom: 32, lineHeight: 22, fontFamily: fonts.bodyLight },
+  subtitle: { fontSize: 16.1, color: theme.textMuted, marginBottom: 32, lineHeight: 22, fontFamily: fonts.bodyLight },
   selectorRow: { flexDirection: 'row', gap: 10 },
   selectorBtn: {
     flex: 1,
@@ -214,7 +214,7 @@ const styles = StyleSheet.create({
   },
   selectorBtnWide: { flex: 1.4 },
   selectorBtnFilled: { borderColor: theme.primary, backgroundColor: theme.primaryDim },
-  selectorText: { fontSize: 16, fontFamily: fonts.bodyBold, color: theme.textDim },
+  selectorText: { fontSize: 17.1, fontFamily: fonts.bodyBold, color: theme.textDim },
   selectorTextFilled: { color: theme.primary },
   ageWarning: {
     marginTop: 16, fontSize: 13, color: '#F87171',
@@ -245,7 +245,7 @@ const picker = StyleSheet.create({
     alignSelf: 'center', marginTop: 14, marginBottom: 6,
   },
   title: {
-    fontSize: 16, fontFamily: fonts.bodyBold, color: theme.textSecondary,
+    fontSize: 17.1, fontFamily: fonts.bodyBold, color: theme.textSecondary,
     textAlign: 'center', paddingVertical: 12,
     borderBottomWidth: 1, borderBottomColor: theme.border,
   },
@@ -256,7 +256,7 @@ const picker = StyleSheet.create({
     borderBottomWidth: 1, borderBottomColor: theme.border,
   },
   itemSelected: { backgroundColor: 'transparent' },
-  itemText: { fontSize: 17, color: theme.textPrimary, fontFamily: fonts.bodyLight },
+  itemText: { fontSize: 18.2, color: theme.textPrimary, fontFamily: fonts.bodyLight },
   itemTextSelected: { color: theme.primary, fontFamily: fonts.bodyBold },
   itemCheck: { fontSize: 16, color: theme.primary },
 });

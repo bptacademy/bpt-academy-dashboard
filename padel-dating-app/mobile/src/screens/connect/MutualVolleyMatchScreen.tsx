@@ -139,12 +139,12 @@ const styles = StyleSheet.create({
   },
   matchBadgeEmoji: { fontSize: 24 },
   title: { fontSize: 36, fontFamily: fonts.headlineBold, color: theme.textPrimary, marginBottom: 8, textAlign: 'center' },
-  subtitle: { fontSize: 16, color: theme.textSecondary, textAlign: 'center', lineHeight: 24, marginBottom: 20, fontFamily: fonts.bodyLight },
+  subtitle: { fontSize: 17.1, color: theme.textSecondary, textAlign: 'center', lineHeight: 24, marginBottom: 20, fontFamily: fonts.bodyLight },
   courtCard: {
     backgroundColor: theme.primaryDim, borderRadius: 16, paddingHorizontal: 28, paddingVertical: 14,
     borderWidth: 1.5, borderColor: theme.primaryBorder,
   },
-  courtText: { fontSize: 18, fontFamily: fonts.bodyBold, color: theme.primary },
+  courtText: { fontSize: 19.3, fontFamily: fonts.bodyBold, color: theme.primary },
   bottom: { paddingBottom: 12, gap: 12 },
   serveBtn: {
     backgroundColor: theme.primary, borderRadius: 16, padding: 18, alignItems: 'center',
@@ -152,5 +152,5 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.4, shadowRadius: 14, elevation: 6,
   },
   serveBtnText: { color: '#05020E', fontSize: 17, fontFamily: fonts.headlineBold },
-  laterText: { color: theme.textMuted, fontSize: 14, textAlign: 'center', paddingVertical: 8, fontFamily: fonts.bodyLight },
+  laterText: { color: theme.textMuted, fontSize: 15, textAlign: 'center', paddingVertical: 8, fontFamily: fonts.bodyLight },
 });

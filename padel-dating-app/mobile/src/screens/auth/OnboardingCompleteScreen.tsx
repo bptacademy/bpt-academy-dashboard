@@ -60,7 +60,7 @@ const styles = StyleSheet.create({
   },
   emoji: { fontSize: 52 },
   title: { fontSize: 44, fontFamily: fonts.headlineBold, color: theme.textPrimary, marginBottom: 8 },
-  subtitle: { fontSize: 18, color: theme.primary, marginBottom: 40, fontFamily: fonts.bodyBold },
+  subtitle: { fontSize: 19.3, color: theme.primary, marginBottom: 40, fontFamily: fonts.bodyBold },
   highlights: { gap: 12, width: '100%' },
   highlight: {
     flexDirection: 'row', alignItems: 'center', gap: 14,
@@ -68,7 +68,7 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: theme.border,
   },
   highlightIcon: { fontSize: 22 },
-  highlightText: { flex: 1, fontSize: 14, lineHeight: 20, fontFamily: fonts.bodyLight },
+  highlightText: { flex: 1, fontSize: 15, lineHeight: 20, fontFamily: fonts.bodyLight },
   bottom: { paddingBottom: 12 },
   btn: {
     backgroundColor: theme.primary, borderRadius: 16, padding: 20, alignItems: 'center',

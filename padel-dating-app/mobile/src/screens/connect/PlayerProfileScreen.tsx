@@ -727,7 +727,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10, paddingVertical: 8,
     alignItems: 'center', minWidth: 58,
   },
-  heroScoreLabel: { fontSize: 10, fontFamily: fonts.bodyBold, color: 'rgba(0,212,200,0.9)', marginBottom: 2 },
+  heroScoreLabel: { fontSize: 10.7, fontFamily: fonts.bodyBold, color: 'rgba(0,212,200,0.9)', marginBottom: 2 },
   heroScoreValue: { fontSize: 26, fontFamily: fonts.headlineLightIt, color: '#FFFFFF', lineHeight: 28 },
   heroNameRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 2 },
   heroName: { fontSize: 30, fontFamily: fonts.headlineBold, color: '#FFFFFF' },
@@ -737,8 +737,8 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: 'rgba(0,212,200,0.5)',
   },
   heroLevelText: { fontSize: 14, fontFamily: fonts.headlineLightIt, color: '#FFFFFF' },
-  heroLevelDesc: { fontSize: 13, color: 'rgba(255,255,255,0.6)', marginBottom: 4, fontFamily: fonts.bodyLight },
-  heroCity: { fontSize: 13, color: 'rgba(255,255,255,0.75)', marginBottom: 6, fontFamily: fonts.bodyLight },
+  heroLevelDesc: { fontSize: 13.9, color: 'rgba(255,255,255,0.6)', marginBottom: 4, fontFamily: fonts.bodyLight },
+  heroCity: { fontSize: 13.9, color: 'rgba(255,255,255,0.75)', marginBottom: 6, fontFamily: fonts.bodyLight },
   heroClubBadge: {
     alignSelf: 'flex-start',
     backgroundColor: 'rgba(0,212,200,0.15)', borderRadius: 20,
@@ -746,14 +746,14 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: 'rgba(0,212,200,0.3)',
     marginBottom: 6,
   },
-  heroClubText: { fontSize: 12, fontFamily: fonts.bodyBold, color: theme.primary },
+  heroClubText: { fontSize: 12.8, fontFamily: fonts.bodyBold, color: theme.primary },
   heroIntentBadge: {
     alignSelf: 'flex-start',
     backgroundColor: 'rgba(124,58,237,0.2)', borderRadius: 10,
     paddingHorizontal: 10, paddingVertical: 4,
     borderWidth: 1, borderColor: 'rgba(124,58,237,0.4)',
   },
-  heroIntentText: { fontSize: 12, color: '#C4B5FD', fontFamily: fonts.bodyBold },
+  heroIntentText: { fontSize: 12.8, color: '#C4B5FD', fontFamily: fonts.bodyBold },
   heroCtaSpacer: { height: 12 },
 
   // Floating top bar
@@ -767,13 +767,13 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.45)',
     alignItems: 'center', justifyContent: 'center',
   },
-  floatBtnText: { color: '#fff', fontSize: 18, fontFamily: fonts.bodyBold },
+  floatBtnText: { color: '#fff', fontSize: 19.3, fontFamily: fonts.bodyBold },
   demoPill: {
     backgroundColor: 'rgba(0,212,200,0.2)', borderRadius: 12,
     paddingHorizontal: 10, paddingVertical: 6,
     borderWidth: 1, borderColor: 'rgba(0,212,200,0.4)',
   },
-  demoPillText: { fontSize: 11, color: theme.primary, fontFamily: fonts.bodyBold },
+  demoPillText: { fontSize: 11.8, color: theme.primary, fontFamily: fonts.bodyBold },
 
   // Below hero
   belowHero: {
@@ -801,8 +801,8 @@ const styles = StyleSheet.create({
   },
   volpairCardLeft: { flex: 1 },
   volpairLabel: { fontSize: 15, fontFamily: fonts.headlineBold, color: '#FFFFFF', marginBottom: 2 },
-  volpairSub: { fontSize: 12, color: 'rgba(0,212,200,0.85)', fontFamily: fonts.bodyLight },
-  volpairTap: { fontSize: 11, color: 'rgba(0,212,200,0.65)', marginTop: 3, fontFamily: fonts.bodyLight },
+  volpairSub: { fontSize: 12.8, color: 'rgba(0,212,200,0.85)', fontFamily: fonts.bodyLight },
+  volpairTap: { fontSize: 11.8, color: 'rgba(0,212,200,0.65)', marginTop: 3, fontFamily: fonts.bodyLight },
   volpairValue: { fontSize: 44, fontFamily: fonts.headlineLightIt, color: '#FFFFFF' },
 
   // View full profile button
@@ -812,7 +812,7 @@ const styles = StyleSheet.create({
     borderRadius: 20, paddingHorizontal: 22, paddingVertical: 8,
     borderWidth: 1, borderColor: 'rgba(255,255,255,0.25)',
   },
-  viewProfileText: { fontSize: 13, color: 'rgba(255,255,255,0.8)', fontFamily: fonts.bodyBold },
+  viewProfileText: { fontSize: 13.9, color: 'rgba(255,255,255,0.8)', fontFamily: fonts.bodyBold },
 
   // CTA bar
   actionBar: {
@@ -824,14 +824,14 @@ const styles = StyleSheet.create({
   actionBtn: {
     flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
     gap: 6, paddingVertical: 9, borderRadius: 12,
-    backgroundColor: theme.bgDeep, borderWidth: 1, borderColor: theme.border,
+    backgroundColor: 'rgba(255,255,255,0.07)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)',
   },
   volleyBtn: { backgroundColor: theme.secondaryDim, borderColor: theme.secondaryBorder },
   actionBtnEmoji: { fontSize: 16 },
-  actionBtnText: { fontSize: 13, fontFamily: fonts.bodyBold, color: theme.textSecondary },
+  actionBtnText: { fontSize: 13.9, fontFamily: fonts.bodyBold, color: theme.textSecondary },
   volleyBtnText: { color: '#A78BFA' },
   actionedRow: { alignItems: 'center', paddingVertical: 12 },
-  actionedText: { fontSize: 15, color: theme.primary, fontFamily: fonts.bodyBold },
+  actionedText: { fontSize: 16.1, color: theme.primary, fontFamily: fonts.bodyBold },
 });
 
 // ─── Full profile sheet styles ─────────────────────────────────────────────────
@@ -854,18 +854,18 @@ const sheet = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.07)', borderRadius: 16, padding: 16,
     marginBottom: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)',
   },
-  sectionTitle: { fontSize: 14, fontFamily: fonts.bodyBold, color: theme.textSecondary, marginBottom: 12 },
+  sectionTitle: { fontSize: 15, fontFamily: fonts.bodyBold, color: theme.textSecondary, marginBottom: 12 },
 
-  bio: { fontSize: 15, color: theme.textSecondary, fontStyle: 'italic', lineHeight: 22, fontFamily: fonts.bodyLight },
+  bio: { fontSize: 16.1, color: theme.textSecondary, fontStyle: 'italic', lineHeight: 22, fontFamily: fonts.bodyLight },
 
   historyRow: { flexDirection: 'row', marginBottom: 12 },
   historyItem: { flex: 1, alignItems: 'center' },
   historyValue: { fontSize: 24, fontFamily: fonts.headlineLightIt, color: theme.textPrimary, marginBottom: 4 },
-  historyLabel: { fontSize: 12, color: theme.textMuted, fontFamily: fonts.bodyLight },
+  historyLabel: { fontSize: 12.8, color: theme.textMuted, fontFamily: fonts.bodyLight },
   historyDivider: { width: 1, backgroundColor: theme.border },
   lastPlayedRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   lastPlayedIcon: { fontSize: 14 },
-  lastPlayedText: { fontSize: 13, color: theme.textSecondary, fontFamily: fonts.bodyLight },
+  lastPlayedText: { fontSize: 13.9, color: theme.textSecondary, fontFamily: fonts.bodyLight },
 
   statsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 12 },
   statBox: {
@@ -873,20 +873,20 @@ const sheet = StyleSheet.create({
     borderWidth: 1, borderColor: theme.border,
   },
   statValue: { fontSize: 18, fontFamily: fonts.headlineLightIt, color: theme.textPrimary, marginBottom: 3 },
-  statLabel: { fontSize: 11, color: theme.textMuted, fontFamily: fonts.bodyLight },
+  statLabel: { fontSize: 11.8, color: theme.textMuted, fontFamily: fonts.bodyLight },
   explainerLink: { marginTop: 4 },
-  explainerLinkText: { fontSize: 12, color: theme.primary, fontFamily: fonts.bodyBold },
+  explainerLinkText: { fontSize: 12.8, color: theme.primary, fontFamily: fonts.bodyBold },
 
   clubRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 8 },
   clubDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: theme.primary },
-  clubName: { flex: 1, fontSize: 14, color: theme.textPrimary, fontFamily: fonts.bodyLight },
-  clubCount: { fontSize: 12, color: theme.textMuted, fontFamily: fonts.bodyLight },
+  clubName: { flex: 1, fontSize: 15, color: theme.textPrimary, fontFamily: fonts.bodyLight },
+  clubCount: { fontSize: 12.8, color: theme.textMuted, fontFamily: fonts.bodyLight },
 
   scoreBreakdownBtn: {
     backgroundColor: theme.primaryDim, borderRadius: 14, padding: 14,
     alignItems: 'center', borderWidth: 1, borderColor: theme.primaryBorder, marginBottom: 8,
   },
-  scoreBreakdownText: { fontSize: 14, color: theme.primary, fontFamily: fonts.bodyBold },
+  scoreBreakdownText: { fontSize: 15, color: theme.primary, fontFamily: fonts.bodyBold },
 });
 
 // ─── Lightbox styles ──────────────────────────────────────────────────────────
@@ -900,10 +900,10 @@ const lightbox = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.15)',
     alignItems: 'center', justifyContent: 'center',
   },
-  closeText: { color: '#fff', fontSize: 18, fontFamily: fonts.bodyBold },
+  closeText: { color: '#fff', fontSize: 19.3, fontFamily: fonts.bodyBold },
   counter: {
     position: 'absolute', top: 60, left: 20, zIndex: 10,
-    color: 'rgba(255,255,255,0.7)', fontSize: 14, fontFamily: fonts.bodyBold,
+    color: 'rgba(255,255,255,0.7)', fontSize: 15, fontFamily: fonts.bodyBold,
   },
   dots: {
     position: 'absolute', bottom: 48, left: 0, right: 0,
@@ -917,8 +917,8 @@ const lightbox = StyleSheet.create({
 const modal = StyleSheet.create({
   overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'flex-end' },
   sheet: {
-    backgroundColor: theme.bgCard, borderTopLeftRadius: 24, borderTopRightRadius: 24,
-    padding: 24, paddingBottom: 40, borderWidth: 1, borderColor: theme.border,
+    backgroundColor: 'rgba(8, 4, 22, 0.97)', borderTopLeftRadius: 24, borderTopRightRadius: 24,
+    padding: 24, paddingBottom: 40, borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)',
   },
   handle: {
     width: 40, height: 4, borderRadius: 2, backgroundColor: theme.border,
@@ -927,42 +927,42 @@ const modal = StyleSheet.create({
   title: { fontSize: 20, fontFamily: fonts.headlineBold, color: theme.textPrimary, marginBottom: 16, textAlign: 'center' },
   scoreBig: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'center', gap: 4, marginBottom: 8 },
   scoreBigValue: { fontSize: 52, fontFamily: fonts.headlineLightIt, color: '#FFFFFF' },
-  scoreBigLabel: { fontSize: 18, color: theme.textMuted, fontFamily: fonts.bodyLight },
-  scoreDesc: { fontSize: 13, color: theme.textMuted, textAlign: 'center', lineHeight: 20, marginBottom: 20, fontFamily: fonts.bodyLight },
+  scoreBigLabel: { fontSize: 19.3, color: theme.textMuted, fontFamily: fonts.bodyLight },
+  scoreDesc: { fontSize: 13.9, color: theme.textMuted, textAlign: 'center', lineHeight: 20, marginBottom: 20, fontFamily: fonts.bodyLight },
   dimRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 10 },
-  dimLabel: { fontSize: 13, color: theme.textSecondary, width: 90, fontFamily: fonts.bodyLight },
+  dimLabel: { fontSize: 13.9, color: theme.textSecondary, width: 90, fontFamily: fonts.bodyLight },
   barBg: { flex: 1, height: 6, backgroundColor: theme.bgDeep, borderRadius: 3, overflow: 'hidden' },
   barFill: { height: 6, borderRadius: 3 },
-  dimValue: { fontSize: 12, fontFamily: fonts.bodyBold, width: 48, textAlign: 'right' },
-  explainerText: { fontSize: 14, color: theme.textSecondary, lineHeight: 22, marginBottom: 20, fontFamily: fonts.bodyLight },
+  dimValue: { fontSize: 12.8, fontFamily: fonts.bodyBold, width: 48, textAlign: 'right' },
+  explainerText: { fontSize: 15, color: theme.textSecondary, lineHeight: 22, marginBottom: 20, fontFamily: fonts.bodyLight },
   levelScale: { gap: 8, marginBottom: 20 },
   levelRow: {
     flexDirection: 'row', alignItems: 'center', gap: 12,
-    backgroundColor: theme.bgDeep, borderRadius: 10, padding: 12,
-    borderWidth: 1, borderColor: theme.border,
+    backgroundColor: 'rgba(255,255,255,0.07)', borderRadius: 10, padding: 12,
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)',
   },
   levelRowHighlight: { backgroundColor: theme.primaryDim, borderColor: theme.primaryBorder },
-  levelRange: { fontSize: 13, fontFamily: fonts.bodyBold, color: theme.textMuted, width: 70 },
-  levelLbl: { flex: 1, fontSize: 13, color: theme.textMuted, fontFamily: fonts.bodyLight },
-  levelYou: { fontSize: 12, color: theme.primary, fontFamily: fonts.bodyBold },
-  reportSub: { fontSize: 14, color: theme.textMuted, marginBottom: 16, fontFamily: fonts.bodyLight },
+  levelRange: { fontSize: 13.9, fontFamily: fonts.bodyBold, color: theme.textMuted, width: 70 },
+  levelLbl: { flex: 1, fontSize: 13.9, color: theme.textMuted, fontFamily: fonts.bodyLight },
+  levelYou: { fontSize: 12.8, color: theme.primary, fontFamily: fonts.bodyBold },
+  reportSub: { fontSize: 15, color: theme.textMuted, marginBottom: 16, fontFamily: fonts.bodyLight },
   reportRow: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     padding: 14, borderRadius: 12, marginBottom: 8,
     backgroundColor: theme.bgDeep, borderWidth: 1, borderColor: theme.border,
   },
   reportRowSelected: { borderColor: '#F87171', backgroundColor: 'rgba(248,113,113,0.08)' },
-  reportReason: { fontSize: 14, color: theme.textMuted, fontFamily: fonts.bodyLight },
+  reportReason: { fontSize: 15, color: theme.textMuted, fontFamily: fonts.bodyLight },
   reportCheck: { fontSize: 16, color: '#F87171' },
   submitBtn: {
     backgroundColor: '#F87171', borderRadius: 14, padding: 16,
     alignItems: 'center', marginTop: 8, marginBottom: 12,
   },
-  submitBtnText: { color: '#FFFFFF', fontSize: 15, fontFamily: fonts.bodyBold },
+  submitBtnText: { color: '#FFFFFF', fontSize: 16.1, fontFamily: fonts.bodyBold },
   closeBtn: {
     backgroundColor: theme.bgDeep, borderRadius: 14, padding: 16,
     alignItems: 'center', marginTop: 16, borderWidth: 1, borderColor: theme.border,
   },
-  closeBtnText: { color: theme.textSecondary, fontSize: 15, fontFamily: fonts.bodyBold },
-  cancelText: { textAlign: 'center', color: theme.textMuted, fontSize: 14, paddingVertical: 8, fontFamily: fonts.bodyLight },
+  closeBtnText: { color: theme.textSecondary, fontSize: 16.1, fontFamily: fonts.bodyBold },
+  cancelText: { textAlign: 'center', color: theme.textMuted, fontSize: 15, paddingVertical: 8, fontFamily: fonts.bodyLight },
 });
