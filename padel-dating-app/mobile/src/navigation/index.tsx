@@ -2,7 +2,7 @@ import React, { useRef } from 'react';
 import { NavigationContainer, NavigationContainerRef } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Text, Image } from 'react-native';
+import { View, TouchableOpacity, Image, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext';
 import { theme } from '../lib/theme';
@@ -10,6 +10,8 @@ import { useVolleyMatch } from '../hooks/useVolleyMatch';
 import { usePushNotifications } from '../hooks/usePushNotifications';
 
 import WelcomeScreen from '../screens/auth/WelcomeScreen';
+import PhoneAuthScreen from '../screens/auth/PhoneAuthScreen';
+import OTPVerificationScreen from '../screens/auth/OTPVerificationScreen';
 import EmailSignupScreen from '../screens/auth/EmailSignupScreen';
 import ForgotPasswordScreen from '../screens/auth/ForgotPasswordScreen';
 import OnboardingResumeScreen from '../screens/auth/OnboardingResumeScreen';
@@ -18,6 +20,8 @@ import PlatformLoginScreen from '../screens/auth/PlatformLoginScreen';
 import PlaytomicWebLoginScreen from '../screens/auth/PlaytomicWebLoginScreen';
 import SyncingProfileScreen from '../screens/auth/SyncingProfileScreen';
 import ProfilePreviewScreen from '../screens/auth/ProfilePreviewScreen';
+import Question0NameScreen from '../screens/auth/Question0NameScreen';
+import Question0DOBScreen from '../screens/auth/Question0DOBScreen';
 import Question1LocationScreen from '../screens/auth/Question1LocationScreen';
 import Question2IntentScreen from '../screens/auth/Question2IntentScreen';
 import Question3VisibilityScreen from '../screens/auth/Question3VisibilityScreen';
@@ -27,6 +31,8 @@ import Question6PlayStyleScreen from '../screens/auth/Question6PlayStyleScreen';
 import Question7AvailabilityScreen from '../screens/auth/Question7AvailabilityScreen';
 import PhotoUploadScreen from '../screens/auth/PhotoUploadScreen';
 import OnboardingCompleteScreen from '../screens/auth/OnboardingCompleteScreen';
+import PermissionNotificationsScreen from '../screens/auth/PermissionNotificationsScreen';
+import PermissionLocationScreen from '../screens/auth/PermissionLocationScreen';
 
 import ConnectHomeScreen from '../screens/connect/ConnectHomeScreen';
 import PlayerProfileScreen from '../screens/connect/PlayerProfileScreen';
@@ -57,6 +63,127 @@ const RadarStack = createNativeStackNavigator();
 const MessagesStack = createNativeStackNavigator();
 const ProfileStack = createNativeStackNavigator();
 
+// ─── Tab bar icons ────────────────────────────────────────────────────────────
+const TAB_ICONS: Record<string, { active: any; inactive: any }> = {
+  Connect:  { inactive: require('../../assets/icons/connect-inactive.png'),  active: require('../../assets/icons/connect-active.png') },
+  Play:     { inactive: require('../../assets/icons/play-inactive.png'),     active: require('../../assets/icons/play-active.png') },
+  Radar:    { inactive: require('../../assets/icons/radar-inactive.png'),    active: require('../../assets/icons/radar-active.png') },
+  Messages: { inactive: require('../../assets/icons/messages-inactive.png'), active: require('../../assets/icons/messages-active.png') },
+  Profile:  { inactive: require('../../assets/icons/profile-inactive.png'),  active: require('../../assets/icons/profile-active.png') },
+};
+
+// ─── Floating pill tab bar ────────────────────────────────────────────────────
+function FloatingTabBar({ state, descriptors, navigation }: any) {
+  const insets = useSafeAreaInsets();
+
+  return (
+    <View
+      pointerEvents="box-none"
+      style={[styles.tabBarWrapper, { bottom: 24 }]}
+    >
+      <View style={styles.pill}>
+        {state.routes.map((route: any, index: number) => {
+          const { options } = descriptors[route.key];
+          const isFocused = state.index === index;
+          const icons = TAB_ICONS[route.name];
+
+          const onPress = () => {
+            const event = navigation.emit({
+              type: 'tabPress',
+              target: route.key,
+              canPreventDefault: true,
+            });
+            if (!isFocused && !event.defaultPrevented) {
+              navigation.navigate(route.name);
+            }
+          };
+
+          const onLongPress = () => {
+            navigation.emit({ type: 'tabLongPress', target: route.key });
+          };
+
+          return (
+            <TouchableOpacity
+              key={route.key}
+              accessibilityRole="button"
+              accessibilityState={isFocused ? { selected: true } : {}}
+              accessibilityLabel={options.tabBarAccessibilityLabel}
+              onPress={onPress}
+              onLongPress={onLongPress}
+              style={styles.tabItem}
+              activeOpacity={0.7}
+            >
+              <View style={[styles.iconPill, isFocused && styles.iconPillActive]}>
+                {icons && (
+                  <Image
+                    source={isFocused ? icons.active : icons.inactive}
+                    style={styles.tabIcon}
+                    resizeMode="contain"
+                  />
+                )}
+              </View>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  tabBarWrapper: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    zIndex: 100,
+  },
+  pill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(10, 16, 30, 0.72)',
+    borderRadius: 40,
+    width: '94%',
+    paddingHorizontal: 6,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.45,
+    shadowRadius: 20,
+    elevation: 16,
+  },
+  tabItem: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  iconPill: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 30,
+  },
+  iconPillActive: {
+    backgroundColor: 'rgba(255,255,255,0.15)',
+  },
+  tabIcon: {
+    width: 38,
+    height: 38,
+  },
+  activeDot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: theme.primary,
+    marginTop: 4,
+  },
+});
+
+// ─── Navigators ───────────────────────────────────────────────────────────────
+
 const ONBOARDING_SCREENS = (Stack: any) => (
   <>
     <Stack.Screen name="PlatformSelect" component={PlatformSelectScreen} />
@@ -64,6 +191,8 @@ const ONBOARDING_SCREENS = (Stack: any) => (
     <Stack.Screen name="PlaytomicWebLogin" component={PlaytomicWebLoginScreen} />
     <Stack.Screen name="SyncingProfile" component={SyncingProfileScreen} />
     <Stack.Screen name="ProfilePreview" component={ProfilePreviewScreen} />
+    <Stack.Screen name="Question0Name" component={Question0NameScreen} />
+    <Stack.Screen name="Question0DOB" component={Question0DOBScreen} />
     <Stack.Screen name="Question1Location" component={Question1LocationScreen} />
     <Stack.Screen name="Question2Intent" component={Question2IntentScreen} />
     <Stack.Screen name="Question3Visibility" component={Question3VisibilityScreen} />
@@ -72,6 +201,8 @@ const ONBOARDING_SCREENS = (Stack: any) => (
     <Stack.Screen name="Question6PlayStyle" component={Question6PlayStyleScreen} />
     <Stack.Screen name="Question7Availability" component={Question7AvailabilityScreen} />
     <Stack.Screen name="PhotoUpload" component={PhotoUploadScreen} />
+    <Stack.Screen name="PermissionNotifications" component={PermissionNotificationsScreen} />
+    <Stack.Screen name="PermissionLocation" component={PermissionLocationScreen} />
     <Stack.Screen name="OnboardingComplete" component={OnboardingCompleteScreen} />
   </>
 );
@@ -133,8 +264,6 @@ function ProfileNavigator() {
 }
 
 function MainTabs({ navRef }: { navRef: React.RefObject<NavigationContainerRef<any>> }) {
-  const insets = useSafeAreaInsets();
-
   usePushNotifications((notification) => {
     const data = notification.request.content.data as any;
     if (data?.type === 'match' && data?.connectionId) {
@@ -166,38 +295,8 @@ function MainTabs({ navRef }: { navRef: React.RefObject<NavigationContainerRef<a
 
   return (
     <Tab.Navigator
-      screenOptions={({ route }) => ({
-        headerShown: false,
-        tabBarStyle: {
-          backgroundColor: theme.bgCard,
-          borderTopColor: theme.border,
-          borderTopWidth: 1,
-          height: 64 + insets.bottom,
-          paddingBottom: insets.bottom,
-          paddingTop: 10,
-        },
-        tabBarActiveTintColor: theme.tabActive,
-        tabBarInactiveTintColor: theme.tabInactive,
-        tabBarShowLabel: false,
-        tabBarIcon: ({ focused, color }) => {
-          const icons: Record<string, any> = {
-            Connect:  require('../../assets/icons/Connect.png'),
-            Play:     require('../../assets/icons/1. play.png'),
-            Radar:    require('../../assets/icons/17. Radar.png'),
-            Messages: require('../../assets/icons/5. messages.png'),
-            Profile:  require('../../assets/icons/15. Profile.png'),
-          };
-          const src = icons[route.name];
-          if (!src) return null;
-          return (
-            <Image
-              source={src}
-              style={{ width: 39, height: 39, tintColor: color }}
-              resizeMode="contain"
-            />
-          );
-        },
-      })}
+      tabBar={(props) => <FloatingTabBar {...props} />}
+      screenOptions={{ headerShown: false }}
     >
       <Tab.Screen name="Connect" component={ConnectNavigator} />
       <Tab.Screen name="Play" component={PlayNavigator} />
@@ -219,6 +318,8 @@ export default function Navigation() {
       {!session ? (
         <RootStack.Navigator screenOptions={{ headerShown: false }}>
           <RootStack.Screen name="Welcome" component={WelcomeScreen} />
+          <RootStack.Screen name="PhoneAuth" component={PhoneAuthScreen} />
+          <RootStack.Screen name="OTPVerification" component={OTPVerificationScreen} />
           <RootStack.Screen name="EmailSignup" component={EmailSignupScreen} />
           <RootStack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
           {ONBOARDING_SCREENS(RootStack)}
