@@ -917,7 +917,7 @@ const lightbox = StyleSheet.create({
 const modal = StyleSheet.create({
   overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'flex-end' },
   sheet: {
-    backgroundColor: 'rgba(8, 4, 22, 0.97)', borderTopLeftRadius: 24, borderTopRightRadius: 24,
+    backgroundColor: 'rgba(18, 10, 42, 0.94)', borderTopLeftRadius: 24, borderTopRightRadius: 24,
     padding: 24, paddingBottom: 40, borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)',
   },
   handle: {
@@ -960,9 +960,9 @@ const modal = StyleSheet.create({
   },
   submitBtnText: { color: '#FFFFFF', fontSize: 16.1, fontFamily: fonts.bodyBold },
   closeBtn: {
-    backgroundColor: theme.bgDeep, borderRadius: 14, padding: 16,
-    alignItems: 'center', marginTop: 16, borderWidth: 1, borderColor: theme.border,
+    backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 14, padding: 16,
+    alignItems: 'center', marginTop: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)',
   },
-  closeBtnText: { color: theme.textSecondary, fontSize: 16.1, fontFamily: fonts.bodyBold },
+  closeBtnText: { color: '#FFFFFF', fontSize: 16.1, fontFamily: fonts.bodyBold },
   cancelText: { textAlign: 'center', color: theme.textMuted, fontSize: 15, paddingVertical: 8, fontFamily: fonts.bodyLight },
 });
