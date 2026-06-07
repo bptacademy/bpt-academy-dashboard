@@ -839,7 +839,7 @@ const sheet = StyleSheet.create({
   overlay: { flex: 1, justifyContent: 'flex-end' },
   backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.5)' },
   container: {
-    backgroundColor: 'transparent'Card,
+    backgroundColor: theme.bgCard,
     borderTopLeftRadius: 24, borderTopRightRadius: 24,
     maxHeight: SCREEN_HEIGHT * 0.82,
     borderWidth: 1, borderColor: theme.border,
