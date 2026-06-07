@@ -18,13 +18,14 @@ const LEVELS = [
 ];
 
 export default function Question5LevelScreen({ route, navigation }: any) {
-  const { city, looking_for, visible_to, bio } = route.params ?? {};
+  const { first_name, last_name, date_of_birth, city, looking_for, visible_to, bio } = route.params ?? {};
   const insets = useSafeAreaInsets();
   const [selected, setSelected] = useState<number | null>(null);
 
   const handleContinue = () => {
     if (selected === null) return;
     navigation.navigate('Question6PlayStyle', {
+      first_name, last_name, date_of_birth,
       city, looking_for, visible_to, bio, level_value: selected,
     });
   };
@@ -37,11 +38,11 @@ export default function Question5LevelScreen({ route, navigation }: any) {
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        <OnboardingProgress total={7} current={5} />
+        <OnboardingProgress total={9} current={7} />
 
         <Text style={styles.title}>What's your level?</Text>
         <Text style={styles.subtitle}>
-          Be honest — it helps us match you with the right players. If you sync Playtomic later, this will be updated automatically.
+          Be honest — it helps us match you with the right players. If you connect your booking platform later, this will be updated automatically.
         </Text>
 
         <View style={styles.options}>

@@ -11,11 +11,13 @@ import {
   StatusBar, ActivityIndicator, RefreshControl, Image, Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTabBarPadding } from '../../hooks/useTabBarPadding';
 import { theme, fonts } from '../../lib/theme';
 import { useCourtPicks, CourtPick } from '../../hooks/useCourtPicks';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { DiscoveryLoaderC } from '../../components/DiscoveryLoader';
+import { ScreenBackground } from '../../components/ScreenBackground';
 
 // ─── Full discovery card ──────────────────────────────────────────────────────
 
@@ -160,6 +162,7 @@ function DiscoveryLocked({ onEnable, locationDenied }: { onEnable: () => void; l
 
 export default function ConnectHomeScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
+  const tabBarPadding = useTabBarPadding();
   const { user } = useAuth();
   const [myStats, setMyStats] = useState<{ level_value: number | null } | null>(null);
 
@@ -196,7 +199,7 @@ export default function ConnectHomeScreen({ navigation }: any) {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      <StatusBar barStyle="light-content" backgroundColor={theme.bg} />
+      
 
       <View style={styles.header}>
         <View>
@@ -210,7 +213,7 @@ export default function ConnectHomeScreen({ navigation }: any) {
 
       {/* ── Not yet enabled — locked teaser ── */}
       {!enabled ? (
-        <ScrollView contentContainerStyle={styles.scroll}>
+        <ScrollView contentContainerStyle={[styles.scroll, { paddingBottom: tabBarPadding }]}>
           <DiscoveryLocked onEnable={() => setEnabled(true)} locationDenied={locationDenied} />
         </ScrollView>
 
@@ -222,7 +225,7 @@ export default function ConnectHomeScreen({ navigation }: any) {
       ) : (
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.scroll}
+          contentContainerStyle={[styles.scroll, { paddingBottom: tabBarPadding }]}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.primary} />}
         >
           <View style={styles.sectionHeader}>
@@ -265,7 +268,7 @@ export default function ConnectHomeScreen({ navigation }: any) {
           <View style={{ height: 24 }} />
         </ScrollView>
       )}
-    </View>
+    </ScreenBackground>
   );
 }
 
@@ -274,7 +277,7 @@ export default function ConnectHomeScreen({ navigation }: any) {
 const AVATAR_SIZE = 110;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: theme.bg },
+  container: { flex: 1, backgroundColor: 'transparent' },
   header: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     paddingHorizontal: 20, paddingVertical: 16,
@@ -285,7 +288,7 @@ const styles = StyleSheet.create({
   notifBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: theme.bgCard, alignItems: 'center', justifyContent: 'center' },
   notifIcon: { fontSize: 18 },
   notifIconImg: { width: 33, height: 33, tintColor: '#7A9CC0' },
-  scroll: { paddingHorizontal: 16, paddingTop: 16 },
+  scroll: { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 120 },
   sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 },
   sectionTitle: { fontSize: 15, fontFamily: fonts.bodyBold, color: theme.textPrimary, flex: 1 },
   countBadge: { backgroundColor: theme.primaryDim, borderRadius: 10, paddingHorizontal: 8, paddingVertical: 3, borderWidth: 1, borderColor: theme.primaryBorder },

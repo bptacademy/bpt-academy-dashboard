@@ -3,9 +3,11 @@ import {
   View, Text, Image, ScrollView, StyleSheet, TouchableOpacity, StatusBar, ActivityIndicator,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTabBarPadding } from '../../hooks/useTabBarPadding';
 import { theme, fonts } from '../../lib/theme';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
+import { ScreenBackground } from '../../components/ScreenBackground';
 
 function levelLabel(value: number): string {
   if (value >= 5.5) return 'Elite';
@@ -24,6 +26,7 @@ const DAY_SHORT: Record<string, string> = {
 
 export default function MyStatsScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
+  const tabBarPadding = useTabBarPadding();
   const { user } = useAuth();
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -57,7 +60,7 @@ export default function MyStatsScreen({ navigation }: any) {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      <StatusBar barStyle="light-content" backgroundColor={theme.bg} />
+      
 
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -77,7 +80,7 @@ export default function MyStatsScreen({ navigation }: any) {
           <Text style={styles.emptyEmoji}>🎾</Text>
           <Text style={styles.emptyTitle}>No stats yet</Text>
           <Text style={styles.emptyText}>
-            Sync your Playtomic history to see your level, win rate, play style and more.
+            Connect your booking platform to see your level, win rate, play style and more.
           </Text>
           <TouchableOpacity
             style={styles.syncBtn}
@@ -87,7 +90,7 @@ export default function MyStatsScreen({ navigation }: any) {
           </TouchableOpacity>
         </View>
       ) : (
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[styles.scroll, { paddingBottom: tabBarPadding }]}>
 
           {/* Level card */}
           <View style={styles.levelCard}>
@@ -206,12 +209,12 @@ export default function MyStatsScreen({ navigation }: any) {
           <View style={{ height: 24 }} />
         </ScrollView>
       )}
-    </View>
+    </ScreenBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: theme.bg },
+  container: { flex: 1, backgroundColor: 'transparent' },
   header: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     paddingHorizontal: 20, paddingVertical: 16,

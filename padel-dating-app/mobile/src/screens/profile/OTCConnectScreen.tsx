@@ -13,6 +13,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme, fonts } from '../../lib/theme';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
+import { ScreenBackground } from '../../components/ScreenBackground';
 
 const SUPABASE_URL = 'https://qmdewocktouqoibbqurh.supabase.co';
 
@@ -69,7 +70,7 @@ export default function OTCConnectScreen({ navigation }: any) {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
-      <StatusBar barStyle="light-content" backgroundColor={theme.bg} />
+      
       <ScrollView showsVerticalScrollIndicator={false}>
 
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
@@ -115,12 +116,12 @@ export default function OTCConnectScreen({ navigation }: any) {
         </TouchableOpacity>
 
       </ScrollView>
-    </View>
+    </ScreenBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  container:          { flex: 1, backgroundColor: theme.bg, paddingHorizontal: 24 },
+  container: { flex: 1, backgroundColor: 'transparent', paddingHorizontal: 24 },
   backBtn:            { paddingVertical: 16 },
   backText:           { color: theme.textSecondary, fontSize: 16, fontFamily: fonts.bodyLight },
   header:             { marginBottom: 24 },

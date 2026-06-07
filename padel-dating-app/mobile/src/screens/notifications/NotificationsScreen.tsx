@@ -3,9 +3,11 @@ import {
   View, Text, Image, ScrollView, StyleSheet, TouchableOpacity, StatusBar, ActivityIndicator,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTabBarPadding } from '../../hooks/useTabBarPadding';
 import { theme, fonts } from '../../lib/theme';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
+import { ScreenBackground } from '../../components/ScreenBackground';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -102,6 +104,7 @@ function connectionToNotif(conn: any, myUserId: string): NotifItem {
 
 export default function NotificationsScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
+  const tabBarPadding = useTabBarPadding();
   const { user } = useAuth();
   const [notifications, setNotifications] = useState<NotifItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -182,7 +185,7 @@ export default function NotificationsScreen({ navigation }: any) {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      <StatusBar barStyle="light-content" backgroundColor={theme.bg} />
+      
 
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -199,7 +202,7 @@ export default function NotificationsScreen({ navigation }: any) {
           <ActivityIndicator size="large" color={theme.primary} />
         </View>
       ) : (
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[styles.scroll, { paddingBottom: tabBarPadding }]}>
           {notifications.map(n => (
             <TouchableOpacity
               key={n.id}
@@ -238,14 +241,14 @@ export default function NotificationsScreen({ navigation }: any) {
           )}
         </ScrollView>
       )}
-    </View>
+    </ScreenBackground>
   );
 }
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: theme.bg },
+  container: { flex: 1, backgroundColor: 'transparent' },
   header: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     paddingHorizontal: 20, paddingVertical: 16,
@@ -256,7 +259,7 @@ const styles = StyleSheet.create({
   markAllText: { fontSize: 13, color: theme.primary, fontFamily: fonts.bodyLight },
 
   loadingBox: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  scroll: { paddingTop: 8 },
+  scroll: { paddingTop: 8, paddingBottom: 120 },
 
   notifRow: {
     flexDirection: 'row', alignItems: 'flex-start', gap: 12,

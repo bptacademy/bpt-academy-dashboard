@@ -4,12 +4,15 @@ import {
   StatusBar, Switch,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTabBarPadding } from '../../hooks/useTabBarPadding';
 import { theme, fonts } from '../../lib/theme';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
+import { ScreenBackground } from '../../components/ScreenBackground';
 
 export default function SettingsScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
+  const tabBarPadding = useTabBarPadding();
   const { user, refreshUser } = useAuth();
 
   const [pushVolley, setPushVolley] = useState(true);
@@ -67,7 +70,7 @@ export default function SettingsScreen({ navigation }: any) {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      <StatusBar barStyle="light-content" backgroundColor={theme.bg} />
+      
 
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -77,7 +80,7 @@ export default function SettingsScreen({ navigation }: any) {
         <View style={{ width: 60 }} />
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[styles.scroll, { paddingBottom: tabBarPadding }]}>
 
         <Section title="Notifications">
           <ToggleRow label="Volley matches" sub="When you and someone match" value={pushVolley} onChange={setPushVolley} />
@@ -109,12 +112,12 @@ export default function SettingsScreen({ navigation }: any) {
 
         <View style={{ height: 24 }} />
       </ScrollView>
-    </View>
+    </ScreenBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: theme.bg },
+  container: { flex: 1, backgroundColor: 'transparent' },
   header: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     paddingHorizontal: 20, paddingVertical: 16,

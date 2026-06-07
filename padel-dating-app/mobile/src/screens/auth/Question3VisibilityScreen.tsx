@@ -12,13 +12,13 @@ const OPTIONS = [
 ];
 
 export default function Question3VisibilityScreen({ route, navigation }: any) {
-  const { city, looking_for } = route.params ?? {};
+  const { first_name, last_name, date_of_birth, city, looking_for } = route.params ?? {};
   const insets = useSafeAreaInsets();
   const [selected, setSelected] = useState<string | null>(null);
 
   const handleContinue = () => {
     if (!selected) return;
-    navigation.navigate('Question4Bio', { city, looking_for, visible_to: selected });
+    navigation.navigate('Question4Bio', { first_name, last_name, date_of_birth, city, looking_for, visible_to: selected });
   };
 
   return (
@@ -26,7 +26,7 @@ export default function Question3VisibilityScreen({ route, navigation }: any) {
       <StatusBar barStyle="light-content" backgroundColor="#0D1B2A" />
 
       <View style={styles.inner}>
-        <OnboardingProgress total={7} current={3} />
+        <OnboardingProgress total={9} current={5} />
 
         <Text style={styles.question}>👀 Who do you want to be seen by?</Text>
         <Text style={styles.subtitle}>You can change this any time from your profile.</Text>

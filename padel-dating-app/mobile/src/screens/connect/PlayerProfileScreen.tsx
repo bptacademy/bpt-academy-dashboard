@@ -9,6 +9,7 @@ import { theme, fonts } from '../../lib/theme';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { notifyVolley } from '../../lib/notifications';
+import { ScreenBackground } from '../../components/ScreenBackground';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const HERO_HEIGHT = SCREEN_HEIGHT * 0.95; // large hero — ~72% of screen
@@ -21,6 +22,15 @@ function levelLabel(v: number) {
   if (v >= 3.5) return 'Intermediate+';
   if (v >= 3.0) return 'Intermediate';
   return 'Beginner';
+}
+
+function platformLabel(platform: string): string {
+  switch (platform) {
+    case 'playtomic': return 'Playtomic';
+    case 'on_the_court': return 'On The Court';
+    case 'matchi': return 'Matchi';
+    default: return platform;
+  }
 }
 
 // ─── Demo data ────────────────────────────────────────────────────────────────
@@ -268,7 +278,7 @@ function LevelExplainerModal({ visible, onClose, level }: any) {
           <View style={modal.handle} />
           <Text style={modal.title}>What does {lvl?.toFixed(2)} mean?</Text>
           <Text style={modal.explainerText}>
-            Playtomic calculates your level from actual match results — wins, losses, opponent levels, and set scores. It updates after every match.
+            Your level is calculated from actual match results — wins, losses, opponent levels, and set scores. It updates after every match.
           </Text>
           <View style={modal.levelScale}>
             {[
@@ -478,7 +488,7 @@ export default function PlayerProfileScreen({ route, navigation }: any) {
   }
 
   return (
-    <View style={styles.container}>
+    <ScreenBackground>
       <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
 
       {/* ── Hero photo — large, edge to edge ── */}
@@ -508,22 +518,22 @@ export default function PlayerProfileScreen({ route, navigation }: any) {
         {/* deep gradient at bottom of photo for overlay readability */}
         <View style={styles.heroGradient} pointerEvents="none" />
 
-        {/* photo count + dots */}
+        {/* photo progress dots — top center */}
         {photos.length > 1 && (
-          <>
-            <View style={styles.photoBadge} pointerEvents="none">
-              <Text style={styles.photoBadgeText}>📷 {photos.length}</Text>
-            </View>
-            <View style={styles.heroDots} pointerEvents="none">
-              {photos.map((_, i) => (
-                <View key={i} style={[styles.heroDot, i === activePhotoIndex && styles.heroDotActive]} />
-              ))}
-            </View>
-          </>
+          <View style={styles.photoDots} pointerEvents="none">
+            {photos.map((_, i) => (
+              <View
+                key={i}
+                style={[styles.photoDot, i === activePhotoIndex && styles.photoDotActive]}
+              />
+            ))}
+          </View>
         )}
 
+
+
         {/* ── Identity overlay — bottom of photo ── */}
-        <View style={styles.heroIdentity}>
+        <View style={[styles.heroIdentity, { bottom: insets.bottom + 94 }]}>
           {/* Top row: left = name+level, right = score box */}
           <View style={styles.heroTopRow}>
             <View style={styles.heroLeft}>
@@ -536,7 +546,7 @@ export default function PlayerProfileScreen({ route, navigation }: any) {
                 )}
               </View>
               {stats?.level_value && (
-                <Text style={styles.heroLevelDesc}>{levelLabel(stats.level_value)} · Playtomic</Text>
+                <Text style={styles.heroLevelDesc}>{levelLabel(stats.level_value)}{stats.platform && stats.platform !== 'self_reported' ? ` · ${platformLabel(stats.platform)}` : ''}</Text>
               )}
             </View>
 
@@ -651,7 +661,7 @@ export default function PlayerProfileScreen({ route, navigation }: any) {
         startIndex={lightboxIndex ?? 0}
         onClose={() => setLightboxIndex(null)}
       />
-    </View>
+    </ScreenBackground>
   );
 }
 
@@ -676,12 +686,25 @@ const styles = StyleSheet.create({
     // We layer two views to fake a gradient
   },
 
-  photoBadge: {
-    position: 'absolute', top: 48, right: 60,
-    backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: 12,
-    paddingHorizontal: 10, paddingVertical: 4,
+  photoDots: {
+    position: 'absolute',
+    top: 16,
+    alignSelf: 'center',
+    flexDirection: 'row',
+    gap: 6,
+    left: 0,
+    right: 0,
+    justifyContent: 'center',
   },
-  photoBadgeText: { color: '#fff', fontSize: 12, fontFamily: fonts.bodyBold },
+  photoDot: {
+    width: 28,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: 'rgba(255,255,255,0.35)',
+  },
+  photoDotActive: {
+    backgroundColor: '#00D4C8',
+  },
 
   heroDots: {
     position: 'absolute', bottom: SCREEN_HEIGHT * 0.13, left: 0, right: 0,
@@ -816,7 +839,7 @@ const sheet = StyleSheet.create({
   overlay: { flex: 1, justifyContent: 'flex-end' },
   backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.5)' },
   container: {
-    backgroundColor: theme.bgCard,
+    backgroundColor: 'transparent'Card,
     borderTopLeftRadius: 24, borderTopRightRadius: 24,
     maxHeight: SCREEN_HEIGHT * 0.82,
     borderWidth: 1, borderColor: theme.border,
@@ -910,7 +933,7 @@ const modal = StyleSheet.create({
   dimLabel: { fontSize: 13, color: theme.textSecondary, width: 90, fontFamily: fonts.bodyLight },
   barBg: { flex: 1, height: 6, backgroundColor: theme.bgDeep, borderRadius: 3, overflow: 'hidden' },
   barFill: { height: 6, borderRadius: 3 },
-  dimValue: { fontSize: 12, fontFamily: fonts.bodyBold, width: 36, textAlign: 'right' },
+  dimValue: { fontSize: 12, fontFamily: fonts.bodyBold, width: 48, textAlign: 'right' },
   explainerText: { fontSize: 14, color: theme.textSecondary, lineHeight: 22, marginBottom: 20, fontFamily: fonts.bodyLight },
   levelScale: { gap: 8, marginBottom: 20 },
   levelRow: {

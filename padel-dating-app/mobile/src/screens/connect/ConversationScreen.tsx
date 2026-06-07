@@ -8,6 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme, fonts } from '../../lib/theme';
 import { useAuth } from '../../context/AuthContext';
 import { useConversation } from '../../hooks/useConversation';
+import { ScreenBackground } from '../../components/ScreenBackground';
 
 const SERVE_PROMPTS = [
   'Rematch Saturday? 🎾',
@@ -100,7 +101,7 @@ export default function ConversationScreen({ route, navigation }: any) {
       keyboardVerticalOffset={0}
     >
       <View style={[styles.container, { paddingTop: insets.top }]}>
-        <StatusBar barStyle="light-content" backgroundColor={theme.bg} />
+        
 
         {/* Header */}
         <View style={styles.header}>
@@ -204,13 +205,13 @@ export default function ConversationScreen({ route, navigation }: any) {
             </View>
           </>
         )}
-      </View>
+      </ScreenBackground>
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: theme.bg },
+  container: { flex: 1, backgroundColor: 'transparent' },
   header: {
     flexDirection: 'row', alignItems: 'center', gap: 12,
     paddingHorizontal: 16, paddingVertical: 12,

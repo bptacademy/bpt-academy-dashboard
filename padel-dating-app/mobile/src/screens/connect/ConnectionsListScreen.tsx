@@ -4,8 +4,10 @@ import {
   ActivityIndicator, Image, FlatList,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTabBarPadding } from '../../hooks/useTabBarPadding';
 import { theme, fonts } from '../../lib/theme';
 import { useConnections } from '../../hooks/useConnections';
+import { ScreenBackground } from '../../components/ScreenBackground';
 
 function formatTime(iso: string | null): string {
   if (!iso) return '';
@@ -20,11 +22,12 @@ function formatTime(iso: string | null): string {
 
 export default function ConnectionsListScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
+  const tabBarPadding = useTabBarPadding();
   const { connections, loading } = useConnections();
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      <StatusBar barStyle="light-content" backgroundColor={theme.bg} />
+      
 
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Messages</Text>
@@ -46,6 +49,7 @@ export default function ConnectionsListScreen({ navigation }: any) {
       ) : (
         <FlatList
           data={connections}
+          contentContainerStyle={{ paddingBottom: tabBarPadding }}
           keyExtractor={item => item.connectionId}
           renderItem={({ item }) => {
             const initials = item.otherUserName
@@ -95,12 +99,12 @@ export default function ConnectionsListScreen({ navigation }: any) {
           contentContainerStyle={{ paddingTop: 8 }}
         />
       )}
-    </View>
+    </ScreenBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: theme.bg },
+  container: { flex: 1, backgroundColor: 'transparent' },
   header: {
     paddingHorizontal: 20, paddingVertical: 16,
     borderBottomWidth: 1, borderBottomColor: theme.bgCard,

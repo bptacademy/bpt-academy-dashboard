@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet, StatusBar,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme, fonts } from '../../lib/theme';
+import { useAuth } from '../../context/AuthContext';
+import { supabase } from '../../lib/supabase';
 
 const PLATFORMS = [
   {
@@ -29,9 +31,64 @@ const PLATFORMS = [
   },
 ];
 
-export default function PlatformSelectScreen({ navigation }: any) {
+export default function PlatformSelectScreen({ navigation, route }: any) {
   const insets = useSafeAreaInsets();
   const canGoBack = navigation.canGoBack();
+  const { session } = useAuth();
+
+  const [showSkip, setShowSkip] = useState<boolean>(!!route.params?.skipOption);
+
+  useEffect(() => {
+    if (route.params?.skipOption) return;
+    checkNoPlatform();
+  }, []);
+
+  const checkNoPlatform = async () => {
+    const authId = session?.user?.id;
+    if (!authId) return;
+
+    const { data: user } = await supabase
+      .from('users')
+      .select('id')
+      .eq('auth_id', authId)
+      .maybeSingle();
+
+    if (!user) return;
+
+    const { data: conn } = await supabase
+      .from('platform_connections')
+      .select('id')
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    if (!conn) {
+      setShowSkip(true);
+    }
+  };
+
+  const handleSkip = async () => {
+    const authId = session?.user?.id;
+    if (!authId) {
+      navigation.replace('Question1Location');
+      return;
+    }
+
+    const { data: user } = await supabase
+      .from('users')
+      .select('city, looking_for, visible_to')
+      .eq('auth_id', authId)
+      .maybeSingle();
+
+    if (user?.city && user?.looking_for && user?.visible_to) {
+      navigation.replace('PhotoUpload', {
+        city: user.city,
+        looking_for: user.looking_for,
+        visible_to: user.visible_to,
+      });
+    } else {
+      navigation.replace('Question1Location');
+    }
+  };
 
   return (
     <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
@@ -74,6 +131,12 @@ export default function PlatformSelectScreen({ navigation }: any) {
           </TouchableOpacity>
         ))}
       </View>
+
+      {showSkip && (
+        <TouchableOpacity style={styles.skipBtn} onPress={handleSkip}>
+          <Text style={styles.skipText}>Skip for now →</Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 }
@@ -112,4 +175,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10, paddingVertical: 4, borderWidth: 1, borderColor: theme.border,
   },
   comingSoonText: { color: theme.textMuted, fontSize: 11, fontFamily: fonts.bodyBold },
+  skipBtn: { alignItems: 'center', paddingVertical: 20 },
+  skipText: { fontSize: 16, color: theme.textSecondary, fontFamily: fonts.bodyBold },
 });

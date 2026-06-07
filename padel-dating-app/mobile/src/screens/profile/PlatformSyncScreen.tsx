@@ -8,6 +8,7 @@ import { theme, fonts } from '../../lib/theme';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { syncPlatform } from '../../lib/platformSync';
+import { ScreenBackground } from '../../components/ScreenBackground';
 
 const SUPABASE_URL = 'https://qmdewocktouqoibbqurh.supabase.co';
 
@@ -139,7 +140,7 @@ export default function PlatformSyncScreen({ navigation }: any) {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      <StatusBar barStyle="light-content" backgroundColor={theme.bg} />
+      
 
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -253,12 +254,12 @@ export default function PlatformSyncScreen({ navigation }: any) {
           <View style={{ height: 24 }} />
         </ScrollView>
       )}
-    </View>
+    </ScreenBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  container:              { flex: 1, backgroundColor: theme.bg },
+  container: { flex: 1, backgroundColor: 'transparent' },
   header:                 {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     paddingHorizontal: 20, paddingVertical: 16,

@@ -12,13 +12,13 @@ const OPTIONS = [
 ];
 
 export default function Question2IntentScreen({ route, navigation }: any) {
-  const { city } = route.params ?? {};
+  const { first_name, last_name, date_of_birth, city } = route.params ?? {};
   const insets = useSafeAreaInsets();
   const [selected, setSelected] = useState<string | null>(null);
 
   const handleContinue = () => {
     if (!selected) return;
-    navigation.navigate('Question3Visibility', { city, looking_for: selected });
+    navigation.navigate('Question3Visibility', { first_name, last_name, date_of_birth, city, looking_for: selected });
   };
 
   return (
@@ -26,7 +26,7 @@ export default function Question2IntentScreen({ route, navigation }: any) {
       <StatusBar barStyle="light-content" backgroundColor="#0D1B2A" />
 
       <View style={styles.inner}>
-        <OnboardingProgress total={7} current={2} />
+        <OnboardingProgress total={9} current={4} />
 
         <Text style={styles.question}>🎯 What are you looking for?</Text>
         <Text style={styles.subtitle}>Be honest — you can change this later.</Text>

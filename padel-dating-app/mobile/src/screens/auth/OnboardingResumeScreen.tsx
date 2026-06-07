@@ -13,24 +13,31 @@ export default function OnboardingResumeScreen({ navigation }: any) {
   const resume = async () => {
     const authId = session?.user?.id;
     if (!authId) {
-      navigation.replace('PlatformSelect');
+      navigation.replace('Question0Name');
       return;
     }
 
     // Always fetch fresh from DB
     const { data: freshUser } = await supabase
       .from('users')
-      .select('id, profile_complete, city, looking_for, visible_to, bio')
+      .select('id, profile_complete, full_name, city, looking_for, visible_to, bio')
       .eq('auth_id', authId)
       .maybeSingle();
 
+    // Brand new user — no users row yet. Go to Question0Name to start onboarding.
     if (!freshUser) {
-      navigation.replace('PlatformSelect');
+      navigation.replace('Question0Name');
       return;
     }
 
     // Profile complete — Navigation will switch to MainTabs automatically
     if (freshUser.profile_complete) {
+      return;
+    }
+
+    // No name yet — start at the beginning
+    if (!freshUser.full_name) {
+      navigation.replace('Question0Name');
       return;
     }
 
@@ -41,8 +48,18 @@ export default function OnboardingResumeScreen({ navigation }: any) {
       .eq('user_id', freshUser.id)
       .maybeSingle();
 
+    // No platform connection yet — resume questions, or prompt platform select if questions are done
     if (!conn) {
-      navigation.replace('PlatformSelect');
+      if (!freshUser.city) {
+        navigation.replace('Question1Location');
+      } else if (!freshUser.looking_for) {
+        navigation.replace('Question2Intent', { city: freshUser.city });
+      } else if (!freshUser.visible_to) {
+        navigation.replace('Question3Visibility', { city: freshUser.city, looking_for: freshUser.looking_for });
+      } else {
+        // All questions done — nudge platform select with skip option
+        navigation.replace('PlatformSelect', { skipOption: true });
+      }
       return;
     }
 

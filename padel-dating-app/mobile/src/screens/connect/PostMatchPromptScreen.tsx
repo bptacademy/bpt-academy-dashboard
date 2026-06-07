@@ -8,6 +8,7 @@ import { theme, fonts } from '../../lib/theme';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { notifyVolley } from '../../lib/notifications';
+import { ScreenBackground } from '../../components/ScreenBackground';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -205,7 +206,7 @@ export default function PostMatchPromptScreen({ navigation }: any) {
   if (loading) {
     return (
       <View style={[styles.container, styles.centered, { paddingTop: insets.top }]}>
-        <StatusBar barStyle="light-content" backgroundColor={theme.bg} />
+        
         <ActivityIndicator size="large" color={theme.primary} />
         <Text style={styles.loadingText}>Checking recent matches…</Text>
       </View>
@@ -215,7 +216,7 @@ export default function PostMatchPromptScreen({ navigation }: any) {
   if (matchGroups.length === 0) {
     return (
       <View style={[styles.container, styles.centered, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
-        <StatusBar barStyle="light-content" backgroundColor={theme.bg} />
+        
         <Text style={styles.emptyEmoji}>🎾</Text>
         <Text style={styles.emptyTitle}>No recent matches to review</Text>
         <Text style={styles.emptyBody}>
@@ -230,7 +231,7 @@ export default function PostMatchPromptScreen({ navigation }: any) {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
-      <StatusBar barStyle="light-content" backgroundColor={theme.bg} />
+      
 
       <View style={styles.header}>
         <Text style={styles.title}>
@@ -276,14 +277,14 @@ export default function PostMatchPromptScreen({ navigation }: any) {
           <Text style={styles.skipText}>Skip for now</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </ScreenBackground>
   );
 }
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: theme.bg, paddingHorizontal: 20 },
+  container: { flex: 1, backgroundColor: 'transparent', paddingHorizontal: 20 },
   centered: { alignItems: 'center', justifyContent: 'center' },
 
   loadingText: { marginTop: 14, fontSize: 14, color: theme.textMuted, fontFamily: fonts.bodyLight },

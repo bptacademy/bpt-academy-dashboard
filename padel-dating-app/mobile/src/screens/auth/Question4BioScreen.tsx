@@ -14,13 +14,13 @@ const EXAMPLES = [
 ];
 
 export default function Question4BioScreen({ route, navigation }: any) {
-  const { city, looking_for, visible_to } = route.params ?? {};
+  const { first_name, last_name, date_of_birth, city, looking_for, visible_to } = route.params ?? {};
   const insets = useSafeAreaInsets();
   const [bio, setBio] = useState('');
   const MAX = 120;
 
   const handleContinue = () => {
-    navigation.navigate('Question5Level', { city, looking_for, visible_to, bio: bio.trim() });
+    navigation.navigate('Question5Level', { first_name, last_name, date_of_birth, city, looking_for, visible_to, bio: bio.trim() });
   };
 
   return (
@@ -32,7 +32,7 @@ export default function Question4BioScreen({ route, navigation }: any) {
         <StatusBar barStyle="light-content" backgroundColor="#0D1B2A" />
 
         <View style={styles.inner}>
-          <OnboardingProgress total={7} current={4} />
+          <OnboardingProgress total={9} current={6} />
 
           <Text style={styles.question}>🗣️ One line about yourself</Text>
           <Text style={styles.subtitle}>Optional — but the best profiles always have one.</Text>
@@ -99,5 +99,5 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3, shadowRadius: 10, elevation: 5,
   },
   nextBtnText: { color: theme.textPrimary, fontSize: 17, fontFamily: fonts.headlineBold },
-  skipLink: { color: theme.textDim, fontSize: 14, textAlign: 'center', paddingVertical: 4, fontFamily: fonts.bodyLight },
+  skipLink: { color: theme.textSecondary, fontSize: 15, textAlign: 'center', paddingVertical: 6, fontFamily: fonts.bodyBold },
 });

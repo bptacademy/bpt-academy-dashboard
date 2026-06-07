@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme, fonts } from '../../lib/theme';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
+import { ScreenBackground } from '../../components/ScreenBackground';
 
 export default function DeleteAccountScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
@@ -44,7 +45,7 @@ export default function DeleteAccountScreen({ navigation }: any) {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
-      <StatusBar barStyle="light-content" backgroundColor={theme.bg} />
+      
 
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -101,12 +102,12 @@ export default function DeleteAccountScreen({ navigation }: any) {
           }
         </TouchableOpacity>
       </View>
-    </View>
+    </ScreenBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: theme.bg, paddingHorizontal: 24 },
+  container: { flex: 1, backgroundColor: 'transparent', paddingHorizontal: 24 },
   header: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: theme.bgCard,

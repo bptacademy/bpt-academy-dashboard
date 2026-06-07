@@ -4,15 +4,18 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useIsFocused } from '@react-navigation/native';
+import { useTabBarPadding } from '../../hooks/useTabBarPadding';
 import { theme, fonts } from '../../lib/theme';
 import { useAuth } from '../../context/AuthContext';
 import AnimatedRing from '../../components/AnimatedRing';
+import { ScreenBackground } from '../../components/ScreenBackground';
 
 const AVATAR_SIZE = 100;
 const RING_THICKNESS = 3;
 
 export default function MyProfileScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
+  const tabBarPadding = useTabBarPadding();
   const { user, signOut, refreshUser } = useAuth();
   const isFocused = useIsFocused();
   const [ringKey, setRingKey] = useState(0);
@@ -43,11 +46,11 @@ export default function MyProfileScreen({ navigation }: any) {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      <StatusBar barStyle="light-content" backgroundColor={theme.bg} />
+      
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Profile</Text>
       </View>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[styles.scroll, { paddingBottom: tabBarPadding }]}>
         <View style={styles.profileCard}>
 
           <AnimatedRing
@@ -165,18 +168,18 @@ export default function MyProfileScreen({ navigation }: any) {
 
         <View style={{ height: 24 }} />
       </ScrollView>
-    </View>
+    </ScreenBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: theme.bg },
+  container: { flex: 1, backgroundColor: 'transparent' },
   header: {
     paddingHorizontal: 20, paddingVertical: 16,
     borderBottomWidth: 1, borderBottomColor: theme.bgCard,
   },
   headerTitle: { fontSize: 26, fontFamily: fonts.headlineBold, color: theme.textPrimary },
-  scroll: { paddingHorizontal: 16, paddingTop: 20 },
+  scroll: { paddingHorizontal: 16, paddingTop: 20, paddingBottom: 120 },
   profileCard: {
     backgroundColor: theme.bgCard, borderRadius: 20, padding: 24,
     alignItems: 'center', borderWidth: 1, borderColor: theme.border, marginBottom: 12,

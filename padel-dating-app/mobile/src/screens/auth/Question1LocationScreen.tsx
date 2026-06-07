@@ -6,20 +6,35 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 import { theme, fonts } from '../../lib/theme';
 import OnboardingProgress from '../../components/common/OnboardingProgress';
+import { useAuth } from '../../context/AuthContext';
+import { supabase } from '../../lib/supabase';
 
 const GOOGLE_KEY = process.env.EXPO_PUBLIC_GOOGLE_PLACES_KEY!;
 
-export default function Question1LocationScreen({ navigation }: any) {
+export default function Question1LocationScreen({ route, navigation }: any) {
   const insets = useSafeAreaInsets();
   const ref = useRef<any>(null);
+  const { session } = useAuth();
+  const { first_name, last_name, date_of_birth } = route.params ?? {};
 
-  const handleSelect = (data: any, details: any) => {
+  const handleSelect = async (data: any, details: any) => {
     // Extract city name — prefer locality, fallback to the main description text
     const cityComponent = details?.address_components?.find((c: any) =>
       c.types.includes('locality') || c.types.includes('postal_town')
     );
     const city = cityComponent?.long_name ?? data.structured_formatting?.main_text ?? data.description;
-    navigation.navigate('Question2Intent', { city });
+
+    // Upsert users row — creates it for brand new phone-auth users, updates for existing users
+    if (session?.user?.id) {
+      await supabase.from('users').upsert({
+        auth_id: session.user.id,
+        city,
+        profile_complete: false,
+        last_active_at: new Date().toISOString(),
+      }, { onConflict: 'auth_id' });
+    }
+
+    navigation.navigate('Question2Intent', { first_name, last_name, date_of_birth, city });
   };
 
   return (
@@ -31,7 +46,7 @@ export default function Question1LocationScreen({ navigation }: any) {
         <StatusBar barStyle="light-content" backgroundColor={theme.bg} />
 
         <View style={styles.inner}>
-          <OnboardingProgress total={7} current={1} />
+          <OnboardingProgress total={9} current={3} />
           <Text style={styles.question}>📍 Where are you based?</Text>
           <Text style={styles.subtitle}>{"We'll show you players in your area."}</Text>
 

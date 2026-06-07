@@ -6,11 +6,13 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
+import { useTabBarPadding } from '../../hooks/useTabBarPadding';
 import { theme, fonts } from '../../lib/theme';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { uploadPhotos } from '../../lib/uploadPhoto';
 import { Club } from '../../types';
+import { ScreenBackground } from '../../components/ScreenBackground';
 
 const GOOGLE_KEY = process.env.EXPO_PUBLIC_GOOGLE_PLACES_KEY!;
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -42,6 +44,7 @@ const MAX_BIO = 120;
 
 export default function EditProfileScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
+  const tabBarPadding = useTabBarPadding();
   const { user, session, refreshUser } = useAuth();
   const [fullName, setFullName] = useState(user?.full_name ?? '');
   const [gender, setGender] = useState<'male' | 'female' | 'other' | null>(user?.gender ?? null);
@@ -161,7 +164,7 @@ export default function EditProfileScreen({ navigation }: any) {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      <StatusBar barStyle="light-content" backgroundColor={theme.bg} />
+      
 
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -178,7 +181,7 @@ export default function EditProfileScreen({ navigation }: any) {
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scroll}
+        contentContainerStyle={[styles.scroll, { paddingBottom: tabBarPadding }]}
         keyboardShouldPersistTaps="handled"
       >
         {/* Name */}
@@ -395,12 +398,12 @@ export default function EditProfileScreen({ navigation }: any) {
 
         <View style={{ height: 40 }} />
       </ScrollView>
-    </View>
+    </ScreenBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: theme.bg },
+  container: { flex: 1, backgroundColor: 'transparent' },
   header: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     paddingHorizontal: 20, paddingVertical: 16,

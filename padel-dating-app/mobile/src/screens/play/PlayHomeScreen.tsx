@@ -12,9 +12,11 @@ import {
   StatusBar, ActivityIndicator, RefreshControl, Image, Platform, Share,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTabBarPadding } from '../../hooks/useTabBarPadding';
 import { theme, fonts } from '../../lib/theme';
 import { usePartners, Partner } from '../../hooks/usePartners';
 import { useDiscovery, DiscoveredPlayer } from '../../hooks/useDiscovery';
+import { ScreenBackground } from '../../components/ScreenBackground';
 
 // ─── Shared helpers ───────────────────────────────────────────────────────────
 
@@ -146,6 +148,7 @@ function InviteRow({ playerName }: { playerName: string }) {
 // ─── Court History tab ────────────────────────────────────────────────────────
 
 function CourtHistoryTab({ navigation }: { navigation: any }) {
+  const tabBarPadding = useTabBarPadding();
   const { layer1, layer2, loading, error, reload, sendAction } = useDiscovery();
   const [refreshing, setRefreshing] = useState(false);
 
@@ -179,7 +182,7 @@ function CourtHistoryTab({ navigation }: { navigation: any }) {
   return (
     <ScrollView
       showsVerticalScrollIndicator={false}
-      contentContainerStyle={styles.scroll}
+      contentContainerStyle={[styles.scroll, { paddingBottom: tabBarPadding }]}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.primary} />}
     >
       <View style={styles.sectionHeader}>
@@ -193,7 +196,7 @@ function CourtHistoryTab({ navigation }: { navigation: any }) {
       {layer1.length === 0 ? (
         <View style={styles.emptyBox}>
           <Text style={styles.emptyEmoji}>🎾</Text>
-          <Text style={styles.emptyText}>Sync your Playtomic account to see your court history</Text>
+          <Text style={styles.emptyText}>Sync your booking platform to see your court history</Text>
         </View>
       ) : (
         layer1.map(p => (
@@ -323,6 +326,7 @@ function PartnerCard({ partner, navigation, onServe }: {
 }
 
 function FindPartnerTab({ navigation }: { navigation: any }) {
+  const tabBarPadding = useTabBarPadding();
   const { partners, loading, error, reload, sendServe } = usePartners();
   const [refreshing, setRefreshing] = useState(false);
   const onRefresh = async () => { setRefreshing(true); await reload(); setRefreshing(false); };
@@ -347,13 +351,13 @@ function FindPartnerTab({ navigation }: { navigation: any }) {
   return (
     <ScrollView
       showsVerticalScrollIndicator={false}
-      contentContainerStyle={styles.scroll}
+      contentContainerStyle={[styles.scroll, { paddingBottom: tabBarPadding }]}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.primary} />}
     >
       {partners.length === 0 ? (
         <View style={styles.emptyBox}>
           <Text style={styles.emptyEmoji}>🎾</Text>
-          <Text style={styles.emptyText}>No compatible players found yet.{'\n'}Sync your Playtomic account to get matched.</Text>
+          <Text style={styles.emptyText}>No compatible players found yet.{'\n'}Connect your booking platform to get matched.</Text>
         </View>
       ) : (
         <>
@@ -381,6 +385,7 @@ type PlayTab = 'history' | 'partner' | 'courts';
 
 export default function PlayHomeScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
+  const tabBarPadding = useTabBarPadding();
   const [tab, setTab] = useState<PlayTab>('history');
 
   const TABS: { id: PlayTab; label: string }[] = [
@@ -391,7 +396,7 @@ export default function PlayHomeScreen({ navigation }: any) {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      <StatusBar barStyle="light-content" backgroundColor={theme.bg} />
+      
 
       {/* Compact header + tabs in one block — no stranded gap */}
       <View style={styles.headerBlock}>
@@ -428,7 +433,7 @@ export default function PlayHomeScreen({ navigation }: any) {
           <Text style={styles.comingSoonText}>Live games near you needing players. Coming in v2.</Text>
         </View>
       )}
-    </View>
+    </ScreenBackground>
   );
 }
 
@@ -437,7 +442,7 @@ export default function PlayHomeScreen({ navigation }: any) {
 const AVATAR_SIZE = 110;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: theme.bg },
+  container: { flex: 1, backgroundColor: 'transparent' },
 
   // Header + tabs unified — no gap between them
   headerBlock: {
@@ -464,7 +469,7 @@ const styles = StyleSheet.create({
   retryBtn: { backgroundColor: theme.primaryDim, borderRadius: 10, paddingHorizontal: 20, paddingVertical: 10, borderWidth: 1, borderColor: theme.primaryBorder },
   retryText: { color: theme.primary, fontFamily: fonts.bodyBold },
 
-  scroll: { paddingHorizontal: 16, paddingTop: 12 },
+  scroll: { paddingHorizontal: 16, paddingTop: 12, paddingBottom: 120 },
   sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 },
   sectionTitle: { fontSize: 15, fontFamily: fonts.bodyBold, color: theme.textPrimary, flex: 1 },
   countBadge: { backgroundColor: theme.primaryDim, borderRadius: 10, paddingHorizontal: 8, paddingVertical: 3, borderWidth: 1, borderColor: theme.primaryBorder },

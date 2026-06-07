@@ -29,9 +29,9 @@ const TIMES = [
 ];
 
 export default function Question7AvailabilityScreen({ route, navigation }: any) {
-  const { city, looking_for, visible_to, bio, level_value, play_style } = route.params ?? {};
+  const { first_name, last_name, date_of_birth, city, looking_for, visible_to, bio, level_value, play_style } = route.params ?? {};
   const insets = useSafeAreaInsets();
-  const { user, refreshUser } = useAuth();
+  const { session, refreshUser } = useAuth();
 
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
@@ -43,26 +43,65 @@ export default function Question7AvailabilityScreen({ route, navigation }: any) 
     );
   };
 
+  const resolveUserId = async (authId: string): Promise<string | null> => {
+    // Step 1: try to find existing row
+    const { data: existing } = await supabase
+      .from('users')
+      .select('id')
+      .eq('auth_id', authId)
+      .maybeSingle();
+
+    if (existing?.id) return existing.id;
+
+    // Step 2: row doesn't exist — upsert it
+    await supabase.from('users').upsert({
+      auth_id: authId,
+      full_name: [first_name, last_name].filter(Boolean).join(' ') || null,
+      date_of_birth: date_of_birth || null,
+      city: city || null,
+      looking_for: looking_for || null,
+      visible_to: visible_to || null,
+      bio: bio || null,
+      profile_complete: false,
+      last_active_at: new Date().toISOString(),
+    }, { onConflict: 'auth_id' });
+
+    // Step 3: fetch the id again after upsert
+    const { data: created } = await supabase
+      .from('users')
+      .select('id')
+      .eq('auth_id', authId)
+      .maybeSingle();
+
+    return created?.id ?? null;
+  };
+
   const handleContinue = async () => {
     if (selectedDays.length === 0 || !selectedTime) return;
-    if (!user?.id) return;
+
+    const authId = session?.user?.id;
+    if (!authId) return;
 
     setSaving(true);
     try {
-      // 1. Update users table with profile data collected across Q1–Q4
+      const userId = await resolveUserId(authId);
+      if (!userId) throw new Error('Could not create your profile. Please try again.');
+
+      // 1. Update users table with all profile data
       await supabase.from('users').update({
-        city,
-        looking_for,
-        visible_to,
+        full_name: [first_name, last_name].filter(Boolean).join(' ') || null,
+        date_of_birth: date_of_birth || null,
+        city: city || null,
+        looking_for: looking_for || null,
+        visible_to: visible_to || null,
         bio: bio || null,
-      }).eq('id', user.id);
+      }).eq('id', userId);
 
       // 2. Upsert self-reported player stats
-      // platform = 'self_reported' — overridden when Playtomic syncs
       const { error: statsError } = await supabase
         .from('player_stats')
         .upsert({
-          user_id: user.id,
+          user_id: userId,
           platform: 'self_reported',
           level_value,
           level_confidence: 0.5,
@@ -79,17 +118,18 @@ export default function Question7AvailabilityScreen({ route, navigation }: any) 
 
       await refreshUser();
 
-      // 3. Fire volpair Score computation in background (non-blocking)
+      // 3. Fire volpair Score computation in background
       fetch(`${SUPABASE_URL}/functions/v1/compute-scores`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'apikey': SUPABASE_ANON_KEY,
         },
-        body: JSON.stringify({ user_id: user.id }),
-      }).catch(() => {}); // fire and forget — don't block navigation
+        body: JSON.stringify({ user_id: userId }),
+      }).catch(() => {});
 
       navigation.navigate('PhotoUpload', {
+        first_name, last_name, date_of_birth,
         city, looking_for, visible_to, bio, level_value, play_style,
         preferred_days: selectedDays, preferred_time_of_day: selectedTime,
       });
@@ -106,14 +146,13 @@ export default function Question7AvailabilityScreen({ route, navigation }: any) 
     <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
       <StatusBar barStyle="light-content" backgroundColor={theme.bg} />
       <View style={styles.inner}>
-        <OnboardingProgress total={7} current={7} />
+        <OnboardingProgress total={9} current={9} />
 
         <Text style={styles.title}>When do you play?</Text>
         <Text style={styles.subtitle}>
           Pick your usual days and preferred time. We'll match you with players who share your schedule.
         </Text>
 
-        {/* Days */}
         <Text style={styles.sectionLabel}>Days</Text>
         <View style={styles.daysRow}>
           {DAYS.map(d => {
@@ -133,7 +172,6 @@ export default function Question7AvailabilityScreen({ route, navigation }: any) 
           })}
         </View>
 
-        {/* Time of day */}
         <Text style={[styles.sectionLabel, { marginTop: 24 }]}>Time of day</Text>
         <View style={styles.timeOptions}>
           {TIMES.map(t => {

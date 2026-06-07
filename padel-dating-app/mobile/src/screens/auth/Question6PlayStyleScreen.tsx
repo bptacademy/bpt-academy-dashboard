@@ -34,13 +34,14 @@ const STYLES = [
 ];
 
 export default function Question6PlayStyleScreen({ route, navigation }: any) {
-  const { city, looking_for, visible_to, bio, level_value } = route.params ?? {};
+  const { first_name, last_name, date_of_birth, city, looking_for, visible_to, bio, level_value } = route.params ?? {};
   const insets = useSafeAreaInsets();
   const [selected, setSelected] = useState<string | null>(null);
 
   const handleContinue = () => {
     if (!selected) return;
     navigation.navigate('Question7Availability', {
+      first_name, last_name, date_of_birth,
       city, looking_for, visible_to, bio, level_value, play_style: selected,
     });
   };
@@ -49,11 +50,11 @@ export default function Question6PlayStyleScreen({ route, navigation }: any) {
     <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
       <StatusBar barStyle="light-content" backgroundColor={theme.bg} />
       <View style={styles.inner}>
-        <OnboardingProgress total={7} current={6} />
+        <OnboardingProgress total={9} current={8} />
 
         <Text style={styles.title}>Your play style?</Text>
         <Text style={styles.subtitle}>
-          This helps us pair you with compatible partners. Playtomic will refine this when you sync.
+          This helps us pair you with compatible partners. Connecting your booking platform will refine this automatically.
         </Text>
 
         <View style={styles.options}>

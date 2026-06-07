@@ -13,7 +13,7 @@ import { uploadPhotos } from '../../lib/uploadPhoto';
 const MAX_PHOTOS = 3;
 
 export default function PhotoUploadScreen({ route, navigation }: any) {
-  const { city, looking_for, visible_to, bio } = route.params ?? {};
+  const { city, looking_for, visible_to, bio, first_name, last_name, date_of_birth } = route.params ?? {};
   const insets = useSafeAreaInsets();
   const { session, refreshUser } = useAuth();
   const [photos, setPhotos] = useState<string[]>([]);
@@ -52,19 +52,25 @@ export default function PhotoUploadScreen({ route, navigation }: any) {
       setUploadProgress('Uploading photos…');
       const photoUrls = await uploadPhotos(photos, userId);
 
+      // Resolve full_name: prefer params, fall back to auth metadata
+      const paramName = [first_name, last_name].filter(Boolean).join(' ') || null;
+      const metaName = (() => {
+        const meta = session?.user?.user_metadata ?? {};
+        if (meta.full_name) return meta.full_name;
+        const first = meta.first_name ?? '';
+        const last = meta.last_name ?? '';
+        const combined = [first.trim(), last.trim()].filter(Boolean).join(' ');
+        return combined || null;
+      })();
+      const fullName = paramName || metaName;
+
       // Save profile to DB including photo URLs
       setUploadProgress('Saving profile…');
       const { error: dbError } = await supabase.from('users').upsert({
         auth_id: userId,
         email: session?.user?.email,
-        full_name: (() => {
-          const meta = session?.user?.user_metadata ?? {};
-          if (meta.full_name) return meta.full_name;
-          const first = meta.first_name ?? '';
-          const last = meta.last_name ?? '';
-          const combined = [first.trim(), last.trim()].filter(Boolean).join(' ');
-          return combined || null;
-        })(),
+        full_name: fullName,
+        date_of_birth: date_of_birth ?? null,
         city: city ?? null,
         looking_for: looking_for ?? null,
         visible_to: visible_to ?? 'everyone',
@@ -77,7 +83,7 @@ export default function PhotoUploadScreen({ route, navigation }: any) {
       if (dbError) throw dbError;
 
       await refreshUser();
-      navigation.replace('OnboardingComplete');
+      navigation.replace('PermissionNotifications');
     } catch (err: any) {
       setSaving(false);
       setUploadProgress('');

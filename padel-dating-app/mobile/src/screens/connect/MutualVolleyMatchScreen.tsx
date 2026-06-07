@@ -5,6 +5,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme, fonts } from '../../lib/theme';
 import { useAuth } from '../../context/AuthContext';
+import { ScreenBackground } from '../../components/ScreenBackground';
 
 export default function MutualVolleyMatchScreen({ route, navigation }: any) {
   const insets = useSafeAreaInsets();
@@ -48,7 +49,7 @@ export default function MutualVolleyMatchScreen({ route, navigation }: any) {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
-      <StatusBar barStyle="light-content" backgroundColor={theme.bg} />
+      
 
       <View style={styles.glowViolet} />
       <View style={styles.glowTurquoise} />
@@ -98,12 +99,12 @@ export default function MutualVolleyMatchScreen({ route, navigation }: any) {
           <Text style={styles.laterText}>Maybe later</Text>
         </TouchableOpacity>
       </Animated.View>
-    </View>
+    </ScreenBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: theme.bg, paddingHorizontal: 28 },
+  container: { flex: 1, backgroundColor: 'transparent', paddingHorizontal: 28 },
   glowViolet: {
     position: 'absolute', top: '20%', left: -80,
     width: 260, height: 260, borderRadius: 130,

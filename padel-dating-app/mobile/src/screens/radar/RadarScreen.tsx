@@ -9,6 +9,7 @@ import * as Location from 'expo-location';
 import { theme, fonts } from '../../lib/theme';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
+import { ScreenBackground } from '../../components/ScreenBackground';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const RADAR_DIAMETER = Math.min(SCREEN_WIDTH - 64, 300);
@@ -219,7 +220,7 @@ export default function RadarScreen({ navigation }: any) {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      <StatusBar barStyle="light-content" backgroundColor={theme.bg} />
+      
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Radar</Text>
         <Text style={styles.headerSub}>
@@ -309,13 +310,13 @@ export default function RadarScreen({ navigation }: any) {
           }}
         />
       )}
-    </View>
+    </ScreenBackground>
   );
 }
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: theme.bg },
+  container: { flex: 1, backgroundColor: 'transparent' },
   header: { paddingHorizontal: 20, paddingVertical: 12, alignItems: 'center' },
   headerTitle: { fontSize: 20, fontFamily: fonts.headlineBold, color: theme.textPrimary, letterSpacing: 0.5 },
   headerSub: { fontSize: 12, fontFamily: fonts.bodyLight, color: theme.textSecondary, marginTop: 2 },

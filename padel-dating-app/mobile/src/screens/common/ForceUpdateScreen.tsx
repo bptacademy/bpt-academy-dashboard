@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Platform, Linking } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme } from '../../lib/theme';
+import { ScreenBackground } from '../../components/ScreenBackground';
 
 // Update these once the app is live on the stores
 const APP_STORE_URL = 'https://apps.apple.com/app/id0000000000'; // TODO: replace with real App Store ID
@@ -22,14 +23,14 @@ export default function ForceUpdateScreen() {
       <TouchableOpacity style={styles.btn} onPress={() => Linking.openURL(storeUrl)}>
         <Text style={styles.btnText}>Update Now →</Text>
       </TouchableOpacity>
-    </View>
+    </ScreenBackground>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.bg,
+    backgroundColor: 'transparent',
     alignItems: 'center',
     justifyContent: 'center',
     padding: 32,
