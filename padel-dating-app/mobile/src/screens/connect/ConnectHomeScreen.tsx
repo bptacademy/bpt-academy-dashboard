@@ -118,42 +118,22 @@ function DiscoveryCard({ pick, navigation, onAction }: {
 // ─── Teaser / locked state ────────────────────────────────────────────────────
 
 function DiscoveryLocked({ onEnable, locationDenied }: { onEnable: () => void; locationDenied: boolean }) {
-  const ghosts = [0, 1, 2];
   return (
-    <View style={styles.lockedWrapper}>
-      {ghosts.map(i => (
-        <View key={i} style={[styles.card, styles.ghostCard]}>
-          <View style={styles.cardBody}>
-            <View style={styles.ghostAvatar} />
-            <View style={styles.ghostInfo}>
-              <View style={styles.ghostLine} />
-              <View style={[styles.ghostLine, { width: '60%' }]} />
-              <View style={[styles.ghostLine, { width: '40%' }]} />
-              <View style={styles.ghostScore} />
-            </View>
-          </View>
-          <View style={styles.ghostActions} />
-        </View>
-      ))}
-
-      <View style={styles.lockedOverlay}>
-        <View style={styles.lockedCta}>
-          <Text style={styles.lockedIcon}>🎯</Text>
-          <Text style={styles.lockedTitle}>
-            {locationDenied ? 'Location needed' : 'Discover your matches'}
-          </Text>
-          <Text style={styles.lockedSub}>
-            {locationDenied
-              ? 'Allow location access to see compatible players near you'
-              : 'Find compatible padel players near you, sorted by your Volpair score'}
-          </Text>
-          <TouchableOpacity style={styles.lockedBtn} onPress={onEnable} activeOpacity={0.85}>
-            <Text style={styles.lockedBtnText}>
-              {locationDenied ? 'Allow location' : '🎯 Start discovering'}
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </View>
+    <View style={styles.lockedCta}>
+      <Text style={styles.lockedIcon}>🎯</Text>
+      <Text style={styles.lockedTitle}>
+        {locationDenied ? 'Location needed' : 'Discover your matches'}
+      </Text>
+      <Text style={styles.lockedSub}>
+        {locationDenied
+          ? 'Allow location access to see compatible players near you'
+          : 'Find compatible padel players near you, sorted by your Volpair score'}
+      </Text>
+      <TouchableOpacity style={styles.lockedBtn} onPress={onEnable} activeOpacity={0.85}>
+        <Text style={styles.lockedBtnText}>
+          {locationDenied ? 'Allow location' : '🎯 Start discovering'}
+        </Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -352,13 +332,8 @@ const styles = StyleSheet.create({
   ghostLine: { height: 12, borderRadius: 6, backgroundColor: theme.bgDeep, width: '80%' },
   ghostScore: { width: 50, height: 50, borderRadius: 25, backgroundColor: theme.bgDeep, marginTop: 4 },
   ghostActions: { height: 44, borderRadius: 12, backgroundColor: theme.bgDeep, marginTop: 12 },
-  lockedOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(13,27,42,0.88)',
-    borderRadius: 18, alignItems: 'center', justifyContent: 'center',
-    paddingHorizontal: 24,
-  },
-  lockedCta: { alignItems: 'center', gap: 10 },
+  lockedOverlay: { display: 'none' },
+  lockedCta: { alignItems: 'center', gap: 16, flex: 1, justifyContent: 'center', paddingHorizontal: 32, paddingVertical: 60 },
   lockedIcon: { fontSize: 48, marginBottom: 4 },
   lockedTitle: { fontSize: 22, fontFamily: fonts.headlineBold, color: theme.textPrimary, textAlign: 'center' },
   lockedSub: { fontSize: 14, color: theme.textSecondary, textAlign: 'center', lineHeight: 22, fontFamily: fonts.bodyLight },

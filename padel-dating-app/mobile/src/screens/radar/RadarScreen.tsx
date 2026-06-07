@@ -414,9 +414,9 @@ const styles = StyleSheet.create({
 
 // ─── Popup styles ─────────────────────────────────────────────────────────────
 const popup = StyleSheet.create({
-  backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', alignItems: 'center', justifyContent: 'flex-end' },
+  backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.55)', alignItems: 'center', justifyContent: 'flex-end' },
   card: {
-    width: '100%', backgroundColor: '#0E1F35',
+    width: '100%', backgroundColor: 'rgba(20, 10, 50, 0.92)',
     borderTopLeftRadius: 28, borderTopRightRadius: 28,
     padding: 24, paddingBottom: 36,
     borderTopWidth: 1, borderTopColor: 'rgba(0,212,200,0.2)',
