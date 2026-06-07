@@ -24,6 +24,7 @@ export default function Question0NameScreen({ navigation }: any) {
   };
 
   return (
+    <ScreenBackground>
     <KeyboardAvoidingView
       style={{ flex: 1, backgroundColor: 'transparent' }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -80,8 +81,9 @@ export default function Question0NameScreen({ navigation }: any) {
           </TouchableOpacity>
         </View>
       </View>
-    </ScreenBackground>
+    </View>
     </KeyboardAvoidingView>
+    </ScreenBackground>
   );
 }
 

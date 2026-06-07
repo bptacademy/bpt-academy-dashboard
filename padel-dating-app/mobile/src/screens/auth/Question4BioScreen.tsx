@@ -25,6 +25,7 @@ export default function Question4BioScreen({ route, navigation }: any) {
   };
 
   return (
+    <ScreenBackground>
     <KeyboardAvoidingView
       style={{ flex: 1, backgroundColor: "#0D1B2A" }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -69,8 +70,9 @@ export default function Question4BioScreen({ route, navigation }: any) {
           </TouchableOpacity>
         </View>
       </View>
-    </ScreenBackground>
+    </View>
     </KeyboardAvoidingView>
+    </ScreenBackground>
   );
 }
 

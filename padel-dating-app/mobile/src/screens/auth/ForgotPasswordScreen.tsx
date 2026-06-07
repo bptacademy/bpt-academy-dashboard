@@ -35,6 +35,7 @@ export default function ForgotPasswordScreen({ navigation }: { navigation: any }
   };
 
   return (
+    <ScreenBackground>
     <KeyboardAvoidingView
       style={[styles.container, { backgroundColor: '#0A0A0F' }]}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -90,8 +91,9 @@ export default function ForgotPasswordScreen({ navigation }: { navigation: any }
           </>
         )}
       </View>
-    </ScreenBackground>
+    </View>
     </KeyboardAvoidingView>
+    </ScreenBackground>
   );
 }
 

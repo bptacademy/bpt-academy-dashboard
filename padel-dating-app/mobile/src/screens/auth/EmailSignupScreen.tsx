@@ -153,6 +153,7 @@ export default function EmailSignupScreen({ navigation, route }: any) {
   // ─── Render ────────────────────────────────────────────────────────────────
 
   return (
+    <ScreenBackground>
     <KeyboardAvoidingView style={{ flex: 1, backgroundColor: 'transparent' }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
         
@@ -305,8 +306,9 @@ export default function EmailSignupScreen({ navigation, route }: any) {
           </TouchableOpacity>
         </View>
       </View>
-    </ScreenBackground>
+    </View>
     </KeyboardAvoidingView>
+    </ScreenBackground>
   );
 }
 
