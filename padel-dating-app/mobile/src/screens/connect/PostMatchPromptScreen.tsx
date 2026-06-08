@@ -2,12 +2,13 @@ import React, { useState, useEffect, useCallback } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity, StatusBar,
   ActivityIndicator, Image,
-} from 'react-native';
+, ImageBackground } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme, fonts } from '../../lib/theme';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { notifyVolley } from '../../lib/notifications';
+const _BG = require('../../../assets/volpair-bg-v2.png');
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -59,6 +60,7 @@ function PlayerCard({
   const displayName = player.platformName ?? `Player ${player.platformUserId}`;
 
   return (
+    <ImageBackground source={_BG} style={{ flex: 1 }} resizeMode="cover">
     <View style={styles.card}>
       <View style={styles.cardTop}>
         {player.photo_url ? (
@@ -281,13 +283,14 @@ export default function PostMatchPromptScreen({ navigation }: any) {
       </View>
     </View>
     </View>
+    </ImageBackground>
   );
 }
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: theme.bg, paddingHorizontal: 20 },
+  container: { flex: 1, backgroundColor: 'transparent', paddingHorizontal: 20 },
   centered: { alignItems: 'center', justifyContent: 'center' },
 
   loadingText: { marginTop: 14, fontSize: 15, color: theme.textMuted, fontFamily: fonts.bodyLight },

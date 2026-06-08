@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   StatusBar, KeyboardAvoidingView, Platform,
-} from 'react-native';
+, ImageBackground } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme, fonts } from '../../lib/theme';
 import OnboardingProgress from '../../components/common/OnboardingProgress';
+const _BG = require('../../../assets/volpair-bg-v2.png');
 
 export default function Question0NameScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
@@ -23,6 +24,7 @@ export default function Question0NameScreen({ navigation }: any) {
   };
 
   return (
+    <ImageBackground source={_BG} style={{ flex: 1 }} resizeMode="cover">
     <KeyboardAvoidingView
       style={{ flex: 1, backgroundColor: 'transparent' }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -80,6 +82,7 @@ export default function Question0NameScreen({ navigation }: any) {
         </View>
       </View>
     </KeyboardAvoidingView>
+    </ImageBackground>
   );
 }
 

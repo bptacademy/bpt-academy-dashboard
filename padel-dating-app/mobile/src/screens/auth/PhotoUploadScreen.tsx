@@ -2,13 +2,14 @@ import React, { useState } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet, StatusBar,
   Alert, ActivityIndicator, Image, ScrollView,
-} from 'react-native';
+, ImageBackground } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme, fonts } from '../../lib/theme';
 import * as ImagePicker from 'expo-image-picker';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { uploadPhotos } from '../../lib/uploadPhoto';
+const _BG = require('../../../assets/volpair-bg-v2.png');
 
 const MAX_PHOTOS = 3;
 
@@ -92,6 +93,7 @@ export default function PhotoUploadScreen({ route, navigation }: any) {
   };
 
   return (
+      <ImageBackground source={_BG} style={{ flex: 1 }} resizeMode="cover">
       <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
       <StatusBar barStyle="light-content" backgroundColor="#0D1B2A" />
 
@@ -152,6 +154,7 @@ export default function PhotoUploadScreen({ route, navigation }: any) {
         </TouchableOpacity>
       </View>
     </View>
+    </ImageBackground>
   );
 }
 

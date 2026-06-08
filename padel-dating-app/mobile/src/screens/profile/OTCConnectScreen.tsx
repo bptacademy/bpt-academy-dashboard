@@ -8,11 +8,12 @@ import React, { useState } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet,
   StatusBar, ScrollView, ActivityIndicator, Alert,
-} from 'react-native';
+, ImageBackground } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme, fonts } from '../../lib/theme';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
+const _BG = require('../../../assets/volpair-bg-v2.png');
 
 const SUPABASE_URL = 'https://qmdewocktouqoibbqurh.supabase.co';
 
@@ -68,6 +69,7 @@ export default function OTCConnectScreen({ navigation }: any) {
   };
 
   return (
+    <ImageBackground source={_BG} style={{ flex: 1 }} resizeMode="cover">
     <View style={{flex:1, backgroundColor:'transparent'}}>
       <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
       
@@ -118,11 +120,12 @@ export default function OTCConnectScreen({ navigation }: any) {
       </ScrollView>
     </View>
     </View>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: theme.bg, paddingHorizontal: 24 },
+  container: { flex: 1, backgroundColor: 'transparent', paddingHorizontal: 24 },
   backBtn:            { paddingVertical: 16 },
   backText:           { color: theme.textSecondary, fontSize: 17.1, fontFamily: fonts.bodyLight },
   header:             { marginBottom: 24 },

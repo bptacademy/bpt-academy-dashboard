@@ -2,11 +2,12 @@ import React, { useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, StatusBar,
   Alert, ActivityIndicator, TextInput,
-} from 'react-native';
+, ImageBackground } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme, fonts } from '../../lib/theme';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
+const _BG = require('../../../assets/volpair-bg-v2.png');
 
 export default function DeleteAccountScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
@@ -43,6 +44,7 @@ export default function DeleteAccountScreen({ navigation }: any) {
   };
 
   return (
+    <ImageBackground source={_BG} style={{ flex: 1 }} resizeMode="cover">
     <View style={{flex:1, backgroundColor:'transparent'}}>
       <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
       
@@ -104,11 +106,12 @@ export default function DeleteAccountScreen({ navigation }: any) {
       </View>
     </View>
     </View>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: theme.bg, paddingHorizontal: 24 },
+  container: { flex: 1, backgroundColor: 'transparent', paddingHorizontal: 24 },
   header: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: theme.bgCard,

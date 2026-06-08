@@ -2,6 +2,7 @@
 import { useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
+const _BG = require('../../../assets/volpair-bg-v2.png');
 
 export default function OnboardingResumeScreen({ navigation }: any) {
   const { session } = useAuth();

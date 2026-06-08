@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet, StatusBar,
-} from 'react-native';
+, ImageBackground } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme, fonts } from '../../lib/theme';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
+const _BG = require('../../../assets/volpair-bg-v2.png');
 
 const PLATFORMS = [
   {
@@ -91,6 +92,7 @@ export default function PlatformSelectScreen({ navigation, route }: any) {
   };
 
   return (
+      <ImageBackground source={_BG} style={{ flex: 1 }} resizeMode="cover">
       <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
       
 
@@ -138,6 +140,7 @@ export default function PlatformSelectScreen({ navigation, route }: any) {
         </TouchableOpacity>
       )}
     </View>
+    </ImageBackground>
   );
 }
 

@@ -3,11 +3,12 @@ import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   StatusBar, Alert, ActivityIndicator, KeyboardAvoidingView,
   Platform, ScrollView, TextInput as RNTextInput,
-} from 'react-native';
+, ImageBackground } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme, fonts } from '../../lib/theme';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
+const _BG = require('../../../assets/volpair-bg-v2.png');
 
 async function ensureUsersRow(userId: string, email: string, firstName: string, lastName: string) {
   const fullName = [firstName.trim(), lastName.trim()].filter(Boolean).join(' ');
@@ -152,6 +153,7 @@ export default function EmailSignupScreen({ navigation, route }: any) {
   // ─── Render ────────────────────────────────────────────────────────────────
 
   return (
+    <ImageBackground source={_BG} style={{ flex: 1 }} resizeMode="cover">
     <KeyboardAvoidingView style={{ flex: 1, backgroundColor: 'transparent' }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
         
@@ -305,6 +307,7 @@ export default function EmailSignupScreen({ navigation, route }: any) {
         </View>
       </View>
     </KeyboardAvoidingView>
+    </ImageBackground>
   );
 }
 

@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, StatusBar } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, StatusBar , ImageBackground } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme, fonts } from '../../lib/theme';
 import OnboardingProgress from '../../components/common/OnboardingProgress';
+const _BG = require('../../../assets/volpair-bg-v2.png');
 
 const OPTIONS = [
   { id: 'everyone',      emoji: '🌍', label: 'Everyone',       desc: 'Show my profile to all players' },
@@ -22,6 +23,7 @@ export default function Question3VisibilityScreen({ route, navigation }: any) {
   };
 
   return (
+      <ImageBackground source={_BG} style={{ flex: 1 }} resizeMode="cover">
       <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
       <StatusBar barStyle="light-content" backgroundColor="#0D1B2A" />
 
@@ -64,6 +66,7 @@ export default function Question3VisibilityScreen({ route, navigation }: any) {
         </TouchableOpacity>
       </View>
     </View>
+    </ImageBackground>
   );
 }
 

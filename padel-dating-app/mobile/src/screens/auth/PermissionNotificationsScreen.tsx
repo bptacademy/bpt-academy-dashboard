@@ -1,10 +1,11 @@
 import React, { useRef } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet, Animated, Platform,
-} from 'react-native';
+, ImageBackground } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Notifications from 'expo-notifications';
 import { theme, fonts } from '../../lib/theme';
+const _BG = require('../../../assets/volpair-bg-v2.png');
 
 export default function PermissionNotificationsScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
@@ -53,6 +54,7 @@ export default function PermissionNotificationsScreen({ navigation }: any) {
   };
 
   return (
+      <ImageBackground source={_BG} style={{ flex: 1 }} resizeMode="cover">
       <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom + 24 }]}>
       <View style={styles.body}>
         <Animated.Text style={[styles.icon, { transform: [{ scale: bellAnim }] }]}>
@@ -73,6 +75,7 @@ export default function PermissionNotificationsScreen({ navigation }: any) {
         </TouchableOpacity>
       </View>
     </View>
+    </ImageBackground>
   );
 }
 

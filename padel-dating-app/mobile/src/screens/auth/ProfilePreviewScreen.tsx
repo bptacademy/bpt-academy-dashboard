@@ -2,11 +2,12 @@ import React, { useEffect, useState } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet, ScrollView,
   StatusBar, ActivityIndicator,
-} from 'react-native';
+, ImageBackground } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme, fonts } from '../../lib/theme';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
+const _BG = require('../../../assets/volpair-bg-v2.png');
 
 export default function ProfilePreviewScreen({ route, navigation }: any) {
   const { syncResult } = route.params ?? {};
@@ -65,6 +66,7 @@ export default function ProfilePreviewScreen({ route, navigation }: any) {
 
   if (loading) {
     return (
+        <ImageBackground source={_BG} style={{ flex: 1 }} resizeMode="cover">
         <View style={styles.loadingContainer}>
         <ActivityIndicator color={theme.primary} size="large" />
         <Text style={styles.loadingText}>Loading your profile…</Text>
@@ -171,6 +173,7 @@ export default function ProfilePreviewScreen({ route, navigation }: any) {
         </TouchableOpacity>
       </View>
     </View>
+    </ImageBackground>
   );
 }
 

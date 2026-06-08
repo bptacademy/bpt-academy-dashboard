@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet, StatusBar,
   Modal, FlatList,
-} from 'react-native';
+, ImageBackground } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme, fonts } from '../../lib/theme';
 import OnboardingProgress from '../../components/common/OnboardingProgress';
+const _BG = require('../../../assets/volpair-bg-v2.png');
 
 const MONTHS = [
   { label: 'Jan', value: '01' },
@@ -74,6 +75,7 @@ export default function Question0DOBScreen({ route, navigation }: any) {
   const yearLabel = selectedYear ?? 'Year';
 
   return (
+      <ImageBackground source={_BG} style={{ flex: 1 }} resizeMode="cover">
       <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
       
 
@@ -189,6 +191,7 @@ export default function Question0DOBScreen({ route, navigation }: any) {
         </View>
       </Modal>
     </View>
+    </ImageBackground>
   );
 }
 

@@ -9,7 +9,7 @@ import React, { useState, useEffect } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
   StatusBar, ActivityIndicator, RefreshControl, Image, Platform,
-} from 'react-native';
+, ImageBackground } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTabBarPadding } from '../../hooks/useTabBarPadding';
 import { theme, fonts } from '../../lib/theme';
@@ -17,6 +17,7 @@ import { useCourtPicks, CourtPick } from '../../hooks/useCourtPicks';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { DiscoveryLoaderC } from '../../components/DiscoveryLoader';
+const _BG = require('../../../assets/volpair-bg-v2.png');
 
 // ─── Full discovery card ──────────────────────────────────────────────────────
 
@@ -118,6 +119,7 @@ function DiscoveryCard({ pick, navigation, onAction }: {
 
 function DiscoveryLocked({ onEnable, locationDenied }: { onEnable: () => void; locationDenied: boolean }) {
   return (
+    <ImageBackground source={_BG} style={{ flex: 1 }} resizeMode="cover">
     <View style={styles.lockedCta}>
       <Text style={styles.lockedIcon}>🎯</Text>
       <Text style={styles.lockedTitle}>
@@ -250,6 +252,7 @@ export default function ConnectHomeScreen({ navigation }: any) {
       )}
     </View>
     </View>
+    </ImageBackground>
   );
 }
 
@@ -258,7 +261,7 @@ export default function ConnectHomeScreen({ navigation }: any) {
 const AVATAR_SIZE = 110;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: theme.bg },
+  container: { flex: 1, backgroundColor: 'transparent' },
   header: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     paddingHorizontal: 20, paddingVertical: 16,

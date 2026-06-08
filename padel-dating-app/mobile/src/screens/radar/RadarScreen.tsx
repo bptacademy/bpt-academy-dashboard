@@ -3,12 +3,13 @@ import {
   View, Text, StyleSheet, TouchableOpacity, Image,
   Animated, Easing, PanResponder, Dimensions,
   ActivityIndicator, StatusBar, Platform, Modal,
-} from 'react-native';
+, ImageBackground } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Location from 'expo-location';
 import { theme, fonts } from '../../lib/theme';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
+const _BG = require('../../../assets/volpair-bg-v2.png');
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const RADAR_DIAMETER = Math.min(SCREEN_WIDTH - 64, 300);
@@ -154,6 +155,7 @@ function RadiusSlider({ value, onChange }: { value: number; onChange: (v: number
   })).current;
   const thumbLeft = ((display - SLIDER_MIN) / (SLIDER_MAX - SLIDER_MIN)) * SLIDER_W;
   return (
+    <ImageBackground source={_BG} style={{ flex: 1 }} resizeMode="cover">
     <View style={styles.sliderContainer}>
       <Text style={styles.sliderLabel}>{display} miles</Text>
       <View style={styles.sliderTrackWrapper}>
@@ -312,12 +314,13 @@ export default function RadarScreen({ navigation }: any) {
       )}
     </View>
     </View>
+    </ImageBackground>
   );
 }
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: theme.bg },
+  container: { flex: 1, backgroundColor: 'transparent' },
   header: { paddingHorizontal: 20, paddingVertical: 12, alignItems: 'center' },
   headerTitle: { fontSize: 20, fontFamily: fonts.headlineBold, color: theme.textPrimary, letterSpacing: 0.5 },
   headerSub: { fontSize: 12.8, fontFamily: fonts.bodyLight, color: theme.textSecondary, marginTop: 2 },

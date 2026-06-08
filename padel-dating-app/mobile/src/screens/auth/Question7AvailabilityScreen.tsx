@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet, StatusBar, Alert,
-} from 'react-native';
+, ImageBackground } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme, fonts } from '../../lib/theme';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import OnboardingProgress from '../../components/common/OnboardingProgress';
+const _BG = require('../../../assets/volpair-bg-v2.png');
 
 const SUPABASE_URL = 'https://qmdewocktouqoibbqurh.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_KwkQawb1Kv2jOk1Wud0xUg_mPQxPqmL';
@@ -143,6 +144,7 @@ export default function Question7AvailabilityScreen({ route, navigation }: any) 
   const canContinue = selectedDays.length > 0 && selectedTime !== null;
 
   return (
+      <ImageBackground source={_BG} style={{ flex: 1 }} resizeMode="cover">
       <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
       
       <View style={styles.inner}>
@@ -207,6 +209,7 @@ export default function Question7AvailabilityScreen({ route, navigation }: any) 
         </TouchableOpacity>
       </View>
     </View>
+    </ImageBackground>
   );
 }
 

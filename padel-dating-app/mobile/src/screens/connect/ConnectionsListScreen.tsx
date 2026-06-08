@@ -2,11 +2,12 @@ import React from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, StatusBar,
   ActivityIndicator, Image, FlatList,
-} from 'react-native';
+, ImageBackground } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTabBarPadding } from '../../hooks/useTabBarPadding';
 import { theme, fonts } from '../../lib/theme';
 import { useConnections } from '../../hooks/useConnections';
+const _BG = require('../../../assets/volpair-bg-v2.png');
 
 function formatTime(iso: string | null): string {
   if (!iso) return '';
@@ -25,6 +26,7 @@ export default function ConnectionsListScreen({ navigation }: any) {
   const { connections, loading } = useConnections();
 
   return (
+    <ImageBackground source={_BG} style={{ flex: 1 }} resizeMode="cover">
     <View style={{flex:1, backgroundColor:'transparent'}}>
       <View style={[styles.container, { paddingTop: insets.top }]}>
       
@@ -101,11 +103,12 @@ export default function ConnectionsListScreen({ navigation }: any) {
       )}
     </View>
     </View>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: theme.bg },
+  container: { flex: 1, backgroundColor: 'transparent' },
   header: {
     paddingHorizontal: 20, paddingVertical: 16,
     borderBottomWidth: 1, borderBottomColor: theme.bgCard,

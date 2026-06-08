@@ -3,11 +3,12 @@ import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   StatusBar, FlatList, KeyboardAvoidingView, Platform,
   ActivityIndicator, Image,
-} from 'react-native';
+, ImageBackground } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme, fonts } from '../../lib/theme';
 import { useAuth } from '../../context/AuthContext';
 import { useConversation } from '../../hooks/useConversation';
+const _BG = require('../../../assets/volpair-bg-v2.png');
 
 const SERVE_PROMPTS = [
   'Rematch Saturday? 🎾',
@@ -77,6 +78,7 @@ export default function ConversationScreen({ route, navigation }: any) {
     const showReadReceipt = isMe && item.id === lastReadMessageId;
 
     return (
+      <ImageBackground source={_BG} style={{ flex: 1 }} resizeMode="cover">
       <View style={[styles.bubbleWrap, isMe ? styles.bubbleWrapMe : styles.bubbleWrapThem]}>
         <View style={[styles.bubble, isMe ? styles.bubbleMe : styles.bubbleThem]}>
           <Text style={[styles.bubbleText, isMe ? styles.bubbleTextMe : styles.bubbleTextThem]}>
@@ -208,11 +210,12 @@ export default function ConversationScreen({ route, navigation }: any) {
       </View>
     </KeyboardAvoidingView>
     </View>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: theme.bg },
+  container: { flex: 1, backgroundColor: 'transparent' },
   header: {
     flexDirection: 'row', alignItems: 'center', gap: 12,
     paddingHorizontal: 16, paddingVertical: 12,

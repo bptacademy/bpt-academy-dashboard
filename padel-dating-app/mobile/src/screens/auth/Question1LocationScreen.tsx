@@ -1,13 +1,14 @@
 import React, { useRef } from 'react';
 import {
   View, Text, StyleSheet, StatusBar, KeyboardAvoidingView, Platform,
-} from 'react-native';
+, ImageBackground } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 import { theme, fonts } from '../../lib/theme';
 import OnboardingProgress from '../../components/common/OnboardingProgress';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
+const _BG = require('../../../assets/volpair-bg-v2.png');
 
 const GOOGLE_KEY = process.env.EXPO_PUBLIC_GOOGLE_PLACES_KEY!;
 
@@ -38,6 +39,7 @@ export default function Question1LocationScreen({ route, navigation }: any) {
   };
 
   return (
+    <ImageBackground source={_BG} style={{ flex: 1 }} resizeMode="cover">
     <KeyboardAvoidingView
       style={{ flex: 1, backgroundColor: "#0D1B2A" }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -117,6 +119,7 @@ export default function Question1LocationScreen({ route, navigation }: any) {
         </View>
       </View>
     </KeyboardAvoidingView>
+    </ImageBackground>
   );
 }
 

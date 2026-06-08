@@ -2,11 +2,12 @@ import React, { useState } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet,
   StatusBar, ScrollView, ActivityIndicator, Alert,
-} from 'react-native';
+, ImageBackground } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme, fonts } from '../../lib/theme';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
+const _BG = require('../../../assets/volpair-bg-v2.png');
 
 const SUPABASE_URL = 'https://qmdewocktouqoibbqurh.supabase.co';
 
@@ -62,6 +63,7 @@ export default function PlatformLoginScreen({ route, navigation }: any) {
   const isOTC = platform === 'on_the_court';
 
   return (
+      <ImageBackground source={_BG} style={{ flex: 1 }} resizeMode="cover">
       <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
       
       <ScrollView showsVerticalScrollIndicator={false}>
@@ -118,6 +120,7 @@ export default function PlatformLoginScreen({ route, navigation }: any) {
         )}
       </ScrollView>
     </View>
+    </ImageBackground>
   );
 }
 

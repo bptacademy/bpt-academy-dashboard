@@ -10,12 +10,13 @@ import React, { useState } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
   StatusBar, ActivityIndicator, RefreshControl, Image, Platform, Share,
-} from 'react-native';
+, ImageBackground } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTabBarPadding } from '../../hooks/useTabBarPadding';
 import { theme, fonts } from '../../lib/theme';
 import { usePartners, Partner } from '../../hooks/usePartners';
 import { useDiscovery, DiscoveredPlayer } from '../../hooks/useDiscovery';
+const _BG = require('../../../assets/volpair-bg-v2.png');
 
 // ─── Shared helpers ───────────────────────────────────────────────────────────
 
@@ -25,6 +26,7 @@ function ScoreBadge({ score, muted }: { score: number; muted?: boolean }) {
     : score >= 70 ? theme.scoreMid
     : theme.scoreLow;
   return (
+    <ImageBackground source={_BG} style={{ flex: 1 }} resizeMode="cover">
     <View style={[styles.scoreBadge, { borderColor: color }]}>
       <Text style={[styles.scoreValue, { color }]}>{score}</Text>
       <Text style={[styles.scoreLabel, { color }]}>match</Text>
@@ -435,6 +437,7 @@ export default function PlayHomeScreen({ navigation }: any) {
       )}
     </View>
     </View>
+    </ImageBackground>
   );
 }
 
@@ -443,7 +446,7 @@ export default function PlayHomeScreen({ navigation }: any) {
 const AVATAR_SIZE = 110;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: theme.bg },
+  container: { flex: 1, backgroundColor: 'transparent' },
 
   // Header + tabs unified — no gap between them
   headerBlock: {

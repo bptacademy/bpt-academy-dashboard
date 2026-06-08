@@ -14,11 +14,12 @@ import {
   NativeSyntheticEvent,
   TextInputKeyPressEventData,
   TextInputChangeEventData,
-} from 'react-native';
+, ImageBackground } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme, fonts } from '../../lib/theme';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
+const _BG = require('../../../assets/volpair-bg-v2.png');
 
 const CODE_LENGTH = 6;
 const RESEND_SECONDS = 30;
@@ -162,6 +163,7 @@ export default function OTPVerificationScreen({ navigation, route }: any) {
   // ─── Render ────────────────────────────────────────────────────────────────
 
   return (
+    <ImageBackground source={_BG} style={{ flex: 1 }} resizeMode="cover">
     <KeyboardAvoidingView
       style={{ flex: 1, backgroundColor: 'transparent' }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -238,6 +240,7 @@ export default function OTPVerificationScreen({ navigation, route }: any) {
         </View>
       </View>
     </KeyboardAvoidingView>
+    </ImageBackground>
   );
 }
 

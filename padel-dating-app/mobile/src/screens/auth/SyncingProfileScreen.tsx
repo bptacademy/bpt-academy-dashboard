@@ -1,8 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, StyleSheet, Animated, StatusBar, Alert, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Animated, StatusBar, Alert, TouchableOpacity , ImageBackground } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme, fonts } from '../../lib/theme';
 import { connectPlatform, connectPlatformWithUserId, syncPlatform } from '../../lib/platformSync';
+const _BG = require('../../../assets/volpair-bg-v2.png');
 
 const STEPS = [
   'Connecting to Playtomic…',
@@ -86,6 +87,7 @@ export default function SyncingProfileScreen({ route, navigation }: any) {
   const spin = spinAnim.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] });
 
   return (
+      <ImageBackground source={_BG} style={{ flex: 1 }} resizeMode="cover">
       <View style={[styles.container, { paddingTop: insets.top }]}>
       
       <View style={styles.center}>
@@ -115,6 +117,7 @@ export default function SyncingProfileScreen({ route, navigation }: any) {
         Building your profile from your real match history.{'\n'}No questionnaires. No guessing.
       </Text>
     </View>
+    </ImageBackground>
   );
 }
 

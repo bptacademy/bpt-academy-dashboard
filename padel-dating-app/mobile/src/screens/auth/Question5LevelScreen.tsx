@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet, StatusBar, ScrollView,
-} from 'react-native';
+, ImageBackground } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme, fonts } from '../../lib/theme';
 import OnboardingProgress from '../../components/common/OnboardingProgress';
+const _BG = require('../../../assets/volpair-bg-v2.png');
 
 const LEVELS = [
   { value: 1.5, label: 'Just starting out',    sublabel: 'Still learning the basics',              emoji: '🌱' },
@@ -31,6 +32,7 @@ export default function Question5LevelScreen({ route, navigation }: any) {
   };
 
   return (
+      <ImageBackground source={_BG} style={{ flex: 1 }} resizeMode="cover">
       <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
       
       <ScrollView
@@ -80,6 +82,7 @@ export default function Question5LevelScreen({ route, navigation }: any) {
         </TouchableOpacity>
       </ScrollView>
     </View>
+    </ImageBackground>
   );
 }
 

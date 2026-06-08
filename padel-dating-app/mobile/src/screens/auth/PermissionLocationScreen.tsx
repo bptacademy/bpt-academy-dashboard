@@ -1,12 +1,13 @@
 import React, { useRef } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet, Animated,
-} from 'react-native';
+, ImageBackground } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Location from 'expo-location';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { theme, fonts } from '../../lib/theme';
+const _BG = require('../../../assets/volpair-bg-v2.png');
 
 export default function PermissionLocationScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
@@ -56,6 +57,7 @@ export default function PermissionLocationScreen({ navigation }: any) {
   };
 
   return (
+      <ImageBackground source={_BG} style={{ flex: 1 }} resizeMode="cover">
       <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom + 24 }]}>
       <View style={styles.body}>
         <Animated.Text style={[styles.icon, { transform: [{ scale: pinAnim }] }]}>
@@ -76,6 +78,7 @@ export default function PermissionLocationScreen({ navigation }: any) {
         </TouchableOpacity>
       </View>
     </View>
+    </ImageBackground>
   );
 }
 

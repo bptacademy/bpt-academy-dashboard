@@ -1,7 +1,8 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, StatusBar, Animated } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, StatusBar, Animated , ImageBackground } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme, fonts } from '../../lib/theme';
+const _BG = require('../../../assets/volpair-bg-v2.png');
 
 const HIGHLIGHTS = [
   { icon: '💘', text: "Discover players you've shared a court with", color: '#A78BFA' },
@@ -22,6 +23,7 @@ export default function OnboardingCompleteScreen({ navigation }: any) {
   }, []);
 
   return (
+      <ImageBackground source={_BG} style={{ flex: 1 }} resizeMode="cover">
       <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
       
       <View style={styles.center}>
@@ -47,6 +49,7 @@ export default function OnboardingCompleteScreen({ navigation }: any) {
         </TouchableOpacity>
       </Animated.View>
     </View>
+    </ImageBackground>
   );
 }
 
