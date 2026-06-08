@@ -17,7 +17,6 @@ import { useCourtPicks, CourtPick } from '../../hooks/useCourtPicks';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { DiscoveryLoaderC } from '../../components/DiscoveryLoader';
-import { ScreenBackground } from '../../components/ScreenBackground';
 
 // ─── Full discovery card ──────────────────────────────────────────────────────
 
@@ -178,7 +177,7 @@ export default function ConnectHomeScreen({ navigation }: any) {
   };
 
   return (
-    <ScreenBackground>
+    <View style={{flex:1, backgroundColor:'transparent'}}>
       <View style={[styles.container, { paddingTop: insets.top }]}>
       
 
@@ -250,7 +249,7 @@ export default function ConnectHomeScreen({ navigation }: any) {
         </ScrollView>
       )}
     </View>
-    </ScreenBackground>
+    </View>
   );
 }
 

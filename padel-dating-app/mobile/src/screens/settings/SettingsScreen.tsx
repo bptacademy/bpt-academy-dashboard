@@ -8,7 +8,6 @@ import { useTabBarPadding } from '../../hooks/useTabBarPadding';
 import { theme, fonts } from '../../lib/theme';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
-import { ScreenBackground } from '../../components/ScreenBackground';
 
 export default function SettingsScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
@@ -69,7 +68,7 @@ export default function SettingsScreen({ navigation }: any) {
   );
 
   return (
-    <ScreenBackground>
+    <View style={{flex:1, backgroundColor:'transparent'}}>
       <View style={[styles.container, { paddingTop: insets.top }]}>
       
 
@@ -114,7 +113,7 @@ export default function SettingsScreen({ navigation }: any) {
         <View style={{ height: 24 }} />
       </ScrollView>
     </View>
-    </ScreenBackground>
+    </View>
   );
 }
 

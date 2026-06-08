@@ -8,7 +8,6 @@ import { useTabBarPadding } from '../../hooks/useTabBarPadding';
 import { theme, fonts } from '../../lib/theme';
 import { useAuth } from '../../context/AuthContext';
 import AnimatedRing from '../../components/AnimatedRing';
-import { ScreenBackground } from '../../components/ScreenBackground';
 
 const AVATAR_SIZE = 100;
 const RING_THICKNESS = 3;
@@ -45,7 +44,7 @@ export default function MyProfileScreen({ navigation }: any) {
   ];
 
   return (
-    <ScreenBackground>
+    <View style={{flex:1, backgroundColor:'transparent'}}>
       <View style={[styles.container, { paddingTop: insets.top }]}>
       
       <View style={styles.header}>
@@ -170,7 +169,7 @@ export default function MyProfileScreen({ navigation }: any) {
         <View style={{ height: 24 }} />
       </ScrollView>
     </View>
-    </ScreenBackground>
+    </View>
   );
 }
 

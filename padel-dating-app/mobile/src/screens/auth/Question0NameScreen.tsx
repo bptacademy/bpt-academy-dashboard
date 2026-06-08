@@ -6,7 +6,6 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme, fonts } from '../../lib/theme';
 import OnboardingProgress from '../../components/common/OnboardingProgress';
-import { ScreenBackground } from '../../components/ScreenBackground';
 
 export default function Question0NameScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
@@ -24,7 +23,6 @@ export default function Question0NameScreen({ navigation }: any) {
   };
 
   return (
-    <ScreenBackground>
     <KeyboardAvoidingView
       style={{ flex: 1, backgroundColor: 'transparent' }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -81,9 +79,7 @@ export default function Question0NameScreen({ navigation }: any) {
           </TouchableOpacity>
         </View>
       </View>
-    </View>
     </KeyboardAvoidingView>
-    </ScreenBackground>
   );
 }
 

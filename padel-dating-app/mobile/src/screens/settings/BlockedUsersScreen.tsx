@@ -7,7 +7,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme, fonts } from '../../lib/theme';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
-import { ScreenBackground } from '../../components/ScreenBackground';
 
 interface BlockedUser {
   blockId: string;
@@ -84,7 +83,7 @@ export default function BlockedUsersScreen({ navigation }: any) {
   };
 
   return (
-    <ScreenBackground>
+    <View style={{flex:1, backgroundColor:'transparent'}}>
       <View style={[styles.container, { paddingTop: insets.top }]}>
       
       <View style={styles.header}>
@@ -147,7 +146,7 @@ export default function BlockedUsersScreen({ navigation }: any) {
         </ScrollView>
       )}
     </View>
-    </ScreenBackground>
+    </View>
   );
 }
 

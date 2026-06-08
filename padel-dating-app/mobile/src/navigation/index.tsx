@@ -5,6 +5,8 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { View, TouchableOpacity, Image, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext';
+import { ImageBackground } from 'react-native';
+const APP_BG = require('../../assets/volpair-bg-v2.png');
 import { theme } from '../lib/theme';
 import { useVolleyMatch } from '../hooks/useVolleyMatch';
 import { usePushNotifications } from '../hooks/usePushNotifications';
@@ -314,6 +316,7 @@ export default function Navigation() {
   if (loading) return null;
 
   return (
+    <ImageBackground source={APP_BG} style={{ flex: 1 }} resizeMode="cover">
     <NavigationContainer ref={navRef}>
       {!session ? (
         <RootStack.Navigator screenOptions={{ headerShown: false }}>
@@ -342,5 +345,6 @@ export default function Navigation() {
         </RootStack.Navigator>
       )}
     </NavigationContainer>
+    </ImageBackground>
   );
 }

@@ -16,7 +16,6 @@ import { useTabBarPadding } from '../../hooks/useTabBarPadding';
 import { theme, fonts } from '../../lib/theme';
 import { usePartners, Partner } from '../../hooks/usePartners';
 import { useDiscovery, DiscoveredPlayer } from '../../hooks/useDiscovery';
-import { ScreenBackground } from '../../components/ScreenBackground';
 
 // ─── Shared helpers ───────────────────────────────────────────────────────────
 
@@ -395,7 +394,7 @@ export default function PlayHomeScreen({ navigation }: any) {
   ];
 
   return (
-    <ScreenBackground>
+    <View style={{flex:1, backgroundColor:'transparent'}}>
       <View style={[styles.container, { paddingTop: insets.top }]}>
       
 
@@ -435,7 +434,7 @@ export default function PlayHomeScreen({ navigation }: any) {
         </View>
       )}
     </View>
-    </ScreenBackground>
+    </View>
   );
 }
 

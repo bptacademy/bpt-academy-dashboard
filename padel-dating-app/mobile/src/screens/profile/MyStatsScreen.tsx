@@ -7,7 +7,6 @@ import { useTabBarPadding } from '../../hooks/useTabBarPadding';
 import { theme, fonts } from '../../lib/theme';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
-import { ScreenBackground } from '../../components/ScreenBackground';
 
 function levelLabel(value: number): string {
   if (value >= 5.5) return 'Elite';
@@ -59,7 +58,7 @@ export default function MyStatsScreen({ navigation }: any) {
   const topClubs: { club_id: string; club_name: string; play_count: number }[] = stats?.top_clubs ?? [];
 
   return (
-    <ScreenBackground>
+    <View style={{flex:1, backgroundColor:'transparent'}}>
       <View style={[styles.container, { paddingTop: insets.top }]}>
       
 
@@ -211,7 +210,7 @@ export default function MyStatsScreen({ navigation }: any) {
         </ScrollView>
       )}
     </View>
-    </ScreenBackground>
+    </View>
   );
 }
 

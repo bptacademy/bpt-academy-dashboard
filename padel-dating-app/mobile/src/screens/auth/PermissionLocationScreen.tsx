@@ -7,7 +7,6 @@ import * as Location from 'expo-location';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { theme, fonts } from '../../lib/theme';
-import { ScreenBackground } from '../../components/ScreenBackground';
 
 export default function PermissionLocationScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
@@ -57,7 +56,6 @@ export default function PermissionLocationScreen({ navigation }: any) {
   };
 
   return (
-    <ScreenBackground>
       <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom + 24 }]}>
       <View style={styles.body}>
         <Animated.Text style={[styles.icon, { transform: [{ scale: pinAnim }] }]}>
@@ -78,7 +76,6 @@ export default function PermissionLocationScreen({ navigation }: any) {
         </TouchableOpacity>
       </View>
     </View>
-    </ScreenBackground>
   );
 }
 

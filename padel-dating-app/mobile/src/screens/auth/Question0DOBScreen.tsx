@@ -6,7 +6,6 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme, fonts } from '../../lib/theme';
 import OnboardingProgress from '../../components/common/OnboardingProgress';
-import { ScreenBackground } from '../../components/ScreenBackground';
 
 const MONTHS = [
   { label: 'Jan', value: '01' },
@@ -75,7 +74,6 @@ export default function Question0DOBScreen({ route, navigation }: any) {
   const yearLabel = selectedYear ?? 'Year';
 
   return (
-    <ScreenBackground>
       <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
       
 
@@ -191,7 +189,6 @@ export default function Question0DOBScreen({ route, navigation }: any) {
         </View>
       </Modal>
     </View>
-    </ScreenBackground>
   );
 }
 

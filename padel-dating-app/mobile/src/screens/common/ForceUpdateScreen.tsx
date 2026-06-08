@@ -2,7 +2,6 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Platform, Linking } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme } from '../../lib/theme';
-import { ScreenBackground } from '../../components/ScreenBackground';
 
 // Update these once the app is live on the stores
 const APP_STORE_URL = 'https://apps.apple.com/app/id0000000000'; // TODO: replace with real App Store ID
@@ -13,7 +12,7 @@ export default function ForceUpdateScreen() {
   const storeUrl = Platform.OS === 'ios' ? APP_STORE_URL : PLAY_STORE_URL;
 
   return (
-    <ScreenBackground>
+    <View style={{flex:1, backgroundColor:'transparent'}}>
       <View style={[styles.container, { paddingTop: insets.top + 40, paddingBottom: insets.bottom + 40 }]}>
       <Text style={styles.emoji}>🎾</Text>
       <Text style={styles.title}>Update Required</Text>
@@ -25,7 +24,7 @@ export default function ForceUpdateScreen() {
         <Text style={styles.btnText}>Update Now →</Text>
       </TouchableOpacity>
     </View>
-    </ScreenBackground>
+    </View>
   );
 }
 

@@ -13,7 +13,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme, fonts } from '../../lib/theme';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
-import { ScreenBackground } from '../../components/ScreenBackground';
 
 const SUPABASE_URL = 'https://qmdewocktouqoibbqurh.supabase.co';
 
@@ -69,7 +68,7 @@ export default function OTCConnectScreen({ navigation }: any) {
   };
 
   return (
-    <ScreenBackground>
+    <View style={{flex:1, backgroundColor:'transparent'}}>
       <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
       
       <ScrollView showsVerticalScrollIndicator={false}>
@@ -118,7 +117,7 @@ export default function OTCConnectScreen({ navigation }: any) {
 
       </ScrollView>
     </View>
-    </ScreenBackground>
+    </View>
   );
 }
 

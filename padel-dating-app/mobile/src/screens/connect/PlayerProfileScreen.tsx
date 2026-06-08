@@ -9,7 +9,6 @@ import { theme, fonts } from '../../lib/theme';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { notifyVolley } from '../../lib/notifications';
-import { ScreenBackground } from '../../components/ScreenBackground';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const HERO_HEIGHT = SCREEN_HEIGHT; // full screen hero

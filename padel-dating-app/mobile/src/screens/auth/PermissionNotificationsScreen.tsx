@@ -5,7 +5,6 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Notifications from 'expo-notifications';
 import { theme, fonts } from '../../lib/theme';
-import { ScreenBackground } from '../../components/ScreenBackground';
 
 export default function PermissionNotificationsScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
@@ -54,7 +53,6 @@ export default function PermissionNotificationsScreen({ navigation }: any) {
   };
 
   return (
-    <ScreenBackground>
       <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom + 24 }]}>
       <View style={styles.body}>
         <Animated.Text style={[styles.icon, { transform: [{ scale: bellAnim }] }]}>
@@ -75,7 +73,6 @@ export default function PermissionNotificationsScreen({ navigation }: any) {
         </TouchableOpacity>
       </View>
     </View>
-    </ScreenBackground>
   );
 }
 

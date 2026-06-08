@@ -7,7 +7,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme, fonts } from '../../lib/theme';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
-import { ScreenBackground } from '../../components/ScreenBackground';
 
 const SUPABASE_URL = 'https://qmdewocktouqoibbqurh.supabase.co';
 
@@ -63,7 +62,6 @@ export default function PlatformLoginScreen({ route, navigation }: any) {
   const isOTC = platform === 'on_the_court';
 
   return (
-    <ScreenBackground>
       <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
       
       <ScrollView showsVerticalScrollIndicator={false}>
@@ -120,7 +118,6 @@ export default function PlatformLoginScreen({ route, navigation }: any) {
         )}
       </ScrollView>
     </View>
-    </ScreenBackground>
   );
 }
 

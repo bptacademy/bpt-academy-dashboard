@@ -8,7 +8,6 @@ import { theme, fonts } from '../../lib/theme';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { notifyVolley } from '../../lib/notifications';
-import { ScreenBackground } from '../../components/ScreenBackground';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -205,18 +204,18 @@ export default function PostMatchPromptScreen({ navigation }: any) {
 
   if (loading) {
     return (
-      <ScreenBackground>
+      <View style={{flex:1, backgroundColor:'transparent'}}>
         <View style={[styles.container, styles.centered, { paddingTop: insets.top }]}>
           <ActivityIndicator size="large" color={theme.primary} />
           <Text style={styles.loadingText}>Checking recent matches…</Text>
         </View>
-      </ScreenBackground>
+      </View>
     );
   }
 
   if (matchGroups.length === 0) {
     return (
-      <ScreenBackground>
+      <View style={{flex:1, backgroundColor:'transparent'}}>
         <View style={[styles.container, styles.centered, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
           <Text style={styles.emptyEmoji}>🎾</Text>
           <Text style={styles.emptyTitle}>No recent matches to review</Text>
@@ -227,12 +226,12 @@ export default function PostMatchPromptScreen({ navigation }: any) {
             <Text style={styles.doneBtnText}>Done</Text>
           </TouchableOpacity>
         </View>
-      </ScreenBackground>
+      </View>
     );
   }
 
   return (
-    <ScreenBackground>
+    <View style={{flex:1, backgroundColor:'transparent'}}>
     <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
       
 
@@ -281,7 +280,7 @@ export default function PostMatchPromptScreen({ navigation }: any) {
         </TouchableOpacity>
       </View>
     </View>
-    </ScreenBackground>
+    </View>
   );
 }
 

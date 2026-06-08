@@ -6,7 +6,6 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
 import { theme } from '../../lib/theme';
-import { ScreenBackground } from '../../components/ScreenBackground';
 
 const { width, height } = Dimensions.get('window');
 
@@ -35,7 +34,6 @@ export default function ForgotPasswordScreen({ navigation }: { navigation: any }
   };
 
   return (
-    <ScreenBackground>
     <KeyboardAvoidingView
       style={[styles.container, { backgroundColor: '#0A0A0F' }]}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -91,9 +89,7 @@ export default function ForgotPasswordScreen({ navigation }: { navigation: any }
           </>
         )}
       </View>
-    </View>
     </KeyboardAvoidingView>
-    </ScreenBackground>
   );
 }
 

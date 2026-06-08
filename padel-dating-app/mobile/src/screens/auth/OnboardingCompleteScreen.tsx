@@ -2,7 +2,6 @@ import React, { useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, StatusBar, Animated } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme, fonts } from '../../lib/theme';
-import { ScreenBackground } from '../../components/ScreenBackground';
 
 const HIGHLIGHTS = [
   { icon: '💘', text: "Discover players you've shared a court with", color: '#A78BFA' },
@@ -23,7 +22,6 @@ export default function OnboardingCompleteScreen({ navigation }: any) {
   }, []);
 
   return (
-    <ScreenBackground>
       <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
       
       <View style={styles.center}>
@@ -49,7 +47,6 @@ export default function OnboardingCompleteScreen({ navigation }: any) {
         </TouchableOpacity>
       </Animated.View>
     </View>
-    </ScreenBackground>
   );
 }
 

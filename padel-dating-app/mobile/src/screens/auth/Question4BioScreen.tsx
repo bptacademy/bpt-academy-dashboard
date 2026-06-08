@@ -6,7 +6,6 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme, fonts } from '../../lib/theme';
 import OnboardingProgress from '../../components/common/OnboardingProgress';
-import { ScreenBackground } from '../../components/ScreenBackground';
 
 const EXAMPLES = [
   '"Post-match coffee is non-negotiable."',
@@ -25,7 +24,6 @@ export default function Question4BioScreen({ route, navigation }: any) {
   };
 
   return (
-    <ScreenBackground>
     <KeyboardAvoidingView
       style={{ flex: 1, backgroundColor: "#0D1B2A" }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -70,9 +68,7 @@ export default function Question4BioScreen({ route, navigation }: any) {
           </TouchableOpacity>
         </View>
       </View>
-    </View>
     </KeyboardAvoidingView>
-    </ScreenBackground>
   );
 }
 

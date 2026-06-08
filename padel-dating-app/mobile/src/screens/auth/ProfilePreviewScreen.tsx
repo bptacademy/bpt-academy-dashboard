@@ -7,7 +7,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme, fonts } from '../../lib/theme';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
-import { ScreenBackground } from '../../components/ScreenBackground';
 
 export default function ProfilePreviewScreen({ route, navigation }: any) {
   const { syncResult } = route.params ?? {};
@@ -66,7 +65,6 @@ export default function ProfilePreviewScreen({ route, navigation }: any) {
 
   if (loading) {
     return (
-      <ScreenBackground>
         <View style={styles.loadingContainer}>
         <ActivityIndicator color={theme.primary} size="large" />
         <Text style={styles.loadingText}>Loading your profile…</Text>
@@ -173,13 +171,12 @@ export default function ProfilePreviewScreen({ route, navigation }: any) {
         </TouchableOpacity>
       </View>
     </View>
-    </ScreenBackground>
   );
 }
 
 const styles = StyleSheet.create({
   loadingContainer: {
-    flex: 1, backgroundColor: theme.bg,
+    flex: 1, backgroundColor: 'transparent',
     justifyContent: 'center', alignItems: 'center', gap: 16,
   },
   loadingText: { fontSize: 16.1, color: theme.textMuted, fontFamily: fonts.bodyLight },

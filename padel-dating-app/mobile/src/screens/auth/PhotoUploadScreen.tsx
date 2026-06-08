@@ -9,7 +9,6 @@ import * as ImagePicker from 'expo-image-picker';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { uploadPhotos } from '../../lib/uploadPhoto';
-import { ScreenBackground } from '../../components/ScreenBackground';
 
 const MAX_PHOTOS = 3;
 
@@ -93,7 +92,6 @@ export default function PhotoUploadScreen({ route, navigation }: any) {
   };
 
   return (
-    <ScreenBackground>
       <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
       <StatusBar barStyle="light-content" backgroundColor="#0D1B2A" />
 
@@ -154,7 +152,6 @@ export default function PhotoUploadScreen({ route, navigation }: any) {
         </TouchableOpacity>
       </View>
     </View>
-    </ScreenBackground>
   );
 }
 

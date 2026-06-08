@@ -7,7 +7,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTabBarPadding } from '../../hooks/useTabBarPadding';
 import { theme, fonts } from '../../lib/theme';
 import { useConnections } from '../../hooks/useConnections';
-import { ScreenBackground } from '../../components/ScreenBackground';
 
 function formatTime(iso: string | null): string {
   if (!iso) return '';
@@ -26,7 +25,7 @@ export default function ConnectionsListScreen({ navigation }: any) {
   const { connections, loading } = useConnections();
 
   return (
-    <ScreenBackground>
+    <View style={{flex:1, backgroundColor:'transparent'}}>
       <View style={[styles.container, { paddingTop: insets.top }]}>
       
 
@@ -101,7 +100,7 @@ export default function ConnectionsListScreen({ navigation }: any) {
         />
       )}
     </View>
-    </ScreenBackground>
+    </View>
   );
 }
 

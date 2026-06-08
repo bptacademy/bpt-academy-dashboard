@@ -17,7 +17,6 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme, fonts } from '../../lib/theme';
 import { supabase } from '../../lib/supabase';
-import { ScreenBackground } from '../../components/ScreenBackground';
 
 // ─── Country data ────────────────────────────────────────────────────────────
 
@@ -102,7 +101,6 @@ export default function PhoneAuthScreen({ navigation, route }: any) {
   };
 
   return (
-    <ScreenBackground>
     <KeyboardAvoidingView
       style={{ flex: 1, backgroundColor: 'transparent' }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -219,7 +217,6 @@ export default function PhoneAuthScreen({ navigation, route }: any) {
         </SafeAreaView>
       </Modal>
     </KeyboardAvoidingView>
-    </ScreenBackground>
   );
 }
 

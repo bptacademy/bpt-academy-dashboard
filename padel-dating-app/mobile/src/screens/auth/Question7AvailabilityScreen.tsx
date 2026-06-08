@@ -7,7 +7,6 @@ import { theme, fonts } from '../../lib/theme';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import OnboardingProgress from '../../components/common/OnboardingProgress';
-import { ScreenBackground } from '../../components/ScreenBackground';
 
 const SUPABASE_URL = 'https://qmdewocktouqoibbqurh.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_KwkQawb1Kv2jOk1Wud0xUg_mPQxPqmL';
@@ -144,7 +143,6 @@ export default function Question7AvailabilityScreen({ route, navigation }: any) 
   const canContinue = selectedDays.length > 0 && selectedTime !== null;
 
   return (
-    <ScreenBackground>
       <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
       
       <View style={styles.inner}>
@@ -209,7 +207,6 @@ export default function Question7AvailabilityScreen({ route, navigation }: any) 
         </TouchableOpacity>
       </View>
     </View>
-    </ScreenBackground>
   );
 }
 

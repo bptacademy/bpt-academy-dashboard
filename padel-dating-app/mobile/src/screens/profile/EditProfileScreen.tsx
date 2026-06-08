@@ -12,7 +12,6 @@ import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { uploadPhotos } from '../../lib/uploadPhoto';
 import { Club } from '../../types';
-import { ScreenBackground } from '../../components/ScreenBackground';
 
 const GOOGLE_KEY = process.env.EXPO_PUBLIC_GOOGLE_PLACES_KEY!;
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -163,7 +162,7 @@ export default function EditProfileScreen({ navigation }: any) {
   };
 
   return (
-    <ScreenBackground>
+    <View style={{flex:1, backgroundColor:'transparent'}}>
       <View style={[styles.container, { paddingTop: insets.top }]}>
       
 
@@ -400,7 +399,7 @@ export default function EditProfileScreen({ navigation }: any) {
         <View style={{ height: 40 }} />
       </ScrollView>
     </View>
-    </ScreenBackground>
+    </View>
   );
 }
 

@@ -8,7 +8,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme, fonts } from '../../lib/theme';
 import { useAuth } from '../../context/AuthContext';
 import { useConversation } from '../../hooks/useConversation';
-import { ScreenBackground } from '../../components/ScreenBackground';
 
 const SERVE_PROMPTS = [
   'Rematch Saturday? 🎾',
@@ -95,7 +94,7 @@ export default function ConversationScreen({ route, navigation }: any) {
   };
 
   return (
-    <ScreenBackground>
+    <View style={{flex:1, backgroundColor:'transparent'}}>
     <KeyboardAvoidingView
       style={{ flex: 1, backgroundColor: 'transparent' }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -208,7 +207,7 @@ export default function ConversationScreen({ route, navigation }: any) {
         )}
       </View>
     </KeyboardAvoidingView>
-    </ScreenBackground>
+    </View>
   );
 }
 

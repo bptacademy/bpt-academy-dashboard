@@ -5,7 +5,6 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme, fonts } from '../../lib/theme';
 import { useAuth } from '../../context/AuthContext';
-import { ScreenBackground } from '../../components/ScreenBackground';
 
 export default function MutualVolleyMatchScreen({ route, navigation }: any) {
   const insets = useSafeAreaInsets();
@@ -48,7 +47,7 @@ export default function MutualVolleyMatchScreen({ route, navigation }: any) {
   };
 
   return (
-    <ScreenBackground>
+    <View style={{flex:1, backgroundColor:'transparent'}}>
       <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
       
 
@@ -101,7 +100,7 @@ export default function MutualVolleyMatchScreen({ route, navigation }: any) {
         </TouchableOpacity>
       </Animated.View>
     </View>
-    </ScreenBackground>
+    </View>
   );
 }
 

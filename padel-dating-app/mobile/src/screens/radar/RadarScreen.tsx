@@ -9,7 +9,6 @@ import * as Location from 'expo-location';
 import { theme, fonts } from '../../lib/theme';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
-import { ScreenBackground } from '../../components/ScreenBackground';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const RADAR_DIAMETER = Math.min(SCREEN_WIDTH - 64, 300);
@@ -219,7 +218,7 @@ export default function RadarScreen({ navigation }: any) {
   }, [radiusMiles, activeHours]);
 
   return (
-    <ScreenBackground>
+    <View style={{flex:1, backgroundColor:'transparent'}}>
       <View style={[styles.container, { paddingTop: insets.top }]}>
       
       <View style={styles.header}>
@@ -312,7 +311,7 @@ export default function RadarScreen({ navigation }: any) {
         />
       )}
     </View>
-    </ScreenBackground>
+    </View>
   );
 }
 

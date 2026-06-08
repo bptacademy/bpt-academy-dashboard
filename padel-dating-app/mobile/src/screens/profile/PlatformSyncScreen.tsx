@@ -8,7 +8,6 @@ import { theme, fonts } from '../../lib/theme';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { syncPlatform } from '../../lib/platformSync';
-import { ScreenBackground } from '../../components/ScreenBackground';
 
 const SUPABASE_URL = 'https://qmdewocktouqoibbqurh.supabase.co';
 
@@ -139,7 +138,7 @@ export default function PlatformSyncScreen({ navigation }: any) {
   };
 
   return (
-    <ScreenBackground>
+    <View style={{flex:1, backgroundColor:'transparent'}}>
       <View style={[styles.container, { paddingTop: insets.top }]}>
       
 
@@ -256,7 +255,7 @@ export default function PlatformSyncScreen({ navigation }: any) {
         </ScrollView>
       )}
     </View>
-    </ScreenBackground>
+    </View>
   );
 }
 

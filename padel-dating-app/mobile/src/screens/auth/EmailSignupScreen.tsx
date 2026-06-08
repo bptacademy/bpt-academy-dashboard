@@ -8,7 +8,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme, fonts } from '../../lib/theme';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
-import { ScreenBackground } from '../../components/ScreenBackground';
 
 async function ensureUsersRow(userId: string, email: string, firstName: string, lastName: string) {
   const fullName = [firstName.trim(), lastName.trim()].filter(Boolean).join(' ');
@@ -153,7 +152,6 @@ export default function EmailSignupScreen({ navigation, route }: any) {
   // ─── Render ────────────────────────────────────────────────────────────────
 
   return (
-    <ScreenBackground>
     <KeyboardAvoidingView style={{ flex: 1, backgroundColor: 'transparent' }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
         
@@ -306,9 +304,7 @@ export default function EmailSignupScreen({ navigation, route }: any) {
           </TouchableOpacity>
         </View>
       </View>
-    </View>
     </KeyboardAvoidingView>
-    </ScreenBackground>
   );
 }
 

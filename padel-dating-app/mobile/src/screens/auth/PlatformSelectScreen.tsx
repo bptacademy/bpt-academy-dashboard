@@ -6,7 +6,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme, fonts } from '../../lib/theme';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
-import { ScreenBackground } from '../../components/ScreenBackground';
 
 const PLATFORMS = [
   {
@@ -92,7 +91,6 @@ export default function PlatformSelectScreen({ navigation, route }: any) {
   };
 
   return (
-    <ScreenBackground>
       <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
       
 
@@ -140,7 +138,6 @@ export default function PlatformSelectScreen({ navigation, route }: any) {
         </TouchableOpacity>
       )}
     </View>
-    </ScreenBackground>
   );
 }
 
@@ -161,7 +158,7 @@ const styles = StyleSheet.create({
   platformCardDisabled: { opacity: 0.45 },
   platformIcon: {
     width: 48, height: 48, borderRadius: 14,
-    backgroundColor: theme.bgDeep, alignItems: 'center', justifyContent: 'center',
+    backgroundColor: 'transparent', alignItems: 'center', justifyContent: 'center',
     borderWidth: 1, borderColor: theme.border,
   },
   platformIconActive: {
@@ -174,7 +171,7 @@ const styles = StyleSheet.create({
   platformDesc: { fontSize: 13.9, color: theme.textMuted, fontFamily: fonts.bodyLight },
   arrow: { fontSize: 24, color: theme.primary },
   comingSoonBadge: {
-    backgroundColor: theme.bgDeep, borderRadius: 8,
+    backgroundColor: 'transparent', borderRadius: 8,
     paddingHorizontal: 10, paddingVertical: 4, borderWidth: 1, borderColor: theme.border,
   },
   comingSoonText: { color: theme.textMuted, fontSize: 11.8, fontFamily: fonts.bodyBold },

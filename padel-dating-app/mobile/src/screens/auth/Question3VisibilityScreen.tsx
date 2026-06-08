@@ -3,7 +3,6 @@ import { View, Text, TouchableOpacity, StyleSheet, StatusBar } from 'react-nativ
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme, fonts } from '../../lib/theme';
 import OnboardingProgress from '../../components/common/OnboardingProgress';
-import { ScreenBackground } from '../../components/ScreenBackground';
 
 const OPTIONS = [
   { id: 'everyone',      emoji: '🌍', label: 'Everyone',       desc: 'Show my profile to all players' },
@@ -23,7 +22,6 @@ export default function Question3VisibilityScreen({ route, navigation }: any) {
   };
 
   return (
-    <ScreenBackground>
       <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
       <StatusBar barStyle="light-content" backgroundColor="#0D1B2A" />
 
@@ -66,7 +64,6 @@ export default function Question3VisibilityScreen({ route, navigation }: any) {
         </TouchableOpacity>
       </View>
     </View>
-    </ScreenBackground>
   );
 }
 

@@ -8,7 +8,6 @@ import { theme, fonts } from '../../lib/theme';
 import OnboardingProgress from '../../components/common/OnboardingProgress';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
-import { ScreenBackground } from '../../components/ScreenBackground';
 
 const GOOGLE_KEY = process.env.EXPO_PUBLIC_GOOGLE_PLACES_KEY!;
 
@@ -39,7 +38,6 @@ export default function Question1LocationScreen({ route, navigation }: any) {
   };
 
   return (
-    <ScreenBackground>
     <KeyboardAvoidingView
       style={{ flex: 1, backgroundColor: "#0D1B2A" }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -100,7 +98,7 @@ export default function Question1LocationScreen({ route, navigation }: any) {
                 color: theme.primary,
               },
               poweredContainer: {
-                backgroundColor: theme.bgDeep,
+                backgroundColor: 'transparent',
                 borderTopWidth: 1,
                 borderTopColor: theme.border,
                 paddingVertical: 6,
@@ -118,9 +116,7 @@ export default function Question1LocationScreen({ route, navigation }: any) {
           />
         </View>
       </View>
-    </View>
     </KeyboardAvoidingView>
-    </ScreenBackground>
   );
 }
 

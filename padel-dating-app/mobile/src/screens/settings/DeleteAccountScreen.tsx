@@ -7,7 +7,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme, fonts } from '../../lib/theme';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
-import { ScreenBackground } from '../../components/ScreenBackground';
 
 export default function DeleteAccountScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
@@ -44,7 +43,7 @@ export default function DeleteAccountScreen({ navigation }: any) {
   };
 
   return (
-    <ScreenBackground>
+    <View style={{flex:1, backgroundColor:'transparent'}}>
       <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
       
 
@@ -104,7 +103,7 @@ export default function DeleteAccountScreen({ navigation }: any) {
         </TouchableOpacity>
       </View>
     </View>
-    </ScreenBackground>
+    </View>
   );
 }
 
