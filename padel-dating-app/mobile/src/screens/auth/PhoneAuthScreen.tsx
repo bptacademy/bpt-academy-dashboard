@@ -345,7 +345,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.6)',
   },
   modalSheet: {
-    backgroundColor: theme.bgCard,
+    backgroundColor: 'rgba(12, 6, 28, 0.98)',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     maxHeight: '75%',
