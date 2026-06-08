@@ -27,7 +27,6 @@ function ScoreBadge({ score, muted }: { score: number; muted?: boolean }) {
     : score >= 70 ? theme.scoreMid
     : theme.scoreLow;
   return (
-    <ImageBackground source={_BG} style={{ flex: 1 }} resizeMode="cover">
     <View style={[styles.scoreBadge, { borderColor: color }]}>
       <Text style={[styles.scoreValue, { color }]}>{score}</Text>
       <Text style={[styles.scoreLabel, { color }]}>match</Text>
@@ -397,6 +396,7 @@ export default function PlayHomeScreen({ navigation }: any) {
   ];
 
   return (
+    <ImageBackground source={_BG} style={{ flex: 1 }} resizeMode="cover">
     <View style={{flex:1, backgroundColor:'transparent'}}>
       <View style={[styles.container, { paddingTop: insets.top }]}>
       

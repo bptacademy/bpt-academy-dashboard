@@ -61,7 +61,6 @@ function PlayerCard({
   const displayName = player.platformName ?? `Player ${player.platformUserId}`;
 
   return (
-    <ImageBackground source={_BG} style={{ flex: 1 }} resizeMode="cover">
     <View style={styles.card}>
       <View style={styles.cardTop}>
         {player.photo_url ? (
@@ -234,6 +233,7 @@ export default function PostMatchPromptScreen({ navigation }: any) {
   }
 
   return (
+    <ImageBackground source={_BG} style={{ flex: 1 }} resizeMode="cover">
     <View style={{flex:1, backgroundColor:'transparent'}}>
     <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
       

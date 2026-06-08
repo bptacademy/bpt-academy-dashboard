@@ -79,7 +79,6 @@ export default function ConversationScreen({ route, navigation }: any) {
     const showReadReceipt = isMe && item.id === lastReadMessageId;
 
     return (
-      <ImageBackground source={_BG} style={{ flex: 1 }} resizeMode="cover">
       <View style={[styles.bubbleWrap, isMe ? styles.bubbleWrapMe : styles.bubbleWrapThem]}>
         <View style={[styles.bubble, isMe ? styles.bubbleMe : styles.bubbleThem]}>
           <Text style={[styles.bubbleText, isMe ? styles.bubbleTextMe : styles.bubbleTextThem]}>
@@ -97,6 +96,7 @@ export default function ConversationScreen({ route, navigation }: any) {
   };
 
   return (
+    <ImageBackground source={_BG} style={{ flex: 1 }} resizeMode="cover">
     <View style={{flex:1, backgroundColor:'transparent'}}>
     <KeyboardAvoidingView
       style={{ flex: 1, backgroundColor: 'transparent' }}

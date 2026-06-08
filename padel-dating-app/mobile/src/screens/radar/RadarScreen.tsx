@@ -156,7 +156,6 @@ function RadiusSlider({ value, onChange }: { value: number; onChange: (v: number
   })).current;
   const thumbLeft = ((display - SLIDER_MIN) / (SLIDER_MAX - SLIDER_MIN)) * SLIDER_W;
   return (
-    <ImageBackground source={_BG} style={{ flex: 1 }} resizeMode="cover">
     <View style={styles.sliderContainer}>
       <Text style={styles.sliderLabel}>{display} miles</Text>
       <View style={styles.sliderTrackWrapper}>
@@ -221,6 +220,7 @@ export default function RadarScreen({ navigation }: any) {
   }, [radiusMiles, activeHours]);
 
   return (
+    <ImageBackground source={_BG} style={{ flex: 1 }} resizeMode="cover">
     <View style={{flex:1, backgroundColor:'transparent'}}>
       <View style={[styles.container, { paddingTop: insets.top }]}>
       
