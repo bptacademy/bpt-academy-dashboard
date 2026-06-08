@@ -52,7 +52,7 @@ export default function ConnectionsListScreen({ navigation }: any) {
       ) : (
         <FlatList
           data={connections}
-          contentContainerStyle={{ paddingBottom: tabBarPadding }}
+          contentContainerStyle={{ paddingBottom: tabBarPadding, paddingTop: 8 }}
           keyExtractor={item => item.connectionId}
           renderItem={({ item }) => {
             const initials = item.otherUserName
@@ -99,7 +99,6 @@ export default function ConnectionsListScreen({ navigation }: any) {
               </TouchableOpacity>
             );
           }}
-          contentContainerStyle={{ paddingTop: 8 }}
         />
       )}
     </View>
