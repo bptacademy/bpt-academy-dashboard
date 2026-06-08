@@ -120,7 +120,6 @@ function DiscoveryCard({ pick, navigation, onAction }: {
 
 function DiscoveryLocked({ onEnable, locationDenied }: { onEnable: () => void; locationDenied: boolean }) {
   return (
-    <ImageBackground source={_BG} style={{ flex: 1 }} resizeMode="cover">
     <View style={styles.lockedCta}>
       <Text style={styles.lockedIcon}>🎯</Text>
       <Text style={styles.lockedTitle}>
@@ -180,6 +179,7 @@ export default function ConnectHomeScreen({ navigation }: any) {
   };
 
   return (
+    <ImageBackground source={_BG} style={{ flex: 1 }} resizeMode="cover">
     <View style={{flex:1, backgroundColor:'transparent'}}>
       <View style={[styles.container, { paddingTop: insets.top }]}>
       
