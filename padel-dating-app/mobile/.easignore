@@ -6,6 +6,5 @@ android/
 ios/
 *.log
 *.orig
-.env
 .env.local
 __tests__/
