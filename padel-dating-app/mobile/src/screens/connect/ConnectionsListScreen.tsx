@@ -2,7 +2,8 @@ import React from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, StatusBar,
   ActivityIndicator, Image, FlatList,
-, ImageBackground } from 'react-native';
+  ImageBackground,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTabBarPadding } from '../../hooks/useTabBarPadding';
 import { theme, fonts } from '../../lib/theme';

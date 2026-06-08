@@ -3,7 +3,8 @@ import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   StatusBar, FlatList, KeyboardAvoidingView, Platform,
   ActivityIndicator, Image,
-, ImageBackground } from 'react-native';
+  ImageBackground,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme, fonts } from '../../lib/theme';
 import { useAuth } from '../../context/AuthContext';

@@ -1,7 +1,8 @@
 import React, { useRef } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet, Animated, Platform,
-, ImageBackground } from 'react-native';
+  ImageBackground,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Notifications from 'expo-notifications';
 import { theme, fonts } from '../../lib/theme';

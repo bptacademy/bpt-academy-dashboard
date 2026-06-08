@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet, StatusBar,
   Alert, ActivityIndicator, Image, ScrollView,
-, ImageBackground } from 'react-native';
+  ImageBackground,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme, fonts } from '../../lib/theme';
 import * as ImagePicker from 'expo-image-picker';

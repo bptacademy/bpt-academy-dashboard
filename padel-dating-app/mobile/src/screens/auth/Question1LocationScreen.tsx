@@ -1,7 +1,8 @@
 import React, { useRef } from 'react';
 import {
   View, Text, StyleSheet, StatusBar, KeyboardAvoidingView, Platform,
-, ImageBackground } from 'react-native';
+  ImageBackground,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 import { theme, fonts } from '../../lib/theme';

@@ -3,7 +3,8 @@ import {
   View, Text, StyleSheet, TouchableOpacity, Image,
   Animated, Easing, PanResponder, Dimensions,
   ActivityIndicator, StatusBar, Platform, Modal,
-, ImageBackground } from 'react-native';
+  ImageBackground,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Location from 'expo-location';
 import { theme, fonts } from '../../lib/theme';
