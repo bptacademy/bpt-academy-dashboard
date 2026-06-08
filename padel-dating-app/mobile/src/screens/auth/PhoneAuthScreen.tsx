@@ -176,6 +176,7 @@ export default function PhoneAuthScreen({ navigation, route }: any) {
         </View>
       </View>
     </View>
+    </KeyboardAvoidingView>
 
       {/* Country picker modal */}
       <Modal
@@ -216,7 +217,6 @@ export default function PhoneAuthScreen({ navigation, route }: any) {
           />
         </SafeAreaView>
       </Modal>
-    </KeyboardAvoidingView>
   );
 }
 
