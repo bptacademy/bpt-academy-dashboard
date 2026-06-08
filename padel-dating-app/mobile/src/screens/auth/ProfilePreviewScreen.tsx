@@ -67,15 +67,17 @@ export default function ProfilePreviewScreen({ route, navigation }: any) {
 
   if (loading) {
     return (
-        <ImageBackground source={_BG} style={{ flex: 1 }} resizeMode="cover">
+      <ImageBackground source={_BG} style={{ flex: 1 }} resizeMode="cover">
         <View style={styles.loadingContainer}>
-        <ActivityIndicator color={theme.primary} size="large" />
-        <Text style={styles.loadingText}>Loading your profile…</Text>
-      </View>
+          <ActivityIndicator color={theme.primary} size="large" />
+          <Text style={styles.loadingText}>Loading your profile…</Text>
+        </View>
+      </ImageBackground>
     );
   }
 
   return (
+    <ImageBackground source={_BG} style={{ flex: 1 }} resizeMode="cover">
     <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
       
 
