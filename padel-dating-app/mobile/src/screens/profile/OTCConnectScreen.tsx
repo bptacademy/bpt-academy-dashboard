@@ -122,7 +122,7 @@ export default function OTCConnectScreen({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: 'transparent', paddingHorizontal: 24 },
+  container: { flex: 1, backgroundColor: theme.bg, paddingHorizontal: 24 },
   backBtn:            { paddingVertical: 16 },
   backText:           { color: theme.textSecondary, fontSize: 17.1, fontFamily: fonts.bodyLight },
   header:             { marginBottom: 24 },

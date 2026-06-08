@@ -287,7 +287,7 @@ export default function PostMatchPromptScreen({ navigation }: any) {
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: 'transparent', paddingHorizontal: 20 },
+  container: { flex: 1, backgroundColor: theme.bg, paddingHorizontal: 20 },
   centered: { alignItems: 'center', justifyContent: 'center' },
 
   loadingText: { marginTop: 14, fontSize: 15, color: theme.textMuted, fontFamily: fonts.bodyLight },

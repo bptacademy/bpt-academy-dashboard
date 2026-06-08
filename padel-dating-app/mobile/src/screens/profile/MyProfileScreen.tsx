@@ -174,7 +174,7 @@ export default function MyProfileScreen({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: 'transparent' },
+  container: { flex: 1, backgroundColor: theme.bg },
   header: {
     paddingHorizontal: 20, paddingVertical: 16,
     borderBottomWidth: 1, borderBottomColor: theme.bgCard,

@@ -105,7 +105,7 @@ export default function MutualVolleyMatchScreen({ route, navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: 'transparent', paddingHorizontal: 28 },
+  container: { flex: 1, backgroundColor: theme.bg, paddingHorizontal: 28 },
   glowViolet: {
     position: 'absolute', top: '20%', left: -80,
     width: 260, height: 260, borderRadius: 130,

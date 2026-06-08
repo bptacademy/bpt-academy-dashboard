@@ -443,7 +443,7 @@ export default function PlayHomeScreen({ navigation }: any) {
 const AVATAR_SIZE = 110;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: 'transparent' },
+  container: { flex: 1, backgroundColor: theme.bg },
 
   // Header + tabs unified — no gap between them
   headerBlock: {

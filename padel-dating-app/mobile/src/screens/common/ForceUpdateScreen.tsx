@@ -31,7 +31,7 @@ export default function ForceUpdateScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'transparent',
+    backgroundColor: theme.bg,
     alignItems: 'center',
     justifyContent: 'center',
     padding: 32,

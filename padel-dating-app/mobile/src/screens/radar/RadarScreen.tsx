@@ -317,7 +317,7 @@ export default function RadarScreen({ navigation }: any) {
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: 'transparent' },
+  container: { flex: 1, backgroundColor: theme.bg },
   header: { paddingHorizontal: 20, paddingVertical: 12, alignItems: 'center' },
   headerTitle: { fontSize: 20, fontFamily: fonts.headlineBold, color: theme.textPrimary, letterSpacing: 0.5 },
   headerSub: { fontSize: 12.8, fontFamily: fonts.bodyLight, color: theme.textSecondary, marginTop: 2 },
