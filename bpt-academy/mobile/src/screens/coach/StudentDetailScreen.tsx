@@ -80,6 +80,10 @@ export default function StudentDetailScreen({ route, navigation }: any) {
   const { studentId } = route.params;
   const { profile: coachProfile } = useAuth();
   const canChangeRole = ['admin', 'super_admin'].includes(coachProfile?.role ?? '');
+  const canBan = ['admin', 'super_admin'].includes(coachProfile?.role ?? '');
+  const [banModal, setBanModal] = useState(false);
+  const [banReason, setBanReason] = useState('');
+  const [banning, setBanning] = useState(false);
   const [student, setStudent] = useState<Profile | null>(null);
   const [enrollments, setEnrollments] = useState<EnrollmentWithProgram[]>([]);
   const [overallPct, setOverallPct] = useState(0);
@@ -101,6 +105,46 @@ export default function StudentDetailScreen({ route, navigation }: any) {
   const [selectedDivision, setSelectedDivision] = useState<string>('');
   const [selectedSkillLevel, setSelectedSkillLevel] = useState<string>('');
   const [savingOverride, setSavingOverride] = useState(false);
+
+  const handleBan = async () => {
+    if (!student || !coachProfile) return;
+    if (!banReason.trim()) { Alert.alert('Reason required', 'Please enter a reason for banning this student.'); return; }
+    setBanning(true);
+    const { error } = await supabase.from('profiles').update({
+      is_banned: true,
+      banned_at: new Date().toISOString(),
+      banned_by: coachProfile.id,
+      ban_reason: banReason.trim(),
+    }).eq('id', student.id);
+    setBanning(false);
+    if (error) { Alert.alert('Error', error.message); return; }
+    setBanModal(false);
+    setBanReason('');
+    Alert.alert('✅ Student banned', `${student.full_name} has been banned and will no longer be able to log in.`);
+    await fetchData();
+  };
+
+  const handleUnban = async () => {
+    if (!student) return;
+    Alert.alert(
+      'Unban student?',
+      `${student.full_name} will be able to log in again.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Unban', style: 'default', onPress: async () => {
+          const { error } = await supabase.from('profiles').update({
+            is_banned: false,
+            banned_at: null,
+            banned_by: null,
+            ban_reason: null,
+          }).eq('id', student.id);
+          if (error) { Alert.alert('Error', error.message); return; }
+          Alert.alert('✅ Student unbanned', `${student.full_name} can now log in again.`);
+          await fetchData();
+        }},
+      ]
+    );
+  };
 
   const fetchData = async () => {
     // Fetch profile
@@ -379,7 +423,8 @@ export default function StudentDetailScreen({ route, navigation }: any) {
   );
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{ flex: 1, backgroundColor: '#0B1628' }}>
+      <Image source={require('../../../assets/bg.png')} style={styles.bgImage} resizeMode="cover" />
       <BackHeader title={student.full_name} />
       <ScrollView
         contentContainerStyle={{ paddingBottom: tabBarPadding }}
@@ -398,6 +443,13 @@ export default function StudentDetailScreen({ route, navigation }: any) {
                 {student.role.charAt(0).toUpperCase() + student.role.slice(1)}
               </Text>
             </View>
+            {student.division && (
+              <View style={[styles.badge, { backgroundColor: 'rgba(59,130,246,0.15)', borderWidth: 1, borderColor: 'rgba(59,130,246,0.3)' }]}>
+                <Text style={[styles.badgeText, { color: '#60A5FA' }]}>
+                  {(DIVISION_LABELS as any)[student.division] ?? student.division}
+                </Text>
+              </View>
+            )}
             {student.skill_level && (
               <View style={[styles.badge, { backgroundColor: (SKILL_COLORS[student.skill_level] ?? '#6B7280') + '20' }]}>
                 <Text style={[styles.badgeText, { color: SKILL_COLORS[student.skill_level] ?? '#6B7280' }]}>
@@ -419,6 +471,16 @@ export default function StudentDetailScreen({ route, navigation }: any) {
             <View style={styles.row}>
               <Text style={styles.rowLabel}>Phone</Text>
               <Text style={styles.rowValue}>{student.phone ?? '—'}</Text>
+            </View>
+            <View style={styles.divider} />
+            <View style={styles.row}>
+              <Text style={styles.rowLabel}>Division</Text>
+              <Text style={styles.rowValue}>
+                {student.division
+                  ? ((DIVISION_LABELS as any)[student.division] ?? student.division)
+                  : '—'}
+                {student.skill_level ? ` · ${student.skill_level.charAt(0).toUpperCase() + student.skill_level.slice(1)}` : ''}
+              </Text>
             </View>
             <View style={styles.divider} />
             <View style={styles.row}>
@@ -644,6 +706,29 @@ export default function StudentDetailScreen({ route, navigation }: any) {
           </TouchableOpacity>
         </View>
 
+        {/* Ban / Unban — admin & super_admin only */}
+        {canBan && (
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, { marginBottom: 10 }]}>Account Control</Text>
+            {student.is_banned ? (
+              <View>
+                <View style={styles.banBadge}>
+                  <Text style={styles.banBadgeText}>🚫 This student is currently banned</Text>
+                  {student.ban_reason ? <Text style={styles.banReasonText}>Reason: {student.ban_reason}</Text> : null}
+                </View>
+                <TouchableOpacity style={styles.unbanBtn} onPress={handleUnban}>
+                  <Text style={styles.unbanBtnText}>✅ Unban Student</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <TouchableOpacity style={styles.banBtn} onPress={() => setBanModal(true)}>
+                <Text style={styles.banBtnText}>🚫 Ban Student</Text>
+                <Text style={styles.promoBtnChevron}>›</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
+
         {/* Direct message */}
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { marginBottom: 10 }]}>Messaging</Text>
@@ -672,6 +757,41 @@ export default function StudentDetailScreen({ route, navigation }: any) {
           </TouchableOpacity>
         </View>
       </ScrollView>
+
+      {/* Ban modal */}
+      <Modal visible={banModal} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setBanModal(false)}>
+        <View style={[styles.modal, { padding: 24 }]}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>🚫 Ban Student</Text>
+            <TouchableOpacity onPress={() => setBanModal(false)}>
+              <Text style={styles.modalClose}>✕</Text>
+            </TouchableOpacity>
+          </View>
+          <View style={{ marginTop: 16 }}>
+            <Text style={styles.sectionTitle}>Reason for ban</Text>
+            <TextInput
+              style={styles.banReasonInput}
+              placeholder="e.g. Repeated misconduct, non-payment..."
+              placeholderTextColor="#4B6070"
+              value={banReason}
+              onChangeText={setBanReason}
+              multiline
+              numberOfLines={3}
+              autoFocus
+            />
+            <Text style={{ color: '#7A8FA6', fontSize: 12, marginBottom: 20 }}>
+              The student will be immediately blocked from logging in. This can be reversed at any time.
+            </Text>
+            <TouchableOpacity
+              style={[styles.banBtn, { opacity: banning ? 0.5 : 1 }]}
+              onPress={handleBan}
+              disabled={banning}
+            >
+              <Text style={styles.banBtnText}>{banning ? 'Banning...' : '🚫 Confirm Ban'}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
 
       {/* Goal modal */}
       <Modal visible={goalModal} animationType="slide" presentationStyle="pageSheet" onRequestClose={closeGoalModal}>
@@ -780,24 +900,28 @@ export default function StudentDetailScreen({ route, navigation }: any) {
           </View>
 
           <View style={styles.modalBody}>
-            {/* Skill level */}
-            <Text style={styles.fieldLabel}>Skill Level</Text>
-            <View style={styles.chipGrid}>
-              {SKILL_LEVELS.map((level) => (
-                <TouchableOpacity
-                  key={level}
-                  style={[
-                    styles.selectChip,
-                    editForm.skill_level === level && { backgroundColor: SKILL_COLORS[level], borderColor: SKILL_COLORS[level] },
-                  ]}
-                  onPress={() => setEditForm({ ...editForm, skill_level: level })}
-                >
-                  <Text style={[styles.selectChipText, editForm.skill_level === level && styles.selectChipTextActive]}>
-                    {level.charAt(0).toUpperCase() + level.slice(1)}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
+            {/* Skill level — only relevant for amateur division */}
+            {student?.division === 'amateur' && (
+              <>
+                <Text style={styles.fieldLabel}>Skill Level</Text>
+                <View style={styles.chipGrid}>
+                  {SKILL_LEVELS.map((level) => (
+                    <TouchableOpacity
+                      key={level}
+                      style={[
+                        styles.selectChip,
+                        editForm.skill_level === level && { backgroundColor: SKILL_COLORS[level], borderColor: SKILL_COLORS[level] },
+                      ]}
+                      onPress={() => setEditForm({ ...editForm, skill_level: level })}
+                    >
+                      <Text style={[styles.selectChipText, editForm.skill_level === level && styles.selectChipTextActive]}>
+                        {level.charAt(0).toUpperCase() + level.slice(1)}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </>
+            )}
 
             {/* Role — only admins and super_admins can change this */}
             {canChangeRole && (
@@ -834,8 +958,8 @@ export default function StudentDetailScreen({ route, navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-  bgImage: { position: 'absolute', top: 0, left: 0, width: Dimensions.get('window').width, height: Dimensions.get('window').height },
-  container: { flex: 1, backgroundColor: '#F9FAFB' },
+  bgImage: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, width: '100%', height: '100%' },
+  container: { flex: 1, backgroundColor: 'transparent' },
   loading: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   loadingText: { color: '#6B7280', fontSize: 15 },
 
@@ -855,14 +979,14 @@ const styles = StyleSheet.create({
   sectionTitle: { fontSize: 13, fontWeight: '700', color: '#6B7280', textTransform: 'uppercase', letterSpacing: 0.5 },
 
   // Info card
-  card: { backgroundColor: '#FFFFFF', borderRadius: 14, borderWidth: 1, borderColor: '#E5E7EB', overflow: 'hidden' },
+  card: { backgroundColor: 'rgba(17,30,51,0.85)', borderRadius: 14, borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)', overflow: 'hidden' },
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16 },
   rowLabel: { fontSize: 15, color: '#374151' },
   rowValue: { fontSize: 15, color: '#6B7280' },
-  divider: { height: 1, backgroundColor: '#F3F4F6', marginHorizontal: 16 },
+  divider: { height: 1, backgroundColor: 'rgba(255,255,255,0.06)', marginHorizontal: 16 },
 
   // Progress
-  progressCard: { backgroundColor: '#FFFFFF', borderRadius: 14, padding: 16, borderWidth: 1, borderColor: '#E5E7EB' },
+  progressCard: { backgroundColor: 'rgba(17,30,51,0.85)', borderRadius: 14, padding: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)' },
   progressHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 },
   progressLabel: { fontSize: 14, color: '#374151' },
   progressPct: { fontSize: 15, fontWeight: '700', color: '#16A34A' },
@@ -870,7 +994,7 @@ const styles = StyleSheet.create({
   progressFill: { height: '100%', backgroundColor: '#16A34A', borderRadius: 4 },
 
   // Enrollment cards
-  enrollCard: { backgroundColor: '#FFFFFF', borderRadius: 14, marginBottom: 12, borderWidth: 1, borderColor: '#E5E7EB', overflow: 'hidden' },
+  enrollCard: { backgroundColor: 'rgba(17,30,51,0.85)', borderRadius: 14, marginBottom: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)', overflow: 'hidden' },
   enrollHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 14, paddingBottom: 8 },
   enrollTitle: { fontSize: 15, fontWeight: '600', color: '#111827', flex: 1, marginRight: 8 },
   statusBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, flexShrink: 0 },
@@ -885,22 +1009,22 @@ const styles = StyleSheet.create({
   removeChip: { borderWidth: 1, borderColor: '#FCA5A5', borderRadius: 16, paddingHorizontal: 12, paddingVertical: 6 },
   removeChipText: { fontSize: 12, fontWeight: '600', color: '#DC2626' },
 
-  empty: { backgroundColor: '#FFFFFF', borderRadius: 14, padding: 24, alignItems: 'center', borderWidth: 1, borderColor: '#E5E7EB' },
+  empty: { backgroundColor: 'rgba(17,30,51,0.85)', borderRadius: 14, padding: 24, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)' },
   emptyText: { color: '#9CA3AF', fontSize: 14 },
 
   // Edit modal
-  modal: { flex: 1, backgroundColor: '#FFFFFF' },
-  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
-  modalTitle: { fontSize: 17, fontWeight: '700', color: '#111827' },
+  modal: { flex: 1, backgroundColor: '#0B1628' },
+  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)' },
+  modalTitle: { fontSize: 17, fontWeight: '700', color: '#F0F6FC' },
   cancelBtn: { fontSize: 16, color: '#6B7280' },
   saveBtn: { fontSize: 16, color: '#16A34A', fontWeight: '700' },
   modalBody: { padding: 24 },
   fieldLabel: { fontSize: 14, fontWeight: '700', color: '#F0F6FC', marginBottom: 10, marginTop: 8 },
   chipGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 20 },
-  selectChip: { borderWidth: 1.5, borderColor: '#D1D5DB', borderRadius: 20, paddingHorizontal: 18, paddingVertical: 9, backgroundColor: '#F9FAFB' },
-  selectChipText: { fontSize: 14, color: '#374151', fontWeight: '500' },
+  selectChip: { borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.15)', borderRadius: 20, paddingHorizontal: 18, paddingVertical: 9, backgroundColor: 'rgba(17,30,51,0.6)' },
+  selectChipText: { fontSize: 14, color: '#7A8FA6', fontWeight: '500' },
   selectChipTextActive: { color: '#FFFFFF', fontWeight: '700' },
-  warningBox: { backgroundColor: '#FFFBEB', borderRadius: 10, padding: 14, borderWidth: 1, borderColor: '#FDE68A' },
+  warningBox: { backgroundColor: 'rgba(251,191,36,0.1)', borderRadius: 10, padding: 14, borderWidth: 1, borderColor: 'rgba(251,191,36,0.3)' },
   warningText: { fontSize: 13, color: '#92400E', lineHeight: 20 },
   // Goals
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
@@ -909,11 +1033,11 @@ const styles = StyleSheet.create({
   goalCategory: { marginBottom: 14 },
   goalCategoryHeader: { fontSize: 13, fontWeight: '800', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 },
   goalCard: {
-    backgroundColor: '#FFFFFF', borderRadius: 10, padding: 12, marginBottom: 6,
+    backgroundColor: 'rgba(17,30,51,0.85)', borderRadius: 10, padding: 12, marginBottom: 6,
     borderWidth: 1, borderColor: '#E5E7EB',
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
   },
-  goalCardAchieved: { backgroundColor: '#F0FDF4', borderColor: '#BBF7D0' },
+  goalCardAchieved: { backgroundColor: 'rgba(22,163,74,0.15)', borderColor: 'rgba(134,239,172,0.3)' },
   goalCardLeft: { flex: 1, marginRight: 10 },
   goalTitle: { fontSize: 14, fontWeight: '600', color: '#111827' },
   goalAchievedAt: { fontSize: 11, color: '#16A34A', marginTop: 2 },
@@ -922,7 +1046,7 @@ const styles = StyleSheet.create({
   goalInput: {
     borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 10,
     padding: 14, fontSize: 15, color: '#111827',
-    marginBottom: 20, backgroundColor: '#F9FAFB',
+    marginBottom: 20, backgroundColor: 'rgba(17,30,51,0.5)',
   },
   achievedHint: {
     backgroundColor: '#FEF9C3', borderRadius: 10, padding: 12,
@@ -936,7 +1060,7 @@ const styles = StyleSheet.create({
   deleteGoalBtnText: { color: '#DC2626', fontWeight: '700', fontSize: 15 },
 
   promoBtn: {
-    backgroundColor: '#FFFFFF', borderRadius: 12, padding: 16,
+    backgroundColor: 'rgba(17,30,51,0.85)', borderRadius: 12, padding: 16,
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     borderWidth: 1, borderColor: '#E5E7EB',
   },
@@ -944,16 +1068,38 @@ const styles = StyleSheet.create({
   promoBtnChevron: { fontSize: 22, color: '#D1D5DB' },
 
   // Manual Division Override
-  overrideSection: { backgroundColor: '#FFFBEB', borderRadius: 14, padding: 16, margin: 16, marginTop: 0, borderWidth: 1, borderColor: '#FDE68A' },
+  overrideSection: { backgroundColor: 'rgba(17,30,51,0.85)', borderRadius: 14, padding: 16, margin: 16, marginTop: 0, borderWidth: 1, borderColor: 'rgba(251,191,36,0.3)' },
   overrideTitle: { fontSize: 15, fontWeight: '700', color: '#92400E', marginBottom: 2 },
   overrideSubtitle: { fontSize: 12, color: '#B45309', marginBottom: 14 },
   overrideLabel: { fontSize: 13, fontWeight: '600', color: '#374151', marginBottom: 8 },
   divisionGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 14 },
-  divChip: { borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8, backgroundColor: '#F9FAFB' },
+  divChip: { borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)', borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8, backgroundColor: 'rgba(17,30,51,0.6)' },
   divChipActive: { backgroundColor: '#16A34A', borderColor: '#16A34A' },
   divChipText: { fontSize: 13, color: '#374151' },
   divChipTextActive: { color: '#FFFFFF', fontWeight: '600' },
   overrideBtn: { backgroundColor: '#D97706', borderRadius: 10, paddingVertical: 14, alignItems: 'center', marginTop: 4 },
   overrideBtnDisabled: { opacity: 0.5 },
   overrideBtnText: { color: '#FFFFFF', fontSize: 15, fontWeight: '700' },
+  banBtn: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    backgroundColor: 'rgba(239,68,68,0.12)', borderRadius: 12, padding: 16,
+    borderWidth: 1, borderColor: 'rgba(239,68,68,0.3)',
+  },
+  banBtnText: { fontSize: 15, fontWeight: '700', color: '#EF4444' },
+  unbanBtn: {
+    backgroundColor: 'rgba(34,197,94,0.12)', borderRadius: 12, padding: 16,
+    borderWidth: 1, borderColor: 'rgba(34,197,94,0.3)', alignItems: 'center', marginTop: 10,
+  },
+  unbanBtnText: { fontSize: 15, fontWeight: '700', color: '#22C55E' },
+  banBadge: {
+    backgroundColor: 'rgba(239,68,68,0.1)', borderRadius: 10, padding: 14,
+    borderWidth: 1, borderColor: 'rgba(239,68,68,0.25)',
+  },
+  banBadgeText: { fontSize: 14, fontWeight: '600', color: '#EF4444', marginBottom: 4 },
+  banReasonText: { fontSize: 13, color: '#F87171' },
+  banReasonInput: {
+    backgroundColor: 'rgba(17,30,51,0.85)', borderRadius: 10, padding: 14,
+    fontSize: 14, color: '#F0F6FC', borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)',
+    marginTop: 8, marginBottom: 12, textAlignVertical: 'top', minHeight: 80,
+  },
 });

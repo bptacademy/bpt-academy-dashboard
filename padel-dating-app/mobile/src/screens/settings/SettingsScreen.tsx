@@ -126,7 +126,7 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     paddingHorizontal: 20, paddingVertical: 16,
-    borderBottomWidth: 1, borderBottomColor: theme.bgCard,
+    borderBottomWidth: 1, borderBottomColor: theme.primaryBorder,
   },
   headerTitle: { fontSize: 18.2, fontFamily: fonts.bodyBold, color: theme.textPrimary },
   backText: { fontSize: 17.1, color: theme.textSecondary, fontFamily: fonts.bodyLight },
@@ -134,8 +134,8 @@ const styles = StyleSheet.create({
   section: { marginBottom: 24 },
   sectionTitle: { fontSize: 12.8, fontFamily: fonts.bodyBold, color: theme.textMuted, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8, paddingLeft: 4 },
   sectionCard: {
-    backgroundColor: theme.bgCard, borderRadius: 16,
-    borderWidth: 1, borderColor: theme.border, overflow: 'hidden',
+    backgroundColor: theme.primaryDim, borderRadius: 16,
+    borderWidth: 1.5, borderColor: theme.primaryBorder, overflow: 'hidden',
   },
   row: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',

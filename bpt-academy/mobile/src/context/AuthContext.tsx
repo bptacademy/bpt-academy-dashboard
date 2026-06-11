@@ -1,3 +1,4 @@
+import { Alert } from 'react-native';
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
@@ -96,6 +97,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       .eq('id', userId)
       .single();
     if (data) {
+      // Block banned users immediately
+      if (data.is_banned) {
+        await supabase.auth.signOut();
+        Alert.alert(
+          '🚫 Account Suspended',
+          data.ban_reason
+            ? `Your account has been suspended.\n\nReason: ${data.ban_reason}\n\nPlease contact the academy for more information.`
+            : 'Your account has been suspended. Please contact the academy for more information.',
+          [{ text: 'OK' }]
+        );
+        return;
+      }
       setProfile((prev) => {
         if (JSON.stringify(prev) === JSON.stringify(data)) return prev;
         return data;

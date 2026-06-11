@@ -104,7 +104,7 @@ CREATE TABLE IF NOT EXISTS player_stats (
   avg_set_score_for         float,
   avg_set_score_against     float,
   play_style                text CHECK (play_style IN ('aggressive','defensive','balanced','net_dominant')),
-  preferred_time_of_day     text CHECK (preferred_time_of_day IN ('morning','afternoon','evening')),
+  preferred_time_of_day     text CHECK (preferred_time_of_day IN ('morning','afternoon','evening','flexible')),
   preferred_days            text[] DEFAULT '{}',
   top_clubs                 jsonb DEFAULT '[]',
   updated_at                timestamptz DEFAULT now(),

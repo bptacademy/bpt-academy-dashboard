@@ -39,10 +39,10 @@ export default function MyProfileScreen({ navigation }: any) {
   const innerSize = AVATAR_SIZE - RING_THICKNESS * 2;
 
   const MENU_ITEMS = [
-    { icon: '✏️', iconPng: null, label: 'Edit Profile', screen: 'EditProfile' },
-    { icon: '📊', iconPng: require('../../../assets/icons/4. Rating.png'), label: 'My Stats', screen: 'MyStats' },
-    { icon: '🔔', iconPng: require('../../../assets/icons/Notifications.png'), label: 'Notifications', screen: 'Notifications' },
-    { icon: '⚙️', iconPng: require('../../../assets/icons/16. Settings.png'), label: 'Settings', screen: 'Settings' },
+    { iconPng: require('../../../assets/icons/edit-profile.png'), label: 'Edit Profile', screen: 'EditProfile' },
+    { iconPng: require('../../../assets/icons/my-stats.png'), label: 'My Stats', screen: 'MyStats' },
+    { iconPng: require('../../../assets/icons/notifications.png'), label: 'Notifications', screen: 'Notifications' },
+    { iconPng: require('../../../assets/icons/settings.png'), label: 'Settings', screen: 'Settings' },
   ];
 
   return (
@@ -80,7 +80,7 @@ export default function MyProfileScreen({ navigation }: any) {
             {user?.full_name ?? user?.email?.split('@')[0] ?? 'Player'}
           </Text>
 
-          {user?.city && <View style={styles.cityRow}><Image source={require('../../../assets/icons/3. Location.png')} style={styles.cityIcon} /><Text style={styles.profileCity}>{user.city}</Text></View>}
+          {user?.city && <View style={styles.cityRow}><Image source={require('../../../assets/icons/location.png')} style={styles.cityIcon} /><Text style={styles.profileCity}>{user.city}</Text></View>}
 
           {/* Home club badge */}
           {user?.home_club_name && (
@@ -156,9 +156,7 @@ export default function MyProfileScreen({ navigation }: any) {
               onPress={() => navigation.navigate(item.screen)}
               activeOpacity={0.75}
             >
-              {item.iconPng
-                ? <Image source={item.iconPng} style={styles.menuIconImg} />
-                : <Text style={styles.menuIcon}>{item.icon}</Text>}
+              <Image source={item.iconPng} style={styles.menuIconImg} />
               <Text style={styles.menuLabel}>{item.label}</Text>
               <Text style={styles.menuArrow}>›</Text>
             </TouchableOpacity>
@@ -186,8 +184,8 @@ const styles = StyleSheet.create({
   headerTitle: { fontSize: 26, fontFamily: fonts.headlineBold, color: theme.textPrimary },
   scroll: { paddingHorizontal: 16, paddingTop: 20, paddingBottom: 120 },
   profileCard: {
-    backgroundColor: theme.bgCard, borderRadius: 20, padding: 24,
-    alignItems: 'center', borderWidth: 1, borderColor: theme.border, marginBottom: 12,
+    backgroundColor: theme.primaryDim, borderRadius: 20, padding: 24,
+    alignItems: 'center', borderWidth: 1.5, borderColor: theme.primaryBorder, marginBottom: 12,
   },
   avatarFallback: {
     backgroundColor: theme.primaryDim,
@@ -215,8 +213,8 @@ const styles = StyleSheet.create({
   badgePrimaryText: { color: theme.primary },
   bio: { fontSize: 15, color: theme.textSecondary, fontStyle: 'italic', textAlign: 'center', lineHeight: 20, fontFamily: fonts.bodyLight },
   statsCard: {
-    flexDirection: 'row', backgroundColor: theme.bgCard, borderRadius: 16,
-    padding: 20, marginBottom: 12, borderWidth: 1, borderColor: theme.border,
+    flexDirection: 'row', backgroundColor: theme.primaryDim, borderRadius: 16,
+    padding: 20, marginBottom: 12, borderWidth: 1.5, borderColor: theme.primaryBorder,
   },
   statBox: { flex: 1, alignItems: 'center' },
   statValue: { fontSize: 22, fontFamily: fonts.headlineLightIt, color: theme.textPrimary, marginBottom: 4 },
@@ -229,8 +227,8 @@ const styles = StyleSheet.create({
   },
   syncCtaSynced: {
     flexDirection: 'row', alignItems: 'center', gap: 12,
-    backgroundColor: theme.bgCard, borderRadius: 16, padding: 16,
-    borderWidth: 1, borderColor: theme.border, marginBottom: 12,
+    backgroundColor: theme.primaryDim, borderRadius: 16, padding: 16,
+    borderWidth: 1.5, borderColor: theme.primaryBorder, marginBottom: 12,
   },
   syncCtaIcon: { fontSize: 24 },
   syncCtaText: { flex: 1 },
@@ -239,20 +237,20 @@ const styles = StyleSheet.create({
   syncCtaSub: { fontSize: 12.8, color: theme.textMuted, lineHeight: 18, fontFamily: fonts.bodyLight },
   syncCtaArrow: { fontSize: 22, color: theme.textMuted },
   menuCard: {
-    backgroundColor: theme.bgCard, borderRadius: 16,
-    borderWidth: 1, borderColor: theme.border, marginBottom: 12, overflow: 'hidden',
+    backgroundColor: theme.primaryDim, borderRadius: 16,
+    borderWidth: 1.5, borderColor: theme.primaryBorder, marginBottom: 12, overflow: 'hidden',
   },
-  menuRow: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 16 },
-  menuRowBorder: { borderBottomWidth: 1, borderBottomColor: theme.border },
+  menuRow: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 16, paddingVertical: 18 },
+  menuRowBorder: { borderBottomWidth: 1, borderBottomColor: theme.primaryBorder },
   menuIcon: { fontSize: 20, width: 28 },
-  cityRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  cityRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 },
   cityIcon: { width: 21, height: 21, tintColor: '#7A9CC0' },
-  menuIconImg: { width: 33, height: 33, tintColor: '#7A9CC0', marginRight: 2 },
+  menuIconImg: { width: 28, height: 28, tintColor: '#7A9CC0' },
   menuLabel: { flex: 1, fontSize: 16.1, color: theme.textPrimary, fontFamily: fonts.bodyLight },
   menuArrow: { fontSize: 20, color: theme.textMuted },
   signOutBtn: {
-    backgroundColor: theme.bgCard, borderRadius: 14, padding: 16,
-    alignItems: 'center', borderWidth: 1, borderColor: theme.border,
+    backgroundColor: theme.primaryDim, borderRadius: 14, padding: 16,
+    alignItems: 'center', borderWidth: 1.5, borderColor: theme.primaryBorder,
   },
   signOutText: { fontSize: 16.1, color: '#EF4444', fontFamily: fonts.bodyBold },
 });

@@ -218,7 +218,7 @@ export default function EditProfileScreen({ navigation }: any) {
         </View>
 
         {/* Photos */}
-        <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Image source={require('../../../assets/icons/6. Camera.png')} style={{width:24,height:24,tintColor:'#7A9CC0'}} /><Text style={styles.fieldLabel}>Photos ({photos.length}/{MAX_PHOTOS})</Text></View>
+        <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Image source={require('../../../assets/icons/camera.png')} style={{width:24,height:24,tintColor:'#7A9CC0'}} /><Text style={styles.fieldLabel}>Photos ({photos.length}/{MAX_PHOTOS})</Text></View>
         <Text style={styles.fieldHint}>Your first photo is your main profile photo.</Text>
         <View style={styles.photoGrid}>
           {photos.map((uri, i) => (
@@ -251,7 +251,7 @@ export default function EditProfileScreen({ navigation }: any) {
         </View>
 
         {/* City */}
-        <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Image source={require('../../../assets/icons/3. Location.png')} style={{width:24,height:24,tintColor:'#7A9CC0'}} /><Text style={styles.fieldLabel}>City</Text></View>
+        <View style={{flexDirection:'row',alignItems:'center',gap:6}}><Image source={require('../../../assets/icons/location.png')} style={{width:24,height:24,tintColor:'#7A9CC0'}} /><Text style={styles.fieldLabel}>City</Text></View>
         <View style={styles.placesWrapper}>
           <GooglePlacesAutocomplete
             placeholder={city || 'Search your city…'}
@@ -273,11 +273,11 @@ export default function EditProfileScreen({ navigation }: any) {
               },
               textInputContainer: { backgroundColor: 'transparent' },
               listView: {
-                backgroundColor: theme.bgCard, borderRadius: 14,
+                backgroundColor: theme.primaryDim, borderRadius: 14,
                 borderWidth: 1, borderColor: theme.border, marginTop: 4,
               },
               row: {
-                backgroundColor: theme.bgCard, paddingVertical: 13,
+                backgroundColor: theme.primaryDim, paddingVertical: 13,
                 paddingHorizontal: 16, borderBottomWidth: 1, borderBottomColor: theme.border,
               },
               description: { color: theme.textPrimary, fontSize: 14 },
@@ -443,14 +443,14 @@ const styles = StyleSheet.create({
   },
   mainBadgeText: { color: '#05020E', fontSize: 10, fontFamily: fonts.headlineBold },
   addSlot: {
-    backgroundColor: theme.bgCard, borderWidth: 1.5, borderColor: theme.border,
+    backgroundColor: theme.primaryDim, borderWidth: 1.5, borderColor: theme.primaryBorder,
     borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center', gap: 4,
   },
   addIcon: { fontSize: 26, color: theme.textDim },
   addLabel: { fontSize: 11.8, color: theme.textDim, fontFamily: fonts.bodyBold },
   placesWrapper: { zIndex: 10 },
   input: {
-    backgroundColor: theme.bgCard, borderRadius: 14, padding: 16,
+    backgroundColor: theme.primaryDim, borderRadius: 14, padding: 16,
     fontSize: 15, color: theme.textPrimary, borderWidth: 1, borderColor: theme.border,
     fontFamily: fonts.bodyLight,
   },
@@ -459,7 +459,7 @@ const styles = StyleSheet.create({
   charCount: { position: 'absolute', bottom: 10, right: 14, fontSize: 11.8, color: theme.textDim, fontFamily: fonts.bodyLight },
   optionGrid: { gap: 8 },
   optionBtn: {
-    padding: 14, borderRadius: 14, borderWidth: 1, borderColor: theme.border, backgroundColor: theme.bgCard,
+    padding: 14, borderRadius: 14, borderWidth: 1.5, borderColor: theme.primaryBorder, backgroundColor: theme.primaryDim,
   },
   optionBtnActive: { borderColor: theme.primaryBorder, backgroundColor: theme.primaryDim },
   optionText: { fontSize: 16.1, color: theme.textMuted, fontFamily: fonts.bodyLight },

@@ -268,7 +268,7 @@ const styles = StyleSheet.create({
   header:                 {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     paddingHorizontal: 20, paddingVertical: 16,
-    borderBottomWidth: 1, borderBottomColor: theme.bgCard,
+    borderBottomWidth: 1, borderBottomColor: theme.primaryBorder,
   },
   headerTitle:            { fontSize: 18.2, fontFamily: fonts.bodyBold, color: theme.textPrimary },
   backText:               { fontSize: 17.1, color: theme.textSecondary, fontFamily: fonts.bodyLight },
@@ -276,14 +276,14 @@ const styles = StyleSheet.create({
   scroll:                 { padding: 16 },
   intro:                  { fontSize: 15, color: theme.textMuted, lineHeight: 22, marginBottom: 20, fontFamily: fonts.bodyLight },
   platformCard:           {
-    backgroundColor: theme.bgCard, borderRadius: 16, padding: 16,
-    marginBottom: 12, borderWidth: 1, borderColor: theme.border,
+    backgroundColor: theme.primaryDim, borderRadius: 16, padding: 16,
+    marginBottom: 12, borderWidth: 1.5, borderColor: theme.primaryBorder,
   },
   platformHeader:         { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 12 },
   platformIcon:           {
     width: 46, height: 46, borderRadius: 14,
-    backgroundColor: theme.bgDeep, alignItems: 'center', justifyContent: 'center',
-    borderWidth: 1, borderColor: theme.border,
+    backgroundColor: theme.primaryDim, alignItems: 'center', justifyContent: 'center',
+    borderWidth: 1.5, borderColor: theme.primaryBorder,
   },
   platformIconConnected:  { backgroundColor: theme.primaryDim, borderColor: theme.primaryBorder },
   platformEmoji:          { fontSize: 22 },
@@ -314,7 +314,7 @@ const styles = StyleSheet.create({
   syncBtnText:            { color: '#05020E', fontSize: 15, fontFamily: fonts.bodyBold },
   disconnectBtn:          {
     paddingHorizontal: 16, paddingVertical: 12, borderRadius: 12,
-    backgroundColor: theme.bgDeep, borderWidth: 1, borderColor: theme.border,
+    backgroundColor: theme.primaryDim, borderWidth: 1.5, borderColor: theme.primaryBorder,
   },
   disconnectBtnText:      { color: theme.textMuted, fontSize: 15, fontFamily: fonts.bodyBold },
   connectBtn:             {
@@ -324,8 +324,8 @@ const styles = StyleSheet.create({
   },
   connectBtnText:         { color: theme.primary, fontSize: 15, fontFamily: fonts.bodyBold },
   infoBox:                {
-    flexDirection: 'row', gap: 10, backgroundColor: theme.bgCard,
-    borderRadius: 14, padding: 16, borderWidth: 1, borderColor: theme.border,
+    flexDirection: 'row', gap: 10, backgroundColor: theme.primaryDim,
+    borderRadius: 14, padding: 16, borderWidth: 1.5, borderColor: theme.primaryBorder,
   },
   infoIcon:               { fontSize: 18 },
   infoText:               { flex: 1, fontSize: 13.9, color: theme.textMuted, lineHeight: 20, fontFamily: fonts.bodyLight },

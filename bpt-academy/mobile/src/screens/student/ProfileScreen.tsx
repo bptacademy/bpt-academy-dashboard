@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, ScrollView,
   Alert, Switch, TextInput, Image, ActivityIndicator,
-  KeyboardAvoidingView, Platform, Modal, Dimensions} from 'react-native';
+  KeyboardAvoidingView, Platform, Modal, Dimensions, Linking} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTabBarPadding } from '../../hooks/useTabBarPadding';
 import * as ImagePicker from 'expo-image-picker';
@@ -22,6 +22,45 @@ const DIVISIONS: Division[] = ['amateur', 'semi_pro', 'pro'];
 
 export default function ProfileScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
+  const [notifStatus, setNotifStatus] = useState<string>('undetermined');
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const N = await import('expo-notifications');
+        const { status } = await N.getPermissionsAsync();
+        setNotifStatus(status);
+      } catch {}
+    })();
+  }, []);
+
+  const handleNotifToggle = useCallback(async () => {
+    try {
+      const N = await import('expo-notifications');
+      const { status } = await N.getPermissionsAsync();
+      if (status === 'granted') {
+        // Already granted — open settings so user can disable if they want
+        await Linking.openSettings();
+      } else if (status === 'undetermined') {
+        // Not asked yet — request
+        const { status: newStatus } = await N.requestPermissionsAsync();
+        setNotifStatus(newStatus);
+        if (newStatus === 'granted') {
+          Alert.alert('Notifications enabled', 'You will now receive push notifications.');
+        }
+      } else {
+        // Denied — must go to Settings
+        Alert.alert(
+          'Enable Notifications',
+          'Notifications are disabled. To enable them, go to Settings > BPT Academy > Notifications.',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            { text: 'Open Settings', onPress: () => Linking.openSettings() },
+          ]
+        );
+      }
+    } catch {}
+  }, []);
   const tabBarPadding = useTabBarPadding();
   const { profile, signOut, previewRole, setPreviewRole, effectiveRole, refreshProfile } = useAuth();
 
@@ -126,14 +165,18 @@ export default function ProfileScreen({ navigation }: any) {
   const handleSave = async () => {
     if (!form.full_name.trim()) { Alert.alert('Error', 'Name cannot be empty'); return; }
     setSaving(true);
-    const { error } = await supabase.from('profiles').update({
+    const updatePayload: Record<string, any> = {
       full_name: form.full_name.trim(),
       phone: form.phone.trim() || null,
       date_of_birth: formatDobIso(dobDate),
       emergency_contact: form.emergency_contact.trim() || null,
       division: form.division,
-      skill_level: form.division === 'amateur' ? form.skill_level : null,
-    }).eq('id', profile!.id);
+    };
+    // Only update skill_level for amateur — it's NOT NULL so never set to null
+    if (form.division === 'amateur' && form.skill_level) {
+      updatePayload.skill_level = form.skill_level;
+    }
+    const { error } = await supabase.from('profiles').update(updatePayload).eq('id', profile!.id);
     setSaving(false);
     if (error) { Alert.alert('Error', error.message); return; }
     await refreshProfile();
@@ -348,8 +391,18 @@ export default function ProfileScreen({ navigation }: any) {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>App</Text>
           <View style={styles.card}>
+            <TouchableOpacity style={styles.row} onPress={handleNotifToggle}>
+              <Text style={styles.rowLabel}>Push Notifications</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <Text style={{ fontSize: 13, color: notifStatus === 'granted' ? '#22C55E' : '#EF4444' }}>
+                  {notifStatus === 'granted' ? 'On' : 'Off'}
+                </Text>
+                <Text style={styles.chevron}>›</Text>
+              </View>
+            </TouchableOpacity>
+            <View style={styles.divider} />
             <TouchableOpacity style={styles.row} onPress={() => navigation.navigate("Notifications")}>
-              <Text style={styles.rowLabel}>Notifications</Text>
+              <Text style={styles.rowLabel}>Notification History</Text>
               <Text style={styles.chevron}>›</Text>
             </TouchableOpacity>
             <View style={styles.divider} />

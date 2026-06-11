@@ -80,7 +80,7 @@ function PlayerPopup({ player, onClose, onViewProfile }: {
             )}
           </View>
           <Text style={popup.name}>{player.full_name}</Text>
-          {player.city && <View style={{flexDirection:'row',alignItems:'center',gap:3}}><Image source={require('../../../assets/icons/3. Location.png')} style={{width:27,height:27,tintColor:'#7A9CC0'}} /><Text style={popup.city}>{player.city}</Text></View>}
+          {player.city && <View style={{flexDirection:'row',alignItems:'center',gap:3}}><Image source={require('../../../assets/icons/location.png')} style={{width:27,height:27,tintColor:'#7A9CC0'}} /><Text style={popup.city}>{player.city}</Text></View>}
           <View style={popup.statsRow}>
             {player.level_value !== null && <View style={popup.stat}><Text style={popup.statValue}>{player.level_value.toFixed(1)}</Text><Text style={popup.statLabel}>Level</Text></View>}
             {player.total_matches !== null && <View style={popup.stat}><Text style={popup.statValue}>{player.total_matches}</Text><Text style={popup.statLabel}>Matches</Text></View>}

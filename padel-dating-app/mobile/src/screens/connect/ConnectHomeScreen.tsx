@@ -190,7 +190,7 @@ export default function ConnectHomeScreen({ navigation }: any) {
           <Text style={styles.headerSub}>Discover compatible players near you</Text>
         </View>
         <TouchableOpacity style={styles.notifBtn} onPress={() => navigation.navigate('Notifications')}>
-          <Image source={require('../../../assets/icons/Notifications.png')} style={styles.notifIconImg} />
+          <Image source={require('../../../assets/icons/notifications.png')} style={styles.notifIconImg} />
         </TouchableOpacity>
       </View>
 
@@ -266,13 +266,13 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     paddingHorizontal: 20, paddingVertical: 16,
-    borderBottomWidth: 1, borderBottomColor: theme.bgCard,
+    borderBottomWidth: 1, borderBottomColor: theme.primaryBorder,
   },
   headerTitle: { fontSize: 26, fontFamily: fonts.headlineBold, color: theme.textPrimary },
   headerSub: { fontSize: 12.8, color: theme.textMuted, marginTop: 2, fontFamily: fonts.bodyLight },
-  notifBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: theme.bgCard, alignItems: 'center', justifyContent: 'center' },
+  notifBtn: { alignItems: 'center', justifyContent: 'center', padding: 4 },
   notifIcon: { fontSize: 18 },
-  notifIconImg: { width: 33, height: 33, tintColor: '#7A9CC0' },
+  notifIconImg: { width: 42, height: 42, tintColor: '#7A9CC0' },
   scroll: { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 120 },
   sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 },
   sectionTitle: { fontSize: 16.1, fontFamily: fonts.bodyBold, color: theme.textPrimary, flex: 1 },
@@ -291,7 +291,7 @@ const styles = StyleSheet.create({
   demoBtnText: { fontSize: 15, fontFamily: fonts.bodyBold, color: theme.primary },
 
   card: {
-    backgroundColor: theme.bgCard, borderRadius: 18, padding: 14,
+    backgroundColor: theme.primaryDim, borderRadius: 18, padding: 14,
     marginBottom: 12, borderWidth: 1, borderColor: 'rgba(0,212,200,0.15)',
     ...Platform.select({
       ios: { shadowColor: theme.primary, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.12, shadowRadius: 6 },
@@ -321,7 +321,7 @@ const styles = StyleSheet.create({
   scoreLabel: { fontSize: 9.6, fontFamily: fonts.bodyBold, lineHeight: 11 },
   actionRow: { flexDirection: 'row', gap: 8, borderTopWidth: 1, borderTopColor: theme.border, paddingTop: 12 },
   actionBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 11, borderRadius: 12, backgroundColor: theme.bgDeep, borderWidth: 1, borderColor: theme.border },
-  volleyBtn: { backgroundColor: theme.secondaryDim, borderColor: theme.secondaryBorder },
+  volleyBtn: { backgroundColor: theme.secondaryDim, borderWidth: 1.5, borderColor: theme.secondaryBorder },
   actionEmoji: { fontSize: 15 },
   actionText: { fontSize: 13.9, fontFamily: fonts.bodyBold, color: theme.textSecondary },
   volleyText: { color: '#A78BFA' },

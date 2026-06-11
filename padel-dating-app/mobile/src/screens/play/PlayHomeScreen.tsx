@@ -70,7 +70,7 @@ function HistoryCard({ player, navigation, onAction }: {
               </View>
             )}
           </View>
-          {player.city && <View style={{flexDirection:'row',alignItems:'center',gap:3}}><Image source={require('../../../assets/icons/3. Location.png')} style={{width:14,height:14,tintColor:'#7A9CC0'}} /><Text style={styles.cardMeta}>{player.city}</Text></View>}
+          {player.city && <View style={{flexDirection:'row',alignItems:'center',gap:3}}><Image source={require('../../../assets/icons/location.png')} style={{width:14,height:14,tintColor:'#7A9CC0'}} /><Text style={styles.cardMeta}>{player.city}</Text></View>}
           {player.levelValue !== null && (
             <View style={styles.levelRow}>
               <View style={styles.levelBadge}>
@@ -298,12 +298,12 @@ function PartnerCard({ partner, navigation, onServe }: {
 
       <View style={styles.statsRow}>
         <View style={styles.statItem}>
-          <Image source={require('../../../assets/icons/14. Calendar.png')} style={styles.statIconImg} />
+          <Image source={require('../../../assets/icons/calendar.png')} style={styles.statIconImg} />
           <Text style={styles.statText}>{availabilityText}</Text>
         </View>
         {partner.winRate !== null && (
           <View style={styles.statItem}>
-            <Image source={require('../../../assets/icons/13. Trophy.png')} style={styles.statIconImg} />
+            <Image source={require('../../../assets/icons/trophy.png')} style={styles.statIconImg} />
             <Text style={styles.statText}>{partner.winRate}% win rate</Text>
           </View>
         )}
@@ -462,7 +462,7 @@ const styles = StyleSheet.create({
   tabRow: { paddingHorizontal: 16, paddingBottom: 12, paddingTop: 2, gap: 8 },
   subTab: {
     paddingVertical: 9, paddingHorizontal: 14, borderRadius: 12,
-    backgroundColor: theme.bgCard, borderWidth: 1, borderColor: theme.border,
+    backgroundColor: theme.primaryDim, borderWidth: 1.5, borderColor: theme.primaryBorder,
   },
   subTabActive: { backgroundColor: theme.primaryDim, borderColor: theme.primaryBorder },
   subTabText: { fontSize: 13.9, fontFamily: fonts.bodyBold, color: theme.textMuted },
@@ -486,8 +486,8 @@ const styles = StyleSheet.create({
 
   // ── Shared card ──
   card: {
-    backgroundColor: theme.bgCard, borderRadius: 18, padding: 14,
-    marginBottom: 12, borderWidth: 1, borderColor: theme.border,
+    backgroundColor: theme.primaryDim, borderRadius: 18, padding: 14,
+    marginBottom: 12, borderWidth: 1.5, borderColor: theme.primaryBorder,
     ...Platform.select({
       ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.08, shadowRadius: 4 },
       android: { elevation: 2 },
@@ -516,7 +516,7 @@ const styles = StyleSheet.create({
   scoreLabel: { fontSize: 9.6, fontFamily: fonts.bodyBold, lineHeight: 11 },
   actionRow: { flexDirection: 'row', gap: 8, borderTopWidth: 1, borderTopColor: theme.border, paddingTop: 12 },
   actionBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 5, paddingVertical: 10, borderRadius: 12, backgroundColor: theme.bgDeep, borderWidth: 1, borderColor: theme.border },
-  volleyBtn: { backgroundColor: theme.secondaryDim, borderColor: theme.secondaryBorder },
+  volleyBtn: { backgroundColor: theme.secondaryDim, borderWidth: 1.5, borderColor: theme.secondaryBorder },
   actionEmoji: { fontSize: 14 },
   actionText: { fontSize: 12.8, fontFamily: fonts.bodyBold, color: theme.textSecondary },
   volleyText: { color: '#A78BFA' },

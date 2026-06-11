@@ -3,6 +3,17 @@
     "plugins": [
       "expo-secure-store",
       "expo-font"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "9a56839c-ce6d-4d20-ab42-31b9c2ac37ff"
+      }
+    },
+    "ios": {
+      "bundleIdentifier": "com.volpair.app",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    }
   }
 }

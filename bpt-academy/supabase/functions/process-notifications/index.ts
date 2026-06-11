@@ -40,11 +40,17 @@ const PUSH_TYPES = new Set([
 
 Deno.serve(async () => {
   try {
-    // Fetch up to 50 unprocessed notifications (push_sent = false)
+    // Safety guard: only process notifications created in the last 7 days.
+    // This prevents old notifications (e.g. from before push_sent was added)
+    // from being re-processed and re-emailed after a column reset or redeployment.
+    const cutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+
+    // Fetch up to 50 unprocessed notifications (push_sent = false, recent only)
     const { data: pending, error } = await supabase
       .from('notifications')
       .select('*')
       .eq('push_sent', false)
+      .gte('created_at', cutoff)
       .order('created_at', { ascending: true })
       .limit(50);
 
@@ -101,7 +107,8 @@ Deno.serve(async () => {
       }
 
       // --- Email notification ---
-      if (EMAIL_TYPES.has(notif.type) && emailEnabled) {
+      // Guard: skip if already emailed (prevents double-send on reprocessing)
+      if (EMAIL_TYPES.has(notif.type) && emailEnabled && !notif.email_sent) {
         try {
           const { data: authUser } = await supabase.auth.admin.getUserById(notif.recipient_id);
           const email = authUser?.user?.email;

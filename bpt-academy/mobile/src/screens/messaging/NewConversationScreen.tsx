@@ -70,25 +70,24 @@ export default function NewConversationScreen({ navigation }: any) {
       const programIds = (enrollments ?? []).map((e: any) => e.program_id);
 
       if (programIds.length > 0) {
+        // Get classmate student_ids first
         const { data: classmateEnrollments } = await supabase
           .from('enrollments')
-          .select('student_id, profile:profiles!student_id(id, full_name, role, division, avatar_url)')
+          .select('student_id')
           .in('program_id', programIds)
           .in('status', ['active', 'pending_next_cycle'])
           .neq('student_id', profile.id);
 
-        // Deduplicate by id
-        const seen = new Set<string>();
-        const unique: PersonRow[] = [];
-        for (const e of (classmateEnrollments ?? []) as any[]) {
-          const p = e.profile;
-          if (p && !seen.has(p.id)) {
-            seen.add(p.id);
-            unique.push(p as PersonRow);
-          }
+        const classmateIds = [...new Set((classmateEnrollments ?? []).map((e: any) => e.student_id))];
+
+        if (classmateIds.length > 0) {
+          const { data: classmateProfiles } = await supabase
+            .from('profiles')
+            .select('id, full_name, role, division, avatar_url')
+            .in('id', classmateIds)
+            .order('full_name');
+          setClassmates((classmateProfiles ?? []) as PersonRow[]);
         }
-        unique.sort((a, b) => a.full_name.localeCompare(b.full_name));
-        setClassmates(unique);
       }
     }
   };

@@ -8,6 +8,8 @@ import { Text, View, StyleSheet, Image, Linking } from 'react-native';
 import { Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNotifications } from '../hooks/useNotifications';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import NotificationPromptScreen from '../screens/common/NotificationPromptScreen';
 import { supabase } from '../lib/supabase';
 
 import { useAuth } from '../context/AuthContext';
@@ -172,6 +174,8 @@ function NotificationsTabStack() {
   return (
     <Stack.Navigator screenOptions={sharedStackScreenOptions}>
       <Stack.Screen name="NotificationsList" component={NotificationsScreen} />
+      <Stack.Screen name="AttendanceConfirm"  component={AttendanceConfirmScreen} />
+      <Stack.Screen name="ReEnrollment"       component={ReEnrollmentScreen} />
     </Stack.Navigator>
   );
 }
@@ -641,6 +645,14 @@ function parseRecoveryTokens(url: string): { accessToken: string; refreshToken: 
 export default function RootNavigator({ navRef }: { navRef?: any }) {
   const { session, loading, isSuperAdmin, isAdmin, isCoach, profile } = useAuth();
   const [forceUpdate, setForceUpdate] = useState(false);
+  const [notifPrompted, setNotifPrompted] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    if (!session) { setNotifPrompted(true); return; }
+    AsyncStorage.getItem('bpt_notif_prompted_v1').then(val => {
+      setNotifPrompted(val === 'true');
+    });
+  }, [session]);
 
   useEffect(() => {
     const checkVersion = async () => {
@@ -683,6 +695,7 @@ export default function RootNavigator({ navRef }: { navRef?: any }) {
 
   if (loading) return null;
   if (forceUpdate) return <ForceUpdateScreen />;
+  if (session && notifPrompted === false) return <NotificationPromptScreen onDone={() => setNotifPrompted(true)} />;
   const renderStack = () => {
     if (!session)                   return <AuthStack />;
     if (isSuperAdmin)               return <SuperAdminTabs />;

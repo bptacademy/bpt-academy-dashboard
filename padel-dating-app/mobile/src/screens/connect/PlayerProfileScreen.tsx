@@ -414,7 +414,8 @@ export default function PlayerProfileScreen({ route, navigation }: any) {
         if (shared.length > 0) {
           const sorted = shared.sort((a: any, b: any) =>
             new Date(b.matches?.played_at ?? 0).getTime() - new Date(a.matches?.played_at ?? 0).getTime());
-          setLastClub(sorted[0]?.matches?.tenant_name ?? null);
+          const m = sorted[0]?.matches as any;
+          setLastClub((Array.isArray(m) ? m[0]?.tenant_name : m?.tenant_name) ?? null);
         }
 
         const { data: existingConn } = await supabase.from('connections').select('action_type')
@@ -562,7 +563,7 @@ export default function PlayerProfileScreen({ route, navigation }: any) {
 
           {/* City */}
           {profile?.city && (
-            <Text style={styles.heroCity}>📍 {profile.city}</Text>
+            <View style={{flexDirection:'row',alignItems:'center',gap:4}}><Image source={require('../../../assets/icons/location.png')} style={{width:16,height:16,tintColor:'#A0A0B8'}} /><Text style={styles.heroCity}>{profile.city}</Text></View>
           )}
 
           {/* Home club badge */}
@@ -825,7 +826,7 @@ const styles = StyleSheet.create({
     gap: 6, paddingVertical: 9, borderRadius: 12,
     backgroundColor: 'rgba(255,255,255,0.07)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)',
   },
-  volleyBtn: { backgroundColor: theme.secondaryDim, borderColor: theme.secondaryBorder },
+  volleyBtn: { backgroundColor: theme.secondaryDim, borderWidth: 1.5, borderColor: theme.secondaryBorder },
   actionBtnEmoji: { fontSize: 16 },
   actionBtnText: { fontSize: 13.9, fontFamily: fonts.bodyBold, color: theme.textSecondary },
   volleyBtnText: { color: '#A78BFA' },

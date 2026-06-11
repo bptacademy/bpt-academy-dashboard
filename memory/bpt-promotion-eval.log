@@ -1,3 +1,5 @@
 [2026-03-26T21:00:34Z] BPT Promotion Evaluator cron fired. evaluate_all_promotion_cycles() returned: 1
 [2026-03-27 00:00 UTC] BPT Promotion Evaluator cron fired. evaluate_all_promotion_cycles() returned: 2
 [2026-03-29T12:00:34Z] BPT Academy promotion evaluation completed. evaluate_all_promotion_cycles() returned: 3 cycles evaluated.
+[2026-06-10 03:04:59 UTC] evaluate_all_promotion_cycles → result: 36
+2026-06-10 05:07:31 UTC | BPT Promotion Evaluator | evaluate_all_promotion_cycles() → 36

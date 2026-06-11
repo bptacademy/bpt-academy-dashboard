@@ -1,10 +1,6 @@
-# EAS ignore — exclude large/unnecessary files from build upload
-node_modules/
-.expo/
-dist/
-android/
-ios/
+node_modules
+.git
 *.log
-*.orig
-.env.local
-__tests__/
+android/build
+ios/build
+.expo

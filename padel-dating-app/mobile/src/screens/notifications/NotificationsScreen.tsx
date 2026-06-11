@@ -229,7 +229,7 @@ export default function NotificationsScreen({ navigation }: any) {
 
           {notifications.length === 0 && (
             <View style={styles.emptyState}>
-              <Image source={require('../../../assets/icons/Notifications.png')} style={styles.emptyBellImg} />
+              <Image source={require('../../../assets/icons/notifications.png')} style={styles.emptyBellImg} />
               <Text style={styles.emptyTitle}>All caught up</Text>
               <Text style={styles.emptySub}>New volleys, serves and match prompts will appear here.</Text>
             </View>

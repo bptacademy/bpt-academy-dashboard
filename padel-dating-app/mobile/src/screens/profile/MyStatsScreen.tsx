@@ -115,7 +115,7 @@ export default function MyStatsScreen({ navigation }: any) {
                 </View>
               )}
             </View>
-            <Image source={require('../../../assets/icons/13. Trophy.png')} style={styles.trophyWatermark} />
+            <Image source={require('../../../assets/icons/trophy.png')} style={styles.trophyWatermark} />
           </View>
 
           {/* Overview */}
@@ -141,7 +141,7 @@ export default function MyStatsScreen({ navigation }: any) {
           {/* Set scores */}
           {(stats.avg_set_score_for != null || stats.avg_set_score_against != null) && (
             <View style={styles.section}>
-              <View style={{flexDirection:'row',alignItems:'center',gap:6,marginBottom:14}}><Image source={require('../../../assets/icons/4. Rating.png')} style={{width:24,height:24,tintColor:'#7A9CC0'}} /><Text style={[styles.sectionTitle,{marginBottom:0}]}>Average set scores</Text></View>
+              <View style={{flexDirection:'row',alignItems:'center',gap:6,marginBottom:14}}><Image source={require('../../../assets/icons/my-stats.png')} style={{width:24,height:24,tintColor:'#7A9CC0'}} /><Text style={[styles.sectionTitle,{marginBottom:0}]}>Average set scores</Text></View>
               <View style={styles.setRow}>
                 <View style={styles.setBox}>
                   <Text style={styles.setFor}>
@@ -198,7 +198,7 @@ export default function MyStatsScreen({ navigation }: any) {
           {/* Top clubs */}
           {topClubs.length > 0 && (
             <View style={styles.section}>
-              <View style={{flexDirection:'row',alignItems:'center',gap:6,marginBottom:14}}><Image source={require('../../../assets/icons/3. Location.png')} style={{width:24,height:24,tintColor:'#7A9CC0'}} /><Text style={[styles.sectionTitle,{marginBottom:0}]}>Top clubs</Text></View>
+              <View style={{flexDirection:'row',alignItems:'center',gap:6,marginBottom:14}}><Image source={require('../../../assets/icons/location.png')} style={{width:24,height:24,tintColor:'#7A9CC0'}} /><Text style={[styles.sectionTitle,{marginBottom:0}]}>Top clubs</Text></View>
               {topClubs.map((c, i) => (
                 <View key={i} style={styles.clubRow}>
                   <Text style={styles.clubRank}>#{i + 1}</Text>
