@@ -1044,8 +1044,8 @@ const styles = StyleSheet.create({
   goalStatusBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, flexShrink: 0 },
   goalStatusText: { fontSize: 12, fontWeight: '700' },
   goalInput: {
-    borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 10,
-    padding: 14, fontSize: 15, color: '#111827',
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', borderRadius: 10,
+    padding: 14, fontSize: 15, color: '#F0F6FC',
     marginBottom: 20, backgroundColor: 'rgba(17,30,51,0.5)',
   },
   achievedHint: {
