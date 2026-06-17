@@ -304,6 +304,7 @@ export default function ReportsScreen({ navigation }: any) {
 
   return (
     <View style={styles.container}>
+      <Image source={require('../../../assets/bg.png')} style={styles.bgImage} resizeMode="cover" />
       <BackHeader title="Reports" />
       <ScrollView
         contentContainerStyle={[styles.content, { paddingBottom: tabBarPadding }]}
@@ -416,8 +417,8 @@ export default function ReportsScreen({ navigation }: any) {
 
 const styles = StyleSheet.create({
   bgImage: { position: 'absolute', top: 0, left: 0, width: Dimensions.get('window').width, height: Dimensions.get('window').height },
-  container: { flex: 1, backgroundColor: '#F9FAFB' },
-  loadingContainer: { flex: 1, backgroundColor: '#F9FAFB' },
+  container: { flex: 1, backgroundColor: '#0a1024' },
+  loadingContainer: { flex: 1, backgroundColor: '#0a1024' },
   content: { padding: 16, paddingBottom: 80,},
 
   segmentRow: { flexDirection: 'row', backgroundColor: '#E5E7EB', borderRadius: 10, padding: 3, marginBottom: 16 },

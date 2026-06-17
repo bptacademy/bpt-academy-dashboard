@@ -81,6 +81,7 @@ export default function TermsOfServiceScreen() {
 
   return (
     <View style={styles.container}>
+      <Image source={require('../../../assets/bg.png')} style={styles.bgImage} resizeMode="cover" />
       <BackButton />
 
       <Image source={require('../../../assets/bg.png')} style={styles.bgImage} resizeMode="cover" />

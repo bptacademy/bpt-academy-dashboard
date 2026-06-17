@@ -66,6 +66,7 @@ export default function AcademySettingsScreen() {
 
   return (
     <View style={styles.container}>
+      <Image source={require('../../../assets/bg.png')} style={styles.bgImage} resizeMode="cover" />
       <ScreenHeader title="Academy Settings" />
       <ScrollView contentContainerStyle={styles.content}>
 

@@ -84,6 +84,7 @@ export default function BillingSettingsScreen() {
 
   return (
     <View style={styles.container}>
+      <Image source={require('../../../assets/bg.png')} style={styles.bgImage} resizeMode="cover" />
       <ScreenHeader title="Billing Settings" />
 
       {/* Tab switcher */}

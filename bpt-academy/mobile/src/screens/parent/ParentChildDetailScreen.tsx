@@ -332,6 +332,7 @@ export default function ParentChildDetailScreen({ route, navigation }: any) {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
+      <Image source={require('../../../assets/bg.png')} style={styles.bgImage} resizeMode="cover" />
       <BackHeader title={child.full_name} dark />
 
       <View style={styles.tabBar}>

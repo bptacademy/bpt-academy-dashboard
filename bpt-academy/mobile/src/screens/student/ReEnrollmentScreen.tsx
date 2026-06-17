@@ -102,6 +102,7 @@ export default function ReEnrollmentScreen({ route, navigation }: any) {
 
   return (
     <View style={styles.container}>
+      <Image source={require('../../../assets/bg.png')} style={styles.bgImage} resizeMode="cover" />
       <BackHeader title="Re-enrollment" />
       <ScrollView contentContainerStyle={[styles.content, { paddingBottom: tabBarPadding }]}>
 

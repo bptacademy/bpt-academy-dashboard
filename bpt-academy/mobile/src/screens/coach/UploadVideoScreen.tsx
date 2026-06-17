@@ -138,6 +138,7 @@ export default function UploadVideoScreen({ navigation }: any) {
 
   return (
     <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <Image source={require('../../../assets/bg.png')} style={styles.bgImage} resizeMode="cover" />
       <ScrollView contentContainerStyle={styles.inner}>
         <BackHeader title="Upload Video" />
         <View style={styles.header}>

@@ -69,6 +69,7 @@ export default function PrivacyPolicyScreen() {
 
   return (
     <View style={styles.container}>
+      <Image source={require('../../../assets/bg.png')} style={styles.bgImage} resizeMode="cover" />
       <BackButton />
 
       <Image source={require('../../../assets/bg.png')} style={styles.bgImage} resizeMode="cover" />
