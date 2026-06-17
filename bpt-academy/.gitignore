@@ -35,6 +35,8 @@ mobile/web-build/
 
 # Sensitive files — never commit to this repo
 MEMORY.md
+CREDENTIALS.md
+.env
 mobile/.env
 mobile/.env.*
 backups/
