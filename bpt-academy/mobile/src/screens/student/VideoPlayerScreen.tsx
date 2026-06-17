@@ -101,6 +101,7 @@ export default function VideoPlayerScreen({ route, navigation }: any) {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
+      <Image source={require('../../../assets/bg.png')} style={styles.bgImage} resizeMode="cover" />
       <BackHeader title={video?.title ?? 'Video'} />
       <ScrollView>
         {/* Video Player */}
@@ -204,7 +205,7 @@ export default function VideoPlayerScreen({ route, navigation }: any) {
 
 const styles = StyleSheet.create({
   bgImage: { position: 'absolute', top: 0, left: 0, width: Dimensions.get('window').width, height: Dimensions.get('window').height },
-  container: { flex: 1, backgroundColor: '#F9FAFB' },
+  container: { flex: 1, backgroundColor: '#0a1024' },
   playerContainer: { backgroundColor: '#000', width, height: width * 0.5625 },
   video: { width: '100%', height: '100%' },
   noVideo: { flex: 1, alignItems: 'center', justifyContent: 'center' },
@@ -221,7 +222,7 @@ const styles = StyleSheet.create({
   tagTextGreen: { color: '#16A34A' },
   description: { fontSize: 14, color: '#6B7280', lineHeight: 20 },
   commentsSection: { padding: 16 },
-  commentsTitle: { fontSize: 16, fontWeight: '700', color: '#111827', marginBottom: 14 },
+  commentsTitle: { fontSize: 16, fontWeight: '700', color: '#F0F6FC', marginBottom: 14 },
   commentCard: { flexDirection: 'row', marginBottom: 14, gap: 10 },
   commentAvatar: {
     width: 36, height: 36, borderRadius: 18, backgroundColor: '#16A34A',

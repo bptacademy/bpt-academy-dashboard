@@ -182,6 +182,7 @@ export default function ParentRegisterScreen({ navigation }: Props) {
 
   return (
     <SafeAreaView style={styles.container}>
+      <Image source={require('../../../assets/bg.png')} style={styles.bgImage} resizeMode="cover" />
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <ScrollView contentContainerStyle={styles.inner} keyboardShouldPersistTaps="handled">
 
@@ -354,13 +355,14 @@ function generateUUID(): string {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FFFFFF' },
+  container: { flex: 1, backgroundColor: '#0a1024' },
+  bgImage: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, width: '100%', height: '100%' },
   flex: { flex: 1 },
   inner: { flexGrow: 1, padding: 24 },
   header: { alignItems: 'center', marginBottom: 24, marginTop: 8 },
   logo: { marginBottom: 12 },
-  title: { fontSize: 20, fontWeight: '800', color: '#1a2744', textAlign: 'center' },
-  subtitle: { fontSize: 14, color: '#6B7280', marginTop: 4, textAlign: 'center' },
+  title: { fontSize: 20, fontWeight: '800', color: '#F0F6FC', textAlign: 'center' },
+  subtitle: { fontSize: 14, color: '#9FB2C8', marginTop: 4, textAlign: 'center' },
 
   section: {
     backgroundColor: '#F9FAFB', borderRadius: 14, padding: 16, marginBottom: 16,
@@ -412,6 +414,6 @@ const styles = StyleSheet.create({
   submitBtnText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
 
   backLink: { alignItems: 'center', marginTop: 8 },
-  backLinkText: { color: '#6B7280', fontSize: 14 },
+  backLinkText: { color: '#9FB2C8', fontSize: 14 },
   backLinkBold: { color: '#16A34A', fontWeight: '700' },
 });
