@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
-  RefreshControl, Alert, Image, Dimensions, Modal, FlatList} from 'react-native';
+  RefreshControl, Alert, Image, Dimensions, Modal, FlatList, TextInput} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTabBarPadding } from '../../hooks/useTabBarPadding';
 import { supabase } from '../../lib/supabase';
@@ -62,6 +62,7 @@ export default function ProgramRosterScreen({ route, navigation }: any) {
   const [showEnroll, setShowEnroll] = useState(false);
   const [availableStudents, setAvailableStudents] = useState<{id: string, full_name: string}[]>([]);
   const [selectedStudentId, setSelectedStudentId] = useState('');
+  const [studentSearch, setStudentSearch] = useState('');
   const [enrolling, setEnrolling] = useState(false);
   const [waitlist, setWaitlist] = useState<{id:string;position:number;joined_at:string;student:{id:string;full_name:string}}[]>([]);
   // Session time update state
@@ -70,6 +71,11 @@ export default function ProgramRosterScreen({ route, navigation }: any) {
   const [editTimes, setEditTimes] = useState<Record<string,string>>({});
   const [timePickerDay, setTimePickerDay] = useState<string|null>(null);
   const [savingTimes, setSavingTimes] = useState(false);
+
+  // Filter eligible students by the search box (case-insensitive name match)
+  const filteredStudents = availableStudents.filter(s =>
+    s.full_name.toLowerCase().includes(studentSearch.trim().toLowerCase())
+  );
 
   const fetchData = async () => {
     const [progRes, enrollRes] = await Promise.all([
@@ -350,7 +356,7 @@ export default function ProgramRosterScreen({ route, navigation }: any) {
       </TouchableOpacity>
 
       {/* Enroll student */}
-      <TouchableOpacity style={styles.enrollToggleBtn} onPress={() => { loadAvailableStudents(); setShowEnroll(v => !v); }}>
+      <TouchableOpacity style={styles.enrollToggleBtn} onPress={() => { loadAvailableStudents(); setStudentSearch(''); setShowEnroll(v => !v); }}>
         <Text style={styles.enrollToggleBtnText}>+ Enroll a Student</Text>
       </TouchableOpacity>
 
@@ -361,19 +367,32 @@ export default function ProgramRosterScreen({ route, navigation }: any) {
             <Text style={styles.enrollEmpty}>All students are already enrolled.</Text>
           ) : (
             <>
-              <ScrollView style={styles.studentPicker} nestedScrollEnabled>
-                {availableStudents.map(s => (
-                  <TouchableOpacity
-                    key={s.id}
-                    style={[styles.studentOption, selectedStudentId === s.id && styles.studentOptionSelected]}
-                    onPress={() => setSelectedStudentId(s.id)}
-                  >
-                    <Text style={[styles.studentOptionText, selectedStudentId === s.id && styles.studentOptionTextSelected]}>
-                      {s.full_name}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
+              <TextInput
+                style={styles.studentSearch}
+                placeholder="Search by name..."
+                placeholderTextColor="#7A8FA6"
+                value={studentSearch}
+                onChangeText={setStudentSearch}
+                autoCorrect={false}
+                autoCapitalize="words"
+              />
+              {filteredStudents.length === 0 ? (
+                <Text style={styles.enrollEmpty}>No students match your search.</Text>
+              ) : (
+                <ScrollView style={styles.studentPicker} nestedScrollEnabled keyboardShouldPersistTaps="handled">
+                  {filteredStudents.map(s => (
+                    <TouchableOpacity
+                      key={s.id}
+                      style={[styles.studentOption, selectedStudentId === s.id && styles.studentOptionSelected]}
+                      onPress={() => setSelectedStudentId(s.id)}
+                    >
+                      <Text style={[styles.studentOptionText, selectedStudentId === s.id && styles.studentOptionTextSelected]}>
+                        {s.full_name}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              )}
               <TouchableOpacity
                 style={[styles.enrollBtn, (!selectedStudentId || enrolling) && styles.enrollBtnDisabled]}
                 onPress={handleEnroll}
@@ -609,6 +628,7 @@ const styles = StyleSheet.create({
   enrollToggleBtnText: { color: '#16A34A', fontSize: 14, fontWeight: '700' },
   enrollCard: { backgroundColor: 'rgba(17,30,51,0.85)', margin: 16, marginTop: 0, borderRadius: 12, padding: 14, borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)' },
   enrollLabel: { fontSize: 13, fontWeight: '600', color: '#F0F6FC', marginBottom: 8 },
+  studentSearch: { borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 10, marginBottom: 10, color: '#F0F6FC', fontSize: 14, backgroundColor: 'rgba(255,255,255,0.04)' },
   enrollEmpty: { fontSize: 13, color: '#7A8FA6', textAlign: 'center', paddingVertical: 12 },
   studentPicker: { maxHeight: 200, borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)', borderRadius: 8, marginBottom: 10 },
   studentOption: { paddingHorizontal: 14, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)' },
