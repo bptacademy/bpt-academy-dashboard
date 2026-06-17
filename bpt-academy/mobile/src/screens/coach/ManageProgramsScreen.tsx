@@ -367,7 +367,7 @@ export default function ManageProgramsScreen({ navigation }: any) {
             <Text style={styles.label}>Sessions per week</Text>
             <Text style={styles.sublabel}>How many training sessions per week</Text>
             <View style={styles.chipRow}>
-              {[2, 3, 4].map((n) => (
+              {[1, 2, 3, 4].map((n) => (
                 <TouchableOpacity
                   key={n}
                   style={[styles.chip, form.sessions_per_week === n && { backgroundColor: '#16A34A', borderColor: '#16A34A' }]}
