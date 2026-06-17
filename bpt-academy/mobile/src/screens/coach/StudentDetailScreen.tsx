@@ -996,7 +996,7 @@ const styles = StyleSheet.create({
   // Enrollment cards
   enrollCard: { backgroundColor: 'rgba(17,30,51,0.85)', borderRadius: 14, marginBottom: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)', overflow: 'hidden' },
   enrollHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 14, paddingBottom: 8 },
-  enrollTitle: { fontSize: 15, fontWeight: '600', color: '#111827', flex: 1, marginRight: 8 },
+  enrollTitle: { fontSize: 15, fontWeight: '600', color: '#F0F6FC', flex: 1, marginRight: 8 },
   statusBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, flexShrink: 0 },
   statusText: { fontSize: 12, fontWeight: '600' },
   miniBar: { height: 4, backgroundColor: '#E5E7EB', marginHorizontal: 14, borderRadius: 2 },
@@ -1039,7 +1039,7 @@ const styles = StyleSheet.create({
   },
   goalCardAchieved: { backgroundColor: 'rgba(22,163,74,0.15)', borderColor: 'rgba(134,239,172,0.3)' },
   goalCardLeft: { flex: 1, marginRight: 10 },
-  goalTitle: { fontSize: 14, fontWeight: '600', color: '#111827' },
+  goalTitle: { fontSize: 14, fontWeight: '600', color: '#F0F6FC' },
   goalAchievedAt: { fontSize: 11, color: '#16A34A', marginTop: 2 },
   goalStatusBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, flexShrink: 0 },
   goalStatusText: { fontSize: 12, fontWeight: '700' },
