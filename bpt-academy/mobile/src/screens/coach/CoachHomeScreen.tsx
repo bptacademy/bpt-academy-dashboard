@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, RefreshControl, Dimensions, Image } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, RefreshControl, Dimensions } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -7,9 +8,13 @@ import { useTabBarPadding } from '../../hooks/useTabBarPadding';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
 import ScreenHeader from '../../components/common/ScreenHeader';
+import {
+  ClipboardText, HourglassMedium, UsersThree, Ranking, Trophy, CreditCard,
+  MegaphoneSimple, FilmSlate, Bell, ChartBar, Gear, Wallet, type Icon as PhosphorIcon,
+} from 'phosphor-react-native';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const CARD_WIDTH = (SCREEN_WIDTH - 16 * 2 - 12) / 2;
+const CARD_WIDTH = (SCREEN_WIDTH - 22 * 2 - 11) / 2;
 const DISMISSED_STORAGE_KEY = 'penalty_dismissed_v1';
 
 interface PenaltyAlert {
@@ -111,19 +116,21 @@ export default function CoachHomeScreen({ navigation }: any) {
     }
   };
 
-  const gridItems = [
-    { icon: '📋', label: 'Programs',     onPress: goToPrograms },
-    { icon: '⏳', label: 'Waiting List', onPress: () => navigation.navigate('AllWaitingLists') },
-    { icon: '👥', label: 'Students',     onPress: goToStudents },
-    { icon: '🏅', label: 'Divisions',    onPress: () => navigation.navigate('DivisionDashboard') },
-    { icon: '🎾', label: 'Tournaments',  onPress: () => navigation.navigate('TournamentManage') },
-    { icon: '💳', label: 'Payments',     onPress: () => navigation.navigate('Payments') },
-    { icon: '📣', label: 'Bulk Msg',     onPress: () => navigation.navigate('BulkMsg') },
-    { icon: '🎬', label: 'Upload Video', onPress: () => navigation.navigate('UploadVideo') },
-    { icon: '🔔', label: 'Announce',     onPress: () => navigation.navigate('Announce') },
-    { icon: '📊', label: 'Reports',      onPress: () => navigation.navigate('Reports') },
-    { icon: '⚙️', label: 'Settings',     onPress: () => navigation.navigate('AcademySettings') },
-    { icon: '💰', label: 'Billing',      onPress: () => navigation.navigate('BillingSettings') },
+  // Manage tiles — Phosphor duotone icon + accent colour per the Spectrum design.
+  // All existing destinations are preserved (Settings/Billing kept for admins).
+  const gridItems: { label: string; Icon: PhosphorIcon; color: string; onPress: () => void }[] = [
+    { label: 'Programs',     Icon: ClipboardText,    color: '#4d8bff', onPress: goToPrograms },
+    { label: 'Waiting List', Icon: HourglassMedium,  color: '#f6a531', onPress: () => navigation.navigate('AllWaitingLists') },
+    { label: 'Students',     Icon: UsersThree,       color: '#22cdb6', onPress: goToStudents },
+    { label: 'Divisions',    Icon: Ranking,          color: '#9b6cff', onPress: () => navigation.navigate('DivisionDashboard') },
+    { label: 'Tournaments',  Icon: Trophy,           color: '#fc4a36', onPress: () => navigation.navigate('TournamentManage') },
+    { label: 'Payments',     Icon: CreditCard,       color: '#33cf74', onPress: () => navigation.navigate('Payments') },
+    { label: 'Bulk Msg',     Icon: MegaphoneSimple,  color: '#ff5d97', onPress: () => navigation.navigate('BulkMsg') },
+    { label: 'Upload Video', Icon: FilmSlate,        color: '#34b8ff', onPress: () => navigation.navigate('UploadVideo') },
+    { label: 'Announce',     Icon: Bell,             color: '#ff8a3d', onPress: () => navigation.navigate('Announce') },
+    { label: 'Reports',      Icon: ChartBar,         color: '#6d7bff', onPress: () => navigation.navigate('Reports') },
+    { label: 'Settings',     Icon: Gear,             color: '#8b98bd', onPress: () => navigation.navigate('AcademySettings') },
+    { label: 'Billing',      Icon: Wallet,           color: '#33cf74', onPress: () => navigation.navigate('BillingSettings') },
   ];
 
   const visiblePenalties = penaltyAlerts.filter(
@@ -132,11 +139,15 @@ export default function CoachHomeScreen({ navigation }: any) {
 
   return (
     <View style={styles.root}>
-      <Image source={require('../../../assets/bg.png')} style={styles.bgImage} resizeMode="cover" />
+      <LinearGradient
+        colors={['#0c1635', '#0a1024', '#080d1e']}
+        locations={[0, 0.6, 1]}
+        style={StyleSheet.absoluteFill}
+      />
       <ScrollView
         contentContainerStyle={{ paddingBottom: Math.max(insets.bottom + 80, 104) }}
         style={styles.container}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#8b98bd" />}
       >
       <ScreenHeader
         title=""
@@ -149,15 +160,15 @@ export default function CoachHomeScreen({ navigation }: any) {
 
       {/* Stats */}
       <View style={styles.statsRow}>
-        <TouchableOpacity style={styles.statCard} onPress={goToStudents}>
+        <TouchableOpacity style={styles.statCard} onPress={goToStudents} activeOpacity={0.85}>
           <Text style={styles.statNumber}>{stats.students}</Text>
           <Text style={styles.statLabel}>Students</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.statCard} onPress={goToPrograms}>
+        <TouchableOpacity style={styles.statCard} onPress={goToPrograms} activeOpacity={0.85}>
           <Text style={styles.statNumber}>{stats.programs}</Text>
           <Text style={styles.statLabel}>Programs</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.statCard} onPress={() => navigation.navigate('ManageVideos')}>
+        <TouchableOpacity style={styles.statCard} onPress={() => navigation.navigate('ManageVideos')} activeOpacity={0.85}>
           <Text style={styles.statNumber}>{stats.videos}</Text>
           <Text style={styles.statLabel}>Videos</Text>
         </TouchableOpacity>
@@ -201,14 +212,19 @@ export default function CoachHomeScreen({ navigation }: any) {
         </View>
       )}
 
-      {/* Quick actions grid */}
+      {/* Manage grid */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Manage</Text>
+        <Text style={styles.manageLabel}>MANAGE</Text>
         <View style={styles.actionGrid}>
-          {gridItems.map((item) => (
-            <TouchableOpacity key={item.label} style={styles.actionCard} onPress={item.onPress}>
-              <Text style={styles.actionIcon}>{item.icon}</Text>
-              <Text style={styles.actionLabel}>{item.label}</Text>
+          {gridItems.map(({ label, Icon, color, onPress }) => (
+            <TouchableOpacity
+              key={label}
+              style={[styles.actionCard, { backgroundColor: color + '22', borderColor: color + '3d' }]}
+              onPress={onPress}
+              activeOpacity={0.8}
+            >
+              <Icon size={30} weight="duotone" color={color} />
+              <Text style={styles.actionLabel}>{label}</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -218,23 +234,31 @@ export default function CoachHomeScreen({ navigation }: any) {
   );
 }
 
-const { width: SW, height: SH } = Dimensions.get('window');
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#0B1628' },
-  bgImage: { position: 'absolute', top: 0, left: 0, width: SW, height: SH },
+  root: { flex: 1, backgroundColor: '#0a1024' },
   container: { flex: 1 },
-  statsRow: { flexDirection: 'row', padding: 16, gap: 12 },
-  statCard: { flex: 1, backgroundColor: 'rgba(17,30,51,0.85)', borderRadius: 14, padding: 16, alignItems: 'center', borderWidth: 1, borderColor: '#E5E7EB' },
-  statNumber: { fontSize: 28, fontWeight: '700', color: '#F0F6FC' },
-  statLabel: { fontSize: 13, color: '#7A8FA6', marginTop: 2 },
-  section: { padding: 16, paddingBottom: 4 },
-  sectionTitle: { fontSize: 17, fontWeight: '700', color: '#F0F6FC', marginBottom: 12 },
-  actionGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
-  actionCard: { width: CARD_WIDTH, backgroundColor: 'rgba(17,30,51,0.25)', borderRadius: 14, padding: 20, alignItems: 'center', borderWidth: 1, borderColor: '#E5E7EB' },
-  actionIcon: { fontSize: 32, marginBottom: 8 },
-  actionLabel: { fontSize: 14, fontWeight: '600', color: '#F0F6FC' },
+  statsRow: { flexDirection: 'row', paddingHorizontal: 22, paddingTop: 12, paddingBottom: 6, gap: 10 },
+  statCard: {
+    flex: 1, backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 14,
+    paddingVertical: 12, paddingHorizontal: 6, alignItems: 'center',
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.09)',
+  },
+  statNumber: { fontSize: 30, color: '#ffffff', fontFamily: 'TTOctosquaresCond-Bold', lineHeight: 32 },
+  statLabel: { fontSize: 11, color: '#8b98bd', marginTop: 3, textAlign: 'center' },
+  section: { paddingHorizontal: 22, paddingTop: 10, paddingBottom: 4 },
+  sectionTitle: { fontSize: 17, color: '#F0F6FC', marginBottom: 12, fontFamily: 'TTOctosquaresCond-Bold' },
+  manageLabel: {
+    fontSize: 15, color: '#8b98bd', marginBottom: 10,
+    letterSpacing: 2, textTransform: 'uppercase', fontFamily: 'TTOctosquaresCond-Bold',
+  },
+  actionGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 11 },
+  actionCard: {
+    width: CARD_WIDTH, borderRadius: 16, paddingVertical: 22, alignItems: 'center',
+    borderWidth: 1, gap: 9,
+  },
+  actionLabel: { fontSize: 12.5, color: '#dfe5f7', textAlign: 'center', fontFamily: 'TTOctosquaresCond-Bold' },
 
-  // Penalty cards
+  // Penalty cards (unchanged)
   penaltyCard: {
     flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFBEB',
     borderRadius: 12, padding: 14, marginBottom: 10,

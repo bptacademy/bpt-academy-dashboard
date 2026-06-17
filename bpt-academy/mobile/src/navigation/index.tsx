@@ -4,6 +4,7 @@ import ForceUpdateScreen from '../screens/common/ForceUpdateScreen';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import SpectrumTabBar from '../components/navigation/SpectrumTabBar';
 import { Text, View, StyleSheet, Image, Linking } from 'react-native';
 import { Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -392,7 +393,7 @@ function CoachProgressStack() {
 function CoachTabs() {
   const tabBarScreenOptions = useTabBarScreenOptions();
   return (
-    <Tab.Navigator screenOptions={tabBarScreenOptions}>
+    <Tab.Navigator screenOptions={tabBarScreenOptions} tabBar={(props) => <SpectrumTabBar {...props} />}>
       <Tab.Screen name="HomeTab"          component={CoachHomeStack}        options={{ tabBarIcon: ({ color }) => <TabIcon source={tabIcons.home} color={color} /> }} />
       <Tab.Screen name="StudentsTab"      component={CoachStudentsStack}    options={{ tabBarIcon: ({ color }) => <TabIcon source={tabIcons.myprogress} color={color} /> }} />
       <Tab.Screen name="NotificationsTab" component={NotificationsTabStack} options={{ tabBarIcon: ({ color }) => <BellTabIcon color={color} /> }} />
@@ -502,7 +503,7 @@ function AdminMessagesStack() {
 function AdminTabs() {
   const tabBarScreenOptions = useTabBarScreenOptions();
   return (
-    <Tab.Navigator screenOptions={tabBarScreenOptions}>
+    <Tab.Navigator screenOptions={tabBarScreenOptions} tabBar={(props) => <SpectrumTabBar {...props} />}>
       <Tab.Screen name="DashboardTab"     component={AdminDashboardStack}   options={{ tabBarIcon: ({ color }) => <TabIcon source={tabIcons.home} color={color} /> }} />
       <Tab.Screen name="StudentsTab"      component={AdminStudentsStack}    options={{ tabBarIcon: ({ color }) => <TabIcon source={tabIcons.myprogress} color={color} /> }} />
       <Tab.Screen name="NotificationsTab" component={NotificationsTabStack} options={{ tabBarIcon: ({ color }) => <BellTabIcon color={color} /> }} />
@@ -607,7 +608,7 @@ function SuperAdminProfileStack() {
 function SuperAdminTabs() {
   const tabBarScreenOptions = useTabBarScreenOptions();
   return (
-    <Tab.Navigator screenOptions={tabBarScreenOptions}>
+    <Tab.Navigator screenOptions={tabBarScreenOptions} tabBar={(props) => <SpectrumTabBar {...props} />}>
       <Tab.Screen name="DashboardTab"     component={SuperAdminDashboardStack} options={{ tabBarIcon: ({ color }) => <TabIcon source={tabIcons.home} color={color} /> }} />
       <Tab.Screen name="UsersTab"         component={SuperAdminUsersStack}     options={{ tabBarIcon: ({ color }) => <TabIcon source={tabIcons.myprogress} color={color} /> }} />
       <Tab.Screen name="NotificationsTab" component={NotificationsTabStack}    options={{ tabBarIcon: ({ color }) => <BellTabIcon color={color} /> }} />

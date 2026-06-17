@@ -1,14 +1,19 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, RefreshControl, Dimensions, Image } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, RefreshControl, Dimensions } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTabBarPadding } from '../../hooks/useTabBarPadding';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
 import ScreenHeader from '../../components/common/ScreenHeader';
+import {
+  UsersThree, ClipboardText, HourglassMedium, ChatCircleDots, FilmSlate,
+  Bell, Ranking, Trophy, CheckCircle, type Icon as PhosphorIcon,
+} from 'phosphor-react-native';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const CARD_WIDTH = (SCREEN_WIDTH - 16 * 2 - 12) / 2;
+const CARD_WIDTH = (SCREEN_WIDTH - 22 * 2 - 11) / 2;
 
 interface AttendanceDueSession {
   id: string;
@@ -113,28 +118,32 @@ export default function CoachDashboardScreen({ navigation }: any) {
   const goToTab = (tab: string, screen: string) =>
     navigation.getParent()?.navigate(tab, { screen });
 
-  const baseGridItems = [
-    { icon: '👥', label: 'My Students',  onPress: () => goToTab('StudentsTab', 'Students') },
-    { icon: '📋', label: 'Programs',     onPress: () => navigation.navigate('Manage') },
-    { icon: '⏳', label: 'Waiting List', onPress: () => navigation.navigate('AllWaitingLists') },
-    { icon: '💬', label: 'Messages',     onPress: () => goToTab('MessagesTab', 'Messages') },
-    { icon: '🎬', label: 'Upload Video', onPress: () => navigation.navigate('UploadVideo') },
-    { icon: '🔔', label: 'Announce',     onPress: () => navigation.navigate('Announce') },
-    { icon: '🏅', label: 'Divisions',    onPress: () => navigation.navigate('DivisionDashboard') },
-    { icon: '🎾', label: 'Tournaments',  onPress: () => navigation.navigate('TournamentManage') },
+  const baseGridItems: { Icon: PhosphorIcon; label: string; color: string; onPress: () => void }[] = [
+    { Icon: UsersThree,      label: 'My Students',  color: '#22cdb6', onPress: () => goToTab('StudentsTab', 'Students') },
+    { Icon: ClipboardText,   label: 'Programs',     color: '#4d8bff', onPress: () => navigation.navigate('Manage') },
+    { Icon: HourglassMedium, label: 'Waiting List', color: '#f6a531', onPress: () => navigation.navigate('AllWaitingLists') },
+    { Icon: ChatCircleDots,  label: 'Messages',     color: '#34b8ff', onPress: () => goToTab('MessagesTab', 'Messages') },
+    { Icon: FilmSlate,       label: 'Upload Video', color: '#34b8ff', onPress: () => navigation.navigate('UploadVideo') },
+    { Icon: Bell,            label: 'Announce',     color: '#ff8a3d', onPress: () => navigation.navigate('Announce') },
+    { Icon: Ranking,         label: 'Divisions',    color: '#9b6cff', onPress: () => navigation.navigate('DivisionDashboard') },
+    { Icon: Trophy,          label: 'Tournaments',  color: '#fc4a36', onPress: () => navigation.navigate('TournamentManage') },
   ];
 
   const gridItems = attendanceDue.length > 0
     ? [
         ...baseGridItems.slice(0, 4),
-        { icon: '✅', label: 'Attendance', onPress: () => goToTab('StudentsTab', 'Students') },
+        { Icon: CheckCircle, label: 'Attendance', color: '#33cf74', onPress: () => goToTab('StudentsTab', 'Students') },
         ...baseGridItems.slice(4),
       ]
     : baseGridItems;
 
   return (
     <View style={styles.root}>
-      <Image source={require('../../../assets/bg.png')} style={styles.bgImage} resizeMode="cover" />
+      <LinearGradient
+        colors={['#0c1635', '#0a1024', '#080d1e']}
+        locations={[0, 0.6, 1]}
+        style={StyleSheet.absoluteFill}
+      />
       <ScrollView
         contentContainerStyle={{ paddingBottom: Math.max(insets.bottom + 80, 104) }}
         style={styles.container}
@@ -202,11 +211,16 @@ export default function CoachDashboardScreen({ navigation }: any) {
       )}
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Quick Actions</Text>
+        <Text style={styles.manageLabel}>MANAGE</Text>
         <View style={styles.actionGrid}>
           {gridItems.map((item) => (
-            <TouchableOpacity key={item.label} style={styles.actionCard} onPress={item.onPress}>
-              <Text style={styles.actionIcon}>{item.icon}</Text>
+            <TouchableOpacity
+              key={item.label}
+              style={[styles.actionCard, { backgroundColor: item.color + '22', borderColor: item.color + '3d' }]}
+              onPress={item.onPress}
+              activeOpacity={0.8}
+            >
+              <item.Icon size={30} weight="duotone" color={item.color} />
               <Text style={styles.actionLabel}>{item.label}</Text>
             </TouchableOpacity>
           ))}
@@ -226,19 +240,28 @@ export default function CoachDashboardScreen({ navigation }: any) {
 
 const { width: SW, height: SH } = Dimensions.get('window');
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#0B1628' },
-  bgImage: { position: 'absolute', top: 0, left: 0, width: SW, height: SH },
+  root: { flex: 1, backgroundColor: '#0a1024' },
   container: { flex: 1 },
-  statsRow: { flexDirection: 'row', padding: 16, gap: 12 },
-  statCard: { flex: 1, backgroundColor: 'rgba(17,30,51,0.85)', borderRadius: 14, padding: 16, alignItems: 'center', borderWidth: 1, borderColor: '#E5E7EB' },
-  statNumber: { fontSize: 28, fontWeight: '700', color: '#F0F6FC' },
-  statLabel: { fontSize: 12, color: '#7A8FA6', marginTop: 2, textAlign: 'center' },
-  section: { padding: 16, paddingBottom: 4 },
-  sectionTitle: { fontSize: 17, fontWeight: '700', color: '#F0F6FC', marginBottom: 12 },
-  actionGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
-  actionCard: { width: CARD_WIDTH, backgroundColor: 'rgba(17,30,51,0.25)', borderRadius: 14, padding: 20, alignItems: 'center', borderWidth: 1, borderColor: '#E5E7EB' },
-  actionIcon: { fontSize: 30, marginBottom: 8 },
-  actionLabel: { fontSize: 13, fontWeight: '600', color: '#F0F6FC', textAlign: 'center' },
+  statsRow: { flexDirection: 'row', paddingHorizontal: 22, paddingTop: 12, paddingBottom: 6, gap: 10 },
+  statCard: {
+    flex: 1, backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 14,
+    paddingVertical: 12, paddingHorizontal: 6, alignItems: 'center',
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.09)',
+  },
+  statNumber: { fontSize: 30, color: '#ffffff', fontFamily: 'TTOctosquaresCond-Bold', lineHeight: 32 },
+  statLabel: { fontSize: 11, color: '#8b98bd', marginTop: 3, textAlign: 'center' },
+  section: { paddingHorizontal: 22, paddingTop: 10, paddingBottom: 4 },
+  sectionTitle: { fontSize: 17, color: '#F0F6FC', marginBottom: 12, fontFamily: 'TTOctosquaresCond-Bold' },
+  manageLabel: {
+    fontSize: 15, color: '#8b98bd', marginBottom: 10,
+    letterSpacing: 2, textTransform: 'uppercase', fontFamily: 'TTOctosquaresCond-Bold',
+  },
+  actionGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 11 },
+  actionCard: {
+    width: CARD_WIDTH, borderRadius: 16, paddingVertical: 22, alignItems: 'center',
+    borderWidth: 1, gap: 9,
+  },
+  actionLabel: { fontSize: 12.5, color: '#dfe5f7', textAlign: 'center', fontFamily: 'TTOctosquaresCond-Bold' },
   notice: { flexDirection: 'row', margin: 16, marginTop: 4, backgroundColor: '#FFFBEB', borderRadius: 12, padding: 14, borderWidth: 1, borderColor: '#FDE68A', alignItems: 'flex-start', gap: 10 },
   noticeIcon: { fontSize: 16, marginTop: 1 },
   noticeText: { flex: 1, fontSize: 13, color: '#92400E', lineHeight: 20 },
