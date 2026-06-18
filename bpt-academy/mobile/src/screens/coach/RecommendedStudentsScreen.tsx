@@ -25,11 +25,13 @@ interface Recommendation {
   availability: Availability;
   age: number | null;
   phone: string | null;
+  ranking_score: number | null;
   joined_at: string;
   waitlist_position: number | null;
   match_type: 'full' | 'partial';
   matched_days: number;
   required_days: number;
+  score_in_band: boolean;
 }
 
 function slotLabel(slot?: string): string {
@@ -186,12 +188,24 @@ export default function RecommendedStudentsScreen({ route }: any) {
               <View key={r.waitlist_id} style={styles.row}>
                 <View style={styles.rowTop}>
                   <Text style={styles.name}>{r.full_name?.trim() || 'Unnamed'}</Text>
-                  <View style={[styles.badge, r.match_type === 'full' ? styles.badgeFull : styles.badgePartial]}>
-                    <Text style={styles.badgeText}>
-                      {r.match_type === 'full' ? 'Full fit' : `Partial ${r.matched_days}/${r.required_days}`}
-                    </Text>
+                  <View style={styles.badgeGroup}>
+                    {r.ranking_score != null && (
+                      <View style={[styles.scoreBadge, !r.score_in_band && styles.scoreBadgeOut]}>
+                        <Text style={[styles.scoreBadgeText, !r.score_in_band && styles.scoreBadgeTextOut]}>
+                          {r.score_in_band ? '🏅' : '⚠️'} {Number(r.ranking_score)}
+                        </Text>
+                      </View>
+                    )}
+                    <View style={[styles.badge, r.match_type === 'full' ? styles.badgeFull : styles.badgePartial]}>
+                      <Text style={styles.badgeText}>
+                        {r.match_type === 'full' ? 'Full fit' : `Partial ${r.matched_days}/${r.required_days}`}
+                      </Text>
+                    </View>
                   </View>
                 </View>
+                {!r.score_in_band && (
+                  <Text style={styles.outOfBandNote}>Score outside this group's level band — shown lower.</Text>
+                )}
 
                 <View style={styles.availRow}>
                   {WEEKDAYS.map((d) => {
@@ -245,10 +259,16 @@ const styles = StyleSheet.create({
   row: { backgroundColor: 'rgba(17,30,51,0.85)', borderRadius: 14, padding: 14, marginBottom: 10, borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)' },
   rowTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 },
   name: { fontSize: 16, fontWeight: '700', color: '#F0F6FC', flex: 1 },
+  badgeGroup: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   badge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
   badgeFull: { backgroundColor: '#16A34A' },
   badgePartial: { backgroundColor: 'rgba(251,191,36,0.25)', borderWidth: 1, borderColor: 'rgba(251,191,36,0.5)' },
   badgeText: { fontSize: 11, fontWeight: '800', color: '#FFFFFF' },
+  scoreBadge: { paddingHorizontal: 9, paddingVertical: 4, borderRadius: 12, backgroundColor: 'rgba(59,130,246,0.2)', borderWidth: 1, borderColor: 'rgba(59,130,246,0.45)' },
+  scoreBadgeOut: { backgroundColor: 'rgba(239,68,68,0.18)', borderColor: 'rgba(239,68,68,0.5)' },
+  scoreBadgeText: { fontSize: 11, fontWeight: '800', color: '#93C5FD' },
+  scoreBadgeTextOut: { color: '#FCA5A5' },
+  outOfBandNote: { fontSize: 11, color: '#FCA5A5', marginTop: -4, marginBottom: 8 },
   availRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 10 },
   availChip: { backgroundColor: 'rgba(59,130,246,0.15)', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 4, borderWidth: 1, borderColor: 'rgba(59,130,246,0.3)' },
   availChipText: { fontSize: 12, fontWeight: '600', color: '#60A5FA' },

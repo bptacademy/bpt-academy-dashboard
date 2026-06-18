@@ -18,15 +18,21 @@ const SLOTS: { value: TimeSlot; label: string }[] = [
   { value: 'afternoon', label: 'Afternoon' },
 ];
 
+type ScoreBand = { min: number; max: number; label: string };
+
 type Props = {
   visible: boolean;
   submitting?: boolean;
   // Title differs for first join vs. completing details (the existing 12).
   mode?: 'join' | 'complete';
   initial?: Partial<WaitlistCapture>;
+  // Allowed ranking-score band for this program's level (shown up front).
+  scoreBand?: ScoreBand | null;
   onSubmit: (data: WaitlistCapture) => void;
   onCancel: () => void;
 };
+
+const fmt = (n: number) => (Number.isInteger(n) ? n.toFixed(1) : String(n));
 
 /**
  * Captures the mandatory waiting-list info: level, 2 training days (Mon–Fri),
@@ -34,12 +40,19 @@ type Props = {
  * every field is valid — mirrors the DB CHECK so a partial join cannot complete.
  */
 export default function AvailabilityCaptureModal({
-  visible, submitting, mode = 'join', initial, onSubmit, onCancel,
+  visible, submitting, mode = 'join', initial, scoreBand, onSubmit, onCancel,
 }: Props) {
   const [level, setLevel]               = useState<SkillLevel | undefined>(initial?.level);
   const [availability, setAvailability] = useState<Availability>(initial?.availability ?? {});
   const [age, setAge]                   = useState<string>(initial?.age != null ? String(initial.age) : '');
   const [phone, setPhone]               = useState<string>(initial?.phone ?? '');
+  const [score, setScore]               = useState<string>(initial?.ranking_score != null ? String(initial.ranking_score) : '');
+
+  const bMin = scoreBand?.min ?? 1.0;
+  const bMax = scoreBand?.max ?? 7.0;
+  const scoreNum = parseFloat(score);
+  const scoreEntered = score.trim().length > 0;
+  const scoreInRange = Number.isFinite(scoreNum) && scoreNum >= bMin && scoreNum <= bMax;
 
   const selectedDays = Object.keys(availability) as WeekdayKey[];
 
@@ -58,13 +71,13 @@ export default function AvailabilityCaptureModal({
   const ageNum = parseInt(age, 10);
   const daysOk = selectedDays.length === SESSIONS_PER_WEEK_CHOICE &&
     selectedDays.every((d) => !!availability[d]);
-  const valid = !!level && daysOk &&
+  const valid = !!level && daysOk && scoreInRange &&
     Number.isFinite(ageNum) && ageNum > 0 && ageNum < 120 &&
     phone.trim().length >= 6;
 
   const submit = () => {
     if (!valid || !level) return;
-    onSubmit({ level, availability, age: ageNum, phone: phone.trim() });
+    onSubmit({ level, availability, age: ageNum, phone: phone.trim(), ranking_score: scoreNum });
   };
 
   return (
@@ -105,6 +118,33 @@ export default function AvailabilityCaptureModal({
             })}
           </View>
           <Text style={styles.help}>A coach confirms your level in person.</Text>
+
+          {/* Ranking score — range shown up front so they know what to enter */}
+          <Text style={styles.label}>Ranking score *</Text>
+          <View style={styles.rangeBanner}>
+            <Text style={styles.rangeBannerText}>
+              {scoreBand
+                ? `${scoreBand.label} range: ${fmt(bMin)} – ${fmt(bMax)}`
+                : `Allowed range: ${fmt(bMin)} – ${fmt(bMax)}`}
+            </Text>
+          </View>
+          <TextInput
+            style={[styles.input, scoreEntered && !scoreInRange && styles.inputError]}
+            value={score}
+            onChangeText={(t) => setScore(t.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1'))}
+            placeholder={`e.g. ${fmt((bMin + bMax) / 2)}`}
+            placeholderTextColor="#7A8FA6"
+            keyboardType="decimal-pad"
+            maxLength={4}
+          />
+          {scoreEntered && !scoreInRange ? (
+            <Text style={styles.errorText}>
+              That's outside your range. Enter a score between {fmt(bMin)} and {fmt(bMax)}
+              {scoreBand ? ` for ${scoreBand.label}` : ''}.
+            </Text>
+          ) : (
+            <Text style={styles.help}>Your current 1–7 score from your coach's latest assessment.</Text>
+          )}
 
           {/* Days */}
           <Text style={styles.label}>Pick 2 training days *</Text>
@@ -216,6 +256,10 @@ const styles = StyleSheet.create({
   slotRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 },
   slotDay: { fontSize: 15, fontWeight: '700', color: '#F0F6FC', width: 48 },
   input: { borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', borderRadius: 10, padding: 14, fontSize: 16, color: '#F0F6FC', backgroundColor: 'rgba(255,255,255,0.07)' },
+  inputError: { borderColor: '#EF4444' },
+  errorText: { fontSize: 12, color: '#F87171', marginTop: 6, lineHeight: 16 },
+  rangeBanner: { backgroundColor: 'rgba(59,130,246,0.15)', borderColor: 'rgba(59,130,246,0.35)', borderWidth: 1, borderRadius: 10, paddingVertical: 8, paddingHorizontal: 12, marginBottom: 8, alignSelf: 'flex-start' },
+  rangeBannerText: { fontSize: 13, fontWeight: '700', color: '#93C5FD' },
   actions: { flexDirection: 'row', gap: 12, padding: 20, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.08)' },
   cancel: { flex: 1, backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 14, padding: 16, alignItems: 'center' },
   cancelText: { color: '#F0F6FC', fontSize: 16, fontWeight: '700' },

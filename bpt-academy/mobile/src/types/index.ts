@@ -210,6 +210,7 @@ export interface WaitlistCapture {
   availability: Availability;
   age: number;
   phone: string;
+  ranking_score: number;   // 1–7 skill score, must sit inside the level's band
 }
 
 export interface ProgramSession {

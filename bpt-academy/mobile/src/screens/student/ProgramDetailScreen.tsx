@@ -10,6 +10,7 @@ import { Program, Module, StudentProgress, ProgramSession, Division, DIVISION_LA
 import BackHeader from '../../components/common/BackHeader';
 import BackButton from '../../components/common/BackButton';
 import AvailabilityCaptureModal from '../../components/common/AvailabilityCaptureModal';
+import { scoreBandFor } from '../../lib/skillDefinitions';
 
 const DEFAULT_PRICE_GBP = 49.99;
 
@@ -175,6 +176,7 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
         level: data.level,
         age: data.age,
         phone: data.phone,
+        ranking_score: data.ranking_score,
       }).eq('id', waitlistRowId));
     } else {
       const { count } = await supabase
@@ -193,6 +195,7 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
         level: data.level,
         age: data.age,
         phone: data.phone,
+        ranking_score: data.ranking_score,
       }));
     }
 
@@ -385,8 +388,9 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
           visible
           submitting={captureSubmitting}
           mode={waitlistIncomplete ? 'complete' : 'join'}
+          scoreBand={scoreBandFor((program as any)?.division, program?.skill_level)}
           initial={{
-            level: profile?.skill_level as SkillLevel | undefined,
+            level: (program?.skill_level ?? profile?.skill_level) as SkillLevel | undefined,
             phone: profile?.phone ?? '',
             age: ageFromDob(profile?.date_of_birth),
           }}
