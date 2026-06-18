@@ -6,11 +6,24 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTabBarPadding } from '../../hooks/useTabBarPadding';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
-import { Program, Module, StudentProgress, ProgramSession, Division, DIVISION_LABELS, DIVISION_COLORS } from '../../types';
+import { Program, Module, StudentProgress, ProgramSession, Division, DIVISION_LABELS, DIVISION_COLORS, SkillLevel, WaitlistCapture } from '../../types';
 import BackHeader from '../../components/common/BackHeader';
 import BackButton from '../../components/common/BackButton';
+import AvailabilityCaptureModal from '../../components/common/AvailabilityCaptureModal';
 
 const DEFAULT_PRICE_GBP = 49.99;
+
+// Whole years from a YYYY-MM-DD date of birth, or undefined if unparseable.
+function ageFromDob(dob?: string): number | undefined {
+  if (!dob) return undefined;
+  const d = new Date(dob);
+  if (isNaN(d.getTime())) return undefined;
+  const now = new Date();
+  let a = now.getFullYear() - d.getFullYear();
+  const m = now.getMonth() - d.getMonth();
+  if (m < 0 || (m === 0 && now.getDate() < d.getDate())) a--;
+  return a >= 0 && a < 120 ? a : undefined;
+}
 
 export default function ProgramDetailScreen({ route, navigation }: any) {
   const insets = useSafeAreaInsets();
@@ -31,7 +44,10 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
   const [loading, setLoading]                     = useState(true);
   const [refreshing, setRefreshing]               = useState(false);
   const [waitlistPosition, setWaitlistPosition]   = useState<number | null>(null);
-  const [waitlistLoading, setWaitlistLoading]     = useState(false);
+  const [waitlistRowId, setWaitlistRowId]         = useState<string | null>(null);
+  const [waitlistIncomplete, setWaitlistIncomplete] = useState(false);
+  const [captureOpen, setCaptureOpen]             = useState(false);
+  const [captureSubmitting, setCaptureSubmitting] = useState(false);
   const [enrolledCount, setEnrolledCount]         = useState(0);
   const [endingCycle, setEndingCycle]             = useState(false);
 
@@ -105,14 +121,19 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
       .eq('status', 'active');
     setEnrolledCount(eCount ?? 0);
 
-    const month = new Date().toISOString().slice(0, 7);
-    const { data: wlData } = await supabase
+    // Student's waiting-list row for this program (most recent, any month).
+    // `availability IS NULL` marks a pre-capture row (the existing cohort) that
+    // still needs the Option-A "complete your details" prompt.
+    const { data: wlRows } = await supabase
       .from('program_waiting_list')
-      .select('position')
+      .select('id, position, availability')
       .eq('program_id', programId)
       .eq('student_id', profile!.id)
-      .eq('month', month)
-      .maybeSingle();
+      .order('joined_at', { ascending: false })
+      .limit(1);
+    const wlRow = wlRows?.[0] ?? null;
+    setWaitlistRowId(wlRow?.id ?? null);
+    setWaitlistIncomplete(!!wlRow && wlRow.availability == null);
 
     const resolvedStatus = enrollRes?.status ?? null;
     if (
@@ -122,7 +143,7 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
     ) {
       setWaitlistPosition(null);
     } else {
-      setWaitlistPosition(wlData?.position ?? null);
+      setWaitlistPosition(wlRow?.position ?? null);
     }
 
     setLoading(false);
@@ -135,52 +156,86 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
     return unsub;
   }, [navigation, fetchData]);
 
-  const handleJoinWaitlist = async () => {
-    setWaitlistLoading(true);
+  // Opens the mandatory-capture sheet. The actual write happens in submitCapture
+  // once level + 2 days + AM/PM + age + mobile are all provided.
+  const handleJoinWaitlist = () => setCaptureOpen(true);
+
+  const submitCapture = async (data: WaitlistCapture) => {
+    setCaptureSubmitting(true);
     const month = new Date().toISOString().slice(0, 7);
-    const { count } = await supabase
-      .from('program_waiting_list')
-      .select('*', { count: 'exact', head: true })
-      .eq('program_id', programId)
-      .eq('month', month);
-    const position = (count ?? 0) + 1;
-    const { error } = await supabase.from('program_waiting_list').insert({
-      program_id: programId,
-      student_id: profile!.id,
-      month,
-      position,
-    });
-    if (error) { setWaitlistLoading(false); Alert.alert('Error', error.message); return; }
+    const templateId = (program as any)?.template_id ?? null;
+    const isNewJoin = !waitlistRowId;
+    let error: any = null;
 
-    await supabase.from('notifications').insert({
-      recipient_id: profile!.id,
-      title: 'You\'re on the waiting list!',
-      body: `You have joined the waiting list for ${program?.title ?? 'this program'}. Please wait while we assess your level — a coach will be in touch if needed.`,
-      type: 'waitlist_join',
-      read: false,
-    });
-
-    const { data: admins } = await supabase
-      .from('profiles')
-      .select('id')
-      .in('role', ['admin', 'super_admin']);
-    if (admins && admins.length > 0) {
-      await supabase.from('notifications').insert(
-        admins.map((a: { id: string }) => ({
-          recipient_id: a.id,
-          title: 'New waiting list request',
-          body: `${profile?.full_name ?? 'A student'} joined the waiting list for ${program?.title ?? 'a program'}.`,
-          type: 'admin_new_enrollment',
-          read: false,
-        }))
-      );
+    if (waitlistRowId) {
+      // Completing details on an existing (pre-capture) row.
+      ({ error } = await supabase.from('program_waiting_list').update({
+        template_id: templateId,
+        availability: data.availability,
+        level: data.level,
+        age: data.age,
+        phone: data.phone,
+      }).eq('id', waitlistRowId));
+    } else {
+      const { count } = await supabase
+        .from('program_waiting_list')
+        .select('*', { count: 'exact', head: true })
+        .eq('program_id', programId)
+        .eq('month', month);
+      const position = (count ?? 0) + 1;
+      ({ error } = await supabase.from('program_waiting_list').insert({
+        program_id: programId,
+        template_id: templateId,
+        student_id: profile!.id,
+        month,
+        position,
+        availability: data.availability,
+        level: data.level,
+        age: data.age,
+        phone: data.phone,
+      }));
     }
 
-    setWaitlistLoading(false);
-    setWaitlistPosition(position);
+    if (error) { setCaptureSubmitting(false); Alert.alert('Error', error.message); return; }
+
+    // Best-effort: keep the contact number on the profile in sync. We do NOT
+    // overwrite profile.skill_level — the captured level is a self-claim; the
+    // coach confirms the real level in person.
+    if (data.phone && data.phone !== profile?.phone) {
+      await supabase.from('profiles').update({ phone: data.phone }).eq('id', profile!.id);
+    }
+
+    if (isNewJoin) {
+      await supabase.from('notifications').insert({
+        recipient_id: profile!.id,
+        title: 'You\'re on the waiting list!',
+        body: `You have joined the waiting list for ${program?.title ?? 'this program'}. A coach will place you in a group that fits your level and availability.`,
+        type: 'waitlist_join',
+        read: false,
+      });
+      const { data: admins } = await supabase
+        .from('profiles')
+        .select('id')
+        .in('role', ['admin', 'super_admin']);
+      if (admins && admins.length > 0) {
+        await supabase.from('notifications').insert(
+          admins.map((a: { id: string }) => ({
+            recipient_id: a.id,
+            title: 'New waiting list request',
+            body: `${profile?.full_name ?? 'A student'} joined the waiting list for ${program?.title ?? 'a program'}.`,
+            type: 'admin_new_enrollment',
+            read: false,
+          }))
+        );
+      }
+    }
+
+    setCaptureSubmitting(false);
+    setCaptureOpen(false);
+    await fetchData();
     Alert.alert(
-      '✅ Added to Waiting List',
-      'Please wait until we assess your level. A coach will get in touch if an assessment is needed before your spot is confirmed.'
+      isNewJoin ? '✅ Added to Waiting List' : '✅ Details saved',
+      'Thanks! A coach will place you in a group that fits your level and availability.'
     );
   };
 
@@ -188,10 +243,16 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
     Alert.alert('Leave Waiting List', 'Are you sure you want to leave the waiting list?', [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Leave', style: 'destructive', onPress: async () => {
-        const month = new Date().toISOString().slice(0, 7);
-        await supabase.from('program_waiting_list').delete()
-          .eq('program_id', programId).eq('student_id', profile!.id).eq('month', month);
+        if (waitlistRowId) {
+          await supabase.from('program_waiting_list').delete().eq('id', waitlistRowId);
+        } else {
+          const month = new Date().toISOString().slice(0, 7);
+          await supabase.from('program_waiting_list').delete()
+            .eq('program_id', programId).eq('student_id', profile!.id).eq('month', month);
+        }
         setWaitlistPosition(null);
+        setWaitlistRowId(null);
+        setWaitlistIncomplete(false);
       }},
     ]);
   };
@@ -318,6 +379,21 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={async () => { setRefreshing(true); await fetchData(); setRefreshing(false); }} />}
     >
       <BackHeader title={program.title ?? 'Program'} />
+
+      {captureOpen && (
+        <AvailabilityCaptureModal
+          visible
+          submitting={captureSubmitting}
+          mode={waitlistIncomplete ? 'complete' : 'join'}
+          initial={{
+            level: profile?.skill_level as SkillLevel | undefined,
+            phone: profile?.phone ?? '',
+            age: ageFromDob(profile?.date_of_birth),
+          }}
+          onSubmit={submitCapture}
+          onCancel={() => setCaptureOpen(false)}
+        />
+      )}
 
       {/* Hero */}
       <View style={styles.hero}>
@@ -475,10 +551,28 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
           {isEligible ? (
             waitlistPosition !== null ? (
               <>
-                <Text style={styles.waitlistOnTitle}>⏳ You're on the waiting list</Text>
-                <Text style={styles.waitlistOnBody}>
-                  You are #{waitlistPosition} on the waiting list. Please wait until we assess your level — a coach will get in touch if needed.
-                </Text>
+                {waitlistIncomplete ? (
+                  <>
+                    <Text style={styles.waitlistOnTitle}>📝 Complete your details</Text>
+                    <Text style={styles.waitlistOnBody}>
+                      You're on the waiting list (#{waitlistPosition}), but we need your level, training days and contact details before a coach can place you in a group.
+                    </Text>
+                    <TouchableOpacity
+                      style={[styles.enrollBtn, captureSubmitting && { opacity: 0.6 }]}
+                      onPress={() => setCaptureOpen(true)}
+                      disabled={captureSubmitting}
+                    >
+                      <Text style={styles.enrollBtnText}>📝 Complete my details</Text>
+                    </TouchableOpacity>
+                  </>
+                ) : (
+                  <>
+                    <Text style={styles.waitlistOnTitle}>⏳ You're on the waiting list</Text>
+                    <Text style={styles.waitlistOnBody}>
+                      You are #{waitlistPosition} on the waiting list. A coach will place you in a group that fits your level and availability.
+                    </Text>
+                  </>
+                )}
                 <TouchableOpacity style={styles.leaveWaitlistBtn} onPress={handleLeaveWaitlist}>
                   <Text style={styles.leaveWaitlistBtnText}>Leave Waiting List</Text>
                 </TouchableOpacity>
@@ -488,16 +582,10 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
                 <Text style={styles.enrollText}>
                   {enrollmentStatus === 'completed'
                     ? 'Join the waiting list to re-enroll. A coach will confirm your spot.'
-                    : 'Join the waiting list and our coaches will assess your level. You\'ll be notified when your spot is confirmed.'}
+                    : 'Join the waiting list — tell us your level and when you can play, and a coach will place you in a group that fits.'}
                 </Text>
-                <TouchableOpacity
-                  style={[styles.enrollBtn, waitlistLoading && { opacity: 0.6 }]}
-                  onPress={handleJoinWaitlist}
-                  disabled={waitlistLoading}
-                >
-                  <Text style={styles.enrollBtnText}>
-                    {waitlistLoading ? 'Joining…' : '⏳ Join Waiting List'}
-                  </Text>
+                <TouchableOpacity style={styles.enrollBtn} onPress={handleJoinWaitlist}>
+                  <Text style={styles.enrollBtnText}>⏳ Join Waiting List</Text>
                 </TouchableOpacity>
               </>
             )
@@ -542,14 +630,10 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
               <Text style={styles.waitlistTitle}>Program Full?</Text>
               <Text style={styles.waitlistSub}>Join the waiting list and get priority when a spot opens or a new month starts.</Text>
               <TouchableOpacity
-                style={[styles.waitlistJoinBtn, waitlistLoading && { opacity: 0.5 }]}
+                style={styles.waitlistJoinBtn}
                 onPress={handleJoinWaitlist}
-                disabled={waitlistLoading}
               >
-                {waitlistLoading
-                  ? <ActivityIndicator color="#FFFFFF" />
-                  : <Text style={styles.waitlistJoinBtnText}>➕ Join Waiting List</Text>
-                }
+                <Text style={styles.waitlistJoinBtnText}>➕ Join Waiting List</Text>
               </TouchableOpacity>
             </>
           )}
