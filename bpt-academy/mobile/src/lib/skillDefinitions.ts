@@ -230,6 +230,41 @@ export function profileToSkillDivision(division?: string, skillLevel?: string): 
   return 'beginner';
 }
 
+export const SKILL_DIVISION_LABELS: Record<SkillDivision, string> = {
+  beginner:     'Beginner',
+  intermediate: 'Intermediate',
+  advanced:     'Advanced',
+  semi_pro:     'Semi-Pro',
+  pro:          'Pro',
+};
+
+// Single source of truth for a student's coach-assessed "level score" (1–7).
+// Mirrors the Skills tab in ProgressScreen: average across ALL skills for the
+// student's level, where an unassessed skill counts as 1. `assessedCount` lets
+// callers show "not yet assessed" when there are zero real assessments.
+export function computeSkillsScore(
+  division: string | null | undefined,
+  skillLevel: string | null | undefined,
+  latestScores: { skill_key: string; score: number }[],
+): { avg: number | null; target: number; minPass: number; level: SkillDivision; label: string; assessedCount: number } {
+  const level = profileToSkillDivision(division ?? undefined, skillLevel ?? undefined);
+  const all = getSkillsForDivision(level);
+  const avgRaw = all.length > 0
+    ? all.reduce((sum, sk) => {
+        const e = latestScores.find((s) => s.skill_key === sk.key);
+        return sum + (e ? e.score : 1);
+      }, 0) / all.length
+    : null;
+  return {
+    avg: avgRaw !== null ? parseFloat(avgRaw.toFixed(1)) : null,
+    target: PROMOTION_TARGET_SCORE[level],
+    minPass: MIN_PASSING_SCORE[level],
+    level,
+    label: SKILL_DIVISION_LABELS[level],
+    assessedCount: latestScores.length,
+  };
+}
+
 export const CATEGORY_LABELS: Record<SkillCategory, string> = {
   technique: '🎾 Technique',
   tactic:    '🧠 Tactic',

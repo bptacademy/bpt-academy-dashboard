@@ -12,6 +12,7 @@ import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { SkillLevel, Division, DIVISION_LABELS, DIVISION_COLORS } from '../../types';
 import ScreenHeader from '../../components/common/ScreenHeader';
+import LevelScoreCard from '../../components/common/LevelScoreCard';
 
 const SKILL_LEVELS: SkillLevel[] = ['beginner', 'intermediate', 'advanced'];
 const SKILL_COLORS: Record<SkillLevel, string> = {
@@ -239,6 +240,12 @@ export default function ProfileScreen({ navigation }: any) {
             </View>
           )}
         </View>
+
+        {profile?.role === 'student' && (
+          <View style={styles.levelCardWrap}>
+            <LevelScoreCard onPress={() => navigation.navigate('Progress')} />
+          </View>
+        )}
 
         {/* Edit / Save toggle */}
         <View style={styles.editToggleRow}>
@@ -553,6 +560,7 @@ const styles = StyleSheet.create({
   deleteAccountText: { color: '#7A8FA6', fontSize: 13, fontWeight: '500' },
   signOutText: { color: '#EF4444', fontWeight: '700', fontSize: 15 },
   version: { textAlign: 'center', color: '#7A8FA6', fontSize: 12, marginBottom: 32 },
+  levelCardWrap: { paddingHorizontal: 16, marginBottom: 8 },
   modal: { flex: 1, backgroundColor: '#FFFFFF' },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
   modalTitle: { fontSize: 17, fontWeight: '700', color: '#111827' },

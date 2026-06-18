@@ -10,6 +10,7 @@ import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { Enrollment } from '../../types';
 import { useNotifications } from '../../hooks/useNotifications';
+import LevelScoreCard from '../../components/common/LevelScoreCard';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const BELL_ICON = require('../../../assets/icons/notification.png');
@@ -314,6 +315,12 @@ export default function HomeScreen({ navigation }: any) {
             </TouchableOpacity>
           </View>
         </View>
+
+        {profile?.role === 'student' && (
+          <View style={styles.section}>
+            <LevelScoreCard onPress={() => navigation.navigate('Progress')} />
+          </View>
+        )}
 
         {/* ── Calendar ── */}
         <View style={styles.section}>
