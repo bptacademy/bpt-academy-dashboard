@@ -11,6 +11,24 @@ import ScreenHeader from '../../components/common/ScreenHeader';
 
 type CoachProfile = { id: string; full_name: string; };
 
+// Find (or create) the public catalog template for a (division, skill_level)
+// pair, returning its id so a child-program can link to it.
+async function resolveTemplateId(division: Division, skillLevel: SkillLevel | null): Promise<string | null> {
+  let query = supabase.from('program_templates').select('id').eq('division', division);
+  query = skillLevel == null ? query.is('skill_level', null) : query.eq('skill_level', skillLevel);
+  const { data: existing } = await query.maybeSingle();
+  if (existing?.id) return existing.id;
+
+  const title = DIVISION_LABELS[division]
+    + (skillLevel ? ` · ${skillLevel.charAt(0).toUpperCase()}${skillLevel.slice(1)}` : '');
+  const { data: created } = await supabase
+    .from('program_templates')
+    .insert({ division, skill_level: skillLevel, title })
+    .select('id')
+    .single();
+  return created?.id ?? null;
+}
+
 const SKILL_LEVELS: SkillLevel[] = ['beginner', 'intermediate', 'advanced'];
 const DIVISIONS: Division[] = ['amateur', 'semi_pro', 'pro'];
 const LEVEL_COLORS: Record<SkillLevel, string> = {
@@ -102,11 +120,19 @@ export default function ManageProgramsScreen({ navigation }: any) {
     if (!form.title.trim()) { Alert.alert('Error', 'Title is required'); return; }
     setSaving(true);
 
+    const division = form.division;
+    const skillLevel = form.division === 'amateur' ? form.skill_level : null;
+
+    // Link this child-program to its public catalog parent (availability-first
+    // flow). One template per (division, skill_level); create it if missing.
+    const templateId = await resolveTemplateId(division, skillLevel);
+
     const payload = {
       title: form.title.trim(),
       description: form.description.trim(),
-      division: form.division,
-      skill_level: form.division === 'amateur' ? form.skill_level : null,
+      division,
+      skill_level: skillLevel,
+      template_id: templateId,
       duration_weeks: form.duration_weeks ? parseInt(form.duration_weeks) : null,
       price_gbp: form.price_gbp ? parseFloat(form.price_gbp) : null,
       sessions_per_week: form.sessions_per_week,
@@ -255,6 +281,12 @@ export default function ManageProgramsScreen({ navigation }: any) {
                     onPress={() => navigation.navigate('ScheduleGenerator', { programId: p.id, programTitle: p.title, maxStudents: p.max_students, durationWeeks: (p as any).duration_weeks ?? null, sessionsPerWeek: (p as any).sessions_per_week ?? null })}
                   >
                     <Text style={styles.scheduleBtnText}>📅 Schedule</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.matchesBtn}
+                    onPress={() => navigation.navigate('RecommendedStudents', { programId: p.id, programTitle: p.title })}
+                  >
+                    <Text style={styles.matchesBtnText}>🎯 Matches</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={styles.editBtn}
@@ -475,6 +507,8 @@ const styles = StyleSheet.create({
   rosterBtnText: { fontSize: 13, fontWeight: '600', color: '#374151' },
   scheduleBtn: { backgroundColor: '#EFF6FF', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 6, borderWidth: 1, borderColor: '#BFDBFE' },
   scheduleBtnText: { fontSize: 12, fontWeight: '600', color: '#2563EB' },
+  matchesBtn: { backgroundColor: '#ECFDF5', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 6, borderWidth: 1, borderColor: '#A7F3D0' },
+  matchesBtnText: { fontSize: 12, fontWeight: '600', color: '#059669' },
   modulesBtn: { flex: 1, backgroundColor: '#FFF7ED', borderRadius: 8, paddingVertical: 8, alignItems: 'center' },
   modulesBtnText: { fontSize: 13, fontWeight: '600', color: '#D97706' },
   editBtn: { width: 38, backgroundColor: '#EFF6FF', borderRadius: 8, paddingVertical: 8, alignItems: 'center' },

@@ -24,9 +24,13 @@ CREATE TABLE IF NOT EXISTS program_templates (
   updated_at  timestamptz DEFAULT now()
 );
 
--- one template per (division, skill_level); NULL skill_level is its own bucket
+-- one template per (division, skill_level); NULL skill_level is its own bucket.
+-- Two partial indexes instead of COALESCE(skill_level::text,'') because an
+-- enum→text cast is only STABLE, not IMMUTABLE, so it can't sit in an index expr.
 CREATE UNIQUE INDEX IF NOT EXISTS program_templates_division_level_uniq
-  ON program_templates (division, COALESCE(skill_level::text, ''));
+  ON program_templates (division, skill_level) WHERE skill_level IS NOT NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS program_templates_division_nolevel_uniq
+  ON program_templates (division) WHERE skill_level IS NULL;
 
 CREATE TRIGGER program_templates_updated_at BEFORE UPDATE ON program_templates
   FOR EACH ROW EXECUTE FUNCTION handle_updated_at();
