@@ -1,14 +1,20 @@
 import React, { useState, useCallback } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
-  ActivityIndicator, Image, Dimensions, RefreshControl,
+  ActivityIndicator, Image, Dimensions, RefreshControl, Alert,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTabBarPadding } from '../../hooks/useTabBarPadding';
 import { supabase } from '../../lib/supabase';
+import { useAuth } from '../../context/AuthContext';
 import BackHeader from '../../components/common/BackHeader';
 import { WEEKDAYS, Availability, SkillLevel } from '../../types';
+
+function todayStr(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
 
 // Row shape returned by recommend_students_for_program()
 interface Recommendation {
@@ -36,23 +42,96 @@ export default function RecommendedStudentsScreen({ route }: any) {
   const { programId, programTitle } = route.params;
   useSafeAreaInsets();
   const tabBarPadding = useTabBarPadding();
+  const { profile } = useAuth();
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [rows, setRows] = useState<Recommendation[]>([]);
+  const [program, setProgram] = useState<{ price_gbp: number | null; current_cycle_start_date: string | null } | null>(null);
+  const [assigningId, setAssigningId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setError(null);
-    const { data, error } = await supabase.rpc('recommend_students_for_program', {
-      p_program_id: programId,
-    });
-    if (error) setError(error.message);
-    else setRows((data ?? []) as Recommendation[]);
+    const [rpc, progRes] = await Promise.all([
+      supabase.rpc('recommend_students_for_program', { p_program_id: programId }),
+      supabase.from('programs').select('price_gbp, current_cycle_start_date').eq('id', programId).single(),
+    ]);
+    if (rpc.error) setError(rpc.error.message);
+    else setRows((rpc.data ?? []) as Recommendation[]);
+    if (progRes.data) setProgram(progRes.data as any);
     setLoading(false);
   }, [programId]);
 
   useFocusEffect(useCallback(() => { setLoading(true); load(); }, [load]));
 
+  // Place a matched student into this group. Mirrors WaitingListScreen.handleEnrol:
+  // enrollment (status by cycle date) + pending payment row (if priced) + notify,
+  // then remove their waiting-list row. Actual session start is driven by the
+  // existing promotion/cycle engine — untouched.
+  const assign = (r: Recommendation) => {
+    const cycleStart = program?.current_cycle_start_date ?? null;
+    const startsNextCycle = !!cycleStart && todayStr() > cycleStart;
+    const price = program?.price_gbp != null ? Number(program.price_gbp) : 0;
+    const status = startsNextCycle ? 'pending_next_cycle' : 'pending_payment';
+
+    Alert.alert(
+      'Place in group',
+      `Assign ${r.full_name?.trim() || 'this student'} to ${programTitle}?` +
+        (startsNextCycle ? '\n\nThe cycle has already started — they’ll be enrolled for the next cycle.' : ''),
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Assign',
+          onPress: async () => {
+            setAssigningId(r.waitlist_id);
+            try {
+              const { data: enrollData, error: enrollErr } = await supabase
+                .from('enrollments')
+                .upsert({ student_id: r.student_id, program_id: programId, status }, { onConflict: 'student_id,program_id' })
+                .select('id')
+                .single();
+              if (enrollErr) throw enrollErr;
+
+              if (price > 0 && enrollData?.id) {
+                const { data: existingPayment } = await supabase
+                  .from('payments').select('id').eq('enrollment_id', enrollData.id).maybeSingle();
+                if (!existingPayment) {
+                  await supabase.from('payments').insert({
+                    student_id: r.student_id,
+                    program_id: programId,
+                    enrollment_id: enrollData.id,
+                    amount_gbp: price,
+                    method: 'bank_transfer',
+                    status: 'pending',
+                  });
+                }
+              }
+
+              await supabase.from('notifications').insert({
+                recipient_id: r.student_id,
+                title: 'Your spot has been approved! 🎉',
+                body: `A coach has placed you in ${programTitle}.` +
+                  (price > 0 ? ' Open the app to complete payment and confirm your enrollment.' : ''),
+                type: 'waitlist_approved',
+                read: false,
+              });
+
+              // Remove from the waiting list now that they're placed.
+              await supabase.from('program_waiting_list').delete().eq('id', r.waitlist_id);
+
+              setRows((prev) => prev.filter((x) => x.waitlist_id !== r.waitlist_id));
+            } catch (e: any) {
+              Alert.alert('Error', e?.message ?? 'Could not assign student.');
+            } finally {
+              setAssigningId(null);
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const canAssign = ['coach', 'admin', 'super_admin'].includes(profile?.role ?? '');
   const fullCount = rows.filter((r) => r.match_type === 'full').length;
 
   return (
@@ -73,9 +152,10 @@ export default function RecommendedStudentsScreen({ route }: any) {
         </View>
 
         <View style={styles.infoCard}>
-          <Text style={styles.infoIcon}>👀</Text>
+          <Text style={styles.infoIcon}>🎯</Text>
           <Text style={styles.infoText}>
-            Read-only for now — assigning players into the group arrives in the next step (M3).
+            Full fit = the player's days &amp; AM/PM match this group's exactly. Tap Assign to place them;
+            they'll be removed from the waiting list and asked to confirm/pay.
           </Text>
         </View>
 
@@ -130,6 +210,18 @@ export default function RecommendedStudentsScreen({ route }: any) {
                   {r.age != null && <Text style={styles.metaText}>🎂 {r.age}</Text>}
                   {r.phone && <Text style={styles.metaText}>📱 {r.phone}</Text>}
                 </View>
+
+                {canAssign && (
+                  <TouchableOpacity
+                    style={[styles.assignBtn, assigningId === r.waitlist_id && styles.assignBtnDisabled]}
+                    onPress={() => assign(r)}
+                    disabled={assigningId === r.waitlist_id}
+                  >
+                    {assigningId === r.waitlist_id
+                      ? <ActivityIndicator color="#FFFFFF" size="small" />
+                      : <Text style={styles.assignBtnText}>＋ Assign to group</Text>}
+                  </TouchableOpacity>
+                )}
               </View>
             ))}
           </>
@@ -162,6 +254,9 @@ const styles = StyleSheet.create({
   availChipText: { fontSize: 12, fontWeight: '600', color: '#60A5FA' },
   metaRow: { flexDirection: 'row', gap: 14, flexWrap: 'wrap' },
   metaText: { fontSize: 12, color: 'rgba(255,255,255,0.6)' },
+  assignBtn: { marginTop: 12, backgroundColor: '#16A34A', borderRadius: 10, paddingVertical: 11, alignItems: 'center' },
+  assignBtnDisabled: { opacity: 0.6 },
+  assignBtnText: { color: '#FFFFFF', fontWeight: '700', fontSize: 14 },
   emptyCard: { backgroundColor: 'rgba(17,30,51,0.85)', borderRadius: 14, padding: 20, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)' },
   emptyText: { fontSize: 15, fontWeight: '700', color: '#F0F6FC', marginBottom: 6, textAlign: 'center' },
   emptySub: { fontSize: 13, color: '#7A8FA6', textAlign: 'center', lineHeight: 19 },
