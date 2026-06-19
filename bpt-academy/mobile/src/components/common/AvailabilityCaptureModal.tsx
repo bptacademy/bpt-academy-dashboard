@@ -131,7 +131,14 @@ export default function AvailabilityCaptureModal({
           <TextInput
             style={[styles.input, scoreEntered && !scoreInRange && styles.inputError]}
             value={score}
-            onChangeText={(t) => setScore(t.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1'))}
+            onChangeText={(t) => {
+              // Accept both '.' and ',' as the decimal separator — a device set to
+              // a comma-decimal locale shows ',' on the decimal-pad. Keep one dot.
+              let v = t.replace(/,/g, '.').replace(/[^0-9.]/g, '');
+              const i = v.indexOf('.');
+              if (i !== -1) v = v.slice(0, i + 1) + v.slice(i + 1).replace(/\./g, '');
+              setScore(v);
+            }}
             placeholder={`e.g. ${fmt((bMin + bMax) / 2)}`}
             placeholderTextColor="#7A8FA6"
             keyboardType="decimal-pad"

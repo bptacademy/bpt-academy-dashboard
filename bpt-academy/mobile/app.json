@@ -2,7 +2,7 @@
   "expo": {
     "name": "BPT Academy",
     "slug": "mobile",
-    "version": "1.6.1",
+    "version": "1.6.2",
     "scheme": "bptacademy",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -15,7 +15,7 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.bptacademy.app",
-      "buildNumber": "41",
+      "buildNumber": "43",
       "appleTeamId": "R7365964A2",
       "usesNonExemptEncryption": false,
       "infoPlist": {
@@ -31,7 +31,7 @@
     },
     "android": {
       "package": "com.bptacademy.app",
-      "versionCode": 42,
+      "versionCode": 43,
       "googleServicesFile": "./google-services.json",
       "allowBackup": false,
       "resizeableActivity": true,
