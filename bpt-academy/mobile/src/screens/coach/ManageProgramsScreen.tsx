@@ -6,10 +6,28 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTabBarPadding } from '../../hooks/useTabBarPadding';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
-import { Program, SkillLevel, Division, DIVISION_LABELS, DIVISION_COLORS } from '../../types';
+import { Program, ProgramTemplate, SkillLevel, Division, DIVISION_LABELS, DIVISION_COLORS } from '../../types';
 import ScreenHeader from '../../components/common/ScreenHeader';
 
 type CoachProfile = { id: string; full_name: string; };
+
+// Find (or create) the public catalog template for a (division, skill_level)
+// pair, returning its id so a child-program can link to it.
+async function resolveTemplateId(division: Division, skillLevel: SkillLevel | null): Promise<string | null> {
+  let query = supabase.from('program_templates').select('id').eq('division', division);
+  query = skillLevel == null ? query.is('skill_level', null) : query.eq('skill_level', skillLevel);
+  const { data: existing } = await query.maybeSingle();
+  if (existing?.id) return existing.id;
+
+  const title = DIVISION_LABELS[division]
+    + (skillLevel ? ` · ${skillLevel.charAt(0).toUpperCase()}${skillLevel.slice(1)}` : '');
+  const { data: created } = await supabase
+    .from('program_templates')
+    .insert({ division, skill_level: skillLevel, title })
+    .select('id')
+    .single();
+  return created?.id ?? null;
+}
 
 const SKILL_LEVELS: SkillLevel[] = ['beginner', 'intermediate', 'advanced'];
 const DIVISIONS: Division[] = ['amateur', 'semi_pro', 'pro'];
@@ -40,6 +58,7 @@ export default function ManageProgramsScreen({ navigation }: any) {
   const tabBarPadding = useTabBarPadding();
   const { profile } = useAuth();
   const [programs, setPrograms]             = useState<Program[]>([]);
+  const [templates, setTemplates]           = useState<ProgramTemplate[]>([]);
   const [programCoaches, setProgramCoaches] = useState<Record<string, CoachProfile[]>>({});
   const [availableCoaches, setAvailableCoaches] = useState<CoachProfile[]>([]);
   const [refreshing, setRefreshing]         = useState(false);
@@ -49,13 +68,15 @@ export default function ManageProgramsScreen({ navigation }: any) {
   const [saving, setSaving]                 = useState(false);
 
   const fetchPrograms = async () => {
-    const [progRes, coachAssignRes, availRes] = await Promise.all([
+    const [progRes, tplRes, coachAssignRes, availRes] = await Promise.all([
       supabase.from('programs').select('*').order('created_at', { ascending: false }),
+      supabase.from('program_templates').select('*'),
       supabase.from('program_coaches').select('program_id, coach:profiles!coach_id(id, full_name)'),
       supabase.from('profiles').select('id, full_name').in('role', ['admin', 'coach']).order('full_name'),
     ]);
 
     if (progRes.data) setPrograms(progRes.data);
+    if (tplRes.data) setTemplates(tplRes.data as ProgramTemplate[]);
     if (availRes.data) setAvailableCoaches(availRes.data as CoachProfile[]);
 
     if (coachAssignRes.data) {
@@ -74,6 +95,21 @@ export default function ManageProgramsScreen({ navigation }: any) {
   const openCreate = () => {
     setEditingProgram(null);
     setForm(EMPTY_FORM);
+    setModalVisible(true);
+  };
+
+  // Create a new child-program (group) under a specific parent template —
+  // prefills the division/level/price so it links to the same parent.
+  const openCreateUnder = (t: ProgramTemplate) => {
+    const groupCount = programs.filter((p) => (p as any).template_id === t.id).length;
+    setEditingProgram(null);
+    setForm({
+      ...EMPTY_FORM,
+      division: t.division,
+      skill_level: (t.skill_level ?? 'beginner') as SkillLevel,
+      title: `${t.title} — Group ${groupCount + 1}`,
+      price_gbp: t.price_gbp != null ? String(t.price_gbp) : '',
+    });
     setModalVisible(true);
   };
 
@@ -102,11 +138,19 @@ export default function ManageProgramsScreen({ navigation }: any) {
     if (!form.title.trim()) { Alert.alert('Error', 'Title is required'); return; }
     setSaving(true);
 
+    const division = form.division;
+    const skillLevel = form.division === 'amateur' ? form.skill_level : null;
+
+    // Link this child-program to its public catalog parent (availability-first
+    // flow). One template per (division, skill_level); create it if missing.
+    const templateId = await resolveTemplateId(division, skillLevel);
+
     const payload = {
       title: form.title.trim(),
       description: form.description.trim(),
-      division: form.division,
-      skill_level: form.division === 'amateur' ? form.skill_level : null,
+      division,
+      skill_level: skillLevel,
+      template_id: templateId,
       duration_weeks: form.duration_weeks ? parseInt(form.duration_weeks) : null,
       price_gbp: form.price_gbp ? parseFloat(form.price_gbp) : null,
       sessions_per_week: form.sessions_per_week,
@@ -180,6 +224,69 @@ export default function ManageProgramsScreen({ navigation }: any) {
 
   const isEditing = !!editingProgram;
 
+  const renderProgramCard = (p: Program) => {
+    return (
+      <View key={p.id} style={styles.card}>
+        <View style={styles.cardHeader}>
+          <Text style={styles.cardTitle}>{p.title}</Text>
+          <TouchableOpacity
+            style={[styles.statusBadge, p.is_active ? styles.activeStatus : styles.inactiveStatus]}
+            onPress={() => toggleActive(p)}
+          >
+            <Text style={[styles.statusText, p.is_active ? styles.activeText : styles.inactiveText]}>
+              {p.is_active ? 'Active' : 'Inactive'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {p.description ? <Text style={styles.cardDesc} numberOfLines={2}>{p.description}</Text> : null}
+        <View style={styles.cardMetaRow}>
+          <Text style={styles.cardMeta}>⏱ {p.duration_weeks ?? '—'} weeks · {(p as any).sessions_per_week ?? 2}x/week</Text>
+          {(p as any).price_gbp != null
+            ? <Text style={styles.cardPrice}>£{parseFloat((p as any).price_gbp).toFixed(2)}</Text>
+            : <Text style={styles.cardPriceFree}>Free</Text>}
+        </View>
+
+        {(programCoaches[p.id] ?? []).length > 0 && (
+          <View style={styles.coachRow}>
+            <Text style={styles.coachRowLabel}>👨‍🏫</Text>
+            <Text style={styles.coachNames}>
+              {(programCoaches[p.id] ?? []).map((c) => c.full_name).join(' · ')}
+            </Text>
+          </View>
+        )}
+
+        {/* Action grid — 3 per row, wraps cleanly so labels stay readable */}
+        <View style={styles.cardActions}>
+          <TouchableOpacity style={[styles.gridBtn, styles.rosterBtn]} onPress={() => navigation.navigate('ProgramRoster', { programId: p.id })}>
+            <Text style={styles.rosterBtnText}>👥 Roster</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.gridBtn, styles.modulesBtn]} onPress={() => navigation.navigate('ProgramModules', { programId: p.id, programTitle: p.title })}>
+            <Text style={styles.modulesBtnText}>📋 Modules</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.gridBtn, styles.scheduleBtn]} onPress={() => navigation.navigate('ScheduleGenerator', { programId: p.id, programTitle: p.title, maxStudents: p.max_students, durationWeeks: (p as any).duration_weeks ?? null, sessionsPerWeek: (p as any).sessions_per_week ?? null })}>
+            <Text style={styles.scheduleBtnText}>📅 Schedule</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.gridBtn, styles.matchesBtn]} onPress={() => navigation.navigate('RecommendedStudents', { programId: p.id, programTitle: p.title })}>
+            <Text style={styles.matchesBtnText}>🎯 Matches</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.gridBtn, styles.editBtn]} onPress={() => openEdit(p)}>
+            <Text style={styles.editBtnText}>✏️ Edit</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.gridBtn, styles.deleteBtn]} onPress={() => handleDelete(p)}>
+            <Text style={styles.deleteBtnText}>🗑 Delete</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  };
+
+  // Group child-programs under their parent template for a clear parent → child view.
+  const sortedTemplates = [...templates].sort((a, b) =>
+    (DIVISION_LABELS[a.division] + (a.skill_level ?? '')).localeCompare(DIVISION_LABELS[b.division] + (b.skill_level ?? '')));
+  const groupsFor = (templateId: string) => programs.filter((p) => (p as any).template_id === templateId);
+  const untemplated = programs.filter((p) => !(p as any).template_id);
+
   return (
     <View style={styles.container}>
       <Image source={require('../../../assets/bg.png')} style={styles.bgImage} resizeMode="cover" />
@@ -187,94 +294,53 @@ export default function ManageProgramsScreen({ navigation }: any) {
       <ScrollView refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
         <ScreenHeader title="Programs" />
         <View style={styles.addRow}>
+          <Text style={styles.addRowHint}>Parent levels · add groups beneath each</Text>
           <TouchableOpacity style={styles.addBtn} onPress={openCreate}>
-            <Text style={styles.addBtnText}>+ New Program</Text>
+            <Text style={styles.addBtnText}>+ New Level</Text>
           </TouchableOpacity>
         </View>
 
         <View style={styles.list}>
-          {programs.map((p) => {
-            const div = ((p as any).division ?? 'amateur') as Division;
-            const color = DIVISION_COLORS[div];
+          {sortedTemplates.map((t) => {
+            const color = DIVISION_COLORS[t.division] ?? '#6B7280';
+            const groups = groupsFor(t.id);
+            const sub = t.skill_level ? ` · ${t.skill_level.charAt(0).toUpperCase() + t.skill_level.slice(1)}` : '';
             return (
-              <View key={p.id} style={styles.card}>
-                <View style={styles.cardHeader}>
-                  <View style={[styles.levelBadge, { backgroundColor: color + '20' }]}>
-                    <Text style={[styles.levelText, { color }]}>
-                      {DIVISION_LABELS[div]}
-                      {div === 'amateur' && p.skill_level
-                        ? ` · ${p.skill_level.charAt(0).toUpperCase() + p.skill_level.slice(1)}`
-                        : ''}
-                    </Text>
+              <View key={t.id} style={styles.templateSection}>
+                <View style={styles.templateHeader}>
+                  <View style={{ flex: 1 }}>
+                    <View style={[styles.levelBadge, { backgroundColor: color + '20', alignSelf: 'flex-start' }]}>
+                      <Text style={[styles.levelText, { color }]}>{DIVISION_LABELS[t.division]}{sub}</Text>
+                    </View>
+                    <Text style={styles.templateTitle}>{t.title}</Text>
+                    <Text style={styles.templateSub}>{groups.length} group{groups.length === 1 ? '' : 's'} · parent program</Text>
                   </View>
-                  <TouchableOpacity
-                    style={[styles.statusBadge, p.is_active ? styles.activeStatus : styles.inactiveStatus]}
-                    onPress={() => toggleActive(p)}
-                  >
-                    <Text style={[styles.statusText, p.is_active ? styles.activeText : styles.inactiveText]}>
-                      {p.is_active ? 'Active' : 'Inactive'}
-                    </Text>
+                  <TouchableOpacity style={styles.addGroupBtn} onPress={() => openCreateUnder(t)}>
+                    <Text style={styles.addGroupBtnText}>＋ Add group</Text>
                   </TouchableOpacity>
                 </View>
 
-                <Text style={styles.cardTitle}>{p.title}</Text>
-                {p.description ? <Text style={styles.cardDesc} numberOfLines={2}>{p.description}</Text> : null}
-                <View style={styles.cardMetaRow}>
-                  <Text style={styles.cardMeta}>⏱ {p.duration_weeks ?? '—'} weeks · {(p as any).sessions_per_week ?? 2}x/week</Text>
-                  {(p as any).price_gbp != null
-                    ? <Text style={styles.cardPrice}>£{parseFloat((p as any).price_gbp).toFixed(2)}</Text>
-                    : <Text style={styles.cardPriceFree}>Free</Text>
-                  }
-                </View>
-
-                {(programCoaches[p.id] ?? []).length > 0 && (
-                  <View style={styles.coachRow}>
-                    <Text style={styles.coachRowLabel}>👨‍🏫</Text>
-                    <Text style={styles.coachNames}>
-                      {(programCoaches[p.id] ?? []).map((c) => c.full_name).join(' · ')}
-                    </Text>
-                  </View>
+                {groups.length === 0 ? (
+                  <TouchableOpacity style={styles.emptyGroup} onPress={() => openCreateUnder(t)}>
+                    <Text style={styles.emptyGroupText}>No groups yet — tap “＋ Add group” to create one under this level.</Text>
+                  </TouchableOpacity>
+                ) : (
+                  groups.map(renderProgramCard)
                 )}
-
-                {/* Action buttons — Waitlist removed (accessible from home dashboard tile) */}
-                <View style={styles.cardActions}>
-                  <TouchableOpacity
-                    style={styles.rosterBtn}
-                    onPress={() => navigation.navigate('ProgramRoster', { programId: p.id })}
-                  >
-                    <Text style={styles.rosterBtnText}>👥 Roster</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={styles.modulesBtn}
-                    onPress={() => navigation.navigate('ProgramModules', { programId: p.id, programTitle: p.title })}
-                  >
-                    <Text style={styles.modulesBtnText}>📋 Modules</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={styles.scheduleBtn}
-                    onPress={() => navigation.navigate('ScheduleGenerator', { programId: p.id, programTitle: p.title, maxStudents: p.max_students, durationWeeks: (p as any).duration_weeks ?? null, sessionsPerWeek: (p as any).sessions_per_week ?? null })}
-                  >
-                    <Text style={styles.scheduleBtnText}>📅 Schedule</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={styles.editBtn}
-                    onPress={() => openEdit(p)}
-                  >
-                    <Text style={styles.editBtnText}>✏️</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={styles.deleteBtn}
-                    onPress={() => handleDelete(p)}
-                  >
-                    <Text style={styles.deleteBtnText}>🗑</Text>
-                  </TouchableOpacity>
-                </View>
               </View>
             );
           })}
-          {programs.length === 0 && (
+
+          {untemplated.length > 0 && (
+            <View style={styles.templateSection}>
+              <Text style={styles.templateTitle}>Other</Text>
+              {untemplated.map(renderProgramCard)}
+            </View>
+          )}
+
+          {templates.length === 0 && programs.length === 0 && (
             <View style={styles.empty}>
-              <Text style={styles.emptyText}>No programs yet. Create your first one!</Text>
+              <Text style={styles.emptyText}>No programs yet. Tap “+ New Level” to create your first one!</Text>
             </View>
           )}
         </View>
@@ -282,7 +348,9 @@ export default function ManageProgramsScreen({ navigation }: any) {
 
       {/* Create / Edit modal */}
       <Modal visible={modalVisible} animationType="slide" presentationStyle="pageSheet">
-        <ScrollView style={styles.modal} keyboardShouldPersistTaps="handled">
+        <View style={styles.modalContainer}>
+        <Image source={require('../../../assets/bg.png')} style={styles.bgImage} resizeMode="cover" />
+        <ScrollView style={styles.modal} contentContainerStyle={{ paddingBottom: 40 }} keyboardShouldPersistTaps="handled">
           <View style={styles.modalHeader}>
             <TouchableOpacity onPress={closeModal}>
               <Text style={styles.cancelBtn}>Cancel</Text>
@@ -440,6 +508,7 @@ export default function ManageProgramsScreen({ navigation }: any) {
             )}
           </View>
         </ScrollView>
+        </View>
       </Modal>
     </View>
   );
@@ -448,7 +517,8 @@ export default function ManageProgramsScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   bgImage: { position: 'absolute', top: 0, left: 0, width: Dimensions.get('window').width, height: Dimensions.get('window').height },
   container: { flex: 1, backgroundColor: '#F9FAFB' },
-  addRow: { flexDirection: 'row', justifyContent: 'flex-end', padding: 12, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
+  addRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 12, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
+  addRowHint: { flex: 1, fontSize: 12, color: '#6B7280', marginRight: 10 },
   addBtn: { backgroundColor: '#16A34A', borderRadius: 20, paddingHorizontal: 16, paddingVertical: 8 },
   addBtnText: { color: '#FFFFFF', fontWeight: '700', fontSize: 14 },
   list: { padding: 16, paddingBottom: 80 },
@@ -470,34 +540,49 @@ const styles = StyleSheet.create({
   cardPrice: { fontSize: 15, fontWeight: '700', color: '#16A34A' },
   cardPriceFree: { fontSize: 13, color: '#9CA3AF' },
 
-  cardActions: { flexDirection: 'row', gap: 8 },
-  rosterBtn: { flex: 1, backgroundColor: '#F3F4F6', borderRadius: 8, paddingVertical: 8, alignItems: 'center' },
+  cardActions: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 4 },
+  // 3 per row (flexBasis 31% + grow), wraps to a tidy 2-row grid; labels stay on one line.
+  gridBtn: { flexBasis: '31%', flexGrow: 1, borderRadius: 8, paddingVertical: 10, alignItems: 'center', justifyContent: 'center', borderWidth: 1 },
+  rosterBtn: { backgroundColor: '#F3F4F6', borderColor: '#E5E7EB' },
   rosterBtnText: { fontSize: 13, fontWeight: '600', color: '#374151' },
-  scheduleBtn: { backgroundColor: '#EFF6FF', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 6, borderWidth: 1, borderColor: '#BFDBFE' },
-  scheduleBtnText: { fontSize: 12, fontWeight: '600', color: '#2563EB' },
-  modulesBtn: { flex: 1, backgroundColor: '#FFF7ED', borderRadius: 8, paddingVertical: 8, alignItems: 'center' },
+  scheduleBtn: { backgroundColor: '#EFF6FF', borderColor: '#BFDBFE' },
+  scheduleBtnText: { fontSize: 13, fontWeight: '600', color: '#2563EB' },
+  matchesBtn: { backgroundColor: '#ECFDF5', borderColor: '#A7F3D0' },
+  matchesBtnText: { fontSize: 13, fontWeight: '600', color: '#059669' },
+  modulesBtn: { backgroundColor: '#FFF7ED', borderColor: '#FED7AA' },
   modulesBtnText: { fontSize: 13, fontWeight: '600', color: '#D97706' },
-  editBtn: { width: 38, backgroundColor: '#EFF6FF', borderRadius: 8, paddingVertical: 8, alignItems: 'center' },
-  editBtnText: { fontSize: 14, fontWeight: '600', color: '#2563EB' },
-  deleteBtn: { width: 38, backgroundColor: '#FEF2F2', borderRadius: 8, paddingVertical: 8, alignItems: 'center' },
-  deleteBtnText: { fontSize: 14 },
+  editBtn: { backgroundColor: '#EFF6FF', borderColor: '#BFDBFE' },
+  editBtnText: { fontSize: 13, fontWeight: '600', color: '#2563EB' },
+  deleteBtn: { backgroundColor: '#FEF2F2', borderColor: '#FECACA' },
+  deleteBtnText: { fontSize: 13, fontWeight: '600', color: '#DC2626' },
+
+  // Parent-template sections
+  templateSection: { marginBottom: 22 },
+  templateHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, marginBottom: 10 },
+  templateTitle: { fontSize: 17, fontWeight: '800', color: '#F0F6FC', marginTop: 6 },
+  templateSub: { fontSize: 12, color: 'rgba(255,255,255,0.55)', marginTop: 2 },
+  addGroupBtn: { backgroundColor: '#2563EB', borderRadius: 20, paddingHorizontal: 14, paddingVertical: 9, marginTop: 4 },
+  addGroupBtnText: { color: '#FFFFFF', fontWeight: '700', fontSize: 13 },
+  emptyGroup: { backgroundColor: '#FFFFFF', borderRadius: 12, borderWidth: 1, borderStyle: 'dashed', borderColor: '#D1D5DB', padding: 16 },
+  emptyGroupText: { fontSize: 13, color: '#6B7280', textAlign: 'center', lineHeight: 18 },
 
   empty: { alignItems: 'center', paddingVertical: 40 },
   emptyText: { color: '#9CA3AF', fontSize: 14 },
 
-  modal: { flex: 1, backgroundColor: '#FFFFFF' },
-  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
-  modalTitle: { fontSize: 17, fontWeight: '700', color: '#111827' },
-  cancelBtn: { fontSize: 16, color: '#6B7280' },
+  modalContainer: { flex: 1, backgroundColor: '#0B1628' },
+  modal: { flex: 1, backgroundColor: 'transparent' },
+  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.10)' },
+  modalTitle: { fontSize: 17, fontWeight: '700', color: '#F0F6FC' },
+  cancelBtn: { fontSize: 16, color: '#A0B0C8' },
   saveBtn: { fontSize: 16, color: '#16A34A', fontWeight: '700' },
   form: { padding: 20, gap: 4 },
   label: { fontSize: 14, fontWeight: '600', color: '#F0F6FC', marginBottom: 4 },
-  input: { borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 10, padding: 14, fontSize: 16, color: '#111827', marginBottom: 16, backgroundColor: '#F9FAFB' },
+  input: { borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)', borderRadius: 10, padding: 14, fontSize: 16, color: '#F0F6FC', marginBottom: 16, backgroundColor: 'rgba(17,30,51,0.85)' },
   textarea: { height: 100, textAlignVertical: 'top' },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 },
   subLevelRow: { marginLeft: 12, borderLeftWidth: 3, borderLeftColor: '#3B82F6', paddingLeft: 12 },
-  chip: { borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8, backgroundColor: '#F9FAFB' },
-  chipText: { fontSize: 13, color: '#374151' },
+  chip: { borderWidth: 1, borderColor: 'rgba(255,255,255,0.14)', borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8, backgroundColor: 'rgba(255,255,255,0.06)' },
+  chipText: { fontSize: 13, color: '#CBD5E1' },
   chipTextActive: { color: '#FFFFFF', fontWeight: '600' },
   deleteModalBtn: { marginTop: 24, backgroundColor: '#FEF2F2', borderRadius: 10, padding: 14, alignItems: 'center', borderWidth: 1, borderColor: '#FECACA' },
   deleteModalBtnText: { color: '#DC2626', fontWeight: '700', fontSize: 15 },
@@ -506,20 +591,20 @@ const styles = StyleSheet.create({
   coachRowLabel: { fontSize: 14 },
   coachNames: { fontSize: 13, color: '#374151', fontWeight: '500', flex: 1 },
 
-  sublabel: { fontSize: 12, color: '#6B7280', marginBottom: 10, marginTop: -2 },
-  noCoachText: { fontSize: 13, color: '#9CA3AF', marginBottom: 16 },
+  sublabel: { fontSize: 12, color: 'rgba(255,255,255,0.5)', marginBottom: 10, marginTop: -2 },
+  noCoachText: { fontSize: 13, color: 'rgba(255,255,255,0.5)', marginBottom: 16 },
   coachPickerList: { gap: 8, marginBottom: 16 },
-  coachPickerRow: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, borderRadius: 10, borderWidth: 1, borderColor: '#E5E7EB', backgroundColor: '#F9FAFB' },
-  coachPickerRowSelected: { borderColor: '#16A34A', backgroundColor: '#ECFDF5' },
-  coachPickerAvatar: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#E5E7EB', alignItems: 'center', justifyContent: 'center' },
+  coachPickerRow: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, borderRadius: 10, borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)', backgroundColor: 'rgba(17,30,51,0.85)' },
+  coachPickerRowSelected: { borderColor: '#16A34A', backgroundColor: 'rgba(22,163,74,0.15)' },
+  coachPickerAvatar: { width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.12)', alignItems: 'center', justifyContent: 'center' },
   coachPickerAvatarSelected: { backgroundColor: '#16A34A' },
   coachPickerAvatarText: { fontSize: 13, fontWeight: '700', color: '#FFFFFF' },
-  coachPickerName: { flex: 1, fontSize: 14, color: '#374151', fontWeight: '500' },
-  coachPickerNameSelected: { color: '#166534', fontWeight: '700' },
+  coachPickerName: { flex: 1, fontSize: 14, color: '#CBD5E1', fontWeight: '500' },
+  coachPickerNameSelected: { color: '#4ADE80', fontWeight: '700' },
   coachPickerCheck: { fontSize: 16, color: '#16A34A', fontWeight: '700', width: 20, textAlign: 'center' },
 
-  priceInputRow: { flexDirection: 'row', borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 10, overflow: 'hidden', marginBottom: 16, backgroundColor: '#F9FAFB' },
-  pricePrefix: { backgroundColor: '#E5E7EB', paddingHorizontal: 14, justifyContent: 'center' },
-  pricePrefixText: { fontSize: 16, fontWeight: '700', color: '#374151' },
-  priceInput: { flex: 1, padding: 14, fontSize: 16, color: '#111827' },
+  priceInputRow: { flexDirection: 'row', borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)', borderRadius: 10, overflow: 'hidden', marginBottom: 16, backgroundColor: 'rgba(17,30,51,0.85)' },
+  pricePrefix: { backgroundColor: 'rgba(255,255,255,0.10)', paddingHorizontal: 14, justifyContent: 'center' },
+  pricePrefixText: { fontSize: 16, fontWeight: '700', color: '#CBD5E1' },
+  priceInput: { flex: 1, padding: 14, fontSize: 16, color: '#F0F6FC' },
 });

@@ -38,6 +38,41 @@ export const PROMOTION_TARGET_SCORE: Record<SkillDivision, number> = {
   pro:          5.0,  // already at top — same as semi_pro
 };
 
+// ─── Ranking-score bands (1–7) ──────────────────────────────────────────────
+// The waiting-list "ranking score" a student declares must fall inside their
+// level's band. Bands are the same 1–7 scale used by skill assessments, so they
+// stay in sync with coach re-assessments. Derived from the promotion targets:
+// each level spans [entry … its promotion target], pro tops out at SCORE_RANGE.max.
+export const LEVEL_SCORE_RANGE: Record<SkillDivision, { min: number; max: number }> = {
+  beginner:     { min: 1.0, max: 2.0 },
+  intermediate: { min: 2.0, max: 3.0 },
+  advanced:     { min: 3.0, max: 4.0 },
+  semi_pro:     { min: 4.0, max: 5.0 },
+  pro:          { min: 5.0, max: 7.0 },
+};
+// Amateur scale spans beginner→advanced. Juniors use this same scale (no age split).
+export const AMATEUR_FULL_RANGE = { min: 1.0, max: 4.0 };
+
+// Resolve the score band for a program/group OR a student from division + skill level.
+// Amateur and junior divisions use the picked skill level (or the full 1–4 amateur
+// range if none is set); Semi-Pro / Pro are fixed by division. Returns null only for
+// an unknown division.
+export function scoreBandFor(
+  division: string | null | undefined,
+  skillLevel: string | null | undefined,
+): { min: number; max: number; label: string } | null {
+  const onAmateurScale = division === 'amateur' || (division ?? '').startsWith('junior');
+  if (onAmateurScale) {
+    if (skillLevel === 'beginner' || skillLevel === 'intermediate' || skillLevel === 'advanced') {
+      return { ...LEVEL_SCORE_RANGE[skillLevel], label: skillLevel.charAt(0).toUpperCase() + skillLevel.slice(1) };
+    }
+    return { ...AMATEUR_FULL_RANGE, label: division === 'amateur' ? 'Amateur' : 'Junior' };
+  }
+  if (division === 'semi_pro') return { ...LEVEL_SCORE_RANGE.semi_pro, label: 'Semi-Pro' };
+  if (division === 'pro') return { ...LEVEL_SCORE_RANGE.pro, label: 'Pro' };
+  return null;
+}
+
 export const SKILLS: SkillDef[] = [
 
   // ══════════════════════════════════════════════════════════════════════════
@@ -193,6 +228,41 @@ export function profileToSkillDivision(division?: string, skillLevel?: string): 
     return 'beginner'; // default amateur to beginner (safest — never assume intermediate)
   }
   return 'beginner';
+}
+
+export const SKILL_DIVISION_LABELS: Record<SkillDivision, string> = {
+  beginner:     'Beginner',
+  intermediate: 'Intermediate',
+  advanced:     'Advanced',
+  semi_pro:     'Semi-Pro',
+  pro:          'Pro',
+};
+
+// Single source of truth for a student's coach-assessed "level score" (1–7).
+// Mirrors the Skills tab in ProgressScreen: average across ALL skills for the
+// student's level, where an unassessed skill counts as 1. `assessedCount` lets
+// callers show "not yet assessed" when there are zero real assessments.
+export function computeSkillsScore(
+  division: string | null | undefined,
+  skillLevel: string | null | undefined,
+  latestScores: { skill_key: string; score: number }[],
+): { avg: number | null; target: number; minPass: number; level: SkillDivision; label: string; assessedCount: number } {
+  const level = profileToSkillDivision(division ?? undefined, skillLevel ?? undefined);
+  const all = getSkillsForDivision(level);
+  const avgRaw = all.length > 0
+    ? all.reduce((sum, sk) => {
+        const e = latestScores.find((s) => s.skill_key === sk.key);
+        return sum + (e ? e.score : 1);
+      }, 0) / all.length
+    : null;
+  return {
+    avg: avgRaw !== null ? parseFloat(avgRaw.toFixed(1)) : null,
+    target: PROMOTION_TARGET_SCORE[level],
+    minPass: MIN_PASSING_SCORE[level],
+    level,
+    label: SKILL_DIVISION_LABELS[level],
+    assessedCount: latestScores.length,
+  };
 }
 
 export const CATEGORY_LABELS: Record<SkillCategory, string> = {

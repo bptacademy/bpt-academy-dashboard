@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTabBarPadding } from '../../hooks/useTabBarPadding';
 import * as ImagePicker from 'expo-image-picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import Constants from 'expo-constants';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { SkillLevel, Division, DIVISION_LABELS, DIVISION_COLORS } from '../../types';
@@ -425,7 +426,15 @@ export default function ProfileScreen({ navigation }: any) {
           <TouchableOpacity style={styles.deleteAccountBtn} onPress={() => navigation.navigate('DeleteAccount')}>
             <Text style={styles.deleteAccountText}>🗑️  Delete Account</Text>
           </TouchableOpacity>
-          <Text style={styles.version}>BPT Academy v1.0.0</Text>
+          <Text style={styles.version}>
+            BPT Academy v{Constants.expoConfig?.version ?? '—'}
+            {(() => {
+              const build = Platform.OS === 'ios'
+                ? Constants.expoConfig?.ios?.buildNumber
+                : Constants.expoConfig?.android?.versionCode;
+              return build != null ? ` (${build})` : '';
+            })()}
+          </Text>
         </View>
       </ScrollView>
 

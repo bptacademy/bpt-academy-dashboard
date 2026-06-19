@@ -185,6 +185,23 @@ export default function ScheduleGeneratorScreen({ route, navigation }: any) {
         await supabase.from('program_sessions').insert(sessionRows);
       }
 
+      // 2c. Auto-generate this group's modules to match the sessions — ONLY if it
+      // has none yet, so a coach's edited curriculum is never overwritten. Modules
+      // are per child-program (per group); editing/regenerating lives in the
+      // Modules screen.
+      const { count: moduleCount } = await supabase
+        .from('modules').select('*', { count: 'exact', head: true }).eq('program_id', programId);
+      if (!moduleCount || moduleCount === 0) {
+        const moduleRows = sessionDates.map((d, i) => ({
+          program_id: programId,
+          title: `Module ${i + 1}`,
+          order_index: i + 1,
+          session_date: localDateStr(d),
+          is_published: true,
+        }));
+        if (moduleRows.length > 0) await supabase.from('modules').insert(moduleRows);
+      }
+
       // 3. Flip program to active and set cycle dates.
       // current_cycle_start_date = coach-selected start date (first session).
       // next_cycle_start_date    = 1st of the month AFTER the cycle start month.
@@ -200,7 +217,10 @@ export default function ScheduleGeneratorScreen({ route, navigation }: any) {
         })
         .eq('id', programId);
 
-      // 4. Auto-enrollment: confirmed+paid current students first, then waiting list FIFO
+      // 4. Re-enrollment continuity only. New placements now come from the coach
+      //    assigning matched waitlisters via "Recommended Students" (availability-
+      //    first flow) — NOT blind FIFO from the waiting list. Here we just promote
+      //    students who already confirmed + paid for the next cycle.
       const maxSpots = parseInt(capacity, 10) || 10;
       await supabase.from('programs').update({ max_students: maxSpots }).eq('id', programId);
 
@@ -210,48 +230,12 @@ export default function ScheduleGeneratorScreen({ route, navigation }: any) {
         .eq('confirmed_next_month', true)
         .eq('payment_confirmed', true);
 
-      let filledSpots = (confirmed ?? []).length;
+      const filledSpots = (confirmed ?? []).length;
 
       for (const e of (confirmed ?? []) as any[]) {
         await supabase.from('enrollments')
           .update({ status: 'active', confirmed_next_month: false, payment_confirmed: false })
           .eq('id', e.id);
-      }
-
-      const remainingSpots = Math.max(0, maxSpots - filledSpots);
-      if (remainingSpots > 0) {
-        const { data: waitlist } = await supabase
-          .from('program_waiting_list').select('student_id, position')
-          .eq('program_id', programId).eq('month', month)
-          .order('position', { ascending: true }).limit(remainingSpots);
-
-        for (const w of (waitlist ?? []) as any[]) {
-          await supabase.from('enrollments').upsert({
-            student_id: w.student_id, program_id: programId,
-            status: 'active', confirmed_next_month: false, payment_confirmed: false,
-          }, { onConflict: 'student_id,program_id' });
-          await supabase.from('notifications').insert({
-            recipient_id: w.student_id,
-            title: '🎾 You got a spot!',
-            body: `You have been enrolled in ${programTitle} for next month!`,
-            type: 'enrollment', read: false,
-          });
-          filledSpots++;
-        }
-
-        const { data: missed } = await supabase
-          .from('program_waiting_list').select('student_id')
-          .eq('program_id', programId).eq('month', month)
-          .order('position', { ascending: true }).range(remainingSpots, 999);
-
-        for (const w of (missed ?? []) as any[]) {
-          await supabase.from('notifications').insert({
-            recipient_id: w.student_id,
-            title: 'No spot available this month',
-            body: `Unfortunately there were no spots for you in ${programTitle} this month. Join the waiting list again next month!`,
-            type: 'waitlist_miss', read: false,
-          });
-        }
       }
 
       // 5. Set re-enrollment deadline (7 days before last session) and notify active students
@@ -279,14 +263,14 @@ export default function ScheduleGeneratorScreen({ route, navigation }: any) {
         });
       }
 
-      // 6. Reset waiting list for this month
-      await supabase.from('program_waiting_list').delete()
-        .eq('program_id', programId).eq('month', month);
+      // NOTE: the template waiting list is intentionally NOT cleared here — it
+      // persists so the coach can keep assigning matched students from
+      // "Recommended Students". Students leave the list when they're assigned.
 
       setGenerating(false);
       Alert.alert(
         '✅ Schedule Generated!',
-        `${sessionDates.length} sessions created. ${filledSpots} students enrolled.\n\nCycle starts: ${formatDateLabel(selectedStart)}\nNext cycle opens: ${firstDayOfNextMonth(selectedStart)}\n\nTip: Go to Modules to generate or edit session modules.`,
+        `${sessionDates.length} sessions created.${filledSpots > 0 ? ` ${filledSpots} returning student${filledSpots === 1 ? '' : 's'} carried over.` : ''}\n\nCycle starts: ${formatDateLabel(selectedStart)}\nNext cycle opens: ${firstDayOfNextMonth(selectedStart)}\n\nNext: open “🎯 Matches” to place waitlisted players, and Modules to edit sessions.`,
         [{ text: 'Done', onPress: () => navigation.goBack() }]
       );
     } catch (err: any) {
@@ -324,9 +308,9 @@ export default function ScheduleGeneratorScreen({ route, navigation }: any) {
         <View style={styles.infoCard}>
           <Text style={styles.infoIcon}>📅</Text>
           <View style={styles.infoText}>
-            <Text style={styles.infoTitle}>Calendar only — modules not affected</Text>
+            <Text style={styles.infoTitle}>Sets up this group's sessions + modules</Text>
             <Text style={styles.infoBody}>
-              This sets up {sessionCount} calendar sessions. To generate or update modules, go to the Modules screen after generating the schedule.
+              Creates {sessionCount} calendar sessions for this group. New groups also get {sessionCount} matching modules automatically — existing modules are never overwritten (edit them in the Modules screen).
             </Text>
           </View>
         </View>

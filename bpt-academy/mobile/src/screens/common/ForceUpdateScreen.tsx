@@ -1,9 +1,12 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image, Dimensions, Linking } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Image, Dimensions, Linking, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const { width, height } = Dimensions.get('window');
 const APP_STORE_URL = 'https://apps.apple.com/app/id6769894988';
+const PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=com.bptacademy.app';
+// Send each platform to its own store — never the wrong one.
+const STORE_URL = Platform.OS === 'android' ? PLAY_STORE_URL : APP_STORE_URL;
 
 export default function ForceUpdateScreen() {
   const insets = useSafeAreaInsets();
@@ -18,7 +21,7 @@ export default function ForceUpdateScreen() {
           A new version of BPT Academy is available with important improvements and fixes.{'\n\n'}
           Please update to continue using the app.
         </Text>
-        <TouchableOpacity style={styles.btn} onPress={() => Linking.openURL(APP_STORE_URL)}>
+        <TouchableOpacity style={styles.btn} onPress={() => Linking.openURL(STORE_URL)}>
           <Text style={styles.btnText}>Update Now →</Text>
         </TouchableOpacity>
       </View>

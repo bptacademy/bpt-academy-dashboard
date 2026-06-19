@@ -9,6 +9,20 @@ import { Program, EnrollmentStatus, Division, DIVISION_LABELS, DIVISION_COLORS }
 import BackHeader from '../../components/common/BackHeader';
 
 const DEFAULT_SESSION_TIME = '09:00';
+
+// Future date options for the cycle-start picker (next 120 days, from tomorrow).
+function buildCycleDateOptions(): { value: string; label: string }[] {
+  const out: { value: string; label: string }[] = [];
+  const base = new Date(); base.setHours(0, 0, 0, 0);
+  for (let i = 1; i <= 120; i++) {
+    const n = new Date(base); n.setDate(n.getDate() + i);
+    const value = `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, '0')}-${String(n.getDate()).padStart(2, '0')}`;
+    out.push({ value, label: n.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' }) });
+  }
+  return out;
+}
+const CYCLE_DATE_OPTIONS = buildCycleDateOptions();
+
 function buildTimeSlots(): string[] {
   const slots: string[] = [];
   for (let h = 6; h <= 22; h++) {
@@ -71,6 +85,8 @@ export default function ProgramRosterScreen({ route, navigation }: any) {
   const [editTimes, setEditTimes] = useState<Record<string,string>>({});
   const [timePickerDay, setTimePickerDay] = useState<string|null>(null);
   const [savingTimes, setSavingTimes] = useState(false);
+  const [cycleDateModalVisible, setCycleDateModalVisible] = useState(false);
+  const [savingCycleDate, setSavingCycleDate] = useState(false);
 
   // Filter eligible students by the search box (case-insensitive name match)
   const filteredStudents = availableStudents.filter(s =>
@@ -157,49 +173,50 @@ export default function ProgramRosterScreen({ route, navigation }: any) {
     fetchData();
   };
 
-  const setNextCycleDate = async () => {
-    const { data: prog } = await supabase
-      .from('programs')
-      .select('next_cycle_start_date')
-      .eq('id', programId)
-      .single();
+  // Cross-platform date picker (Alert.prompt is iOS-only). Opens a modal that
+  // only offers future dates, then validates + writes with a real error check.
+  const openCycleDateModal = () => setCycleDateModalVisible(true);
 
-    const current = prog?.next_cycle_start_date ?? '';
-    Alert.prompt(
-      'Set Next Cycle Start Date',
-      'Enter date (YYYY-MM-DD):',
-      async (dateStr) => {
-        if (!dateStr || !/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
-          Alert.alert('Invalid date', 'Please use YYYY-MM-DD format.');
-          return;
-        }
-        await supabase.from('programs').update({ next_cycle_start_date: dateStr }).eq('id', programId);
+  const confirmCycleDate = async (dateStr: string) => {
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const picked = new Date(dateStr + 'T00:00:00');
+    if (isNaN(picked.getTime()) || picked <= today) {
+      Alert.alert('Invalid date', 'Please choose a future date.');
+      return;
+    }
 
-        const { data: pending } = await supabase
-          .from('enrollments')
-          .select('student_id')
-          .eq('program_id', programId)
-          .eq('status', 'pending_next_cycle');
+    setSavingCycleDate(true);
+    const { error } = await supabase
+      .from('programs').update({ next_cycle_start_date: dateStr }).eq('id', programId);
+    if (error) {
+      setSavingCycleDate(false);
+      Alert.alert('Error', error.message);
+      return;
+    }
 
-        if (pending && pending.length > 0) {
-          const formatted = new Date(dateStr + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
-          await supabase.from('notifications').insert(
-            pending.map((p: any) => ({
-              recipient_id: p.student_id,
-              title: '📅 Your start date is confirmed',
-              body: `Your program sessions will begin on ${formatted}. We'll see you on the court!`,
-              type: 'enrollment',
-              data: { program_id: programId, cycle_start: dateStr },
-            }))
-          );
-        }
+    const { data: pending } = await supabase
+      .from('enrollments')
+      .select('student_id')
+      .eq('program_id', programId)
+      .eq('status', 'pending_next_cycle');
 
-        Alert.alert('✅ Done', `Next cycle set to ${dateStr}.`);
-        fetchData();
-      },
-      'plain-text',
-      current,
-    );
+    if (pending && pending.length > 0) {
+      const formatted = new Date(dateStr + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+      await supabase.from('notifications').insert(
+        pending.map((p: any) => ({
+          recipient_id: p.student_id,
+          title: '📅 Your start date is confirmed',
+          body: `Your program sessions will begin on ${formatted}. We'll see you on the court!`,
+          type: 'enrollment',
+          data: { program_id: programId, cycle_start: dateStr },
+        }))
+      );
+    }
+
+    setSavingCycleDate(false);
+    setCycleDateModalVisible(false);
+    Alert.alert('✅ Done', `Next cycle set to ${dateStr}.`);
+    fetchData();
   };
 
   useEffect(() => { fetchData(); }, [programId]);
@@ -341,7 +358,7 @@ export default function ProgramRosterScreen({ route, navigation }: any) {
       </TouchableOpacity>
 
       {/* Next Cycle Date */}
-      <TouchableOpacity style={styles.cycleDateBtn} onPress={setNextCycleDate}>
+      <TouchableOpacity style={styles.cycleDateBtn} onPress={openCycleDateModal}>
         <Text style={styles.cycleDateBtnText}>
           📅 Next Cycle Start:{' '}
           {(program as any)?.next_cycle_start_date
@@ -576,6 +593,41 @@ export default function ProgramRosterScreen({ route, navigation }: any) {
               </TouchableOpacity>
             </>
           )}
+        </View>
+      </Modal>
+
+      {/* ── Set Next Cycle Start Date Modal ── */}
+      <Modal
+        visible={cycleDateModalVisible}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setCycleDateModalVisible(false)}
+      >
+        <View style={styles.tpModal}>
+          <View style={styles.tpHandle} />
+          <Text style={styles.tpTitle}>📅 Set Next Cycle Start Date</Text>
+          <Text style={styles.tpSubtitle}>Pick the first day of the next cycle. Students awaiting the next cycle are notified.</Text>
+          <FlatList
+            data={CYCLE_DATE_OPTIONS}
+            keyExtractor={(item) => item.value}
+            contentContainerStyle={{ paddingBottom: 40 }}
+            renderItem={({ item }) => {
+              const isCurrent = (program as any)?.next_cycle_start_date === item.value;
+              return (
+                <TouchableOpacity
+                  style={[styles.tpSlot, isCurrent && styles.tpSlotActive, savingCycleDate && { opacity: 0.5 }]}
+                  disabled={savingCycleDate}
+                  onPress={() => confirmCycleDate(item.value)}
+                >
+                  <Text style={[styles.tpSlotText, isCurrent && styles.tpSlotTextActive]}>{item.label}</Text>
+                  {isCurrent && <Text style={styles.tpCheck}>✓</Text>}
+                </TouchableOpacity>
+              );
+            }}
+          />
+          <TouchableOpacity style={styles.tpCancel} onPress={() => setCycleDateModalVisible(false)}>
+            <Text style={styles.tpCancelText}>Cancel</Text>
+          </TouchableOpacity>
         </View>
       </Modal>
     </View>

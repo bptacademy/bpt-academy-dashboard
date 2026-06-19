@@ -6,6 +6,22 @@ export type PaymentMethod = 'stripe' | 'bank_transfer';
 export type PaymentStatus = 'pending' | 'confirmed' | 'failed' | 'refunded';
 export type TournamentStatus = 'upcoming' | 'registration_open' | 'ongoing' | 'completed';
 
+// ── Availability-first enrollment ──────────────────────────────
+// Programs run 2 days/week, Mon–Fri, each day a morning or afternoon slot.
+export type TimeSlot = 'morning' | 'afternoon';
+export type WeekdayKey = 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday';
+// e.g. { tuesday: 'morning', thursday: 'afternoon' }
+export type Availability = Partial<Record<WeekdayKey, TimeSlot>>;
+
+export const WEEKDAYS: { key: WeekdayKey; label: string }[] = [
+  { key: 'monday',    label: 'Mon' },
+  { key: 'tuesday',   label: 'Tue' },
+  { key: 'wednesday', label: 'Wed' },
+  { key: 'thursday',  label: 'Thu' },
+  { key: 'friday',    label: 'Fri' },
+];
+export const SESSIONS_PER_WEEK_CHOICE = 2;
+
 export const DIVISION_LABELS: Record<Division, string> = {
   amateur: 'Amateur',
   semi_pro: 'Semi-Pro',
@@ -168,9 +184,33 @@ export interface Program {
   duration_weeks?: number;
   max_students?: number;
   coach_id?: string;
+  template_id?: string;
   is_active: boolean;
   created_at: string;
   coach?: Profile;
+}
+
+// Public catalog parent: one per division+level. Child-programs (groups)
+// reference it via programs.template_id.
+export interface ProgramTemplate {
+  id: string;
+  division: Division;
+  skill_level?: SkillLevel;
+  title: string;
+  description?: string;
+  price_gbp?: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+// Mandatory info captured when a student joins a waiting list.
+export interface WaitlistCapture {
+  level: SkillLevel;
+  availability: Availability;
+  age: number;
+  phone: string;
+  ranking_score: number;   // 1–7 skill score, must sit inside the level's band
 }
 
 export interface ProgramSession {

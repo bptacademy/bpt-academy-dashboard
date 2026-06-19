@@ -62,6 +62,7 @@ import TournamentManageScreen from '../screens/coach/TournamentManageScreen';
 import TournamentDrawScreen from '../screens/coach/TournamentDrawScreen';
 import ProgramModulesScreen from '../screens/coach/ProgramModulesScreen';
 import ScheduleGeneratorScreen from '../screens/coach/ScheduleGeneratorScreen';
+import RecommendedStudentsScreen from '../screens/coach/RecommendedStudentsScreen';
 import PromotionManageScreen from '../screens/coach/PromotionManageScreen';
 import WaitingListScreen from '../screens/coach/WaitingListScreen';
 import AllWaitingListsScreen from '../screens/coach/AllWaitingListsScreen';
@@ -309,6 +310,7 @@ function CoachHomeStack() {
       <Stack.Screen name="AllWaitingLists"    component={AllWaitingListsScreen} />
       <Stack.Screen name="ProgramModules"     component={ProgramModulesScreen} />
       <Stack.Screen name="ScheduleGenerator"  component={ScheduleGeneratorScreen} />
+      <Stack.Screen name="RecommendedStudents" component={RecommendedStudentsScreen} />
       <Stack.Screen name="ManageVideos"       component={ManageVideosScreen} />
       <Stack.Screen name="UploadVideo"        component={UploadVideoScreen} />
       <Stack.Screen name="VideoPlayer"        component={VideoPlayerScreen} />
@@ -416,6 +418,7 @@ function AdminDashboardStack() {
       <Stack.Screen name="AllWaitingLists"    component={AllWaitingListsScreen} />
       <Stack.Screen name="ProgramModules"     component={ProgramModulesScreen} />
       <Stack.Screen name="ScheduleGenerator"  component={ScheduleGeneratorScreen} />
+      <Stack.Screen name="RecommendedStudents" component={RecommendedStudentsScreen} />
       <Stack.Screen name="VideoPlayer"        component={VideoPlayerScreen} />
       <Stack.Screen name="Payments"           component={PaymentReconciliationScreen} />
       <Stack.Screen name="BulkMsg"            component={BulkMessageScreen} />
@@ -474,6 +477,7 @@ function AdminProgramsStack() {
       <Stack.Screen name="AllWaitingLists"   component={AllWaitingListsScreen} />
       <Stack.Screen name="ProgramModules"    component={ProgramModulesScreen} />
       <Stack.Screen name="ScheduleGenerator" component={ScheduleGeneratorScreen} />
+      <Stack.Screen name="RecommendedStudents" component={RecommendedStudentsScreen} />
       <Stack.Screen name="ManageVideos"      component={ManageVideosScreen} />
       <Stack.Screen name="UploadVideo"       component={UploadVideoScreen} />
       <Stack.Screen name="VideoPlayer"       component={VideoPlayerScreen} />
@@ -526,6 +530,7 @@ function SuperAdminDashboardStack() {
       <Stack.Screen name="AllWaitingLists"    component={AllWaitingListsScreen} />
       <Stack.Screen name="ProgramModules"     component={ProgramModulesScreen} />
       <Stack.Screen name="ScheduleGenerator"  component={ScheduleGeneratorScreen} />
+      <Stack.Screen name="RecommendedStudents" component={RecommendedStudentsScreen} />
       <Stack.Screen name="VideoPlayer"        component={VideoPlayerScreen} />
       <Stack.Screen name="Students"           component={ManageStudentsScreen} />
       <Stack.Screen name="StudentDetail"      component={StudentDetailScreen} />
