@@ -5,7 +5,7 @@ import {
 } from 'react-native';
 import {
   SkillLevel, TimeSlot, WeekdayKey, Availability, WaitlistCapture,
-  WEEKDAYS, SESSIONS_PER_WEEK_CHOICE,
+  WEEKDAYS,
 } from '../../types';
 
 const LEVELS: { value: SkillLevel; label: string }[] = [
@@ -60,7 +60,8 @@ export default function AvailabilityCaptureModal({
     setAvailability((prev) => {
       const next: Availability = { ...prev };
       if (next[day]) { delete next[day]; return next; }
-      if (Object.keys(next).length >= SESSIONS_PER_WEEK_CHOICE) return prev; // cap at 2
+      // No cap — students pick every day they can train (Mon–Fri). More
+      // availability = easier/faster group formation for coaches.
       next[day] = 'morning';
       return next;
     });
@@ -69,7 +70,7 @@ export default function AvailabilityCaptureModal({
     setAvailability((prev) => ({ ...prev, [day]: slot }));
 
   const ageNum = parseInt(age, 10);
-  const daysOk = selectedDays.length === SESSIONS_PER_WEEK_CHOICE &&
+  const daysOk = selectedDays.length >= 1 &&
     selectedDays.every((d) => !!availability[d]);
   const valid = !!level && daysOk && scoreInRange &&
     Number.isFinite(ageNum) && ageNum > 0 && ageNum < 120 &&
@@ -96,8 +97,8 @@ export default function AvailabilityCaptureModal({
           {mode === 'complete' ? 'Complete your details' : 'Join Waiting List'}
         </Text>
         <Text style={styles.subtitle}>
-          Programs run 2 days a week. Tell us your level and when you can play —
-          a coach uses this to place you in the right group.
+          Tell us your level and every day you can play — the more days, the easier
+          a coach can place you in the right group.
         </Text>
 
         <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
@@ -154,17 +155,15 @@ export default function AvailabilityCaptureModal({
           )}
 
           {/* Days */}
-          <Text style={styles.label}>Pick 2 training days *</Text>
+          <Text style={styles.label}>Which days can you train? (Mon–Fri) *</Text>
           <View style={styles.row}>
             {WEEKDAYS.map((d) => {
               const on = !!availability[d.key];
-              const full = !on && selectedDays.length >= SESSIONS_PER_WEEK_CHOICE;
               return (
                 <TouchableOpacity
                   key={d.key}
-                  style={[styles.dayChip, on && styles.chipOn, full && styles.chipDisabled]}
+                  style={[styles.dayChip, on && styles.chipOn]}
                   onPress={() => toggleDay(d.key)}
-                  disabled={full}
                 >
                   <Text style={[styles.chipText, on && styles.chipTextOn]}>{d.label}</Text>
                 </TouchableOpacity>
