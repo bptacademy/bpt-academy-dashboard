@@ -1,6 +1,12 @@
 /* volpair support & legal site — scrollable, readable pages on the brand dark. */
 /* Loaded only on (support) routes, so the splash page keeps its own styles.    */
 
+/* Splash globals.css clips html+body with overflow:hidden — undo it here so the
+   support pages scroll (this CSS only loads on (support) routes). */
+html {
+  overflow-y: auto !important;
+  height: auto !important;
+}
 body {
   overflow-y: auto !important;
   height: auto !important;
