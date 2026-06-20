@@ -68,10 +68,6 @@ export function LegalPage({ title, updated, children }) {
         <a className="sp-back" href="/help">← Back to Help</a>
         <h1 className="sp-h1">{title}</h1>
         <p className="sp-updated">Last updated: {updated}</p>
-        <div className="sp-note">
-          This is a draft policy provided for transparency. If anything here is
-          unclear, email <a href="mailto:support@volpair.com">support@volpair.com</a>.
-        </div>
         <div className="sp-prose">{children}</div>
       </div>
     </main>
