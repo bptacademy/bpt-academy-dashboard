@@ -206,7 +206,7 @@ export interface ProgramTemplate {
 
 // Mandatory info captured when a student joins a waiting list.
 export interface WaitlistCapture {
-  level: SkillLevel;
+  level: SkillLevel | null; // null for Semi-Pro/Pro (no sub-levels)
   availability: Availability;
   age: number;
   phone: string;

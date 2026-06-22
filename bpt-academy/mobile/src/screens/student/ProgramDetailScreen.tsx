@@ -389,6 +389,7 @@ export default function ProgramDetailScreen({ route, navigation }: any) {
           submitting={captureSubmitting}
           mode={waitlistIncomplete ? 'complete' : 'join'}
           scoreBand={scoreBandFor((program as any)?.division, program?.skill_level)}
+          requiresLevel={divisionKey === 'amateur'}
           initial={{
             level: (program?.skill_level ?? profile?.skill_level) as SkillLevel | undefined,
             phone: profile?.phone ?? '',

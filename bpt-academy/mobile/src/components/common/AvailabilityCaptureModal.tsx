@@ -28,6 +28,9 @@ type Props = {
   initial?: Partial<WaitlistCapture>;
   // Allowed ranking-score band for this program's level (shown up front).
   scoreBand?: ScoreBand | null;
+  // Skill level (Beginner/Intermediate/Advanced) is Amateur-only. Hidden for
+  // Semi-Pro / Pro, which have no sub-levels.
+  requiresLevel?: boolean;
   onSubmit: (data: WaitlistCapture) => void;
   onCancel: () => void;
 };
@@ -40,9 +43,9 @@ const fmt = (n: number) => (Number.isInteger(n) ? n.toFixed(1) : String(n));
  * every field is valid — mirrors the DB CHECK so a partial join cannot complete.
  */
 export default function AvailabilityCaptureModal({
-  visible, submitting, mode = 'join', initial, scoreBand, onSubmit, onCancel,
+  visible, submitting, mode = 'join', initial, scoreBand, requiresLevel = true, onSubmit, onCancel,
 }: Props) {
-  const [level, setLevel]               = useState<SkillLevel | undefined>(initial?.level);
+  const [level, setLevel]               = useState<SkillLevel | undefined>(initial?.level ?? undefined);
   const [availability, setAvailability] = useState<Availability>(initial?.availability ?? {});
   const [age, setAge]                   = useState<string>(initial?.age != null ? String(initial.age) : '');
   const [phone, setPhone]               = useState<string>(initial?.phone ?? '');
@@ -72,13 +75,13 @@ export default function AvailabilityCaptureModal({
   const ageNum = parseInt(age, 10);
   const daysOk = selectedDays.length >= 1 &&
     selectedDays.every((d) => !!availability[d]);
-  const valid = !!level && daysOk && scoreInRange &&
+  const valid = (!requiresLevel || !!level) && daysOk && scoreInRange &&
     Number.isFinite(ageNum) && ageNum > 0 && ageNum < 120 &&
     phone.trim().length >= 6;
 
   const submit = () => {
-    if (!valid || !level) return;
-    onSubmit({ level, availability, age: ageNum, phone: phone.trim(), ranking_score: scoreNum });
+    if (!valid) return;
+    onSubmit({ level: requiresLevel ? (level ?? null) : null, availability, age: ageNum, phone: phone.trim(), ranking_score: scoreNum });
   };
 
   return (
@@ -97,28 +100,32 @@ export default function AvailabilityCaptureModal({
           {mode === 'complete' ? 'Complete your details' : 'Join Waiting List'}
         </Text>
         <Text style={styles.subtitle}>
-          Tell us your level and every day you can play — the more days, the easier
-          a coach can place you in the right group.
+          Tell us {requiresLevel ? 'your level and ' : ''}every day you can play — the more days,
+          the easier a coach can place you in the right group.
         </Text>
 
         <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
-          {/* Level */}
-          <Text style={styles.label}>Your level *</Text>
-          <View style={styles.row}>
-            {LEVELS.map((l) => {
-              const on = level === l.value;
-              return (
-                <TouchableOpacity
-                  key={l.value}
-                  style={[styles.chip, on && styles.chipOn]}
-                  onPress={() => setLevel(l.value)}
-                >
-                  <Text style={[styles.chipText, on && styles.chipTextOn]}>{l.label}</Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-          <Text style={styles.help}>A coach confirms your level in person.</Text>
+          {/* Level — Amateur only (Semi-Pro / Pro have no sub-levels) */}
+          {requiresLevel && (
+            <>
+              <Text style={styles.label}>Your level *</Text>
+              <View style={styles.row}>
+                {LEVELS.map((l) => {
+                  const on = level === l.value;
+                  return (
+                    <TouchableOpacity
+                      key={l.value}
+                      style={[styles.chip, on && styles.chipOn]}
+                      onPress={() => setLevel(l.value)}
+                    >
+                      <Text style={[styles.chipText, on && styles.chipTextOn]}>{l.label}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+              <Text style={styles.help}>A coach confirms your level in person.</Text>
+            </>
+          )}
 
           {/* Ranking score — range shown up front so they know what to enter */}
           <Text style={styles.label}>Ranking score *</Text>
