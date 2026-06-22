@@ -14,7 +14,8 @@ export function usePushNotifications(): void {
   const responseListener = useRef<any>(null);
 
   useEffect(() => {
-    if (!profile?.id) return;
+    const profileId = profile?.id;
+    if (!profileId) return;
 
     let cancelled = false;
 
@@ -25,9 +26,13 @@ export function usePushNotifications(): void {
 
         if (!Device.default.isDevice) return;
 
+        // SDK 53+: NotificationBehavior uses shouldShowBanner / shouldShowList
+        // (shouldShowAlert was removed). The old shape threw and aborted setup,
+        // which is why no tokens were being registered.
         Notifications.setNotificationHandler({
           handleNotification: async () => ({
-            shouldShowAlert: true,
+            shouldShowBanner: true,
+            shouldShowList: true,
             shouldPlaySound: true,
             shouldSetBadge: true,
           }),
@@ -48,7 +53,10 @@ export function usePushNotifications(): void {
           const { status } = await Notifications.requestPermissionsAsync();
           finalStatus = status;
         }
-        if (finalStatus !== 'granted') return;
+        if (finalStatus !== 'granted') {
+          console.log('[Push] permission not granted:', finalStatus);
+          return;
+        }
 
         const token = await Notifications.getExpoPushTokenAsync({
           projectId: 'a661965b-f384-43fa-8441-f9e5f78a0c3a',
@@ -56,10 +64,12 @@ export function usePushNotifications(): void {
 
         if (cancelled) return;
 
-        await supabase.from('push_tokens').upsert(
-          { user_id: profile.id, token: token.data, platform: Platform.OS, updated_at: new Date().toISOString() },
+        const { error } = await supabase.from('push_tokens').upsert(
+          { user_id: profileId, token: token.data, platform: Platform.OS, updated_at: new Date().toISOString() },
           { onConflict: 'user_id,token' }
         );
+        if (error) console.log('[Push] token upsert failed:', error.message);
+        else console.log('[Push] registered token:', token.data);
 
         notificationListener.current = Notifications.addNotificationReceivedListener(() => {});
 
@@ -76,8 +86,9 @@ export function usePushNotifications(): void {
             }
           } catch {}
         });
-      } catch (err) {
-        console.log('[Push] Not available in this environment');
+      } catch (err: any) {
+        // Log the real reason so we can diagnose on a device (was swallowed).
+        console.log('[Push] setup failed:', err?.message ?? err);
       }
     }
 
@@ -85,10 +96,12 @@ export function usePushNotifications(): void {
 
     return () => {
       cancelled = true;
-      import('expo-notifications').then((N) => {
-        if (notificationListener.current) N.removeNotificationSubscription(notificationListener.current);
-        if (responseListener.current) N.removeNotificationSubscription(responseListener.current);
-      }).catch(() => {});
+      // SDK 54: subscriptions are removed via their own .remove() method
+      // (Notifications.removeNotificationSubscription was removed).
+      try {
+        notificationListener.current?.remove?.();
+        responseListener.current?.remove?.();
+      } catch {}
     };
   }, [profile?.id]);
 }
