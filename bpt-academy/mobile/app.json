@@ -31,7 +31,7 @@
     },
     "android": {
       "package": "com.bptacademy.app",
-      "versionCode": 47,
+      "versionCode": 48,
       "googleServicesFile": "./google-services.json",
       "allowBackup": false,
       "resizeableActivity": true,
