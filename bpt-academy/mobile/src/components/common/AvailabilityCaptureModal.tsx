@@ -65,16 +65,25 @@ export default function AvailabilityCaptureModal({
       if (next[day]) { delete next[day]; return next; }
       // No cap — students pick every day they can train (Mon–Fri). More
       // availability = easier/faster group formation for coaches.
-      next[day] = 'morning';
+      next[day] = ['morning'];
       return next;
     });
   };
-  const setSlot = (day: WeekdayKey, slot: TimeSlot) =>
-    setAvailability((prev) => ({ ...prev, [day]: slot }));
+  // A day can have morning, afternoon, or both. Toggling the last slot off
+  // removes the day entirely (no longer available that day).
+  const toggleSlot = (day: WeekdayKey, slot: TimeSlot) =>
+    setAvailability((prev) => {
+      const cur = prev[day] ?? [];
+      const nextSlots = cur.includes(slot) ? cur.filter((s) => s !== slot) : [...cur, slot];
+      const next: Availability = { ...prev };
+      if (nextSlots.length === 0) delete next[day];
+      else next[day] = nextSlots;
+      return next;
+    });
 
   const ageNum = parseInt(age, 10);
   const daysOk = selectedDays.length >= 1 &&
-    selectedDays.every((d) => !!availability[d]);
+    selectedDays.every((d) => (availability[d]?.length ?? 0) >= 1);
   const valid = (!requiresLevel || !!level) && daysOk && scoreInRange &&
     Number.isFinite(ageNum) && ageNum > 0 && ageNum < 120 &&
     phone.trim().length >= 6;
@@ -178,21 +187,22 @@ export default function AvailabilityCaptureModal({
             })}
           </View>
 
-          {/* Slot per selected day */}
+          {/* Slot(s) per selected day — pick morning, afternoon, or both */}
           {selectedDays.length > 0 && (
             <>
               <Text style={styles.label}>Time of day *</Text>
+              <Text style={styles.help}>Pick morning, afternoon, or both for each day.</Text>
               {WEEKDAYS.filter((d) => availability[d.key]).map((d) => (
                 <View key={d.key} style={styles.slotRow}>
                   <Text style={styles.slotDay}>{d.label}</Text>
                   <View style={styles.row}>
                     {SLOTS.map((s) => {
-                      const on = availability[d.key] === s.value;
+                      const on = (availability[d.key] ?? []).includes(s.value);
                       return (
                         <TouchableOpacity
                           key={s.value}
                           style={[styles.slotChip, on && styles.chipOn]}
-                          onPress={() => setSlot(d.key, s.value)}
+                          onPress={() => toggleSlot(d.key, s.value)}
                         >
                           <Text style={[styles.chipText, on && styles.chipTextOn]}>{s.label}</Text>
                         </TouchableOpacity>

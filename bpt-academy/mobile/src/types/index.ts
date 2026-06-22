@@ -11,7 +11,8 @@ export type TournamentStatus = 'upcoming' | 'registration_open' | 'ongoing' | 'c
 export type TimeSlot = 'morning' | 'afternoon';
 export type WeekdayKey = 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday';
 // e.g. { tuesday: 'morning', thursday: 'afternoon' }
-export type Availability = Partial<Record<WeekdayKey, TimeSlot>>;
+// A day can have one or both slots (morning and/or afternoon).
+export type Availability = Partial<Record<WeekdayKey, TimeSlot[]>>;
 
 export const WEEKDAYS: { key: WeekdayKey; label: string }[] = [
   { key: 'monday',    label: 'Mon' },

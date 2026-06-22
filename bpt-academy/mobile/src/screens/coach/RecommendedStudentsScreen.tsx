@@ -34,10 +34,13 @@ interface Recommendation {
   score_in_band: boolean;
 }
 
-function slotLabel(slot?: string): string {
-  if (slot === 'morning') return 'AM';
-  if (slot === 'afternoon') return 'PM';
-  return '';
+function slotLabel(slots?: string[] | string): string {
+  if (!slots) return '';
+  const arr = Array.isArray(slots) ? slots : [slots]; // tolerate legacy single-string rows
+  return arr
+    .map((s) => (s === 'morning' ? 'AM' : s === 'afternoon' ? 'PM' : ''))
+    .filter(Boolean)
+    .join('·');
 }
 
 export default function RecommendedStudentsScreen({ route }: any) {
@@ -210,10 +213,11 @@ export default function RecommendedStudentsScreen({ route }: any) {
                 <View style={styles.availRow}>
                   {WEEKDAYS.map((d) => {
                     const slot = r.availability?.[d.key];
-                    if (!slot) return null;
+                    const label = slotLabel(slot);
+                    if (!label) return null;
                     return (
                       <View key={d.key} style={styles.availChip}>
-                        <Text style={styles.availChipText}>{d.label} {slotLabel(slot)}</Text>
+                        <Text style={styles.availChipText}>{d.label} {label}</Text>
                       </View>
                     );
                   })}
