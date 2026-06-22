@@ -76,8 +76,26 @@ export function scoreBandFor(
 export const SKILLS: SkillDef[] = [
 
   // ══════════════════════════════════════════════════════════════════════════
-  // BEGINNER — not listed separately; covered by intermediate onwards
+  // BEGINNER (Amateur)
   // ══════════════════════════════════════════════════════════════════════════
+
+  // Technique
+  { key: 'beg_forehand',              label: 'Forehand',                                              category: 'technique', minLevel: 'beginner' },
+  { key: 'beg_backhand',              label: 'Backhand',                                              category: 'technique', minLevel: 'beginner' },
+  { key: 'beg_fh_off_glass',          label: 'Forehand off the Glass',                               category: 'technique', minLevel: 'beginner' },
+  { key: 'beg_bh_off_glass',          label: 'Backhand off the Glass',                               category: 'technique', minLevel: 'beginner' },
+  { key: 'beg_fh_lob',                label: 'Forehand Lob',                                         category: 'technique', minLevel: 'beginner' },
+  { key: 'beg_bh_lob',                label: 'Backhand Lob',                                         category: 'technique', minLevel: 'beginner' },
+  { key: 'beg_fh_volley',             label: 'Forehand Volley',                                      category: 'technique', minLevel: 'beginner' },
+  { key: 'beg_bh_volley',             label: 'Backhand Volley',                                      category: 'technique', minLevel: 'beginner' },
+  { key: 'beg_gancho',                label: 'Gancho',                                               category: 'technique', minLevel: 'beginner' },
+  { key: 'beg_serve',                 label: 'Serve',                                                category: 'technique', minLevel: 'beginner' },
+  { key: 'beg_return',                label: 'Return',                                               category: 'technique', minLevel: 'beginner' },
+
+  // Tactic
+  { key: 'beg_keeping_ball',          label: 'Keeping the ball in game',                             group: 'CONSISTENCY & CONTROL', category: 'tactic', minLevel: 'beginner' },
+  { key: 'beg_trans_atk_def_lob',     label: 'Transition (attack → defense) By a Lob',              group: 'NET DOMINANCE', category: 'tactic', minLevel: 'beginner' },
+  { key: 'beg_trans_def_atk_lob',     label: 'Transition (defense → attack) By a Lob',              group: 'NET DOMINANCE', category: 'tactic', minLevel: 'beginner' },
 
   // ══════════════════════════════════════════════════════════════════════════
   // INTERMEDIATE
@@ -210,11 +228,9 @@ export const SKILLS: SkillDef[] = [
 const LEVEL_ORDER: SkillDivision[] = ['beginner', 'intermediate', 'advanced', 'semi_pro', 'pro'];
 
 export function getSkillsForDivision(division: SkillDivision): SkillDef[] {
-  // Pro uses same skill set as semi_pro
-  // Beginner uses same skill set as intermediate (no beginner-specific skills defined)
+  // Pro uses same skill set as semi_pro. Beginner now has its own set.
   let effectiveDiv = division;
   if (division === 'pro') effectiveDiv = 'semi_pro';
-  if (division === 'beginner') effectiveDiv = 'intermediate';
   return SKILLS.filter(s => s.minLevel === effectiveDiv);
 }
 
