@@ -12,12 +12,14 @@
   --maxw: 1120px;
 }
 
-/* Snap only on the landing (class toggled by the page). Support pages untouched. */
-html.landing-active { scroll-snap-type: y proximity; }
+/* Smooth nav on the landing (class toggled by the page). Support pages untouched. */
+html.landing-active { scroll-behavior: smooth; }
 
 .lp {
   position: relative;
-  overflow-x: hidden;
+  /* NB: no overflow-x:hidden here — it would create a scroll container and
+     break the sticky/stacking scenes. Horizontal overflow is clipped per-scene
+     via `.scene { overflow: hidden }` instead. */
 }
 
 /* ── Ambient background (fixed) ── */
@@ -84,18 +86,35 @@ html.landing-active { scroll-snap-type: y proximity; }
 }
 .lp-dots button.on { background: var(--cyan); border-color: var(--cyan); box-shadow: 0 0 12px var(--cyan); transform: scale(1.25); }
 
-/* ── Scene base ── */
+/* ── Scene base — STACKING / PINNED pages ──
+   Every scene sticks to the top of the viewport and is exactly one screen tall,
+   with its own opaque background. As you scroll, the next scene slides up and
+   covers the pinned previous one (the hero stays in place underneath). Later
+   scenes paint over earlier ones (DOM order + the z-index ladder below). */
 .scene {
-  position: relative;
+  position: sticky;
+  top: 0;
+  height: 100svh;
   z-index: 1;
-  min-height: 100svh;
-  scroll-snap-align: start;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 96px 24px;
   overflow: hidden;
+  /* opaque so it fully covers the scene beneath while keeping the neon glow */
+  background:
+    radial-gradient(1200px 800px at 75% -10%, rgba(122, 60, 220, 0.28), transparent 60%),
+    radial-gradient(1000px 700px at 10% 110%, rgba(0, 200, 255, 0.18), transparent 55%),
+    var(--bg);
 }
+/* z-index ladder: each section covers the one before it */
+.scene:nth-of-type(1) { z-index: 1; }
+.scene:nth-of-type(2) { z-index: 2; }
+.scene:nth-of-type(3) { z-index: 3; }
+.scene:nth-of-type(4) { z-index: 4; }
+.scene:nth-of-type(5) { z-index: 5; }
+.scene:nth-of-type(6) { z-index: 6; }
+.scene:nth-of-type(7) { z-index: 7; }
 .scene-inner { position: relative; z-index: 2; width: 100%; max-width: var(--maxw); }
 .layer { will-change: transform; }
 
@@ -130,6 +149,22 @@ html.landing-active { scroll-snap-type: y proximity; }
 }
 .btn-primary:hover { transform: translateY(-2px); filter: brightness(1.08); }
 
+.btn-ghost {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(255,255,255,0.04); color: var(--ink); font-weight: 700; font-size: 15px;
+  padding: 15px 26px; border: 1px solid var(--glass-brd); border-radius: 999px;
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  transition: transform 0.2s, background 0.2s, border-color 0.2s;
+}
+.btn-ghost:hover { transform: translateY(-2px); background: rgba(255,255,255,0.08); border-color: var(--cyan); }
+
+/* ── Floating CTA (replaces header) ── */
+.lp-float-cta {
+  position: fixed; top: 22px; left: 50%; transform: translateX(-50%);
+  z-index: 45;
+}
+.lp-float-cta .btn-primary { font-size: 15px; padding: 13px 26px; }
+
 /* ── HERO ── */
 .hero .scene-inner { text-align: center; display: flex; flex-direction: column; align-items: center; }
 .hero-wordmark { display: flex; align-items: center; gap: 12px; margin-bottom: 30px; opacity: 0.95; }
@@ -138,6 +173,18 @@ html.landing-active { scroll-snap-type: y proximity; }
 .hero .display { max-width: 16ch; }
 .hero .lead { margin: 26px auto 36px; }
 .hero-note { margin-top: 18px; font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.hero-cta { display: flex; gap: 14px; justify-content: center; align-items: center; flex-wrap: wrap; }
+
+/* Hero photo (replaces the padel ball) — darkened so the headline stays legible */
+.hero-photo {
+  position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(120% 90% at 50% 40%, transparent 30%, rgba(8,2,22,0.65) 100%),
+    linear-gradient(rgba(8,2,22,0.55), rgba(8,2,22,0.80)),
+    url('/images/couples-1.jpg');
+  background-size: cover; background-position: center;
+  opacity: 0.6;
+}
 
 /* Giant glowing padel ball */
 .ball-wrap { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 0; }
@@ -280,7 +327,7 @@ html.landing-active { scroll-snap-type: y proximity; }
   border: 1px solid var(--glass-brd); background: rgba(255,255,255,0.03); color: var(--muted); font-size: 13px; font-weight: 600;
 }
 
-.lp-footer { position: relative; z-index: 1; border-top: 1px solid rgba(160,130,255,0.1); padding: 56px 24px 40px; background: rgba(8,0,22,0.6); }
+.lp-footer { position: relative; z-index: 10; border-top: 1px solid rgba(160,130,255,0.1); padding: 56px 24px 40px; background: #07011a; }
 .lp-footer-inner { max-width: var(--maxw); margin: 0 auto; }
 .lp-footer-cols { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 32px; }
 .lp-footer h4 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.1em; color: #fff; margin-bottom: 14px; }

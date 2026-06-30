@@ -85,12 +85,24 @@ export default function Home() {
     const onScroll = () => {
       if (reduce || raf) return;
       raf = requestAnimationFrame(() => {
-        const mid = window.innerHeight / 2;
+        const vh = window.innerHeight;
+        const mid = vh / 2;
         for (const el of layers) {
           const rect = el.getBoundingClientRect();
           const delta = rect.top + rect.height / 2 - mid;
           const speed = parseFloat(el.dataset.speed || '0');
           el.style.transform = `translate3d(0, ${(delta * speed).toFixed(1)}px, 0)`;
+        }
+        // Outgoing-page depth: as the next scene slides up to cover this pinned
+        // one, ease it back with a slight scale-down + fade.
+        const scenes = sceneRefs.current;
+        for (let i = 0; i < scenes.length; i++) {
+          const sc = scenes[i];
+          if (!sc) continue;
+          const nx = scenes[i + 1];
+          const cover = nx ? Math.min(1, Math.max(0, 1 - nx.getBoundingClientRect().top / vh)) : 0;
+          sc.style.transform = `scale(${(1 - 0.07 * cover).toFixed(4)})`;
+          sc.style.opacity = (1 - 0.5 * cover).toFixed(3);
         }
         raf = 0;
       });
@@ -150,22 +162,6 @@ export default function Home() {
     <div className="lp">
       <div className="lp-ambient" />
 
-      {/* Header */}
-      <header className="lp-header">
-        <div className="lp-header-inner">
-          <a className="lp-brand" href="#hero" onClick={(e) => { e.preventDefault(); go(0); }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.png" alt="volpair" /> <span>volpair</span>
-          </a>
-          <nav className="lp-nav">
-            <a href="#how" onClick={(e) => { e.preventDefault(); go(2); }}>How it works</a>
-            <a href="#score" onClick={(e) => { e.preventDefault(); go(3); }}>The Score</a>
-            <a href="https://support.volpair.com/safety">Safety</a>
-            <a className="lp-nav-cta" href="#join" onClick={(e) => { e.preventDefault(); go(6); }}>Join the waitlist</a>
-          </nav>
-          <a className="lp-nav-cta lp-burger" href="#join" onClick={(e) => { e.preventDefault(); go(6); }}>Join</a>
-        </div>
-      </header>
 
       {/* Progress dots */}
       <div className="lp-dots">
@@ -191,17 +187,8 @@ export default function Home() {
           </svg>
         </div>
 
-        {/* PLANE 2 · deep midground — giant glowing padel ball */}
-        <div className="ball-wrap layer" data-parallax data-speed="-0.08">
-          <div className="ball-spin">
-            <div className="ball">
-              <svg className="ball-seam" viewBox="0 0 200 200" aria-hidden="true">
-                <path d="M 14,84 C 64,134 136,134 186,84" />
-                <path d="M 14,116 C 64,66 136,66 186,116" />
-              </svg>
-            </div>
-          </div>
-        </div>
+        {/* PLANE 2 · deep midground — hero photo (replaces the padel ball) */}
+        <div className="hero-photo layer" data-parallax data-speed="-0.06" aria-hidden="true" />
 
         {/* PLANE 3 · midground — neon court streaks */}
         <div className="streaks layer" data-parallax data-speed="0.14" aria-hidden="true">
@@ -232,9 +219,9 @@ export default function Home() {
             <img src="/logo.png" alt="" /> <span>volpair</span>
           </div>
           <h1 className="display reveal" data-d="1">Every rally starts with a match.</h1>
-          <p className="lead reveal" data-d="2">The padel dating app. Meet someone for a match, a partner, or a spark.</p>
-          <div className="reveal" data-d="3">
+          <div className="reveal hero-cta" data-d="3">
             <button className="btn-primary" onClick={() => go(6)}>Join the waitlist →</button>
+            <button className="btn-ghost" onClick={() => go(2)}>How it works</button>
           </div>
           <p className="hero-note reveal" data-d="4">iOS · Android · coming soon</p>
         </div>
@@ -347,9 +334,6 @@ export default function Home() {
 
       {/* 7 — FINAL CTA */}
       <section id="join" ref={setScene(6)} className="scene final">
-        <div className="ball-wrap layer" data-parallax data-speed="-0.14">
-          <div className="ball-spin"><div className="ball" style={{ opacity: 0.7 }} /></div>
-        </div>
         <div className="scene-inner">
           <h2 className="display reveal">Be first on the court.</h2>
           <p className="lead reveal" data-d="1" style={{ margin: '20px auto 0' }}>
