@@ -172,46 +172,14 @@ export default function Home() {
 
       {/* 1 — HERO (layered parallax depth: back → front) */}
       <section id="hero" ref={setScene(0)} className="scene hero">
-        {/* PLANE 1 · far background — skyline + stars (lags, slowest) */}
-        <div className="hero-bg layer" data-parallax data-speed="-0.32" aria-hidden="true">
-          <div className="stars">
-            {STARS.map(([l, t], i) => (
-              <span key={i} className="star" style={{ left: `${l}%`, top: `${t}%` }} />
-            ))}
-          </div>
-          <svg className="skyline" viewBox="0 0 1440 220" preserveAspectRatio="none">
-            <path d="M0,220 V120 h60 v-30 h40 v50 h70 v-80 h50 v60 h60 V70 h40 v90 h80 v-50 h50 v30 h60 V40 h44 v120 h70 v-40 h50 v60 h80 V90 h40 v70 h70 v-30 h50 v40 h60 V60 h44 v100 h80 v-50 h50 v70 h120 V120 h60 v100 Z" />
-          </svg>
-          <svg className="skyline skyline-glow" viewBox="0 0 1440 220" preserveAspectRatio="none">
-            <path d="M0,120 h60 v-30 h40 v50 h70 v-80 h50 v60 h60 V70 h40 v90 h80 v-50 h50 v30 h60 V40 h44 v120 h70 v-40 h50 v60 h80 V90 h40 v70 h70 v-30 h50 v40 h60 V60 h44 v100 h80 v-50 h50 v70 h120 V120 h60" />
-          </svg>
-        </div>
-
-        {/* PLANE 2 · deep midground — hero photo (replaces the padel ball) */}
+        {/* Hero photo background */}
         <div className="hero-photo layer" data-parallax data-speed="-0.06" aria-hidden="true" />
 
-        {/* PLANE 3 · midground — neon court streaks */}
-        <div className="streaks layer" data-parallax data-speed="0.14" aria-hidden="true">
-          {STREAKS.map((s, i) => (
-            <span key={i} className="streak" style={{ top: `${s.t}%`, transform: `rotate(${s.r}deg)` }} />
-          ))}
-        </div>
-
-        {/* PLANE 4 · near — big blurred light orbs */}
+        {/* Soft light orbs — glow only, no lines/patterns */}
         <div className="hero-orbs layer" data-parallax data-speed="0.30" aria-hidden="true">
           <span className="hero-orb orb-a" />
           <span className="hero-orb orb-b" />
         </div>
-
-        {/* PLANE 5 · nearest — drifting particles (fastest) */}
-        <div className="particles layer" data-parallax data-speed="0.50" aria-hidden="true">
-          {PARTICLES.map((p, i) => (
-            <span key={i} className="particle" style={{ left: `${p.l}%`, top: `${p.t}%`, width: p.s, height: p.s, animationDuration: `${p.d}s`, animationDelay: `${p.delay}s` }} />
-          ))}
-        </div>
-
-        {/* Foreground court-net silhouette (moves fast) */}
-        <div className="hero-net layer" data-parallax data-speed="0.42" aria-hidden="true" />
 
         <div className="scene-inner">
           <div className="hero-wordmark reveal">
@@ -252,7 +220,7 @@ export default function Home() {
       <section id="how" ref={setScene(2)} className="scene how">
         <div className="scene-inner">
           <span className="eyebrow reveal">How it works</span>
-          <h2 className="h2 reveal" data-d="1">Volley. Connect. Play.</h2>
+          <h2 className="h2 reveal" data-d="1">Spark to date.<br />Partner to play.</h2>
           <div className="how-grid">
             {STEPS.map((s, i) => (
               <div key={s.h} className="card reveal" data-d={i + 1}>
