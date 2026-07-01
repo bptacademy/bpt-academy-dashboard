@@ -52,6 +52,8 @@ export default function Home() {
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState('idle'); // idle | invalid | loading | success | error
   const [score, setScore] = useState({ count: 0, offset: CIRC, bars: SCORE_BARS.map(() => 0) });
+  const [lang, setLang] = useState('en'); // 'en' | 'es' — UI selector (content translation TBD)
+  const [langOpen, setLangOpen] = useState(false);
   const sceneRefs = useRef([]);
 
   // Mount: snap class + observers + parallax
@@ -162,6 +164,34 @@ export default function Home() {
     <div className="lp">
       <div className="lp-ambient" />
 
+      {/* Floating top bar — logo · individual tab pills · language selector (no bar) */}
+      <header className="lp-topbar">
+        <a className="lp-logo" href="#hero" onClick={(e) => { e.preventDefault(); go(0); }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo.png" alt="volpair" /> <span>volpair</span>
+        </a>
+
+        <nav className="lp-tabs">
+          <button className="lp-tab" onClick={() => go(2)}>How it works</button>
+          <button className="lp-tab" onClick={() => go(3)}>The Score</button>
+          <button className="lp-tab" onClick={() => go(5)}>Safety</button>
+          <a className="lp-tab" href="https://support.volpair.com">Support</a>
+        </nav>
+
+        <div className="lp-lang">
+          <button className="lp-lang-btn" onClick={() => setLangOpen((o) => !o)} aria-haspopup="listbox" aria-expanded={langOpen}>
+            <span className="lp-lang-globe" aria-hidden="true">🌐</span>
+            <span>{lang === 'en' ? 'EN' : 'ES'}</span>
+            <span className="lp-lang-chev" aria-hidden="true">▾</span>
+          </button>
+          {langOpen && (
+            <div className="lp-lang-menu" role="listbox">
+              <button className={lang === 'en' ? 'on' : ''} onClick={() => { setLang('en'); setLangOpen(false); }}>English</button>
+              <button className={lang === 'es' ? 'on' : ''} onClick={() => { setLang('es'); setLangOpen(false); }}>Español</button>
+            </div>
+          )}
+        </div>
+      </header>
 
       {/* Progress dots */}
       <div className="lp-dots">

@@ -43,7 +43,59 @@ html.landing-active { scroll-behavior: smooth; }
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
 }
 
-/* ── Header ── */
+/* ── Floating top bar — logo · individual tab pills · language selector ── */
+/* No bar background; container ignores pointer events so it never blocks the
+   page, only the actual elements are interactive. */
+.lp-topbar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 18px 28px; pointer-events: none;
+}
+.lp-topbar > * { pointer-events: auto; }
+
+.lp-logo { display: flex; align-items: center; gap: 9px; font-weight: 800; font-size: 19px; letter-spacing: -0.02em; color: var(--ink); }
+.lp-logo img { width: 30px; height: 30px; filter: drop-shadow(0 0 10px rgba(122,60,220,0.8)); }
+
+.lp-tabs { display: flex; align-items: center; gap: 10px; }
+.lp-tab {
+  font-family: inherit; font-size: 14px; font-weight: 600; color: var(--ink);
+  padding: 10px 18px; border-radius: 999px; cursor: pointer;
+  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  transition: background 0.2s, border-color 0.2s, transform 0.2s;
+}
+.lp-tab:hover { background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.30); transform: translateY(-1px); }
+
+.lp-lang { position: relative; }
+.lp-lang-btn {
+  display: flex; align-items: center; gap: 7px; font-family: inherit;
+  font-size: 14px; font-weight: 600; color: var(--ink); cursor: pointer;
+  padding: 10px 15px; border-radius: 999px;
+  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  transition: background 0.2s;
+}
+.lp-lang-btn:hover { background: rgba(255,255,255,0.12); }
+.lp-lang-chev { font-size: 11px; opacity: 0.7; }
+.lp-lang-menu {
+  position: absolute; top: calc(100% + 8px); right: 0; min-width: 150px;
+  display: flex; flex-direction: column; gap: 2px; padding: 6px;
+  background: rgba(20,8,40,0.92); border: 1px solid rgba(255,255,255,0.14); border-radius: 14px;
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+}
+.lp-lang-menu button {
+  font-family: inherit; text-align: left; padding: 9px 12px; border-radius: 9px;
+  font-size: 14px; color: var(--muted); background: transparent; border: none; cursor: pointer;
+}
+.lp-lang-menu button:hover { background: rgba(255,255,255,0.08); color: #fff; }
+.lp-lang-menu button.on { color: var(--cyan); font-weight: 700; }
+
+@media (max-width: 720px) {
+  .lp-tabs { display: none; } /* logo + language stay; tabs hidden on small screens */
+}
+
+/* ── Header (legacy, unused) ── */
 .lp-header {
   position: fixed;
   inset: 0 0 auto 0;
